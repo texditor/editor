@@ -271,8 +271,6 @@ export default class BlockManager {
             this.focus(newBlock);
           }
 
-          console.log(content);
-
           if (blockInstance.afterCreate) blockInstance.afterCreate(newBlock as HTMLBlockElement);
 
           events.refresh();

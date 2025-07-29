@@ -1,4 +1,5 @@
 # Texditor (Beta) - Minimalistic Block Editor 🧱✏️
+
 A modern, modular block-based text editor built with TypeScript. Featuring a clean architecture, extensible design, and customizable content blocks.
 
 ![Beta Version](https://img.shields.io/badge/version-beta-orange)
@@ -70,4 +71,5 @@ const editor = new Texditor({
 ```
 
 ### Contribution 🤝
+
 We welcome contributions! Please feel free to submit issues or pull requests.
