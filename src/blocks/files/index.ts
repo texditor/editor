@@ -660,7 +660,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
     onUploadCallback: CallableFunction,
     onError?: CallableFunction
   ) {
-    const { i18n } = this.editor;
+    const { events, i18n } = this.editor;
     const ajaxConfig = this.getConfig("ajaxConfig") as {
         url: string;
         options: AjaxOptions;
@@ -733,10 +733,21 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       fetchRequest(ajaxConfig.url, userOptions)
         .then((response) => {
           callback(response);
+          events.change({
+            type: "upload",
+            success: true,
+            response: response
+          });
         })
         .catch((error) => {
           this.createMessage(i18n.get("fileUploadError") + ": " + error.message);
           if (onError) onError(error);
+
+          events.change({
+            type: "upload",
+            success: false,
+            error: error
+          });
         });
     }
   }
