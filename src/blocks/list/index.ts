@@ -212,7 +212,6 @@ export default class List extends BlockModel implements BlockModelInterface {
       if (this.isTarget(evt)) {
         const [cursorStart, cursorEnd] = selectionApi.getOffset(this.getItem(-1));
 
-        console.log(this.getItem(-1));
         if (this.isEmpty()) {
           evt.preventDefault();
           this.removeItem();
