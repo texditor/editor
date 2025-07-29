@@ -21,7 +21,7 @@ A modern, modular block-based text editor built with TypeScript. Featuring a cle
 
 ```js
 import "@texditor/editor/styles/theme.css"; // Theme variables
-import "@texditor/editor/styles/texditor.css"; // Core styles
+import "@texditor/editor/styles/editor.css"; // Core styles
 import Texditor from "@texditor/editor";
 
 const editor = new Texditor({
