@@ -40,10 +40,6 @@
   border: 0;
 }
 
-a {
-  background-color: rgba(12, 55, 66, 0.2) !important;
-}
-
 @media (hover: hover) {
   .tex-link-form-btn:hover {
     opacity: 0.6;
