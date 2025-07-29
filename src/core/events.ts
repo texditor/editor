@@ -3,7 +3,7 @@ import { EventTriggerObject } from "@/types/core";
 import { generateRandomString } from "@/utils/common";
 import { closest, mergeTextNodesToString } from "@/utils/dom";
 import { on } from "@/utils/events";
-import { hasClass, onReady, query } from "@/utils/dom";
+import { hasClass, query } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 
 export default class Events {
@@ -104,16 +104,14 @@ export default class Events {
   onReady(callback: CallableFunction) {
     const { actions, blockManager } = this.editor;
 
-    onReady(() => {
-      setTimeout(() => {
-        if (callback) callback(this);
+    setTimeout(() => {
+      if (callback) callback(this);
 
-        actions.render();
-        blockManager.detectEmpty();
-        blockManager.normalize();
-        this.refresh();
-      }, 10);
-    });
+      actions.render();
+      blockManager.detectEmpty();
+      blockManager.normalize();
+      this.refresh();
+    }, 50);
   }
 
   change(...data: unknown[]) {
