@@ -82,10 +82,6 @@ export function make(name: string, callback?: CallableFunction): HTMLElement {
   return el;
 }
 
-export function onReady(callback: CallableFunction) {
-  document.addEventListener("DOMContentLoaded", (evt) => callback(evt));
-}
-
 export function query(
   selector: string,
   callback: CallableFunction,
