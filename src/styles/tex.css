@@ -1,0 +1,234 @@
+.tex {
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+  color: var(--tex-color);
+}
+
+.tex-blocks {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  outline: none;
+}
+
+.tex-blocks h1,
+.tex-blocks h2,
+.tex-blocks h3,
+.tex-blocks h4,
+.tex-blocks h5,
+.tex-blocks h6 {
+  margin: 0;
+  padding: 8px 0;
+}
+
+.tex-block {
+  position: relative;
+  outline: none;
+  transition: all 1s;
+}
+
+.tex-block[data-empty="true"]:before {
+  content: attr(data-placeholder);
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.5;
+}
+
+.tex-block:focus,
+.tex-block-active {
+  background-color: var(--tex-background-lite);
+}
+
+.tex-actions {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  transition: top 0.3s;
+}
+
+.tex-actions-open {
+  padding: 4px;
+  transition: opacity 1s;
+  cursor: pointer;
+  display: inline-flex;
+  color: var(--tex-color);
+  opacity: 0.5;
+}
+
+.tex-actions-container,
+.tex-actions-menu {
+  display: grid;
+  background-color: var(--tex-background);
+  box-shadow: 0 0 8px 0 var(--tex-shadow-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tex-action-confirm {
+  background: var(--tex-background-secondary);
+}
+
+.tex-actions-wrap {
+  display: none;
+  margin-top: 4px;
+}
+
+.tex-actions-menu {
+  display: none;
+}
+
+.tex-actions-menu h4 {
+  margin: 0;
+  padding: 12px;
+  border-bottom: 1px solid var(--tex-border-color);
+}
+
+.tex-action,
+.tex-actions-menu-item {
+  user-select: none;
+  cursor: pointer;
+  transition: opacity 1s;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+}
+
+.tex-actions-menu-item {
+  padding: 6px 12px;
+}
+
+.tex-action-deleteBlock {
+  color: var(--tex-error);
+  border-top: 1px solid var(--tex-border-color);
+}
+
+.tex-action-deleteBlock-confirm {
+  background: var(--tex-error);
+  color: #fff;
+}
+
+.tex-icon {
+  display: block;
+}
+
+.tex-fill {
+  fill: var(--tex-fill);
+}
+
+.tex-toolbar {
+  background-color: var(--tex-background);
+  box-shadow: 0 0 8px 0 var(--tex-shadow-color);
+  display: none;
+  z-index: 10;
+  border-radius: 6px;
+}
+
+.tex-toolbar-fixed {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.tex-toolbar-tools {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tex-toolbar-content {
+  display: none;
+}
+
+.tex-tool {
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tex-tool.active {
+  color: var(--tex-color-secondary);
+}
+
+.tex-tool svg {
+  display: block;
+}
+
+.tex-input {
+  padding: 6px;
+  outline: none;
+}
+
+.tex-message {
+  font-weight: 500;
+  font-size: var(--tex-message-font-size);
+}
+
+.tex-message-error {
+  color: var(--tex-error);
+}
+
+.tex-message-success {
+  color: var(--tex-success);
+}
+
+.tex-btn {
+  transition: all 0.7s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.tex-btn-primary {
+  background-color: var(--tex-button-bg);
+  border: 1px solid var(--tex-button-border-color);
+  color: var(--tex-button-text-color);
+}
+
+.tex-btn-secondary {
+  background-color: var(--tex-button-secondary-bg);
+  border: 1px solid var(--tex-button-secondary-border-color);
+  color: var(--tex-button-secondary-text-color);
+}
+
+.tex-btn-radius {
+  border-radius: 4px;
+}
+
+.tex-btn-padding {
+  padding: 8px 12px;
+}
+
+@media (hover: hover) {
+  .tex-btn:hover {
+    opacity: 0.6;
+  }
+
+  .tex-action:hover,
+  .tex-actions-menu-item:hover {
+    opacity: 0.6;
+    background-color: var(--tex-background-lite);
+  }
+
+  .tex-actions-open:hover {
+    opacity: 0.6;
+  }
+
+  .tex-action-deleteBlock-confirm:hover {
+    background: var(--tex-error);
+    color: #fff;
+    opacity: 0.6;
+  }
+
+  .tex-tool:hover {
+    background-color: var(--tex-background-lite);
+  }
+}

@@ -1,0 +1,51 @@
+.tex-link-form {
+  padding: 6px 12px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tex-link-form-btn {
+  transition: all 0.7s;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--tex-background-secondary);
+}
+
+.tex-link-form-del-btn {
+  color: var(--tex-error);
+}
+
+.tex-link-form-target-btn svg {
+  fill: var(--tex-color);
+}
+
+.tex-link-form-target-btn.tex-active {
+  background-color: var(--tex-background-lite);
+}
+
+.tex-link-form-target-btn.tex-active svg {
+  fill: var(--tex-color-secondary);
+}
+
+.tex-link-input {
+  max-width: 130px;
+  border: 0;
+}
+
+a {
+  background-color: rgba(12, 55, 66, 0.2) !important;
+}
+
+@media (hover: hover) {
+  .tex-link-form-btn:hover {
+    opacity: 0.6;
+  }
+}

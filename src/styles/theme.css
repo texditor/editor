@@ -1,0 +1,21 @@
+.tex {
+  --tex-fill: rgba(100, 100, 100, 0.7);
+  --tex-background: #fff;
+  --tex-color: #222;
+  --tex-color-secondary: #42d392;
+  --tex-background-lite: rgba(204, 255, 204, 0.3);
+  --tex-background-secondary: rgba(150, 150, 150, 0.07);
+  --tex-progress-background: rgba(33, 78, 33, 0.2);
+  --tex-progress-color: rgba(33, 78, 33, 0.7);
+  --tex-shadow-color: rgb(33, 33, 33, 0.4);
+  --tex-border-color: rgba(179, 179, 179, 0.2);
+  --tex-error: #e6004c;
+  --tex-success: #1e764e;
+  --tex-message-font-size: 12px;
+  --tex-button-bg: #42d392;
+  --tex-button-border-color: #42d392;
+  --tex-button-text-color: #fff;
+  --tex-button-secondary-bg: rgba(225, 225, 225, 0.3);
+  --tex-button-secondary-border-color: rgba(225, 225, 225, 0.5);
+  --tex-button-secondary-text-color: #888;
+}

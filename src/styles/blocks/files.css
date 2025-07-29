@@ -1,0 +1,234 @@
+.tex-files {
+  border-radius: 6px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  border: 1px solid var(--tex-border-color);
+}
+
+.tex-files svg {
+  display: block;
+}
+
+.tex-files-form {
+  display: grid;
+  gap: 12px;
+}
+
+.tex-files-form-uploader {
+  background-color: var(--tex-background-secondary);
+  border-radius: 6px;
+  position: relative;
+}
+
+.tex-files-form-loading {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: none;
+}
+
+.tex-files-form-loading-percent {
+  color: var(--tex-progress-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  font-weight: 600;
+  font-size: var(--tex-message-font-size);
+}
+
+.tex-files-form-progress {
+  background-color: var(--tex-progress-background);
+  transition: all 1s;
+  height: 100%;
+  width: 1%;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.tex-files-form-uploader label {
+  padding: 6px;
+}
+
+.tex-files-form-uploader,
+.tex-files-form-uploader label {
+  cursor: pointer;
+  transition: opacity 1s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 500;
+  gap: 8px;
+}
+
+.tex-files-list-c {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.tex-files-item-c {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding-top: 60%;
+  position: relative;
+}
+
+.tex-files-list-c:has(> .tex-files-item-c:only-child) {
+  padding-top: unset;
+}
+
+.tex-files-item-source-c {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-user-select: none;
+  user-select: none;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.tex-files-item-source-c > * {
+  width: 100%;
+  display: block;
+}
+
+.tex-files-actions {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.tex-files-actions-wrap {
+  backdrop-filter: blur(8px);
+  background: var(--tex-background-secondary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  width: 100%;
+}
+
+.tex-files-actions-list {
+  backdrop-filter: blur(18px);
+  background: var(--tex-background);
+  opacity: 0.8;
+  border-radius: 6px;
+  display: flex;
+}
+
+.tex-files-action {
+  padding: 8px;
+  cursor: pointer;
+  transition: all 1s;
+}
+
+.tex-files-action-delete {
+  color: var(--tex-error);
+}
+
+.tex-files-default-item {
+  background: var(--tex-background-secondary);
+  display: flex;
+  gap: 12px;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  color: var(--tex-fill);
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.tex-files-input {
+  border: 1px solid var(--tex-border-color);
+  width: 100%;
+  padding: 12px;
+}
+
+.tex-files-item-edit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--tex-background-secondary);
+  backdrop-filter: blur(10px);
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 10;
+}
+
+.tex-files-item-edit-content {
+  background: var(--tex-background);
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tex-files-item-edit-popup {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.tex-files-item-edit-popup-h {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.tex-files-item-edit-popup-btns {
+  display: flex;
+  gap: 16px;
+  border-top: 1px solid var(--tex-border-color);
+  padding: 24px 24px 0 24px;
+  margin: 0 -24px;
+}
+
+.tex-files-item-moveRight.unactive,
+.tex-files-item-moveLeft.unactive {
+  display: none;
+}
+
+@media (hover: hover) {
+  .tex-files-form-uploader:hover {
+    opacity: 0.5;
+  }
+
+  .tex-files-action:hover {
+    opacity: 0.6;
+    background-color: var(--tex-background-lite);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .tex-files-list {
+    grid-template-columns: 1fr;
+  }
+}

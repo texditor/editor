@@ -1,0 +1,13 @@
+.tex-list {
+  padding: 0;
+  padding-left: 16px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.tex-list-item:focus {
+  background-color: var(--tex-background-lite);
+  outline: none;
+}

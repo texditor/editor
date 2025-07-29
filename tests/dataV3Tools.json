@@ -1,0 +1,159 @@
+[
+  {
+    "type": "h1",
+    "data": ["Заогловок H1 "]
+  },
+  {
+    "type": "p",
+    "data": [
+      " Текст с 3 тегами ",
+      {
+        "type": "b",
+        "data": [
+          {
+            "type": "i",
+            "data": [
+              {
+                "type": "a",
+                "data": ["обычный "],
+                "attr": {
+                  "href": "https://exa.com",
+                  "target": "_blank"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "текст"
+    ]
+  },
+  {
+    "type": "p",
+    "data": ["Обычный параграф далее обычный текст"]
+  },
+  {
+    "type": "p",
+    "data": [
+      "Текст с ",
+      {
+        "type": "a",
+        "attr": {
+          "href": "https://exa.com"
+        },
+        "data": [
+          "ссылко и ",
+          {
+            "type": "b",
+            "data": ["тегом"]
+          }
+        ]
+      },
+      "внутри"
+    ]
+  },
+  {
+    "type": "p",
+    "data": [
+      "Текст с ",
+      {
+        "type": "b",
+        "data": ["жирным"]
+      },
+      " шрифтом текст",
+      {
+        "type": "b",
+        "data": [
+          {
+            "type": "i",
+            "data": [" наклон"]
+          }
+        ]
+      },
+      "a плсле",
+      {
+        "type": "b",
+        "data": [
+          "начало жира ",
+          {
+            "type": "a",
+            "data": ["ссылка_внутри"],
+            "attr": {
+              "href": "https://nova.com"
+            }
+          },
+          " еще ",
+          {
+            "type": "a",
+            "data": ["ссылка_внутри2"],
+            "attr": {
+              "href": "https://pova.com"
+            }
+          },
+          " конец жира"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "p",
+    "data": [
+      "С ",
+      {
+        "type": "a",
+        "attr": {
+          "href": "https://exa.com"
+        },
+        "data": ["сылкой"]
+      }
+    ]
+  },
+  {
+    "type": "p",
+    "data": [
+      "С ",
+      {
+        "type": "a",
+        "attr": {
+          "href": "https://exa.com"
+        },
+        "data": [
+          {
+            "type": "b",
+            "data": ["жирссылка"]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "ol",
+    "data": [
+      {
+        "type": "li",
+        "data": ["this is orderd list"]
+      },
+      {
+        "type": "li",
+        "data": ["ok lis"]
+      },
+      {
+        "type": "li",
+        "data": [
+          "three ",
+          {
+            "type": "a",
+            "attr": {
+              "href": "https://nova.com"
+            },
+            "data": ["list_link"]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "code",
+    "data": ["this is code &lt;p&gt; test\n </p>"]
+  }
+]
