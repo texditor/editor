@@ -41,17 +41,15 @@ export default class Actions {
       curBlock = blockManager.getCurrentBlock(),
       root = api.getRoot();
 
-    if (root) {
+    if (root && curBlock) {
       query(
         api.css("actions"),
         (el: HTMLElement) => {
+          const rect = curBlock.getBoundingClientRect();
           css(el, "display", "flex");
+          css(el, "left", rect?.left - el.offsetWidth);
 
-          if (curBlock?.offsetLeft && curBlock?.offsetTop) {
-            css(el, "left", curBlock?.offsetLeft);
-
-            if (evt?.type != "scroll") css(el, "top", curBlock?.offsetTop + 1);
-          }
+          if (evt?.type != "scroll") css(el, "top", rect.top + 1);
         },
         root
       );
