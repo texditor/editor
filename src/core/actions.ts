@@ -48,7 +48,7 @@ export default class Actions {
           css(el, "display", "flex");
 
           if (curBlock?.offsetLeft && curBlock?.offsetTop) {
-            css(el, "left", curBlock?.offsetLeft - 20);
+            css(el, "left", curBlock?.offsetLeft);
 
             if (evt?.type != "scroll") css(el, "top", curBlock?.offsetTop + 1);
           }

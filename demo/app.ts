@@ -77,7 +77,3 @@ document.getElementById("saveButton")?.addEventListener(
   },
   true
 );
-
-// const editor2 = new Texditor({
-//   handle: "texditor2"
-// })

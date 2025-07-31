@@ -18,6 +18,6 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*", "demo/**/*"],
   "exclude": ["node_modules", "dist"]
 }
