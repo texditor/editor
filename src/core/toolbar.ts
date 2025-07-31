@@ -80,41 +80,37 @@ export default class Toolbar {
             const reposition = () => {
               const rect = selectionApi.getFirstLineBounds(),
                 contextMenuRect = getCaretPosition(),
-                mobileDevice = detectMobileOS();
+                mobileDevice = detectMobileOS(),
+                rootRect = root.getBoundingClientRect();
 
               if (rect) {
-                let offsetLeft = rect.left - root.offsetLeft,
-                  offsetTop = 0;
+                let toolbarLeft = rect.left,
+                  toolbarTop = 0;
 
-                const toolbarPos = el.offsetWidth + rect.left;
+                if (rect.left + el.offsetWidth > rootRect.width + rootRect.left)
+                  toolbarLeft = rect.left - el.offsetWidth;
 
-                if (toolbarPos > root.offsetWidth) {
-                  offsetLeft = root.offsetLeft + root.offsetWidth - el.offsetWidth;
-                }
+                if (toolbarLeft < 10) toolbarLeft = rootRect.left;
 
-                if (offsetLeft < 10) {
-                  offsetLeft = root.offsetLeft;
-                }
-
-                const isTopNegative = rect.top - el.offsetHeight < 10;
+                const isTopNegative = rect.top - +el.offsetHeight < 10;
 
                 if (
                   contextMenuRect?.y &&
                   (isTopNegative || (mobileDevice != "other" && contextMenuRect?.y > rect.top))
                 ) {
-                  offsetTop = rect.top + contextMenuRect.y - rect.top + rect.height / 2 - 10;
-                } else offsetTop = rect.top - el.clientHeight - rect.height / 2;
+                  toolbarTop = rect.top + contextMenuRect.y - rect.top + rect.height / 2 - 10;
+                } else toolbarTop = rect.top - (el.clientHeight / 2 + 10) - rect.height;
 
                 css(el, {
-                  top: offsetTop,
-                  left: offsetLeft
+                  top: toolbarTop,
+                  left: toolbarLeft
                 });
               }
             };
 
             reposition();
             on(window, "resize." + editorId, () => reposition());
-            on(window, "scroll." + editorId, () => reposition);
+            on(window, "scroll." + editorId, () => reposition());
           }
         },
         root

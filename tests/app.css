@@ -25,6 +25,14 @@ body {
   padding: 0 20px;
 }
 
+.test-wrap {
+  padding: 40px;
+  margin: 0 auto;
+  max-width: 900px;
+  position: relative;
+  top: 100px;
+}
+
 .app-output {
   background: #1b202b;
   overflow-x: auto;
