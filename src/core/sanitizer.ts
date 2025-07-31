@@ -82,7 +82,8 @@ export default class Sanitizer {
       case 1:
         this.cleanElement(elem as Element);
         break;
-
+      // Text
+      case 3:
       case 5:
         clone = elem.cloneNode(false);
         this.currentElement?.appendChild(clone);
