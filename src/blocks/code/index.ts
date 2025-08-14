@@ -6,6 +6,7 @@ import { OutputBlockItem } from "@/types/output";
 import { HTMLBlockElement } from "@/types/core";
 import { appendText } from "@/utils/dom";
 import { IconCode } from "@/icons";
+import { decodeHtmlSpecialChars } from "@/utils/common";
 
 export default class Code extends BlockModel implements BlockModelInterface {
   configure() {
@@ -36,7 +37,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
 
   parse(item: OutputBlockItem) {
     return this.create({
-      content: typeof item.data[0] === "string" ? item.data[0] : ""
+      content: typeof item.data[0] === "string" ? decodeHtmlSpecialChars(item.data[0]) : ""
     });
   }
 }

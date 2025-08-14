@@ -6,7 +6,7 @@ import { OutputBlockItem } from "@/types/output";
 import { addClass, append, attr, closest, css, make, prepend, query, queryLength, removeClass } from "@/utils/dom";
 import { HTMLBlockElement } from "@/types/core";
 import { isEmptyString } from "@/utils/string";
-import { generateRandomString } from "@/utils/common";
+import { decodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
 import { off, on } from "@/utils/events";
 import { IconArrowLeft, IconArrowRight, IconFile, IconPencil, IconPlus, IconTrash } from "@/icons";
 import renderIcon from "@/utils/renderIcon";
@@ -628,8 +628,8 @@ export default abstract class Files extends BlockModel implements BlockModelInte
         el.dataset.type = item.type;
         el.dataset.url = item.url;
 
-        if (item.caption) el.dataset.caption = item.caption;
-        if (item.desc) el.dataset.desc = item.desc;
+        if (item.caption) el.dataset.caption = decodeHtmlSpecialChars(item.caption);
+        if (item.desc) el.dataset.desc = decodeHtmlSpecialChars(item.desc);
 
         el.id = block.id + "-" + generateRandomString(12);
         append(el, this.createActionBar(el, container, block));

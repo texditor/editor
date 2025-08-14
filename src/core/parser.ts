@@ -2,6 +2,7 @@ import Texditor from "@/texditor";
 import { HTMLBlockElement } from "@/types/core";
 import { BlockModelStructure } from "@/types/core/models";
 import { BlockItemData, OutputBlockItem } from "@/types/output";
+import { decodeHtmlSpecialChars } from "@/utils/common";
 import { appendText, append, attr, make } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 
@@ -58,8 +59,8 @@ export default class Parser {
 
             if (text?.trim()) result.push(text);
           } else if (node.nodeType === Node.ELEMENT_NODE) {
-            // Добавляем проверку на Element
-            const element = node as Element; // Приводим к Element вместо HTMLElement
+
+            const element = node as Element;
             const objAttr: Record<string, string> = {};
             let outContent: Array<OutputBlockItem | string> = [node.textContent || ""];
 
@@ -67,7 +68,7 @@ export default class Parser {
               const childNodes = node.childNodes;
 
               if (!(childNodes.length === 1 && childNodes[0]!.nodeType === Node.TEXT_NODE)) {
-                outContent = this.htmlToData(element.innerHTML); // Теперь element точно имеет innerHTML
+                outContent = this.htmlToData(element.innerHTML);
               }
             }
 
@@ -89,10 +90,10 @@ export default class Parser {
             events.trigger("htmlToDataElementOutput", outData);
             result.push(outData);
           }
-          // Можно добавить обработку других типов узлов (COMMENT_NODE, etc) если нужно
         });
       } else {
-        result.push(html);
+
+        result.push(decodeHtmlSpecialChars(html));
       }
     }
 
@@ -162,17 +163,17 @@ export default class Parser {
       if (Array.isArray(block.data)) {
         (block.data as (OutputBlockItem | string)[]).forEach((item: OutputBlockItem | string) => {
           if (typeof item === "string") {
-            appendText(element, item);
+            appendText(element, decodeHtmlSpecialChars(item));
           } else {
             append(element, this.parseChilds(item, true) as HTMLElement);
           }
         });
-      } else if (typeof block.data === "string") appendText(element, block.data);
+      } else if (typeof block.data === "string") { appendText(element, block.data); };
 
       if (block?.attr) {
         for (const attrKey in block.attr) {
           if (block.attr[attrKey] !== undefined) {
-            attr(element, attrKey, block.attr[attrKey]);
+            attr(element, attrKey, decodeHtmlSpecialChars(block.attr[attrKey]));
           }
         }
       }
