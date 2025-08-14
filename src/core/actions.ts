@@ -31,12 +31,12 @@ export default class Actions {
     events.trigger("actions:render");
     this.hide();
     this.repositionBar();
-    on(window, "resize.a", this.repositionBar);
+    on(window, "resize.a", () => this.repositionBar);
     on(window, "scroll.a", this.repositionBar);
     events.trigger("actions:render:end");
   }
 
-  private repositionBar(evt?: Event) {
+  private repositionBar() {
     const { api, blockManager } = this.editor,
       curBlock = blockManager.getCurrentBlock(),
       root = api.getRoot();
@@ -48,8 +48,7 @@ export default class Actions {
           const rect = curBlock.getBoundingClientRect();
           css(el, "display", "flex");
           css(el, "left", rect?.left - el.offsetWidth);
-
-          if (evt?.type != "scroll") css(el, "top", rect.top + 1);
+          css(el, "top", rect.top + 1);
         },
         root
       );
