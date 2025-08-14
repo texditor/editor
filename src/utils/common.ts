@@ -44,3 +44,15 @@ export function getSelectionRect() {
   const range = selection.getRangeAt(0);
   return range.getBoundingClientRect();
 }
+
+export function decodeHtmlSpecialChars(input: string): string {
+  const entities: { [key: string]: string } = {
+    "&amp;": "&",
+    "&quot;": '"',
+    "&#039;": "'",
+    "&lt;": "<",
+    "&gt;": ">"
+  };
+
+  return input.replace(/&(amp|quot|#039|lt|gt);/g, (match) => entities[match] || match);
+}
