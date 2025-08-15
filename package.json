@@ -52,6 +52,6 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@priveted/ajax": "^1.0.10"
+    "@priveted/ajax": "^1.0.11"
   }
 }

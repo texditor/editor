@@ -114,6 +114,7 @@ export default class SelectionAPI {
       end: -1
     };
   }
+
   select(startPos: number, endPos: number, container?: Element): void {
     const { element } = this.current();
     const wrapContainer = container || element || null;
@@ -127,46 +128,35 @@ export default class SelectionAPI {
 
     if (!selection) return;
 
-    // // Проверяем валидность позиций
-    // if (startPos < 0 || endPos > totalLength || startPos > endPos) {
-    //     console.error('Invalid selection positions');
-    //     return;
-    // }
-
-    // Находим текстовые узлы и их позиции
     let currentPos = 0;
     let startNode: Text | null = null;
     let endNode: Text | null = null;
     let startOffset = 0;
     let endOffset = 0;
 
-    // Рекурсивно обходим все узлы контейнера
     const walker = document.createTreeWalker(wrapContainer, NodeFilter.SHOW_TEXT, null);
 
     let node: Text | null;
     while ((node = walker.nextNode() as Text | null)) {
       const nodeLength = node.nodeValue?.length || 0;
 
-      // Проверяем начальную позицию
       if (!startNode && currentPos + nodeLength > startPos) {
         startNode = node;
         startOffset = startPos - currentPos;
       }
 
-      // Проверяем конечную позицию (изменили условие для включения endPos = currentPos + nodeLength)
       if (!endNode && currentPos + nodeLength >= endPos) {
         endNode = node;
         endOffset = endPos - currentPos;
-        // Если endPos находится точно в конце последнего узла, прерываем цикл
+
         if (currentPos + nodeLength === endPos) break;
       }
 
       currentPos += nodeLength;
     }
 
-    // Если endNode не найден, но endPos равен totalLength, используем последний узел
     if (!endNode && endPos === totalLength && currentPos === totalLength) {
-      endNode = node; // Последний обработанный узел
+      endNode = node;
       endOffset = endPos - (currentPos - (node?.nodeValue?.length || 0));
     }
 
@@ -186,10 +176,9 @@ export default class SelectionAPI {
   }
 
   insertText(content: string, cleanHtml = true): boolean {
-    const selection = this.getSelection();
-    const activeElement = document.activeElement as HTMLElement;
+    const selection = this.getSelection(),
+      activeElement = document.activeElement as HTMLElement;
 
-    // Для contenteditable и других элементов
     if (activeElement?.isContentEditable && selection && selection.rangeCount > 0) {
       const range = this.getRange();
       if (!range) return false;
@@ -220,11 +209,11 @@ export default class SelectionAPI {
     newBlock.innerHTML = "";
 
     if (range.startContainer.nodeType === Node.TEXT_NODE) {
-      const textNode = range.startContainer;
-      const parent = textNode.parentNode!;
-      const textContent = textNode.textContent || "";
-      const beforeText = textContent.substring(0, range.startOffset);
-      const afterText = textContent.substring(range.startOffset);
+      const textNode = range.startContainer,
+        parent = textNode.parentNode!,
+        textContent = textNode.textContent || "",
+        beforeText = textContent.substring(0, range.startOffset),
+        afterText = textContent.substring(range.startOffset);
 
       textNode.textContent = beforeText;
 
@@ -288,12 +277,10 @@ export default class SelectionAPI {
     const range = selection.getRangeAt(0);
     const selectedTags: HTMLElement[] = [];
 
-    // Проверяем, что выделение вообще внутри container
     if (!container.contains(range.commonAncestorContainer)) {
       return [];
     }
 
-    // Рекурсивно проверяем дочерние элементы (но не сам container)
     const checkElement = (element: HTMLElement) => {
       const elementRange = document.createRange();
       elementRange.selectNode(element);
@@ -314,7 +301,6 @@ export default class SelectionAPI {
       }
     };
 
-    // Начинаем с детей container (не включая его самого)
     Array.from(container.children).forEach((child) => {
       checkElement(child as HTMLElement);
     });
@@ -400,7 +386,7 @@ export default class SelectionAPI {
     const { element } = this.current();
     const wrapContainer = container || element || null;
 
-    if (!range || !wrapContainer) {
+    if (!range || !wrapContainer || range.startContainer.ownerDocument !== wrapContainer.ownerDocument) {
       return [-1, -1];
     }
 
@@ -440,10 +426,8 @@ export default class SelectionAPI {
     let end = containerLength;
 
     if (range.compareBoundaryPoints(Range.START_TO_START, containerRange) < 0) {
-      // Выделение начинается до контейнера → start = 0
       start = 0;
     } else {
-      // Выделение внутри контейнера → вычисляем start
       const startRange = document.createRange();
       startRange.setStart(wrapContainer, 0);
       startRange.setEnd(range.startContainer, range.startOffset);
@@ -451,7 +435,6 @@ export default class SelectionAPI {
     }
 
     if (range.compareBoundaryPoints(Range.END_TO_END, containerRange) > 0) {
-      // Выделение заканчивается после контейнера → end = containerLength
       end = containerLength;
     } else {
       // Выделение внутри контейнера → вычисляем end
@@ -463,121 +446,6 @@ export default class SelectionAPI {
 
     return [start, end];
   }
-
-  getOffsetOld(container?: Node | HTMLElement | null): [number, number] {
-    const range = this.getRange(),
-      { element } = this.current(),
-      wrapContainer = container || element || null;
-
-    if (!range) return [-1, -1];
-
-    let start = range.startOffset,
-      end = range.endOffset;
-
-    if (!wrapContainer) {
-      return [start, end];
-    }
-
-    const containerText = wrapContainer.textContent || "";
-    const containerLength = containerText.length;
-    const containerRange = document.createRange();
-    containerRange.selectNodeContents(wrapContainer);
-
-    // Проверяем, пересекается ли выделение с контейнером
-    const startsBefore =
-      range.startContainer === wrapContainer ||
-      wrapContainer.contains(range.startContainer) ||
-      range.startContainer.compareDocumentPosition(wrapContainer) & Node.DOCUMENT_POSITION_CONTAINS;
-    const endsAfter =
-      range.endContainer === wrapContainer ||
-      wrapContainer.contains(range.endContainer) ||
-      range.endContainer.compareDocumentPosition(wrapContainer) & Node.DOCUMENT_POSITION_CONTAINS;
-
-    if (!startsBefore && !endsAfter) {
-      // Выделение полностью вне контейнера
-      return [-1, -1];
-    }
-
-    // Если начало выделения до контейнера
-    if (!startsBefore) {
-      start = 0;
-    } else if (range.startContainer !== wrapContainer) {
-      // Если начало внутри дочернего элемента контейнера
-      const startRange = document.createRange();
-      startRange.setStart(wrapContainer, 0);
-      startRange.setEnd(range.startContainer, range.startOffset);
-      start = startRange.toString().length;
-    }
-
-    // Если конец выделения после контейнера
-    if (!endsAfter) {
-      end = containerLength;
-    } else if (range.endContainer !== wrapContainer) {
-      // Если конец внутри дочернего элемента контейнера
-      const endRange = document.createRange();
-      endRange.setStart(wrapContainer, 0);
-      endRange.setEnd(range.endContainer, range.endOffset);
-      end = endRange.toString().length;
-    }
-
-    return [start, end];
-  }
-
-  // getOffsetOld(container?: Node | HTMLElement | null): [number, number] {
-  //     let start = 0,
-  //         end = 0;
-
-  //     const cnt = container ? container : this.editor.blockManager.getCurrentBlock();
-
-  //     if (!cnt)
-  //         return [0, 0];
-
-  //     const selection = this.getSelection()
-  //     for (let i = 0, len = selection?.rangeCount || 0; i < len; i++) {
-  //         const range = selection?.getRangeAt(i);
-
-  //         if (range?.intersectsNode(cnt)) {
-  //             const startNode = range.startContainer;
-
-  //             this.searchNode(cnt, cnt, node => {
-  //                 if (startNode === node) {
-  //                     start += this.getAbsoluteOffset(node, range.startOffset)
-  //                     return true
-  //                 }
-
-  //                 const dataLength = node.nodeType === Node.TEXT_NODE
-  //                     ? (node as Text).data.length
-  //                     : 0
-
-  //                 start += dataLength;
-  //                 end += dataLength;
-
-  //                 return false;
-  //             })
-
-  //             const endNode = range.endContainer;
-
-  //             this.searchNode(cnt, startNode, node => {
-  //                 if (endNode === node) {
-  //                     end += this.getAbsoluteOffset(node, range.endOffset)
-  //                     return true;
-  //                 }
-
-  //                 const dataLength = node.nodeType === Node.TEXT_NODE
-  //                     ? (node as Text).data.length
-  //                     : 0;
-
-  //                 end += dataLength;
-
-  //                 return false;
-  //             })
-
-  //             break;
-  //         }
-  //     }
-
-  //     return [start, end]
-  // }
 
   getBounds(): DOMRect | null {
     const range = this.getRange();

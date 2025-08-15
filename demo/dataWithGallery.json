@@ -65,6 +65,32 @@
     ]
   },
   {
+    "type": "ol",
+    "data": [
+      {
+        "type": "li",
+        "data": ["this is orderd list"]
+      },
+      {
+        "type": "li",
+        "data": ["ok lis"]
+      },
+      {
+        "type": "li",
+        "data": [
+          "three ",
+          {
+            "type": "a",
+            "attr": {
+              "href": "https://nova.com"
+            },
+            "data": ["list_link"]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "type": "code",
     "data": ["this is code <p> test\n </p>"]
   },

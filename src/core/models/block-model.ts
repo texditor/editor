@@ -227,7 +227,7 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  editableChild(container?: HTMLElement | null): HTMLElement | null {
+  editableChild(container?: HTMLElement | null): HTMLElement | HTMLElement[] | null {
     return null;
   }
 
