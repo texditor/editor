@@ -24,7 +24,6 @@ import LinkTool from "@/tools/link";
 import SubscriptTool from "@/tools/subscript";
 import SuperscriptTool from "@/tools/superscript";
 import { Files } from "@/blocks";
-import { fetchRequest } from "@priveted/ajax";
 
 const editor = new Texditor({
   handle: "texditor",
