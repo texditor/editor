@@ -31,7 +31,7 @@ export default class Actions {
     events.trigger("actions:render");
     this.hide();
     this.repositionBar();
-    on(window, "resize.a", () => this.repositionBar);
+    on(window, "resize.a", this.repositionBar);
     on(window, "scroll.a", this.repositionBar);
     events.trigger("actions:render:end");
   }

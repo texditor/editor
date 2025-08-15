@@ -24,10 +24,18 @@ import LinkTool from "@/tools/link";
 import SubscriptTool from "@/tools/subscript";
 import SuperscriptTool from "@/tools/superscript";
 import { Files } from "@/blocks";
+import { fetchRequest } from "@priveted/ajax";
+const dataUrl = "http://texditor/blockify-php/tests/api.php";
+
+let fetchData: object[] = [];
+
+await fetchRequest(dataUrl).then((response) => {
+  fetchData = response as object[];
+});
 
 const editor = new Texditor({
   handle: "texditor",
-  initalData: data,
+  initalData: fetchData,
   locale: "ru",
   toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
   blockModels: [

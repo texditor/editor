@@ -236,3 +236,14 @@ export function findDatasetsWithPrefix(element: HTMLElement, prefix: string): Re
 
   return result;
 }
+
+export function getChildNodes(element: Node): Node[] {
+  const nodes: Node[] = [],
+    childNodes = Array.from(element.childNodes);
+
+  for (const node of childNodes) {
+    nodes.push(node);
+  }
+
+  return nodes;
+}

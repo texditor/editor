@@ -545,7 +545,6 @@ export default class Commands {
               }
               break;
             } else if (children[j].nodeType === Node.TEXT_NODE) {
-              // Проверяем, содержит ли текстовый узел не только пробелы
               if (/\S/.test(children[j].textContent || "")) {
                 hasOnlyWhitespace = false;
               }

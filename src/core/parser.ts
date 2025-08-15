@@ -59,7 +59,6 @@ export default class Parser {
 
             if (text?.trim()) result.push(text);
           } else if (node.nodeType === Node.ELEMENT_NODE) {
-
             const element = node as Element;
             const objAttr: Record<string, string> = {};
             let outContent: Array<OutputBlockItem | string> = [node.textContent || ""];
@@ -92,7 +91,6 @@ export default class Parser {
           }
         });
       } else {
-
         result.push(decodeHtmlSpecialChars(html));
       }
     }
@@ -168,7 +166,9 @@ export default class Parser {
             append(element, this.parseChilds(item, true) as HTMLElement);
           }
         });
-      } else if (typeof block.data === "string") { appendText(element, block.data); };
+      } else if (typeof block.data === "string") {
+        appendText(element, block.data);
+      }
 
       if (block?.attr) {
         for (const attrKey in block.attr) {

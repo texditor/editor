@@ -1,6 +1,6 @@
 import { BlockModelInterface } from "@/types/core/models";
 import BlockModel from "@/core/models/block-model";
-import { queryLength, hasClass, make, query, queryList, append, addClass } from "@/utils/dom";
+import { queryLength, hasClass, make, query, queryList, append, addClass, getChildNodes } from "@/utils/dom";
 import { OutputBlockItem } from "@/types/output";
 import { ListCreateOptions } from "@/types/blocks";
 import { generateRandomString } from "@/utils/common";
@@ -67,8 +67,42 @@ export default class List extends BlockModel implements BlockModelInterface {
     return this.sanitizerContainer();
   }
 
-  editableChild(container: HTMLElement | null): HTMLElement | null {
-    return this.getItem(-1, container);
+  editableChild(container?: HTMLElement | null): HTMLElement | HTMLElement[] | null {
+    const listContainer = container ?? this.getCurrentBlock();
+    if (!listContainer) return null;
+
+    const selection = this.editor.selectionApi.getRange();
+    if (!selection) return this.getItem(0);
+
+    let activeLi: HTMLElement | null = null;
+    const items = listContainer.querySelectorAll<HTMLElement>(".tex-list-item");
+
+    items.forEach((li) => {
+      if (selection.intersectsNode(li)) {
+        activeLi = li;
+      }
+    });
+
+    return activeLi ?? this.getItem(0);
+  }
+
+  private getActiveListItem(): HTMLElement | null {
+    const selection = this.editor.selectionApi.getRange();
+    if (!selection) return null;
+
+    const listContainer = this.getCurrentBlock();
+
+    if (!listContainer) return null;
+
+    const items = listContainer.querySelectorAll<HTMLElement>(".tex-list-item"),
+      itemsArray = Array.from(items);
+
+    for (const item of itemsArray) {
+      if (selection.intersectsNode(item)) {
+        return item;
+      }
+    }
+    return null;
   }
 
   createItem(content?: string): HTMLElement {
@@ -182,7 +216,11 @@ export default class List extends BlockModel implements BlockModelInterface {
   }
 
   private getIndex(): number {
-    return this.itemIndex;
+    const activeItem = this.getActiveListItem();
+    if (!activeItem) return this.itemIndex;
+
+    const items = this.getCurrentBlock()?.querySelectorAll(".tex-list-item") || [];
+    return Array.from(items).indexOf(activeItem);
   }
 
   private addEvents() {
@@ -231,7 +269,7 @@ export default class List extends BlockModel implements BlockModelInterface {
               finalItem = this.getItem(index - 1, blockManager.getCurrentBlock()),
               prevTextLength = finalItem?.textContent?.length || 0;
 
-            this.mergeItems(index - 1);
+            this.mergeItems();
 
             if (finalItem) {
               setTimeout(() => {
@@ -297,9 +335,7 @@ export default class List extends BlockModel implements BlockModelInterface {
     method: InsertPosition = "afterend"
   ) {
     const newItem = this.createItem(content);
-
     currentItem?.insertAdjacentElement(method, newItem);
-
     this.editor.events.refresh();
 
     if (focus) {
@@ -309,49 +345,119 @@ export default class List extends BlockModel implements BlockModelInterface {
 
   merge(index: number): void {
     const BM = this.editor.blockManager,
+      curBlock = BM.getCurrentBlock(),
       container = BM.getByIndex(index - 1),
       count = this.count(container),
       listIndex = count > 0 ? count - 1 : 0,
       lastItem = this.getItem(listIndex, container);
 
-    BM.merge(index - 1, index, lastItem);
+    if (curBlock?.nodeName != 'UL' && curBlock?.nodeName != 'OL') { // P => UL|OL
+      if (lastItem) {
+        append(lastItem, document.createTextNode(' '));
+        BM.merge(index - 1, index, lastItem);
+      }
+    } else { // UL|OL => UL|OL
+      const item = this.getItem(0);
+
+      if (item && lastItem)
+        this.mergeAndFocus(item, lastItem);
+    }
   }
 
-  mergeItems(index: number, currentIndex?: number) {
-    const BM = this.editor.blockManager,
-      blockIndex = BM.getIndex(),
-      prevModel = BM.getModel(blockIndex - 1),
-      finalBlock = this.getItem(index, BM.getCurrentBlock()),
-      currentBlock = currentIndex ? this.getItem(currentIndex, BM.getCurrentBlock()) : this.getItem(-1);
+  private mergeAndFocus(
+    curElement: HTMLBlockElement | HTMLElement,
+    prevElement: HTMLBlockElement | HTMLElement) {
+    const { selectionApi } = this.editor,
+      prevLength = prevElement.textContent.length,
+      nodes = getChildNodes(curElement);
 
-    if (index < 0 && prevModel?.getTagName() !== "ul" && prevModel?.getTagName() !== "ol" && prevModel?.isEditable()) {
-      let html = "";
-      const curList = this.getElement(),
-        prevBlock = BM.getByIndex(blockIndex - 1),
-        prevModel = BM?.getModel(blockIndex - 1);
+    nodes.unshift(document.createTextNode(" "));
+    append(prevElement, nodes);
+    curElement.remove();
+    prevElement.focus();
 
-      if (prevModel?.getConfig("autoMerge")) {
-        if (curList) {
-          query(
-            "li",
-            (el: HTMLElement) => {
-              html += " " + el.innerText;
-            },
-            curList
-          );
+    setTimeout(() => {
+      selectionApi.select(
+        prevLength + 1,
+        prevLength + 1,
+        prevElement
+      );
+    }, 100);
+  }
 
-          curList.remove();
+  private mergeItems() {
+    const { blockManager } = this.editor;
+    const curIndex = blockManager.getIndex(),
+      prevModel = blockManager.getModel(curIndex - 1);
 
-          if (prevBlock) prevBlock.innerHTML += html || "";
+    if (curIndex) {
+      if (prevModel?.getConfig("autoMerge") && prevModel?.isEditable()) {
+        const firstLi = this.getItem(0),
+          prevElem = prevModel.getElement();
+
+        if (prevElem && firstLi?.childNodes) {
+          // LI => P
+          if (firstLi == this.getItem(this.getIndex())) {
+            this.mergeAndFocus(firstLi, prevElem);
+            const count = this.count();
+
+            if (!count)
+              blockManager.removeBlock();
+          } else {
+            // LI => LI
+            const curItemIndex = this.getIndex(),
+              curItem = this.getItem(curItemIndex),
+              prevItem = this.getItem(curItemIndex - 1);
+
+            if (curItem && prevItem)
+              this.mergeAndFocus(curItem, prevItem);
+          }
         }
+      } else {
+        prevModel?.merge(curIndex);
       }
-    } else {
-      if (currentBlock) {
-        if (finalBlock) {
-          finalBlock.innerHTML += currentBlock.innerHTML;
-          this.removeItem(currentIndex || null);
-        }
-      }
+
     }
+
+    // const BM = this.editor.blockManager,
+    //   blockIndex = BM.getIndex(),
+    //   prevModel = BM.getModel(blockIndex - 1),
+    //   finalBlock = this.getItem(index, BM.getCurrentBlock()),
+    //   currentBlock = currentIndex
+    //     ? this.getItem(currentIndex, BM.getCurrentBlock())
+    //     : this.getItem(-1);
+
+    // if (index < 0 && prevModel?.getTagName() !== "ul" && prevModel?.getTagName() !== "ol" && prevModel?.isEditable()) {
+    //   let html = "";
+    //   const curList = this.getElement(),
+    //     prevBlock = BM.getByIndex(blockIndex - 1),
+    //     prevModel = BM?.getModel(blockIndex - 1);
+
+    //   if (prevModel?.getConfig("autoMerge")) {
+
+    //     if (curList) {
+    //       query(
+    //         "li",
+    //         (el: HTMLElement) => {
+    //           html += " " + el.innerText;
+    //                     console.log(el)
+    //         },
+    //         curList
+    //       );
+
+    // // alert(html)
+    // //       curList.remove();
+
+    // //       if (prevBlock) prevBlock.innerHTML += html || "";
+    //     }
+    //   }
+    // } else {
+    //   if (currentBlock) {
+    //     if (finalBlock) {
+    //       finalBlock.innerHTML += currentBlock.innerHTML;
+    //       this.removeItem(currentIndex || null);
+    //     }
+    //   }
+    // }
   }
 }

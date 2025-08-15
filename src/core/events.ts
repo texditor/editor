@@ -172,8 +172,10 @@ export default class Events {
 
     const blocksContainer = blockManager.getContainer(),
       defBlock = config.get("defaultBlock", "p"),
-      [cursorStart, cursorEnd] = selectionApi.getOffset(),
-      curModel = blockManager.getModel();
+      [start, end] = selectionApi.getOffset(),
+      curModel = blockManager.getModel(),
+      cursorStart = start < 0 ? 0 : start,
+      cursorEnd = end < 0 ? 0 : end;
 
     if (blocksContainer) {
       if (api.isEmpty()) blockManager.createBlock(defBlock);
@@ -234,9 +236,11 @@ export default class Events {
               if (defFocus) blockManager.focusByIndex(0);
             } else {
               if (prevElem) {
-                const prevTextLength = prevElem?.textContent?.length || 0;
+                const len = prevElem?.textContent?.length || 0;
                 prevElem?.focus();
-                selectionApi.select(prevTextLength, prevTextLength, prevElem);
+
+                if (len)
+                  selectionApi.select(len, len, prevElem);
               }
             }
           }
@@ -262,7 +266,6 @@ export default class Events {
 
               if (prevModel?.getConfig("autoMerge") && curModel.getConfig("autoMerge")) blockManager.merge(index - 1);
               else prevModel?.merge(index);
-
               reSelect();
             } else {
               // If the block is a text area
@@ -404,8 +407,6 @@ export default class Events {
           const range = selectionApi.getRange();
 
           if (range) {
-            let blockChild = null;
-
             const target = range?.commonAncestorContainer || null,
               focusedBlock = closest(target, el);
 
@@ -413,7 +414,11 @@ export default class Events {
               const index = blockManager.getElementIndex(focusedBlock),
                 model = blockManager.getModel(index);
 
-              if (model?.isEditableChilds()) blockChild = model?.editableChild();
+              let blockChild = null;
+
+              if (model?.isEditableChilds()) {
+                blockChild = model.editableChild() as HTMLElement;
+              }
 
               blockManager.setIndex(index);
               actions.render();

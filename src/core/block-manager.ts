@@ -88,6 +88,32 @@ export default class BlockManager {
     return block;
   }
 
+  getNextBlock(): HTMLBlockElement | null {
+    const currentIndex = this.getIndex();
+
+    return this.getByIndex(currentIndex + 1);
+  }
+
+  getPrevBlock(): HTMLBlockElement | null {
+    const currentIndex = this.getIndex();
+
+    return this.getByIndex(currentIndex - 1);
+  }
+
+  isTextBlock(block: HTMLBlockElement | null): boolean {
+    if (!block) return false;
+
+    const model = block.blockModel;
+
+    return model?.getConfig("editable") && !model?.getConfig("editableChilds");
+  }
+
+  createDefaultBlock(): HTMLElement | null {
+    const defaultBlock = this.editor.config.get("defaultBlock", "p");
+
+    return this.createBlock(defaultBlock);
+  }
+
   getCurrentBlock(): HTMLElement | null {
     return this.getByIndex(this.getIndex());
   }
