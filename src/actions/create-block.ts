@@ -44,7 +44,7 @@ export default class CreateBlockAction extends ActionModel {
               if (model?.isEditable() || isEditableChilds) {
                 if (isEditableChilds) {
                   if (editableChild) {
-                    editableChild.focus();
+                    (editableChild as HTMLElement)?.focus();
                   } else blockElement?.click();
                 } else block.focus();
               } else {
