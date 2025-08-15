@@ -1,8 +1,9 @@
 export interface FileItem {
   url: string;
   type: string;
+  thumbnail: string;
   caption?: string;
   desc?: string;
-  sizes?: Record<string, string> | string;
+  size?: number;
   [key: string]: unknown;
 }

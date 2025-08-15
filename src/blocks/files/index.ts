@@ -12,6 +12,13 @@ import { IconArrowLeft, IconArrowRight, IconFile, IconPencil, IconPlus, IconTras
 import renderIcon from "@/utils/renderIcon";
 import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
 
+declare global {
+  interface HTMLElement {
+    fileSize?: number;
+    thumbnail?: string;
+  }
+}
+
 export default abstract class Files extends BlockModel implements BlockModelInterface {
   private renderCallbacks: Record<string, CallableFunction> = {};
 
@@ -142,8 +149,9 @@ export default abstract class Files extends BlockModel implements BlockModelInte
         (el: HTMLElement) => {
           const preparedItem = { url: el.dataset.url, type: el.dataset.type } as FileItem;
           if (el.dataset.caption) preparedItem.caption = el.dataset.caption;
-
           if (el.dataset.desc) preparedItem.desc = el.dataset.desc;
+          if (el.fileSize) preparedItem.size = el.fileSize;
+          if (el.thumbnail) preparedItem.thumbnail = el.thumbnail;
 
           const fileItem = this.onSaveItem(preparedItem, el);
 
@@ -302,6 +310,8 @@ export default abstract class Files extends BlockModel implements BlockModelInte
                           url: item?.url,
                           type: item?.type
                         } as FileItem;
+
+                        if (item?.size) fileItem.size = item.size as number;
 
                         items.push(fileItem);
                       }
@@ -627,6 +637,10 @@ export default abstract class Files extends BlockModel implements BlockModelInte
         addClass(el, "tex-files-item " + this.getConfig("itemCss", "tex-files-item-c"));
         el.dataset.type = item.type;
         el.dataset.url = item.url;
+
+        if (item?.size) el.fileSize = item.size;
+
+        if (item?.thumbnail) el.thumbnail = item.thumbnail;
 
         if (item.caption) el.dataset.caption = decodeHtmlSpecialChars(item.caption);
         if (item.desc) el.dataset.desc = decodeHtmlSpecialChars(item.desc);

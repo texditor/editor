@@ -102,7 +102,8 @@
         "url": "https://static.agenoria.ru/ps/2b4d725cd8b81d739d82c8556b7b2333/fbee0ba334100ae6cd148bca7f9466e8/e6472115bd92baff42f4b6b5010962c74556488169303524064e9aae861b84.jpg",
         "type": "image/jpeg",
         "caption": "First img",
-        "desc": "Descr 1"
+        "desc": "Descr 1 <P>",
+        "size": 3300
       },
       {
         "url": "https://static.agenoria.ru/st/ab495565ec6c640f26ffd6e767701e8c/f13bdadb0bbe29966e9e4c4e01677bc0/2b505ce4743d547b11ff5c130209803d6035583170746411265c5d5b07f114.jpg",
