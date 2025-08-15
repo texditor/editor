@@ -10,6 +10,7 @@ import renderIcon from "@/utils/renderIcon";
 export default class BlockModel implements BlockModelInterface {
   protected id: string = "";
   protected editor: Texditor;
+  protected store: Record<string, unknown> = {};
   private static userConfig: Partial<BlockModelConfig> = {};
   private config: Partial<BlockModelConfig> = {
     autoMerge: true,
@@ -248,5 +249,15 @@ export default class BlockModel implements BlockModelInterface {
   afterCreate(newBlock?: HTMLBlockElement | null) {
     this.onCreate(newBlock);
     this.sanitize();
+  }
+
+  setStore(key: string, value: unknown): this {
+    this.store[key] = value;
+
+    return this;
+  }
+
+  getStore(key: string | null): unknown {
+    return key === null ? this.store : this.store[key] || null;
   }
 }

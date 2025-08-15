@@ -1,6 +1,5 @@
 import { OutputBlockItem } from "@/types/output";
 import { HTMLBlockElement } from "../html-block-element";
-
 export interface BlockModelInterface {
   create(options?: object | null): HTMLElement | null;
   configure(): object;
@@ -16,4 +15,6 @@ export interface BlockModelInterface {
   getElement(): HTMLElement | null;
   afterCreate?(newBlock?: HTMLBlockElement | null): void;
   focusChild?(): HTMLElement | null;
+  setStore(key: string, value: unknown): this;
+  getStore(key: string | null): unknown;
 }

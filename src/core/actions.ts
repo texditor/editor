@@ -47,10 +47,9 @@ export default class Actions {
         (el: HTMLElement) => {
           let leftOffset = 24;
           const rect = curBlock.getBoundingClientRect(),
-            openIcon = queryList(api.css('actionsOpen'));
+            openIcon = queryList(api.css("actionsOpen"));
 
-          if (openIcon.length)
-            leftOffset = openIcon[0]?.offsetWidth;
+          if (openIcon.length) leftOffset = openIcon[0]?.offsetWidth;
 
           css(el, "display", "flex");
           css(el, "left", rect?.left - leftOffset);
