@@ -239,8 +239,7 @@ export default class Events {
                 const len = prevElem?.textContent?.length || 0;
                 prevElem?.focus();
 
-                if (len)
-                  selectionApi.select(len, len, prevElem);
+                if (len) selectionApi.select(len, len, prevElem);
               }
             }
           }

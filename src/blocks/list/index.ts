@@ -351,22 +351,21 @@ export default class List extends BlockModel implements BlockModelInterface {
       listIndex = count > 0 ? count - 1 : 0,
       lastItem = this.getItem(listIndex, container);
 
-    if (curBlock?.nodeName != 'UL' && curBlock?.nodeName != 'OL') { // P => UL|OL
+    if (curBlock?.nodeName != "UL" && curBlock?.nodeName != "OL") {
+      // P => UL|OL
       if (lastItem) {
-        append(lastItem, document.createTextNode(' '));
+        append(lastItem, document.createTextNode(" "));
         BM.merge(index - 1, index, lastItem);
       }
-    } else { // UL|OL => UL|OL
+    } else {
+      // UL|OL => UL|OL
       const item = this.getItem(0);
 
-      if (item && lastItem)
-        this.mergeAndFocus(item, lastItem);
+      if (item && lastItem) this.mergeAndFocus(item, lastItem);
     }
   }
 
-  private mergeAndFocus(
-    curElement: HTMLBlockElement | HTMLElement,
-    prevElement: HTMLBlockElement | HTMLElement) {
+  private mergeAndFocus(curElement: HTMLBlockElement | HTMLElement, prevElement: HTMLBlockElement | HTMLElement) {
     const { selectionApi } = this.editor,
       prevLength = prevElement.textContent.length,
       nodes = getChildNodes(curElement);
@@ -377,11 +376,7 @@ export default class List extends BlockModel implements BlockModelInterface {
     prevElement.focus();
 
     setTimeout(() => {
-      selectionApi.select(
-        prevLength + 1,
-        prevLength + 1,
-        prevElement
-      );
+      selectionApi.select(prevLength + 1, prevLength + 1, prevElement);
     }, 100);
   }
 
@@ -401,63 +396,19 @@ export default class List extends BlockModel implements BlockModelInterface {
             this.mergeAndFocus(firstLi, prevElem);
             const count = this.count();
 
-            if (!count)
-              blockManager.removeBlock();
+            if (!count) blockManager.removeBlock();
           } else {
             // LI => LI
             const curItemIndex = this.getIndex(),
               curItem = this.getItem(curItemIndex),
               prevItem = this.getItem(curItemIndex - 1);
 
-            if (curItem && prevItem)
-              this.mergeAndFocus(curItem, prevItem);
+            if (curItem && prevItem) this.mergeAndFocus(curItem, prevItem);
           }
         }
       } else {
         prevModel?.merge(curIndex);
       }
-
     }
-
-    // const BM = this.editor.blockManager,
-    //   blockIndex = BM.getIndex(),
-    //   prevModel = BM.getModel(blockIndex - 1),
-    //   finalBlock = this.getItem(index, BM.getCurrentBlock()),
-    //   currentBlock = currentIndex
-    //     ? this.getItem(currentIndex, BM.getCurrentBlock())
-    //     : this.getItem(-1);
-
-    // if (index < 0 && prevModel?.getTagName() !== "ul" && prevModel?.getTagName() !== "ol" && prevModel?.isEditable()) {
-    //   let html = "";
-    //   const curList = this.getElement(),
-    //     prevBlock = BM.getByIndex(blockIndex - 1),
-    //     prevModel = BM?.getModel(blockIndex - 1);
-
-    //   if (prevModel?.getConfig("autoMerge")) {
-
-    //     if (curList) {
-    //       query(
-    //         "li",
-    //         (el: HTMLElement) => {
-    //           html += " " + el.innerText;
-    //                     console.log(el)
-    //         },
-    //         curList
-    //       );
-
-    // // alert(html)
-    // //       curList.remove();
-
-    // //       if (prevBlock) prevBlock.innerHTML += html || "";
-    //     }
-    //   }
-    // } else {
-    //   if (currentBlock) {
-    //     if (finalBlock) {
-    //       finalBlock.innerHTML += currentBlock.innerHTML;
-    //       this.removeItem(currentIndex || null);
-    //     }
-    //   }
-    // }
   }
 }

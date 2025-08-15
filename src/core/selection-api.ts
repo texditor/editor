@@ -386,7 +386,7 @@ export default class SelectionAPI {
     const { element } = this.current();
     const wrapContainer = container || element || null;
 
-    if ((!range || !wrapContainer) || range.startContainer.ownerDocument !== wrapContainer.ownerDocument) {
+    if (!range || !wrapContainer || range.startContainer.ownerDocument !== wrapContainer.ownerDocument) {
       return [-1, -1];
     }
 
