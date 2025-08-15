@@ -1,5 +1,5 @@
 import Texditor from "@/texditor";
-import { append, closest, css, make, query } from "@/utils/dom";
+import { append, closest, css, make, query, queryList } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { ActionModelInterface } from "@/types/core/models";
 import DeleteAction from "@/actions/delete";
@@ -45,9 +45,15 @@ export default class Actions {
       query(
         api.css("actions"),
         (el: HTMLElement) => {
-          const rect = curBlock.getBoundingClientRect();
+          let leftOffset = 24;
+          const rect = curBlock.getBoundingClientRect(),
+            openIcon = queryList(api.css('actionsOpen'));
+
+          if (openIcon.length)
+            leftOffset = openIcon[0]?.offsetWidth;
+
           css(el, "display", "flex");
-          css(el, "left", rect?.left - el.offsetWidth);
+          css(el, "left", rect?.left - leftOffset);
           css(el, "top", rect.top + 1);
         },
         root

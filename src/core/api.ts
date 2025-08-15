@@ -16,6 +16,7 @@ export default class API {
     blocks: "tex-blocks",
     block: "tex-block",
     actions: "tex-actions",
+    actionsOpen: "tex-actions-open",
     action: "tex-action",
     toolbar: "tex-toolbar",
     toolbarFixed: "tex-toolbar-fixed",
