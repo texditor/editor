@@ -2,7 +2,7 @@ export interface ConfigStore {
   handle?: string;
   onReady?: CallableFunction;
   onChange?: CallableFunction;
-  initalData?: object[];
+  initalData?: object[] | string;
   blockModels?: object[];
   toolModels?: object[];
   defaultBlock?: string;
