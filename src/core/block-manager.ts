@@ -30,6 +30,7 @@ export default class BlockManager {
 
     return make("div", (el: HTMLElement) => {
       addClass(el, api.css("blocks", false));
+      let data = [];
       const initalData = config.get("initalData", []),
         emptyData = [
           {
@@ -38,7 +39,19 @@ export default class BlockManager {
           }
         ];
 
-      const blocks = parser.parseBlocks(initalData?.length ? initalData : emptyData);
+      try {
+        data = typeof initalData === 'string'
+          ? JSON.parse(initalData)
+          : initalData;
+
+          console.log(data)
+      } catch (e) {
+        console.warn("The input data is not supported or contains errors when working with JSON");
+      }
+
+      let blocks = parser.parseBlocks(data?.length ? data : emptyData);
+
+      if (!blocks.length && data?.length) blocks = parser.parseBlocks(emptyData);
 
       if (blocks.length) append(el, blocks);
     });
