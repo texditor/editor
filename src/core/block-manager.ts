@@ -40,7 +40,12 @@ export default class BlockManager {
         ];
 
       try {
-        data = typeof initalData === "string" ? JSON.parse(initalData.trim()) : initalData;
+        data =
+          typeof initalData === "string"
+            ? isEmptyString(initalData)
+              ? []
+              : JSON.parse(initalData.trim())
+            : initalData;
       } catch (e) {
         console.warn("The input data is not supported or contains errors when working with JSON", e);
       }
