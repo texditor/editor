@@ -367,17 +367,18 @@ export default class List extends BlockModel implements BlockModelInterface {
 
   private mergeAndFocus(curElement: HTMLBlockElement | HTMLElement, prevElement: HTMLBlockElement | HTMLElement) {
     const { selectionApi } = this.editor,
-      prevLength = prevElement.textContent.length,
+      prevTextContent = prevElement?.textContent,
       nodes = getChildNodes(curElement);
 
-    nodes.unshift(document.createTextNode(" "));
-    append(prevElement, nodes);
-    curElement.remove();
-    prevElement.focus();
+    if (prevTextContent) {
+      const len = prevTextContent.length;
+      nodes.unshift(document.createTextNode(" "));
+      append(prevElement, nodes);
+      curElement.remove();
+      prevElement.focus();
 
-    setTimeout(() => {
-      selectionApi.select(prevLength + 1, prevLength + 1, prevElement);
-    }, 100);
+      setTimeout(() => selectionApi.select(len + 1, len + 1, prevElement), 100);
+    }
   }
 
   private mergeItems() {
