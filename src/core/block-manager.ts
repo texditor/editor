@@ -41,12 +41,10 @@ export default class BlockManager {
 
       try {
         data = typeof initalData === 'string'
-          ? JSON.parse(initalData)
+          ? JSON.parse(initalData.trim())
           : initalData;
-
-          console.log(data)
       } catch (e) {
-        console.warn("The input data is not supported or contains errors when working with JSON");
+        console.warn("The input data is not supported or contains errors when working with JSON", e);
       }
 
       let blocks = parser.parseBlocks(data?.length ? data : emptyData);
