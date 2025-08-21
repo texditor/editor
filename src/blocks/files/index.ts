@@ -194,7 +194,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onAfterFormCreate(el: HTMLElement, block: HTMLBlockElement, options?: FilesCreateOptions): HTMLElement {
+  protected onFormCreate(el: HTMLElement, block: HTMLBlockElement, options?: FilesCreateOptions): HTMLElement {
     return el;
   }
 
@@ -348,7 +348,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
 
       append(el, form);
 
-      this.onAfterFormCreate(el, block, options);
+      this.onFormCreate(el, block, options);
     });
   }
 

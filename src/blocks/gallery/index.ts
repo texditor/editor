@@ -43,7 +43,7 @@ export default abstract class Gallery extends Files {
     return defaultStyle;
   }
 
-  protected onAfterFormCreate(el: HTMLElement, block: HTMLBlockElement, options?: FilesCreateOptions): HTMLElement {
+  protected onFormCreate(el: HTMLElement, block: HTMLBlockElement, options?: FilesCreateOptions): HTMLElement {
     const { events, i18n } = this.editor,
       styles = this.getConfig("styles", []) as string[],
       defaultStyle = this.getDefaultStyle();
