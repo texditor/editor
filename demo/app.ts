@@ -28,6 +28,8 @@ import { Files } from "@/blocks";
 const editor = new Texditor({
   handle: "texditor",
   initalData: data,
+   actionsLeftIndent: 32,
+  // actionsTopOffset: 2,
   locale: "ru",
   toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
   blockModels: [
