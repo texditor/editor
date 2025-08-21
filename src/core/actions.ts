@@ -1,5 +1,5 @@
 import Texditor from "@/texditor";
-import { append, closest, css, make, query, queryList } from "@/utils/dom";
+import { append, closest, css, make, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { ActionModelInterface } from "@/types/core/models";
 import DeleteAction from "@/actions/delete";
@@ -37,7 +37,7 @@ export default class Actions {
   }
 
   private repositionBar() {
-    const { api, blockManager } = this.editor,
+    const { api, blockManager, config } = this.editor,
       curBlock = blockManager.getCurrentBlock(),
       root = api.getRoot();
 
@@ -45,15 +45,13 @@ export default class Actions {
       query(
         api.css("actions"),
         (el: HTMLElement) => {
-          let leftOffset = 24;
-          const rect = curBlock.getBoundingClientRect(),
-            openIcon = queryList(api.css("actionsOpen"));
+          const leftOffset = config.get("actionsLeftIndent", 24) as number,
+            offsetTop = config.get("actionsTopOffset", 0) as number;
 
-          if (openIcon.length) leftOffset = openIcon[0]?.offsetWidth;
-
+          const rect = curBlock.getBoundingClientRect();
           css(el, "display", "flex");
           css(el, "left", rect?.left - leftOffset);
-          css(el, "top", rect.top + 1);
+          css(el, "top", rect.top + 1 + offsetTop);
         },
         root
       );

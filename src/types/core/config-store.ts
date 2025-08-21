@@ -9,4 +9,6 @@ export interface ConfigStore {
   locale?: string;
   defaultLocale?: string;
   blockParseDataset?: string[];
+  actionsTopOffset?: number;
+  actionsLeftIndent?: number;
 }
