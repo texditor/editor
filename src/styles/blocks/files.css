@@ -12,7 +12,8 @@
 }
 
 .tex-files-form {
-  display: grid;
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
 

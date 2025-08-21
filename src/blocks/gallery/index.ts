@@ -1,6 +1,6 @@
 import { FileItem, FilesCreateOptions } from "@/types/blocks";
 import Files from "../files";
-import { addClass, append, attr, make, query, removeClass } from "@/utils/dom";
+import { addClass, append, attr, make, prepend, query, removeClass } from "@/utils/dom";
 import { HTMLBlockElement } from "@/types/core";
 import { IconGallery, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from "@/icons";
 import "@/styles/blocks/galllery.css";
@@ -25,7 +25,7 @@ export default abstract class Gallery extends Files {
         icon: IconGallery,
         translationCode: "gallery",
         styles: ["grid", "slider", "single"],
-        stylesPanelLtr: "center",
+        stylesLtr: "right",
         defaultStyle: "single"
       }
     };
@@ -43,13 +43,13 @@ export default abstract class Gallery extends Files {
     return defaultStyle;
   }
 
-  protected onAfterFormCreate(el: HTMLElement, options?: FilesCreateOptions): HTMLElement {
+  protected onFormCreate(el: HTMLElement, block: HTMLBlockElement, options?: FilesCreateOptions): HTMLElement {
     const { events, i18n } = this.editor,
       styles = this.getConfig("styles", []) as string[],
       defaultStyle = this.getDefaultStyle();
 
     if (this.isStyles()) {
-      const ltr = this.getConfig("stylesPanelLtr", "");
+      const ltr = this.getConfig("stylesLtr", "left");
       const setActveItem = (code: string) => {
         if (styles.includes(code)) {
           query(
@@ -75,11 +75,11 @@ export default abstract class Gallery extends Files {
           off(item, "click.style");
           on(item, "click.style", () => {
             setActveItem(code);
-            el.dataset.optionsStyle = code;
+            block.dataset.optionsStyle = code;
 
             events.change({
               type: "galleryStyle",
-              block: el
+              block: block
             });
           });
           item.innerHTML = renderIcon(icon, {
@@ -95,7 +95,7 @@ export default abstract class Gallery extends Files {
         append(
           panel,
           make("div", (div: HTMLDivElement) => {
-            addClass(div, "tex-gallery-style-list tex-gallery-ltr-" + (ltr ? ltr : "left"));
+            addClass(div, "tex-gallery-style-list");
             const items = [];
 
             if (styles.includes("single")) items.push(styleItem("single", IconSingleGrid));
@@ -108,7 +108,8 @@ export default abstract class Gallery extends Files {
       });
 
       if (this.isStyles() && styles.length) {
-        append(el, stylePanel);
+        if (ltr === "right") append(el, stylePanel);
+        else prepend(el, stylePanel);
         const setStyle = options?.style ? options.style : defaultStyle;
         setActveItem(setStyle as string);
       }
