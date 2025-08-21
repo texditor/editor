@@ -734,17 +734,16 @@ export default abstract class Files extends BlockModel implements BlockModelInte
         formData.append(inputName + "[]", files[i]);
       }
 
-      userOptions.method = "POST";
-      userOptions.data = formData;
-      userOptions.onUploadProgress = (progressEvent: ProgressEvent) => {
-        if (onUploadCallback) onUploadCallback(progressEvent);
+      const requestOptions: AjaxOptions = {
+        method: "POST",
+        data: formData,
+        onUploadProgress: (progressEvent: ProgressEvent) => {
+          if (onUploadCallback) onUploadCallback(progressEvent);
+        },
+        headers: userOptions.headers ? { ...userOptions.headers } : {}
       };
 
-      if (!userOptions.headers) {
-        userOptions.headers = {};
-      }
-
-      fetchRequest(ajaxConfig.url, userOptions)
+      fetchRequest(ajaxConfig.url, requestOptions)
         .then((response) => {
           callback(response);
           events.change({
