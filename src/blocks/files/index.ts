@@ -67,6 +67,8 @@ export default abstract class Files extends BlockModel implements BlockModelInte
     return this.make("div", (el: HTMLBlockElement) => {
       if (!isHideForm) append(el, this.form(allItems, el));
 
+      this.onAfterFormCreate(el, options);
+
       append(el, this.createList(allItems, el, options || {}));
     });
   }
@@ -141,7 +143,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   save(block: OutputBlockItem): OutputBlockItem {
     const root = this.getElement();
     block.data = [];
-    block = this.onSaveBefore(block);
+    block = this.onSaveBefore(block, root);
 
     if (root) {
       query(
@@ -163,16 +165,18 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       );
     }
 
-    block = this.onSaveAfter(block);
+    block = this.onSaveAfter(block, root);
 
     return block;
   }
 
-  protected onSaveBefore(block: OutputBlockItem): OutputBlockItem {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected onSaveBefore(block: OutputBlockItem, blockElement: HTMLElement | HTMLBlockElement | null): OutputBlockItem {
     return block;
   }
 
-  protected onSaveAfter(block: OutputBlockItem): OutputBlockItem {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected onSaveAfter(block: OutputBlockItem, blockElement: HTMLElement | HTMLBlockElement | null): OutputBlockItem {
     return block;
   }
 
@@ -189,6 +193,11 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected onCreateItemAfter(item: FileItem, el: HTMLElement) {
     return item;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected onAfterFormCreate(el: HTMLElement, options?: FilesCreateOptions): HTMLElement {
+    return el;
   }
 
   private createLoader(id: string | number) {

@@ -34,5 +34,9 @@ export const RuLocale = {
   caption: "Подпись",
   desc: "Подробное описание",
   save: "Сохранить",
-  сancel: "Отменить"
+  сancel: "Отменить",
+  appearance: "Внешний вид",
+  single: "Одиночный",
+  grid: "Сетка",
+  slider: "Слайдер"
 };

@@ -34,5 +34,9 @@ export const EnLocale = {
   caption: "Caption",
   desc: "Detailed description",
   save: "Save",
-  сancel: "Cancel"
+  сancel: "Cancel",
+  appearance: "Appearance",
+  single: "Single",
+  grid: "Grid",
+  slide: "Slider"
 };
