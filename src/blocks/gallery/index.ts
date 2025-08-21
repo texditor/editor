@@ -1,12 +1,16 @@
 import { FileItem, FilesCreateOptions } from "@/types/blocks";
 import Files from "../files";
-import { addClass, append, attr, make, query } from "@/utils/dom";
+import { addClass, append, attr, make, query, removeClass } from "@/utils/dom";
 import { HTMLBlockElement } from "@/types/core";
-import { IconGallery, IconPlay } from "@/icons";
+import { IconGallery, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from "@/icons";
 import "@/styles/blocks/galllery.css";
 import renderIcon from "@/utils/renderIcon";
+import { off, on } from "@/utils/events";
+import { OutputBlockItem } from "@/types/output";
 
 export default abstract class Gallery extends Files {
+  private defaultStyles: string[] = ["grid", "slider", "single"];
+
   configure() {
     return {
       ...super.configure(),
@@ -19,19 +23,138 @@ export default abstract class Gallery extends Files {
         itemCss: "tex-gallery-item",
         sourceWrapCss: "tex-gallery-item-source",
         icon: IconGallery,
-        translationCode: "gallery"
+        translationCode: "gallery",
+        styles: ["grid", "slider", "single"],
+        stylesPanelLtr: "center",
+        defaultStyle: "single"
       }
     };
   }
 
+  private isStyles() {
+    return (this.getConfig("styles", []) as string[]).every((key: string) => this.defaultStyles.includes(key));
+  }
+
+  private getDefaultStyle() {
+    const defaultStyle = this.getConfig("defaultStyle", []) as string;
+
+    if (!this.defaultStyles.includes(defaultStyle)) return "single";
+
+    return defaultStyle;
+  }
+
+  protected onAfterFormCreate(el: HTMLElement, options?: FilesCreateOptions): HTMLElement {
+    const { events, i18n } = this.editor,
+      styles = this.getConfig("styles", []) as string[],
+      defaultStyle = this.getDefaultStyle();
+
+    if (this.isStyles()) {
+      const ltr = this.getConfig("stylesPanelLtr", "");
+      const setActveItem = (code: string) => {
+        if (styles.includes(code)) {
+          query(
+            ".tex-gallery-style-item",
+            (div: HTMLDivElement) => {
+              removeClass(div, "tex-active");
+            },
+            el
+          );
+          query(
+            ".tex-gallery-style-item-" + code,
+            (div: HTMLDivElement) => {
+              addClass(div, "tex-active");
+            },
+            el
+          );
+        }
+      };
+
+      const styleItem = (code: string, icon: string) => {
+        return make("div", (item: HTMLDivElement) => {
+          addClass(item, "tex-gallery-style-item tex-gallery-style-item-" + code);
+          off(item, "click.style");
+          on(item, "click.style", () => {
+            setActveItem(code);
+            el.dataset.optionsStyle = code;
+
+            events.change({
+              type: "galleryStyle",
+              block: el
+            });
+          });
+          item.innerHTML = renderIcon(icon, {
+            width: 16,
+            height: 16
+          });
+          attr(item, "title", i18n.get("appearance", "Appearance") + ": " + i18n.get(code));
+        });
+      };
+
+      const stylePanel = make("div", (panel: HTMLDivElement) => {
+        addClass(panel, "tex-gallery-styles");
+        append(
+          panel,
+          make("div", (div: HTMLDivElement) => {
+            addClass(div, "tex-gallery-style-list tex-gallery-ltr-" + (ltr ? ltr : "left"));
+            const items = [];
+
+            if (styles.includes("single")) items.push(styleItem("single", IconSingleGrid));
+            if (styles.includes("grid")) items.push(styleItem("grid", IconMultipleGrid));
+            if (styles.includes("slider")) items.push(styleItem("slider", IconSlider));
+
+            append(div, items);
+          })
+        );
+      });
+
+      if (this.isStyles() && styles.length) {
+        append(el, stylePanel);
+        const setStyle = options?.style ? options.style : defaultStyle;
+        setActveItem(setStyle as string);
+      }
+    }
+    return el;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected onSaveItem(item: FileItem, el: HTMLElement): FileItem {
+    if (item.size) delete item.size;
+
     return item;
   }
 
+  protected onSaveAfter(block: OutputBlockItem, blockElement: HTMLBlockElement): OutputBlockItem {
+    const defaultStyle = this.getDefaultStyle();
+
+    if (this.isStyles()) {
+      if (blockElement.dataset.optionsStyle) {
+        const style = blockElement.dataset.optionsStyle;
+        if (style == "single") {
+          blockElement.removeAttribute("data-option-style");
+
+          if (block?.style) delete block.style;
+        } else block.style = style;
+      } else {
+        if (defaultStyle && defaultStyle != "single") {
+          block.style = defaultStyle;
+        }
+      }
+    } else {
+      if (block?.style) delete block.style;
+    }
+
+    return block;
+  }
+
   protected onListCreate(items: FileItem[], block: HTMLBlockElement | null, options: FilesCreateOptions) {
-    if (options?.style && block) {
-      block.dataset.optionsStyle = options.style as string;
+    const styles = this.getConfig("styles", []) as string[];
+
+    if (this.isStyles()) {
+      if (options?.style && block) {
+        const style = options.style as string;
+
+        if (styles.includes(style)) block.dataset.optionsStyle = style;
+      }
     }
 
     this.setRenderCallback(["image/jpeg", "image/png", "image/gif"], (item: FileItem): HTMLElement => {

@@ -45,6 +45,9 @@ const editor = new Texditor({
     Gallery.setup({
       mimeTypes: ["image/png", "image/jpeg", "video/mp4"],
       multiple: true,
+      // stylesPanelLtr: 'left',
+      // styles: [],
+      // defaultStyle: 'slider',
       ajaxConfig: {
         url: "http://localhost/upload.php",
         options: {
