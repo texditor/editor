@@ -28,7 +28,7 @@ import { Files } from "@/blocks";
 const editor = new Texditor({
   handle: "texditor",
   initalData: data,
-   actionsLeftIndent: 32,
+  actionsLeftIndent: 32,
   // actionsTopOffset: 2,
   locale: "ru",
   toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
@@ -47,7 +47,7 @@ const editor = new Texditor({
     Gallery.setup({
       mimeTypes: ["image/png", "image/jpeg", "video/mp4"],
       multiple: true,
-      // stylesPanelLtr: 'left',
+      // stylesLtr: 'right',
       // styles: [],
       // defaultStyle: 'slider',
       ajaxConfig: {

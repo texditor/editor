@@ -65,9 +65,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       isHideForm = !isMultiple && allItems?.length >= 1;
 
     return this.make("div", (el: HTMLBlockElement) => {
-      if (!isHideForm) append(el, this.form(allItems, el));
-
-      this.onAfterFormCreate(el, options);
+      if (!isHideForm) append(el, this.form(allItems, el, options));
 
       append(el, this.createList(allItems, el, options || {}));
     });
@@ -196,7 +194,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onAfterFormCreate(el: HTMLElement, options?: FilesCreateOptions): HTMLElement {
+  protected onAfterFormCreate(el: HTMLElement, block: HTMLBlockElement, options?: FilesCreateOptions): HTMLElement {
     return el;
   }
 
@@ -247,7 +245,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
     return list;
   }
 
-  protected form(items: FileItem[], block: HTMLBlockElement) {
+  protected form(items: FileItem[], block: HTMLBlockElement, options?: FilesCreateOptions) {
     const mimeTypes = this.getConfig("mimeTypes", []) as string[],
       isMultiple = this.getConfig("multiple", true),
       multipleLabelText = this.getConfig("uploadMultipleLabelText") as string,
@@ -349,6 +347,8 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       });
 
       append(el, form);
+
+      this.onAfterFormCreate(el, block, options);
     });
   }
 
