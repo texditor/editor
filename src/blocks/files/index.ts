@@ -636,7 +636,8 @@ export default abstract class Files extends BlockModel implements BlockModelInte
     query(
       ".tex-files-form",
       (el: HTMLElement) => {
-        append(el, messageBlock);
+        el.insertAdjacentElement("afterend", messageBlock);
+
         setTimeout(
           () => {
             const msgEl = document.getElementById(id);
