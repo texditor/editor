@@ -312,7 +312,7 @@ export default class Events {
       currentModel = blockManager.getModel(),
       input = parser.parseHtml(evt.clipboardData.getData("text/html") || "", true);
 
-    if (currentModel && 'onPaste' in currentModel && typeof currentModel.onPaste === 'function') {
+    if (currentModel && "onPaste" in currentModel && typeof currentModel.onPaste === "function") {
       currentModel?.onPaste(evt, input);
       this.change();
       currentModel?.sanitize();
