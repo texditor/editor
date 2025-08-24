@@ -3,7 +3,7 @@ import { FilesCreateOptions, FileItem } from "@/types/blocks";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/files.css";
 import { OutputBlockItem } from "@/types/output";
-import { addClass, append, attr, closest, css, make, prepend, query, queryLength, removeClass } from "@/utils/dom";
+import { addClass, append, attr, closest, css, hasClass, make, prepend, query, queryLength, removeClass } from "@/utils/dom";
 import { HTMLBlockElement } from "@/types/core";
 import { isEmptyString } from "@/utils/string";
 import { decodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
@@ -24,6 +24,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
 
   configure() {
     const { i18n } = this.editor;
+
     return {
       autoParse: false,
       autoMerge: false,
@@ -55,8 +56,14 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       ajaxConfig: {
         url: "",
         options: {}
-      }
+      },
+      _structure: 'files',
     };
+  }
+
+  onPaste(evt: Event, input: Element | null): void {
+    if (input !== null && !hasClass(evt.target, 'tex-input'))
+      evt.preventDefault();
   }
 
   create(items: FileItem[], options?: FilesCreateOptions): HTMLBlockElement | HTMLElement {
@@ -83,11 +90,11 @@ export default abstract class Files extends BlockModel implements BlockModelInte
     return make("div", (div: HTMLElement) => {
       addClass(div, "tex-files-default-item");
       const icon = make("span", (span: HTMLSpanElement) => {
-          span.innerHTML = renderIcon(IconFile, {
-            width: 20,
-            height: 20
-          });
-        }),
+        span.innerHTML = renderIcon(IconFile, {
+          width: 20,
+          height: 20
+        });
+      }),
         ext = make("span", (span: HTMLSpanElement) => {
           const parts = item?.url.split(".");
           span.innerText = "." + (parts.pop() || "");
@@ -259,17 +266,17 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       addClass(el, "tex-files-form");
 
       const labelFile = make("label", (label: HTMLLabelElement) => {
-          attr(label, "for", "file-" + id);
-          label.id = "label-" + id;
-          const text = make(
-              "span",
-              (span: HTMLSpanElement) =>
-                (span.innerHTML = isMultiple ? (items.length >= 1 ? addLabelText : multipleLabelText) : labelText)
-            ),
-            icon = make("span", (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
+        attr(label, "for", "file-" + id);
+        label.id = "label-" + id;
+        const text = make(
+          "span",
+          (span: HTMLSpanElement) =>
+            (span.innerHTML = isMultiple ? (items.length >= 1 ? addLabelText : multipleLabelText) : labelText)
+        ),
+          icon = make("span", (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
 
-          append(label, [icon, text]);
-        }),
+        append(label, [icon, text]);
+      }),
         inputFile = make("input", (input: HTMLInputElement) => {
           attr(input, "type", "file");
           css(input, "display", "none");
@@ -429,29 +436,29 @@ export default abstract class Files extends BlockModel implements BlockModelInte
             addClass(actionList, "tex-files-actions-list");
 
             const newAction = (
-                icon: string,
-                onClick: CallableFunction,
-                eventName: string = "",
-                cssName: string = ""
-              ) => {
-                return make("div", (act: HTMLDivElement) => {
-                  addClass(act, "tex-files-action " + cssName);
-                  act.innerHTML = renderIcon(icon, {
-                    width: 18,
-                    height: 18
-                  });
-                  on(act, "click.action", () => {
-                    onClick(act);
-                    if (eventName) {
-                      events.change({
-                        type: eventName,
-                        block: block,
-                        item: item
-                      });
-                    }
-                  });
+              icon: string,
+              onClick: CallableFunction,
+              eventName: string = "",
+              cssName: string = ""
+            ) => {
+              return make("div", (act: HTMLDivElement) => {
+                addClass(act, "tex-files-action " + cssName);
+                act.innerHTML = renderIcon(icon, {
+                  width: 18,
+                  height: 18
                 });
-              },
+                on(act, "click.action", () => {
+                  onClick(act);
+                  if (eventName) {
+                    events.change({
+                      type: eventName,
+                      block: block,
+                      item: item
+                    });
+                  }
+                });
+              });
+            },
               deleteBtn = newAction(
                 IconTrash,
                 () => {
@@ -550,11 +557,11 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       addClass(el, "tex-files-item-edit-popup");
 
       const captionImput = make("input", (input: HTMLInputElement) => {
-          input.type = "text";
-          input.value = item.dataset.caption || "";
-          attr(input, "placeholder", i18n.get("caption", "Caption"));
-          addClass(input, "tex-input tex-files-input");
-        }) as HTMLInputElement,
+        input.type = "text";
+        input.value = item.dataset.caption || "";
+        attr(input, "placeholder", i18n.get("caption", "Caption"));
+        addClass(input, "tex-input tex-files-input");
+      }) as HTMLInputElement,
         descInput = make("input", (input: HTMLInputElement) => {
           input.type = "text";
           input.value = item.dataset.desc || "";
@@ -685,9 +692,9 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   ) {
     const { events, i18n } = this.editor;
     const ajaxConfig = this.getConfig("ajaxConfig") as {
-        url: string;
-        options: AjaxOptions;
-      },
+      url: string;
+      options: AjaxOptions;
+    },
       inputName = this.getConfig("inputName", "files");
 
     if (isEmptyString(ajaxConfig?.url || "")) {

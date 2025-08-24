@@ -306,19 +306,27 @@ export default class Events {
 
     this.trigger("onPaste", evt);
 
-    evt.preventDefault();
-
     if (!evt.clipboardData) return;
 
     const defBlock = config.get("defaultBlock", "p"),
       currentModel = blockManager.getModel(),
-      output = parser.parseHtml(evt.clipboardData.getData("text/html") || "", true);
+      input = parser.parseHtml(evt.clipboardData.getData("text/html") || "", true);
 
-    if (output && output?.childNodes.length) {
+    if (currentModel && 'onPaste' in currentModel && typeof currentModel.onPaste === 'function') {
+      currentModel?.onPaste(evt, input);
+      this.change();
+      currentModel?.sanitize();
+      this.trigger("onPasteEnd", evt);
+      return;
+    }
+
+    evt.preventDefault();
+
+    if (input && input?.childNodes.length) {
       let reversedNodes: Node[] = [],
         isCreateBlocks = false;
 
-      output?.childNodes.forEach((item: Node) => {
+      input?.childNodes.forEach((item: Node) => {
         reversedNodes.push(item);
 
         if (item.nodeType === Node.ELEMENT_NODE) {

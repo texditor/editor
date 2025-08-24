@@ -17,4 +17,5 @@ export interface BlockModelInterface {
   focusChild?(): HTMLElement | null;
   setStore(key: string, value: unknown): this;
   getStore(key: string | null): unknown;
+  onPaste?(evt: Event, input: Element | null): void;
 }
