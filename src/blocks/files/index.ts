@@ -3,7 +3,19 @@ import { FilesCreateOptions, FileItem } from "@/types/blocks";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/files.css";
 import { OutputBlockItem } from "@/types/output";
-import { addClass, append, attr, closest, css, make, prepend, query, queryLength, removeClass } from "@/utils/dom";
+import {
+  addClass,
+  append,
+  attr,
+  closest,
+  css,
+  hasClass,
+  make,
+  prepend,
+  query,
+  queryLength,
+  removeClass
+} from "@/utils/dom";
 import { HTMLBlockElement } from "@/types/core";
 import { isEmptyString } from "@/utils/string";
 import { decodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
@@ -24,6 +36,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
 
   configure() {
     const { i18n } = this.editor;
+
     return {
       autoParse: false,
       autoMerge: false,
@@ -57,6 +70,10 @@ export default abstract class Files extends BlockModel implements BlockModelInte
         options: {}
       }
     };
+  }
+
+  onPaste(evt: Event, input: Element | null): void {
+    if (input !== null && !hasClass(evt.target, "tex-input")) evt.preventDefault();
   }
 
   create(items: FileItem[], options?: FilesCreateOptions): HTMLBlockElement | HTMLElement {

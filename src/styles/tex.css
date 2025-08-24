@@ -26,6 +26,8 @@
   position: relative;
   outline: none;
   transition: all 1s;
+  overflow: hidden;
+  word-break: break-all;
 }
 
 .tex-block[data-empty="true"]:before {
