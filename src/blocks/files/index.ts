@@ -746,9 +746,11 @@ export default abstract class Files extends BlockModel implements BlockModelInte
         !(data instanceof URLSearchParams) &&
         !Array.isArray(data)
       ) {
-        for (const item in data) {
-          if (Object.prototype.hasOwnProperty.call(data, item)) {
-            const value = data[item];
+        const dataObj = data as Record<string, unknown>;
+
+        for (const item in dataObj) {
+          if (Object.prototype.hasOwnProperty.call(dataObj, item)) {
+            const value = dataObj[item];
             if (value !== undefined && value !== null) {
               formData.append(item, String(value));
             }
