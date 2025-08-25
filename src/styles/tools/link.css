@@ -38,6 +38,7 @@
 .tex-link-input {
   max-width: 130px;
   border: 0;
+  outline: none;
 }
 
 @media (hover: hover) {

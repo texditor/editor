@@ -168,6 +168,9 @@
 .tex-input {
   padding: 6px;
   outline: none;
+  color: var(--tex-input-color);
+  background: var(--tex-input-background);
+  border: 1px solid var(--tex-input-border);
 }
 
 .tex-message {
