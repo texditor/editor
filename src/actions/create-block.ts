@@ -38,11 +38,12 @@ export default class CreateBlockAction extends ActionModel {
               curBlock?.insertAdjacentElement("afterend", block);
 
               const blockElement = model.getElement(),
-                isEditableChilds = model?.isEditableChilds(),
-                editableChild = model.editableChild(block);
+                isEditableChilds = model?.isEditableChilds();
 
               if (model?.isEditable() || isEditableChilds) {
                 if (isEditableChilds) {
+                  const editableChild = model.editableChild(block, true);
+
                   if (editableChild) {
                     (editableChild as HTMLElement)?.focus();
                   } else blockElement?.click();
