@@ -72,6 +72,14 @@
   align-items: center;
 }
 
+.tex-gallery-right {
+  justify-content: flex-end;
+}
+
+.tex-gallery-left {
+  justify-content: flex-start;
+}
+
 .tex-gallery-style-item {
   padding: 6px;
   transition: all 1s;

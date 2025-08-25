@@ -65,6 +65,8 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       uploadMultipleLabelText: i18n.get("uploadFiles", "Upload files"),
       uploadAddLabelText: i18n.get("addFiles", "Add files"),
       uploadLabelText: i18n.get("uploadFile", "Upload file"),
+      uploadLabelMessage: "",
+      showOnlyWhenEmpty: false,
       ajaxConfig: {
         url: "",
         options: {}
@@ -77,13 +79,10 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   }
 
   create(items: FileItem[], options?: FilesCreateOptions): HTMLBlockElement | HTMLElement {
-    const allItems = items || [],
-      isMultiple = this.getConfig("multiple", true),
-      isHideForm = !isMultiple && allItems?.length >= 1;
+    const allItems = items || [];
 
     return this.make("div", (el: HTMLBlockElement) => {
-      if (!isHideForm) append(el, this.form(allItems, el, options));
-
+      append(el, this.form(allItems, el, options));
       append(el, this.createList(allItems, el, options || {}));
     });
   }
@@ -235,11 +234,13 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   private progress(id: string | number, percent: number) {
     const loader = document.getElementById("loader-" + id),
       progress = document.getElementById("progress-" + id),
+      label = document.getElementById("label-" + id),
       percentText = document.getElementById("percent-" + id);
 
-    if (loader && progress && percentText) {
+    if (loader && progress && percentText && label) {
       if (css(loader, "display") === "none") css(loader, "display", "block");
 
+      css(label, "visibility", "hidden");
       percentText.innerText = percent + "%";
       css(progress, "width", percent + "%");
     }
@@ -247,7 +248,10 @@ export default abstract class Files extends BlockModel implements BlockModelInte
 
   hideProgress(id: string | number) {
     const loader = document.getElementById("loader-" + id);
-    if (loader) css(loader, "display", "");
+
+    if (loader) {
+      css(loader, "display", "");
+    }
   }
 
   getListElement(block?: HTMLBlockElement): HTMLElement | null {
@@ -262,32 +266,61 @@ export default abstract class Files extends BlockModel implements BlockModelInte
     return list;
   }
 
-  protected form(items: FileItem[], block: HTMLBlockElement, options?: FilesCreateOptions) {
-    const mimeTypes = this.getConfig("mimeTypes", []) as string[],
-      isMultiple = this.getConfig("multiple", true),
+  protected createLabel(length: number, id: string) {
+    const isMultiple = this.getConfig("multiple", true),
       multipleLabelText = this.getConfig("uploadMultipleLabelText") as string,
       labelText = this.getConfig("uploadLabelText") as string,
       addLabelText = this.getConfig("uploadAddLabelText") as string,
-      iconLabel = this.getConfig("uploadLabelIcon") as string,
+      iconLabel = this.getConfig("uploadLabelIcon") as string;
+
+    return make("label", (label: HTMLLabelElement) => {
+      attr(label, "for", "file-" + id);
+      addClass(label, "tex-files-form-label");
+      label.id = "label-" + id;
+
+      const labelCnt = make("div", (labelContainer: HTMLDivElement) => {
+        addClass(labelContainer, "tex-files-form-label-container");
+        const text = make(
+            "span",
+            (span: HTMLSpanElement) =>
+              (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText)
+          ),
+          icon = make("span", (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
+
+        append(labelContainer, [icon, text]);
+      });
+
+      const uploadLabelMessage = this.getConfig("uploadLabelMessage", ""),
+        showOnlyWhenEmpty = this.getConfig("showOnlyWhenEmpty", false),
+        labelItems = [labelCnt];
+
+      if (!isEmptyString(uploadLabelMessage)) {
+        const labelMessage = make("div", (msg: HTMLDivElement) => {
+          addClass(msg, "tex-files-form-label-message");
+          msg.innerHTML = uploadLabelMessage;
+        });
+
+        if ((showOnlyWhenEmpty && !length) || !showOnlyWhenEmpty) {
+          labelItems.push(labelMessage);
+        }
+      }
+
+      append(label, labelItems);
+    });
+  }
+
+  protected form(items: FileItem[], block: HTMLBlockElement, options?: FilesCreateOptions) {
+    const mimeTypes = this.getConfig("mimeTypes", []) as string[],
+      isMultiple = this.getConfig("multiple", true),
       id = generateRandomString(16),
       { i18n } = this.editor;
 
     return make("div", (el: HTMLElement) => {
       addClass(el, "tex-files-form");
 
-      const labelFile = make("label", (label: HTMLLabelElement) => {
-          attr(label, "for", "file-" + id);
-          label.id = "label-" + id;
-          const text = make(
-              "span",
-              (span: HTMLSpanElement) =>
-                (span.innerHTML = isMultiple ? (items.length >= 1 ? addLabelText : multipleLabelText) : labelText)
-            ),
-            icon = make("span", (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
-
-          append(label, [icon, text]);
-        }),
-        inputFile = make("input", (input: HTMLInputElement) => {
+      const form = make("div", (form: HTMLFormElement) => {
+        const labelFile = this.createLabel(items.length || 0, id);
+        const inputFile = make("input", (input: HTMLInputElement) => {
           attr(input, "type", "file");
           css(input, "display", "none");
 
@@ -301,7 +334,11 @@ export default abstract class Files extends BlockModel implements BlockModelInte
             setTimeout(() => {
               css(labelFile, "visibility", "");
               this.hideProgress(id);
-            }, 1000);
+              document.getElementById("label-" + id)?.remove();
+
+              if (isMultiple) prepend(form, this.createLabel(this.getItem(0) ? 1 : 0, id));
+              else form.remove();
+            }, 500);
           };
 
           on(input, "cancel.file", () => {
@@ -309,6 +346,7 @@ export default abstract class Files extends BlockModel implements BlockModelInte
 
             if (element) this.removeIsEmpty(element as HTMLBlockElement);
           });
+
           on(input, "change.file", () => {
             css(labelFile, "visibility", "hidden");
             this.ajax(
@@ -358,12 +396,13 @@ export default abstract class Files extends BlockModel implements BlockModelInte
           });
         });
 
-      const form = make("div", (form: HTMLFormElement) => {
         addClass(form, "tex-files-form-uploader");
         append(form, [labelFile, inputFile, this.createLoader(id)]);
       });
 
-      append(el, form);
+      if (!(!isMultiple && items.length > 0)) {
+        append(el, form);
+      }
 
       this.onFormCreate(el, block, options);
     });
@@ -690,9 +729,14 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   }
 
   private removeIsEmpty(block: HTMLBlockElement) {
+    const { blockManager } = this.editor;
     const len = queryLength(".tex-files-item", block);
 
-    if (!len) block.remove();
+    if (!len) {
+      const curIndex = blockManager.getIndex();
+      blockManager.removeBlock();
+      blockManager.focusByIndex(curIndex > 0 ? curIndex - 1 : 0);
+    }
   }
 
   ajax(

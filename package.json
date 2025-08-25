@@ -53,6 +53,6 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@priveted/ajax": "^1.0.13"
+    "@priveted/ajax": "^1.0.14"
   }
 }
