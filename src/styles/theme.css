@@ -2,6 +2,9 @@
   --tex-fill: rgba(100, 100, 100, 0.7);
   --tex-background: #fff;
   --tex-color: #222;
+  --tex-input-background: #f5f5f5;
+  --tex-input-border: rgba(179, 179, 179, 0.2);;
+  --tex-input-color: #333;
   --tex-color-secondary: #42d392;
   --tex-color-light: rgba(55, 55, 55, 0.5);
   --tex-background-lite: rgba(204, 255, 204, 0.3);

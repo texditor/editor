@@ -98,7 +98,7 @@ export default class LinkTool extends ToolModel {
           input.id = config.get("handle") + "-input-link";
           input.value = link;
           input.placeholder = i18n.get("enterLink", "Enter the link");
-          addClass(input, "tex-input tex-link-input");
+          addClass(input, "tex-link-input");
           on(input, "keydown.link", (evt: KeyboardEvent) => {
             if (evt.key == "Enter") {
               evt.preventDefault();
