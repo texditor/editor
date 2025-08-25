@@ -67,6 +67,7 @@
   display: grid;
   background-color: var(--tex-background);
   box-shadow: 0 0 8px 0 var(--tex-shadow-color);
+  border: 1px solid var(--tex-border-color);
   border-radius: 8px;
   overflow: hidden;
 }
