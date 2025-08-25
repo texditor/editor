@@ -67,7 +67,7 @@ export default class List extends BlockModel implements BlockModelInterface {
     return this.sanitizerContainer();
   }
 
-  editableChild(container?: HTMLElement | null): HTMLElement | HTMLElement[] | null {
+  editableChild(container?: HTMLElement | null, isCreate: boolean = false): HTMLElement | HTMLElement[] | null {
     const listContainer = container ?? this.getCurrentBlock();
     if (!listContainer) return null;
 
@@ -77,9 +77,13 @@ export default class List extends BlockModel implements BlockModelInterface {
     let activeLi: HTMLElement | null = null;
     const items = listContainer.querySelectorAll<HTMLElement>(".tex-list-item");
 
-    items.forEach((li) => {
-      if (selection.intersectsNode(li)) {
-        activeLi = li;
+    items.forEach((li, index) => {
+      if (isCreate) {
+        if (index == 0) activeLi = li;
+      } else {
+        if (selection.intersectsNode(li)) {
+          activeLi = li;
+        }
       }
     });
 
@@ -375,8 +379,8 @@ export default class List extends BlockModel implements BlockModelInterface {
       nodes.unshift(document.createTextNode(" "));
       append(prevElement, nodes);
       curElement.remove();
-      prevElement.focus();
 
+      setTimeout(() => prevElement.focus(), 50);
       setTimeout(() => selectionApi.select(len + 1, len + 1, prevElement), 100);
     }
   }

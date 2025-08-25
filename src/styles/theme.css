@@ -7,6 +7,7 @@
   --tex-background-lite: rgba(204, 255, 204, 0.3);
   --tex-background-secondary: rgba(150, 150, 150, 0.07);
   --tex-progress-background: rgba(33, 78, 33, 0.2);
+  --tex-background-blur: rgba(150, 150, 150, 0.04);
   --tex-progress-color: rgba(33, 78, 33, 0.7);
   --tex-shadow-color: rgb(33, 33, 33, 0.4);
   --tex-border-color: rgba(179, 179, 179, 0.2);
