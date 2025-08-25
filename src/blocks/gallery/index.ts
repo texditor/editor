@@ -108,8 +108,15 @@ export default abstract class Gallery extends Files {
       });
 
       if (this.isStyles() && styles.length) {
+        const ltrClass = ltr === "right" ? "tex-gallery-right" : "tex-gallery-left";
+
         if (ltr === "right") append(el, stylePanel);
         else prepend(el, stylePanel);
+
+        removeClass(el, "tex-gallery-right");
+        removeClass(el, "tex-gallery-left");
+        addClass(el, ltrClass);
+
         const setStyle = options?.style ? options.style : defaultStyle;
         setActveItem(setStyle as string);
       }

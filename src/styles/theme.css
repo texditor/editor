@@ -3,6 +3,7 @@
   --tex-background: #fff;
   --tex-color: #222;
   --tex-color-secondary: #42d392;
+  --tex-color-light: rgba(55, 55, 55, 0.5);
   --tex-background-lite: rgba(204, 255, 204, 0.3);
   --tex-background-secondary: rgba(150, 150, 150, 0.07);
   --tex-progress-background: rgba(33, 78, 33, 0.2);

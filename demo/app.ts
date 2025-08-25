@@ -43,11 +43,18 @@ const editor = new Texditor({
     List,
     OrderdList,
     Code,
-    Files,
+    Files.setup({
+      multiple: false,
+      ajaxConfig: {
+        url: "http://localhost/upload.php"
+      }
+    }),
     Gallery.setup({
       mimeTypes: ["image/png", "image/jpeg", "video/mp4"],
       multiple: true,
-      // stylesLtr: 'right',
+      uploadLabelMessage: "Upload your files in .png, .jpg or .gif",
+      showOnlyWhenEmpty: true,
+      stylesLtr: "left",
       // styles: [],
       // defaultStyle: 'slider',
       ajaxConfig: {
