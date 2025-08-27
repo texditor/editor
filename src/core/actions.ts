@@ -39,7 +39,8 @@ export default class Actions {
   private repositionBar() {
     const { api, blockManager, config } = this.editor,
       curBlock = blockManager.getCurrentBlock(),
-      root = api.getRoot();
+      root = api.getRoot(),
+      className = api.css("actions", false);
 
     if (root && curBlock) {
       query(
@@ -48,10 +49,37 @@ export default class Actions {
           const leftOffset = config.get("actionsLeftIndent", 24) as number,
             offsetTop = config.get("actionsTopOffset", 0) as number;
 
-          const rect = curBlock.getBoundingClientRect();
+          const rect = curBlock.getBoundingClientRect(),
+            windowHeight = window.innerHeight,
+            elementHeight = el.offsetHeight;
+
+          const setDirecton = (dir: string) => {
+            query(
+              "." + className + "-settings",
+              (settingBlock: HTMLDivElement) => {
+                css(settingBlock, {
+                  display: "flex",
+                  "flex-direction": dir
+                });
+              },
+              el
+            );
+          };
+          let topPosition = rect.top + 1 + offsetTop;
+          setDirecton("column");
+
+          if (topPosition + elementHeight > windowHeight) {
+            topPosition = rect.top - elementHeight - offsetTop + 12;
+
+            setDirecton("column-reverse");
+            if (topPosition < 0) {
+              topPosition = 0;
+            }
+          }
+
           css(el, "display", "flex");
-          css(el, "left", rect?.left - leftOffset);
-          css(el, "top", rect.top + 1 + offsetTop);
+          css(el, "left", rect.left - leftOffset);
+          css(el, "top", topPosition);
         },
         root
       );
@@ -150,6 +178,7 @@ export default class Actions {
       css(el, "display", "block");
       off(document, "click.actions");
       on(document, "click.actions", this.handleClose);
+      setTimeout(() => this.repositionBar(), 100);
     });
   }
 
