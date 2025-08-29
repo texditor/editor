@@ -1,3 +1,5 @@
+import { ExtensionModelInterface } from "./models";
+
 export interface ConfigStore {
   handle?: string;
   onReady?: CallableFunction;
@@ -11,4 +13,7 @@ export interface ConfigStore {
   blockParseDataset?: string[];
   actionsTopOffset?: number;
   actionsLeftIndent?: number;
+  extensions?: ExtensionModelInterface[];
+  extensionsLtr?: "left" | "right" | "center";
+  extensionTitle?: boolean;
 }

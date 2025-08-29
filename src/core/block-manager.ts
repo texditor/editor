@@ -13,7 +13,7 @@ export default class BlockManager {
     this.editor = editor;
   }
 
-  render(): HTMLElement {
+  render(renderData?: object[] | string): HTMLElement {
     const { api, config, parser } = this.editor;
 
     setTimeout(() => {
@@ -31,7 +31,11 @@ export default class BlockManager {
     return make("div", (el: HTMLElement) => {
       addClass(el, api.css("blocks", false));
       let data = [];
-      const initalData = config.get("initalData", []),
+      const initalData =
+          (renderData && Array.isArray(renderData) && renderData.length) ||
+          (typeof renderData === "string" && !isEmptyString(renderData))
+            ? renderData
+            : config.get("initalData", []),
         emptyData = [
           {
             type: config.get("defaultBlock", "p"),
@@ -144,7 +148,7 @@ export default class BlockManager {
     return isEmptyString(blockElement?.innerHTML || "") || blockElement?.innerHTML == "<br>";
   }
 
-  detectEmpty() {
+  detectEmpty(emptyAttr: boolean = true) {
     const { api } = this.editor,
       root = api.getRoot();
 
@@ -154,7 +158,7 @@ export default class BlockManager {
         (el: HTMLBlockElement) => {
           if (el.blockModel?.isEmptyDetect()) {
             const index = this.getElementIndex(el);
-            el.dataset["empty"] = this.isEmpty(index) ? "true" : "false";
+            el.dataset["empty"] = !emptyAttr ? "false" : this.isEmpty(index) ? "true" : "false";
           }
         },
         root

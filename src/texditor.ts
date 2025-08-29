@@ -11,6 +11,7 @@ import I18N from "@/core/i18n";
 import Actions from "@/core/actions";
 import API from "@/core/api";
 import Commands from "./core/commands";
+import HistoryManager from "./core/history-manager";
 
 export default class Texditor {
   config: Config;
@@ -23,12 +24,14 @@ export default class Texditor {
   actions: Actions;
   i18n: I18N;
   commands: Commands;
+  historyManager: HistoryManager;
 
   constructor(config: ConfigStore) {
     this.config = new Config(config);
     this.i18n = new I18N(this);
     this.api = new API(this);
     this.events = new Events(this);
+    this.historyManager = new HistoryManager(this);
     this.blockManager = new BlockManager(this);
     this.selectionApi = new SelectionAPI(this);
     this.parser = new Parser(this);
@@ -39,6 +42,7 @@ export default class Texditor {
       this.api.render();
       this.actions.apply();
       this.toolbar.apply();
+      this.historyManager.saveImmediately();
 
       const readyCallback = this.config.get("onReady", false);
 

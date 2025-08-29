@@ -3,6 +3,7 @@
   max-width: 650px;
   margin: 0 auto;
   color: var(--tex-color);
+  position: relative;
 }
 
 .tex-blocks {
@@ -213,6 +214,52 @@
 
 .tex-btn-padding {
   padding: 8px 12px;
+}
+
+.tex-extensions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.tex-extensions.tex-right {
+  justify-content: flex-end;
+}
+
+.tex-extensions.tex-left {
+  justify-content: flex-start;
+}
+
+.tex-extensions.tex-center {
+  justify-content: center;
+}
+
+.tex-extension {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--tex-color);
+  cursor: pointer;
+  user-select: none;
+  transition: all 1s;
+}
+
+.tex-extensions-fixed {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 1000;
+  margin-top: 12px;
+  background: var(--tex-extensions-fixed-bg);
+  backdrop-filter: blur(var(--tex-extensions-fixed-blur));
+  box-shadow: 0 2px 5px var(--tex-shadow-color);
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+.tex-unactive {
+  opacity: 0.4;
 }
 
 @media (hover: hover) {

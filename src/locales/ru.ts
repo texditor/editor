@@ -38,5 +38,7 @@ export const RuLocale = {
   appearance: "Внешний вид",
   single: "Одиночный",
   grid: "Сетка",
-  slider: "Слайдер"
+  slider: "Слайдер",
+  undo: "Отменить",
+  redo: "Повторить"
 };
