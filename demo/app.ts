@@ -38,6 +38,10 @@ const editor = new Texditor({
   extensionsLtr: "left",
   extensionsFixed: true,
   extensionVisibleTitle: false,
+  extensionsFixedCss: {
+    border: "1px solid #ebebeb",
+    "z-index": "3000"
+  },
   blockModels: [
     Paragraph,
     H1,
