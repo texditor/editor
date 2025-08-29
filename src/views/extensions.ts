@@ -8,39 +8,41 @@ export default function ExtensionsView(editor: Texditor): HTMLElement | Node {
     cssName = api.css("extensions", false),
     extensions = config.get("extensions", []);
 
-  const fixedExtensions = () => {
-    const root = api.getRoot(),
-      className = api.css("extensions", false);
+  if (config.get("extensionsFixed", true)) {
+    const fixedExtensions = () => {
+      const root = api.getRoot(),
+        className = api.css("extensions", false);
 
-    if (!root) return;
+      if (!root) return;
+      query(
+        api.css("editor"),
+        (rootEditor: HTMLElement) => {
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop,
+            editorRect = rootEditor.getBoundingClientRect(),
+            editorLeft = editorRect.left,
+            editorWidth = rootEditor.offsetWidth;
 
-    query(
-      api.css("editor"),
-      (rootEditor: HTMLElement) => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop,
-          editorRect = rootEditor.getBoundingClientRect(),
-          editorLeft = editorRect.left,
-          editorWidth = rootEditor.offsetWidth;
+          query("." + className, (extEl: HTMLElement) => {
+            if (scrollTop >= editorRect.top + scrollTop) {
+              addClass(extEl, className + "-fixed");
+              css(extEl, { left: editorLeft, width: editorWidth });
+            } else {
+              removeClass(extEl, className + "-fixed");
+              css(extEl, { left: "", width: "" });
+            }
+          });
+        },
+        root
+      );
+    };
 
-        query("." + className, (extEl: HTMLElement) => {
-          if (scrollTop >= editorRect.top + scrollTop) {
-            addClass(extEl, className + "-fixed");
-            css(extEl, { left: editorLeft, width: editorWidth });
-          } else {
-            removeClass(extEl, className + "-fixed");
-            css(extEl, { left: "", width: "" });
-          }
-        });
-      },
-      root
-    );
-  };
-  off(window, "scroll.ext");
-  off(window, "scroll.ext");
-  off(window, "scroll.ext");
-  on(window, "scroll.ext", fixedExtensions);
-  on(window, "load.ext", fixedExtensions);
-  on(window, "resize.ext", fixedExtensions);
+    off(window, "scroll.ext");
+    off(window, "scroll.ext");
+    off(window, "scroll.ext");
+    on(window, "scroll.ext", fixedExtensions);
+    on(window, "load.ext", fixedExtensions);
+    on(window, "resize.ext", fixedExtensions);
+  }
 
   if (!extensions?.length) return document.createTextNode("");
 

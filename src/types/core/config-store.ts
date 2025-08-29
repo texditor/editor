@@ -15,5 +15,6 @@ export interface ConfigStore {
   actionsLeftIndent?: number;
   extensions?: ExtensionModelInterface[];
   extensionsLtr?: "left" | "right" | "center";
-  extensionTitle?: boolean;
+  extensionsFixed?: boolean;
+  extensionVisibleTitle?: boolean;
 }
