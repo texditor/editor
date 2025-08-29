@@ -16,7 +16,8 @@ export default {
         main: path.resolve(__dirname, "src/texditor.ts"),
         blocks: path.resolve(__dirname, "src/blocks/index.ts"),
         tools: path.resolve(__dirname, "src/tools/index.ts"),
-        locales: path.resolve(__dirname, "src/locales/index.ts")
+        locales: path.resolve(__dirname, "src/locales/index.ts"),
+        extensions: path.resolve(__dirname, "src/extensions/index.ts")
       },
       name: "Texditor",
       fileName: (format: string, entryName: string) => {

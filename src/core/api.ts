@@ -24,7 +24,9 @@ export default class API {
     toolbarTools: "tex-toolbar-tools",
     floatingBar: "tex-floating-bar",
     tool: "tex-tool",
-    animate: "tex-animate"
+    animate: "tex-animate",
+    extensions: "tex-extensions",
+    extension: "tex-extension"
   };
 
   constructor(editor: Texditor) {
@@ -86,6 +88,26 @@ export default class API {
     return this.cssNames[key] ? (dot ? "." : "") + this.cssNames[key] : "";
   }
 
+  setContent(content: OutputBlockItem[], index: number = 0): void {
+    const { blockManager, parser } = this.editor;
+    const container = blockManager.getContainer();
+
+    if (container) {
+      container.innerHTML = "";
+
+      const blocks = parser.parseBlocks(content, true);
+      append(container, blocks);
+
+      blockManager.setIndex(index);
+      blockManager.detectEmpty(false);
+      blockManager.normalize();
+    }
+  }
+
+  getContent(): OutputBlockItem[] {
+    return this.save();
+  }
+
   save(): OutputBlockItem[] {
     const data: OutputBlockItem[] = [];
     const { events, parser, config } = this.editor,
@@ -123,6 +145,7 @@ export default class API {
               block.data = [el.innerText];
             } else {
               const parsedData = parser.htmlToData(el.innerHTML);
+
               block.data = parsedData.filter(
                 (item) => typeof item === "string" || (typeof item === "object" && item !== null)
               ) as BlockItemData;

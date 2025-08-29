@@ -38,5 +38,7 @@ export const EnLocale = {
   appearance: "Appearance",
   single: "Single",
   grid: "Grid",
-  slide: "Slider"
+  slide: "Slider",
+  undo: "Undo",
+  redo: "Redo"
 };

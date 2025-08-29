@@ -23,6 +23,10 @@
       "import": "./dist/locales.mjs",
       "types": "./dist/types/locales.d.ts"
     },
+    "./extensions": {
+      "import": "./dist/extensions.mjs",
+      "types": "./dist/types/extensions.d.ts"
+    },
     "./styles/*.css": {
       "default": "./dist/styles/*.css"
     }

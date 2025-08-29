@@ -9,6 +9,7 @@ import { isEmptyString } from "@/utils/string";
 export default class Events {
   private editor: Texditor;
   private triggers: EventTriggerObject = {};
+  private isUndoRedoEnabled: boolean = true;
 
   constructor(editor: Texditor) {
     this.editor = editor;
@@ -19,6 +20,7 @@ export default class Events {
     this.onClickHandle = this.onClickHandle.bind(this);
     this.onBlurHandle = this.onBlurHandle.bind(this);
     this.onSelectionChangeHandle = this.onSelectionChangeHandle.bind(this);
+    this.handleUndoRedo = this.handleUndoRedo.bind(this);
   }
 
   add(name: string, callback: CallableFunction) {
@@ -115,7 +117,7 @@ export default class Events {
   }
 
   change(...data: unknown[]) {
-    const { config, actions, blockManager } = this.editor,
+    const { config, actions, blockManager, historyManager } = this.editor,
       changeHandle = config.get("onChange", false);
 
     blockManager.detectEmpty();
@@ -125,8 +127,13 @@ export default class Events {
       if (!this.exists("onChange.onReady")) this.add("onChange.onReady", changeHandle);
     }
 
-    this.trigger("onChange", this.editor, ...data);
+    const eventData = data[0] as { type: string };
 
+    if (eventData && eventData.type != "keydown" && eventData.type != "keyup") {
+      historyManager.saveImmediately();
+    }
+
+    this.trigger("onChange", this.editor, ...data);
     actions.render();
   }
 
@@ -153,6 +160,7 @@ export default class Events {
     this.setIndex(evt.target);
     this.change();
     this.trigger("keyupEnd", evt);
+    this.editor.historyManager.scheduleSave();
   }
 
   private setIndex(target: EventTarget | null, ignoreToolbar = false) {
@@ -165,6 +173,10 @@ export default class Events {
 
   private onKeyDownHandle(evt: KeyboardEvent) {
     const { blockManager, selectionApi, config, api } = this.editor;
+
+    if (this.handleUndoRedo(evt)) {
+      return;
+    }
 
     this.trigger("keydown", evt);
 
@@ -299,6 +311,64 @@ export default class Events {
       type: "keydown",
       event: evt
     });
+
+    if (evt.key === "Enter" || evt.key === "Backspace" || evt.key === "Delete") {
+      this.editor.historyManager.saveImmediately();
+    } else {
+      this.editor.historyManager.scheduleSave();
+    }
+  }
+
+  private handleUndoRedo(evt: KeyboardEvent): boolean {
+    if (!this.isUndoRedoEnabled) return false;
+
+    const { ctrlKey, shiftKey, metaKey, code } = evt,
+      isCommand = metaKey;
+
+    // Ctrl+Z | Cmd+Z - Undo
+    if ((ctrlKey || isCommand) && !shiftKey && code === "KeyZ") {
+      evt.preventDefault();
+      this.performUndo();
+      return true;
+    }
+
+    // Ctrl+Shift+Z | Cmd+Shift+Z - Redo
+    if ((ctrlKey || isCommand) && shiftKey && code === "KeyZ") {
+      evt.preventDefault();
+      this.performRedo();
+      return true;
+    }
+
+    // Ctrl+Y - Redo
+    if ((ctrlKey || isCommand) && !shiftKey && code === "KeyY") {
+      evt.preventDefault();
+      this.performRedo();
+      return true;
+    }
+
+    return false;
+  }
+
+  private performUndo(): void {
+    this.trigger("undo", this.editor);
+
+    const { historyManager } = this.editor;
+    if (historyManager && typeof historyManager.undo === "function") {
+      historyManager.undo();
+    }
+  }
+
+  private performRedo(): void {
+    this.trigger("redo", this.editor);
+
+    const { historyManager } = this.editor;
+    if (historyManager && typeof historyManager.redo === "function") {
+      historyManager.redo();
+    }
+  }
+
+  public setUndoRedoEnabled(enabled: boolean): void {
+    this.isUndoRedoEnabled = enabled;
   }
 
   private onPasteHandle(evt: ClipboardEvent) {
@@ -374,6 +444,7 @@ export default class Events {
     this.change();
     currentModel?.sanitize();
     this.trigger("onPasteEnd", evt);
+    this.editor.historyManager.saveImmediately();
   }
 
   private onDragStart(evt: DragEvent): void {

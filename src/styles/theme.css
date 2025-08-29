@@ -23,4 +23,6 @@
   --tex-button-secondary-bg: rgba(225, 225, 225, 0.3);
   --tex-button-secondary-border-color: rgba(225, 225, 225, 0.5);
   --tex-button-secondary-text-color: #888;
+  --tex-extensions-fixed-bg: rgba(255, 255, 255, 0.5);
+  --tex-extensions-fixed-blur: 8px;
 }

@@ -24,6 +24,8 @@ import LinkTool from "@/tools/link";
 import SubscriptTool from "@/tools/subscript";
 import SuperscriptTool from "@/tools/superscript";
 import { Files } from "@/blocks";
+import { Undo } from "@/extensions";
+import Redo from "@/extensions/redo";
 
 const editor = new Texditor({
   handle: "texditor",
@@ -32,6 +34,8 @@ const editor = new Texditor({
   // actionsTopOffset: 2,
   locale: "ru",
   toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
+  extensions: [Undo, Redo],
+  extensionsLtr: "left",
   blockModels: [
     Paragraph,
     H1,
@@ -70,7 +74,8 @@ const editor = new Texditor({
   onReady: () => {
     document.getElementById("saveButton")?.click();
   },
-  onChange: () => {
+  onChange: (editor: Texditor, evt: unknown) => {
+    console.log(evt);
     setTimeout(() => {
       document.getElementById("saveButton")?.click();
     }, 10);

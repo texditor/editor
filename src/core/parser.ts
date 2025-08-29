@@ -91,6 +91,7 @@ export default class Parser {
           }
         });
       } else {
+        html = html.replace(/&nbsp;/g, " ");
         result.push(decodeHtmlSpecialChars(html));
       }
     }
@@ -100,7 +101,7 @@ export default class Parser {
     return this.emptyFilter(result);
   }
 
-  parseBlocks(data: object[], createDefault: boolean = false): Node[] | [] {
+  parseBlocks(data: object[], createDefault: boolean = false, skipDecode: boolean = false): Node[] | [] {
     const { api, config } = this.editor,
       models = api.getModels();
 
@@ -116,7 +117,7 @@ export default class Parser {
               elBlock = blockModel.create();
 
               if (elBlock) {
-                append(elBlock, this.parseChilds(item));
+                append(elBlock, this.parseChilds(item, false, skipDecode));
                 append(el, elBlock);
               }
             } else {
@@ -141,7 +142,6 @@ export default class Parser {
 
             if (blockModel) {
               const elBlock = blockModel.create();
-
               if (elBlock) append(el, elBlock);
             }
 
@@ -154,16 +154,16 @@ export default class Parser {
     return blocks.childNodes.length ? Array.from(blocks.childNodes) : [];
   }
 
-  parseChilds(block: OutputBlockItem, childRender: boolean = false): Node | Node[] {
+  parseChilds(block: OutputBlockItem, childRender: boolean = false, skipDecode: boolean = false): Node | Node[] {
     if (block.data !== null && block.data !== undefined && block.type !== undefined) {
       const element = make(block.type);
 
       if (Array.isArray(block.data)) {
         (block.data as (OutputBlockItem | string)[]).forEach((item: OutputBlockItem | string) => {
           if (typeof item === "string") {
-            appendText(element, decodeHtmlSpecialChars(item));
+            appendText(element, skipDecode ? item : decodeHtmlSpecialChars(item));
           } else {
-            append(element, this.parseChilds(item, true) as HTMLElement);
+            append(element, this.parseChilds(item, true, skipDecode) as HTMLElement);
           }
         });
       } else if (typeof block.data === "string") {
