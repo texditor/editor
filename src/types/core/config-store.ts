@@ -16,5 +16,6 @@ export interface ConfigStore {
   extensions?: ExtensionModelInterface[];
   extensionsLtr?: "left" | "right" | "center";
   extensionsFixed?: boolean;
+  extensionsFixedCss?: false | Record<string, string>;
   extensionVisibleTitle?: boolean;
 }

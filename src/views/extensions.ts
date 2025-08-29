@@ -14,6 +14,7 @@ export default function ExtensionsView(editor: Texditor): HTMLElement | Node {
         className = api.css("extensions", false);
 
       if (!root) return;
+
       query(
         api.css("editor"),
         (rootEditor: HTMLElement) => {
@@ -26,9 +27,12 @@ export default function ExtensionsView(editor: Texditor): HTMLElement | Node {
             if (scrollTop >= editorRect.top + scrollTop) {
               addClass(extEl, className + "-fixed");
               css(extEl, { left: editorLeft, width: editorWidth });
+              const extCss = config.get("extensionsFixedCss", false);
+
+              if (extCss) css(extEl, extCss);
             } else {
               removeClass(extEl, className + "-fixed");
-              css(extEl, { left: "", width: "" });
+              extEl.removeAttribute("style");
             }
           });
         },
