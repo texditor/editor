@@ -48,7 +48,7 @@ export default class ExtensionModel {
         });
       }
 
-      if (config.get("extensionTitle", false)) {
+      if (config.get("extensionVisibleTitle", false)) {
         append(
           el,
           make("span", (span: HTMLSpanElement) => {

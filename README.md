@@ -5,9 +5,6 @@ A modern, modular block-based text editor built with TypeScript. Featuring a cle
 ![Beta Version](https://img.shields.io/badge/version-beta-orange)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
-> ⚠️ **Beta Notice**  
-> This is an early version of Texditor and may contain bugs or incomplete features. We appreciate your feedback and contributions!
-
 ## Features ✨
 
 - 🧩 Modular block system
@@ -38,6 +35,7 @@ const editor = new Texditor({
 
 ```js
 import { Code, Files, Gallery, H1, H2, H3, H4, H5, H6, List, OrderedList, Paragraph } from "@texditor/editor/blocks";
+import { Undo, Redo } from "@texditor/editor/extensions";
 
 import {
   BoldTool,
@@ -50,6 +48,7 @@ import {
 
 const editor = new Texditor({
   handle: "texditor",
+  extensions: [Undo, Redo],
   toolModels: [
     BoldTool,
     LinkTool

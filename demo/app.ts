@@ -36,6 +36,8 @@ const editor = new Texditor({
   toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
   extensions: [Undo, Redo],
   extensionsLtr: "left",
+  extensionsFixed: true,
+  extensionVisibleTitle: false,
   blockModels: [
     Paragraph,
     H1,
