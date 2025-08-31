@@ -264,17 +264,15 @@
 }
 
 @media (hover: hover) {
-  .tex-btn:hover {
-    opacity: 0.6;
-  }
-
   .tex-action:hover,
   .tex-actions-menu-item:hover {
     opacity: 0.6;
     background-color: var(--tex-background-lite);
   }
 
-  .tex-actions-open:hover {
+  .tex-actions-open:hover,
+  .tex-extension:hover,
+  .tex-btn:hover {
     opacity: 0.6;
   }
 

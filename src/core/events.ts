@@ -117,7 +117,7 @@ export default class Events {
   }
 
   change(...data: unknown[]) {
-    const { config, actions, blockManager, historyManager } = this.editor,
+    const { config, actions, blockManager } = this.editor,
       changeHandle = config.get("onChange", false);
 
     blockManager.detectEmpty();
@@ -125,12 +125,6 @@ export default class Events {
 
     if (changeHandle && typeof changeHandle === "function") {
       if (!this.exists("onChange.onReady")) this.add("onChange.onReady", changeHandle);
-    }
-
-    const eventData = data[0] as { type: string };
-
-    if (eventData && eventData.type != "keydown" && eventData.type != "keyup") {
-      historyManager.saveImmediately();
     }
 
     this.trigger("onChange", this.editor, ...data);
@@ -158,7 +152,10 @@ export default class Events {
     this.trigger("keyup", evt);
     evt.preventDefault();
     this.setIndex(evt.target);
-    this.change();
+    this.change({
+      type: "keyup",
+      event: evt
+    });
     this.trigger("keyupEnd", evt);
     this.editor.historyManager.scheduleSave();
   }
@@ -313,7 +310,7 @@ export default class Events {
     });
 
     if (evt.key === "Enter" || evt.key === "Backspace" || evt.key === "Delete") {
-      this.editor.historyManager.saveImmediately();
+      this.editor.historyManager.save();
     } else {
       this.editor.historyManager.scheduleSave();
     }
@@ -384,7 +381,10 @@ export default class Events {
 
     if (currentModel && "onPaste" in currentModel && typeof currentModel.onPaste === "function") {
       currentModel?.onPaste(evt, input);
-      this.change();
+      this.change({
+        type: "paste",
+        event: evt
+      });
       currentModel?.sanitize();
       this.trigger("onPasteEnd", evt);
       return;
@@ -444,7 +444,7 @@ export default class Events {
     this.change();
     currentModel?.sanitize();
     this.trigger("onPasteEnd", evt);
-    this.editor.historyManager.saveImmediately();
+    this.editor.historyManager.save();
   }
 
   private onDragStart(evt: DragEvent): void {

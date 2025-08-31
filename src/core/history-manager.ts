@@ -1,5 +1,5 @@
 import Texditor from "@/texditor";
-import { HistoryState } from "@/types/core/history-state";
+import { HistoryState, HistoryStateSelectionData } from "@/types/core/history-state";
 
 export default class HistoryManager {
   private editor: Texditor;
@@ -13,6 +13,11 @@ export default class HistoryManager {
 
   constructor(editor: Texditor) {
     this.editor = editor;
+    this.editor.events.add("onChange.history", (texditor: Texditor, evt: Event) => {
+      if (evt && evt.type != "keydown" && evt.type != "keyup" && evt.type != "historySave") {
+        this.save();
+      }
+    });
   }
 
   /**
@@ -34,7 +39,7 @@ export default class HistoryManager {
   /**
    * Immediately save the current editor state
    */
-  public saveImmediately(): void {
+  public save(): void {
     if (this.isRestoring) return;
 
     if (this.saveTimer) {
@@ -49,15 +54,23 @@ export default class HistoryManager {
    * Perform the actual state saving operation
    */
   private doSave(): void {
-    const { api } = this.editor;
+    const { api, blockManager } = this.editor;
 
     try {
-      const content = api.getContent();
-      const selection = this.getEditorSelection();
+      const content = api.getContent(),
+        selection = this.getEditorSelection(),
+        blockIndex = blockManager.getIndex(),
+        model = blockManager.getModel();
+
+      const selectionData: HistoryStateSelectionData = { index: blockIndex, ...selection };
+
+      if (model?.isEditableChilds()) {
+        selectionData.itemIndex = model.getItemIndex();
+      }
 
       const state: HistoryState = {
         content: content,
-        selection: { ...selection },
+        selection: selectionData,
         timestamp: Date.now()
       };
 
@@ -180,7 +193,7 @@ export default class HistoryManager {
       this.currentState = this.future.pop()!;
       this.restoreState(this.currentState);
       this.editor.events.change({
-        type: "undo",
+        type: "redo",
         state: this.currentState,
         history: this.history,
         future: this.future
@@ -229,30 +242,39 @@ export default class HistoryManager {
    * Restore editor to a specific historical state
    * @param state - The history state to restore
    */
-  private restoreState(state: HistoryState): void {
+  private restoreState(state: HistoryState, focusIndex?: number): void {
     const { api, blockManager } = this.editor;
 
-    try {
-      api.setContent(state.content);
+    api.setContent(state.content);
 
-      setTimeout(() => {
-        try {
-          const currentBlock = blockManager.getCurrentBlock();
-          if (currentBlock) {
-            const { selectionApi } = this.editor;
-            selectionApi.select(state.selection.start, state.selection.end, currentBlock);
-            currentBlock.focus();
+    setTimeout(() => {
+      const targetIndex = focusIndex !== undefined ? focusIndex : state.selection.index,
+        currentBlock = blockManager.getByIndex(targetIndex);
+
+      if (currentBlock) {
+        const { selectionApi } = this.editor,
+          model = blockManager.getModel(targetIndex),
+          select = (elem: HTMLElement) => {
+            selectionApi.select(state.selection.start, state.selection.end, elem, true);
+          };
+
+        if (model?.isEditable() && !model?.isEditableChilds()) {
+          select(currentBlock);
+        } else {
+          if (model?.isEditableChilds() && state.selection.itemIndex != undefined) {
+            const item = model.getItem(state.selection.itemIndex, currentBlock);
+
+            if (item) {
+              select(item as HTMLElement);
+            }
+          } else {
+            currentBlock.click();
+            currentBlock.scrollIntoView({ behavior: "smooth", block: "center" });
           }
-        } catch (error) {
-          console.warn("Could not restore selection:", error);
-        } finally {
-          this.isRestoring = false;
         }
-      }, 100);
-    } catch (error) {
+      }
       this.isRestoring = false;
-      console.error("Restore state error:", error);
-    }
+    }, 100);
   }
 
   /**

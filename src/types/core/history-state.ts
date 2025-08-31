@@ -1,7 +1,14 @@
 import { OutputBlockItem } from "../output";
 
+export interface HistoryStateSelectionData {
+  start: number;
+  end: number;
+  index: number;
+  itemIndex?: number;
+}
+
 export interface HistoryState {
   content: OutputBlockItem[];
-  selection: { start: number; end: number };
+  selection: HistoryStateSelectionData;
   timestamp: number;
 }

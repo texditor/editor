@@ -119,7 +119,7 @@ export default class List extends BlockModel implements BlockModelInterface {
   }
 
   removeItem(index?: number | null): void {
-    const realIndex = typeof index === "number" ? index : this.getIndex(),
+    const realIndex = typeof index === "number" ? index : this.getItemIndex(),
       element = this.getItem(realIndex);
 
     element?.remove();
@@ -140,7 +140,7 @@ export default class List extends BlockModel implements BlockModelInterface {
   }
 
   getItem(index: number, container: HTMLElement | null = null): HTMLElement | null {
-    const realIndex = index === -1 ? this.getIndex() : index,
+    const realIndex = index === -1 ? this.getItemIndex() : index,
       listContainer = container ? container : this.getCurrentBlock() || this.getElement();
 
     if (!listContainer) return null;
@@ -215,11 +215,11 @@ export default class List extends BlockModel implements BlockModelInterface {
     return false;
   }
 
-  private setIndex(index: number) {
+  setItemIndex(index: number): void {
     this.itemIndex = index;
   }
 
-  private getIndex(): number {
+  getItemIndex(): number {
     const activeItem = this.getActiveListItem();
     if (!activeItem) return this.itemIndex;
 
@@ -229,12 +229,12 @@ export default class List extends BlockModel implements BlockModelInterface {
 
   private addEvents() {
     const { blockManager, config, events, selectionApi } = this.editor,
-      setIndex = (el: HTMLElement) => {
-        this.setIndex(this.getListElementIndex(el));
+      setItemIndex = (el: HTMLElement) => {
+        this.setItemIndex(this.getListElementIndex(el));
       },
       defCallback = (evt: Event) => {
         if (evt.target instanceof HTMLElement && !hasClass(evt.target, "tex-block") && evt.target?.nodeName == "LI") {
-          setIndex(evt.target);
+          setItemIndex(evt.target);
         }
       };
 
@@ -243,7 +243,7 @@ export default class List extends BlockModel implements BlockModelInterface {
     events.add("onSelectionChange.list", () => {
       const el = document.activeElement;
 
-      if (el instanceof HTMLElement && el.nodeName === "LI") setIndex(el);
+      if (el instanceof HTMLElement && el.nodeName === "LI") setItemIndex(el);
     });
 
     events.add("htmlToDataElementOutput.list", (item: OutputBlockItem) => {
@@ -258,7 +258,7 @@ export default class List extends BlockModel implements BlockModelInterface {
           evt.preventDefault();
           this.removeItem();
 
-          const prevIndex = this.getIndex() - 1,
+          const prevIndex = this.getItemIndex() - 1,
             prevElem = this.getItem(prevIndex, blockManager.getCurrentBlock()) || null,
             prevTextLength = prevElem?.textContent?.length || 0;
 
@@ -269,7 +269,7 @@ export default class List extends BlockModel implements BlockModelInterface {
           if (cursorStart === 0 && cursorEnd === 0) {
             evt.preventDefault();
 
-            const index = this.getIndex(),
+            const index = this.getItemIndex(),
               finalItem = this.getItem(index - 1, blockManager.getCurrentBlock()),
               prevTextLength = finalItem?.textContent?.length || 0;
 
@@ -397,14 +397,14 @@ export default class List extends BlockModel implements BlockModelInterface {
 
         if (prevElem && firstLi?.childNodes) {
           // LI => P
-          if (firstLi == this.getItem(this.getIndex())) {
+          if (firstLi == this.getItem(this.getItemIndex())) {
             this.mergeAndFocus(firstLi, prevElem);
             const count = this.count();
 
             if (!count) blockManager.removeBlock();
           } else {
             // LI => LI
-            const curItemIndex = this.getIndex(),
+            const curItemIndex = this.getItemIndex(),
               curItem = this.getItem(curItemIndex),
               prevItem = this.getItem(curItemIndex - 1);
 

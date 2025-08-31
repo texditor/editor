@@ -88,7 +88,7 @@ export default class API {
     return this.cssNames[key] ? (dot ? "." : "") + this.cssNames[key] : "";
   }
 
-  setContent(content: OutputBlockItem[], index: number = 0): void {
+  setContent(content: OutputBlockItem[], index: number | null = null): void {
     const { blockManager, parser } = this.editor;
     const container = blockManager.getContainer();
 
@@ -98,7 +98,8 @@ export default class API {
       const blocks = parser.parseBlocks(content, true);
       append(container, blocks);
 
-      blockManager.setIndex(index);
+      if (index !== null) blockManager.setIndex(index);
+
       blockManager.detectEmpty(false);
       blockManager.normalize();
     }
