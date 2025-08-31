@@ -115,7 +115,7 @@ export default class SelectionAPI {
     };
   }
 
-  select(startPos: number, endPos: number, container?: Element): void {
+  select(startPos: number, endPos: number, container?: Element, scrollToContainer: boolean = false): void {
     const { element } = this.current();
     const wrapContainer = container || element || null;
 
@@ -170,6 +170,8 @@ export default class SelectionAPI {
         range.setEnd(endNode, endNodeLength || 0);
       }
     }
+
+    if (container && scrollToContainer) container.scrollIntoView({ behavior: "smooth", block: "center" });
 
     selection.removeAllRanges();
     selection.addRange(range);

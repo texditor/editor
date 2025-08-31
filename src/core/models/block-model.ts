@@ -238,6 +238,13 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setItemIndex(index: number): void {}
+
+  getItemIndex(): number {
+    return 0;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected onCreate(newBlock?: HTMLBlockElement | null) {}
 
   onRender(): void {}

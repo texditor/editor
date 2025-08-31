@@ -42,7 +42,7 @@ export default class Texditor {
       this.api.render();
       this.actions.apply();
       this.toolbar.apply();
-      this.historyManager.saveImmediately();
+      this.historyManager.save();
 
       const readyCallback = this.config.get("onReady", false);
 

@@ -18,4 +18,7 @@ export interface BlockModelInterface {
   setStore(key: string, value: unknown): this;
   getStore(key: string | null): unknown;
   onPaste?(evt: Event, input: Element | null): void;
+  getItemIndex?(): number;
+  setItemIndex?(index: number): void;
+  getItem?(index: HTMLElement | number, container: HTMLElement | null): HTMLElement | number | null;
 }
