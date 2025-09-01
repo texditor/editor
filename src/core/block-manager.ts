@@ -1,13 +1,26 @@
 import Texditor from "@/texditor";
 import { HTMLBlockElement } from "@/types/core";
-import { closest, queryLength, query, append, make, addClass, removeClass } from "@/utils/dom";
+import {
+  closest,
+  queryLength,
+  query,
+  append,
+  make,
+  addClass,
+  removeClass,
+  hasClass,
+  queryList,
+  css
+} from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 import BlockModel from "./models/block-model";
 import { BlockModelInterface, BlockModelStructure } from "@/types/core/models";
+import { off, on } from "@/utils/events";
 
 export default class BlockManager {
   private editor: Texditor;
   private blockIndex: number = 0;
+  private isSelectionMode: boolean = false;
 
   constructor(editor: Texditor) {
     this.editor = editor;
@@ -252,31 +265,87 @@ export default class BlockManager {
   }
 
   focusByIndex(index: number): HTMLElement | null {
-    const blockElement = this.getByIndex(index);
+    const blockElement = this.getByIndex(index),
+      model = this.getModel(index);
 
     if (!blockElement) return null;
-
-    blockElement.focus();
+    if (model?.isEditable() && !model.isEditableChilds()) {
+      blockElement.focus();
+    } else if (model?.isEditableChilds()) {
+      const firstItem = model.getItem(0) as HTMLElement;
+      if (firstItem) firstItem?.focus();
+    } else {
+      blockElement.click();
+    }
 
     return blockElement;
   }
 
-  removeBlock(index: number | null = null): number | null {
-    let blockElement = null;
-    let currentIndex = null;
+  removeBlock(index: number | number[] | null = null): number | null {
+    const { config, selectionApi } = this.editor;
 
-    if (index !== null) {
-      blockElement = this.getByIndex(index);
+    let lastRemovedIndex: number | null = null;
+    let lastRemovedBlock: HTMLElement | null = null;
+
+    if (Array.isArray(index)) {
+      if (index.length === 0) return null;
+
+      const sortedIndices = [...index].sort((a, b) => b - a);
+
+      for (const currentIndex of sortedIndices) {
+        const blockElement = this.getByIndex(currentIndex);
+        if (blockElement) {
+          lastRemovedIndex = currentIndex;
+          lastRemovedBlock = blockElement;
+          blockElement.remove();
+        }
+      }
     } else {
-      blockElement = this.getCurrentBlock();
+      let blockElement: HTMLElement | null = null;
+      let currentIndex: number | null = null;
+
+      if (index !== null) {
+        blockElement = this.getByIndex(index);
+        currentIndex = index;
+      } else {
+        blockElement = this.getCurrentBlock();
+        currentIndex = this.getIndex();
+      }
+
+      if (!blockElement || currentIndex === null) return null;
+
+      lastRemovedIndex = currentIndex;
+      lastRemovedBlock = blockElement;
+      blockElement.remove();
     }
 
-    if (!blockElement) return null;
+    if (lastRemovedBlock && lastRemovedIndex !== null) {
+      if (lastRemovedIndex <= 0) {
+        setTimeout(() => this.focusByIndex(0), 100);
+      } else {
+        const prevIndex = lastRemovedIndex - 1;
+        const prevElem = this.getByIndex(prevIndex);
 
-    currentIndex = this.getIndex();
-    blockElement.remove();
+        if (prevElem) {
+          const prevTextLength = prevElem?.textContent?.length || 0;
+          prevElem.focus();
+          selectionApi.select(prevTextLength, prevTextLength, prevElem);
+        }
+      }
+    }
 
-    return currentIndex;
+    const defBlock = config.get("defaultBlock", "p");
+    if (this.count() == 0) {
+      this.createBlock(defBlock, -1);
+    }
+
+    this.editor.events.change({
+      type: "removeBlock",
+      index: index,
+      element: lastRemovedBlock
+    });
+
+    return lastRemovedIndex;
   }
 
   createBlock(name: string, index: number | null = null, content?: object): HTMLElement | null {
@@ -335,5 +404,142 @@ export default class BlockManager {
       element.innerHTML += currentBlock.innerHTML;
       this.removeBlock(currentIndex || null);
     }
+  }
+
+  public enableSelectionMode(): void {
+    const { actions, api, events, toolbar } = this.editor,
+      container = this.getContainer();
+
+    if (this.isSelectionMode) return;
+
+    this.isSelectionMode = true;
+
+    toolbar.hide();
+    actions.hideMenu();
+    const actionsOpen = api.css("actionsOpen");
+    query(actionsOpen, (el: HTMLElement) => css(el, "display", "none"));
+
+    this.getItems().forEach((block: Element) => {
+      on(block, "click.bc", (evt: MouseEvent) => {
+        if (!this.isSelectionMode) return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+
+        const index = this.getElementIndex(evt.currentTarget as HTMLBlockElement);
+        this.toggleBlockSelection(index);
+      });
+    });
+    off(document, "click.dc");
+    on(document, "click.dc", (evt) => {
+      if (container && !closest(evt.target, container)) this.clearSelection();
+    });
+
+    this.disableAllBlocks();
+    events.trigger("selectionModeEnabled");
+  }
+
+  public disableSelectionMode(): void {
+    const { api, events } = this.editor;
+
+    if (!this.isSelectionMode) return;
+
+    const actionsOpen = api.css("actionsOpen");
+    query(actionsOpen, (el: HTMLElement) => css(el, "display", ""));
+    this.isSelectionMode = false;
+    this.getItems().forEach((block: Element) => off(block, "click.bc"));
+    off(document, "click.dc");
+    this.clearSelection();
+    this.enableAllBlocks();
+    events.trigger("selectionModeDisabled");
+  }
+
+  public isSelectionModeActive(): boolean {
+    return this.isSelectionMode;
+  }
+
+  private toggleBlockSelection(index: number): void {
+    const { api, events } = this.editor;
+    const block = this.getByIndex(index);
+
+    if (block) {
+      if (hasClass(block, api.css("block", false) + "-selected")) this.removeBlockSelection(index);
+      else this.addBlockSelection(index);
+
+      events.trigger("selectionChanged", this.getSelectedBlocks());
+    }
+  }
+
+  private addBlockSelection(index: number): void {
+    const { api } = this.editor;
+    const block = this.getByIndex(index),
+      cssName = api.css("block", false) + "-selected";
+
+    if (block && !hasClass(block, cssName)) addClass(block, cssName);
+  }
+
+  private removeBlockSelection(index: number): void {
+    const { api } = this.editor;
+    const block = this.getByIndex(index);
+
+    if (block) removeClass(block, api.css("block", false) + "-selected");
+  }
+
+  public getSelectedBlocks(): HTMLElement[] {
+    const { api } = this.editor,
+      cssName = api.css("block") + "-selected";
+
+    return queryList(cssName);
+  }
+
+  public hasSelectedBlocks(): boolean {
+    return this.getSelectedBlocks().length > 0;
+  }
+
+  public clearSelection(): void {
+    const { api, events } = this.editor;
+    this.getItems().forEach((block: HTMLBlockElement) => {
+      removeClass(block, api.css("block", false) + "-selected");
+    });
+    events.trigger("selectionChanged", []);
+  }
+
+  public deleteSelectedBlocks(): void {
+    const blocks = this.getSelectedBlocks();
+    if (blocks.length === 0) return;
+    const indexes: number[] = [];
+    blocks.forEach((element: HTMLElement) => indexes.push(this.getElementIndex(element)));
+    this.removeBlock(indexes);
+    this.clearSelection();
+    this.disableSelectionMode();
+  }
+
+  public disableAllBlocks(): void {
+    const { api } = this.editor;
+    const blocks = this.getItems();
+    const cssName = api.css("block", false);
+
+    blocks.forEach((block: HTMLElement) => {
+      const wasEditable = block.hasAttribute("contenteditable");
+      block.dataset.originalEditable = wasEditable ? "true" : "false";
+      block.setAttribute("contenteditable", "false");
+      addClass(block, cssName + "-non-editable");
+    });
+  }
+
+  public enableAllBlocks(): void {
+    const { api } = this.editor;
+    const blocks = this.getItems();
+    const cssName = api.css("block", false);
+
+    blocks.forEach((block: HTMLElement) => {
+      const wasEditable = block.dataset.originalEditable === "true";
+
+      if (wasEditable) block.setAttribute("contenteditable", "true");
+      else block.removeAttribute("contenteditable");
+
+      removeClass(block, cssName + "-non-editable");
+      delete block.dataset.originalEditable;
+    });
   }
 }

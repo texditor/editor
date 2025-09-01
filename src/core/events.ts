@@ -217,7 +217,6 @@ export default class Events {
         this.trigger("keydownEnterKeyEnd", evt);
       } else if (evt.key == "Backspace") {
         this.trigger("keydownBackspaceKey", evt);
-
         if (blockManager.isEmpty()) {
           evt.preventDefault();
           const curIndex = blockManager.removeBlock();

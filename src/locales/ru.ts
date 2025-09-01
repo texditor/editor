@@ -40,5 +40,6 @@ export const RuLocale = {
   grid: "Сетка",
   slider: "Слайдер",
   undo: "Отменить",
-  redo: "Повторить"
+  redo: "Повторить",
+  select: "Выбрать"
 };

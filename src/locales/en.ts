@@ -40,5 +40,6 @@ export const EnLocale = {
   grid: "Grid",
   slide: "Slider",
   undo: "Undo",
-  redo: "Redo"
+  redo: "Redo",
+  select: "Select"
 };

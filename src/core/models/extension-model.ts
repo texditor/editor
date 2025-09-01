@@ -1,6 +1,6 @@
 import Texditor from "@/texditor";
 import { generateRandomString } from "@/utils/common";
-import { addClass, append, make, removeClass } from "@/utils/dom";
+import { addClass, append, attr, make, removeClass, toggleClass } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import renderIcon from "@/utils/renderIcon";
 
@@ -9,36 +9,49 @@ export default class ExtensionModel {
   protected translation: string = "";
   protected editor: Texditor;
   protected icon: string = "";
+  protected toggleActive: boolean = true;
   private randomId: string = generateRandomString(10);
+  protected groupName = "";
 
   constructor(editor: Texditor) {
     this.editor = editor;
-    this.onClick = this.onClick.bind(this);
     this.onLoad();
+    this.handleClick = this.handleClick.bind(this);
   }
 
   onLoad(): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) {}
+  onClick(evt: Event & { el: EventTarget }) {}
+
+  private handleClick(evt: Event & { el: EventTarget }) {
+    const { api } = this.editor,
+      cssName = api.css("extension", false);
+
+    if (this.toggleActive) {
+      if (evt.el) toggleClass(evt.el as HTMLElement, cssName + "-active");
+    }
+    this.onClick(evt);
+  }
 
   isActive(): boolean {
     return true;
   }
 
-  create() {
+  create(): HTMLElement {
     const { api, events, config, i18n } = this.editor,
       cssName = api.css("extension", false);
 
     return make("div", (el: HTMLElement) => {
       addClass(el, cssName + " " + cssName + "-" + this.getName());
+
       events.add("onChange", () => {
-        if (!this.isActive()) addClass(el, "tex-unactive");
-        else removeClass(el, "tex-unactive");
+        if (!this.isActive()) addClass(el, cssName + "-unactive");
+        else removeClass(el, cssName + "-unactive");
       });
 
       off(el, "click.ext");
-      on(el, "click.ext", this.onClick);
+      on(el, "click.ext", this.handleClick);
       el.id = this.getId();
 
       if (this.icon) {
@@ -47,27 +60,31 @@ export default class ExtensionModel {
           height: 14
         });
       }
+      const title = i18n.get(this.translation || this.getName(), this.getName());
 
-      if (config.get("extensionVisibleTitle", false)) {
+      attr(el, "title", title);
+
+      if (config.get("extensionVisibleTitle", false))
         append(
           el,
-          make("span", (span: HTMLSpanElement) => {
-            span.textContent = i18n.get(this.translation || this.getName(), this.getName());
-          })
+          make("span", (span: HTMLSpanElement) => (span.textContent = title))
         );
-      }
     });
   }
 
-  protected getId(): string {
+  getId(): string {
     return this.editor.api.css("extension", false) + "-" + this.getName() + "-" + this.randomId;
   }
 
-  protected getElement(): HTMLElement | null {
+  getElement(): HTMLElement | null {
     return document.getElementById(this.getId());
   }
 
-  protected getName() {
+  getName(): string {
     return this.name;
+  }
+
+  getGroupName(): string {
+    return this.groupName;
   }
 }

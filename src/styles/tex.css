@@ -221,6 +221,18 @@
   flex-wrap: wrap;
   gap: 16px;
   padding: 16px 0;
+  align-items: center;
+}
+
+.tex-extensions-group {
+  display: flex;
+  flex-wrap: wrap;
+  padding-right: 8px;
+  gap: 16px;
+}
+
+.tex-extensions-group:last-child {
+  padding-right: 0;
 }
 
 .tex-extensions.tex-right {
@@ -259,8 +271,43 @@
   z-index: 999;
 }
 
-.tex-unactive {
+.tex-extension-unactive {
   opacity: 0.4;
+}
+
+.tex-block-non-editable {
+  cursor: pointer !important;
+  user-select: none !important;
+  opacity: 0.7;
+}
+
+.tex-block-non-editable * {
+  pointer-events: none !important;
+}
+
+.tex-block-selected {
+  outline: 2px solid var(--tex-selected-outline) !important;
+  background-color: var(--tex-selected-background) !important;
+  border-radius: 4px;
+}
+
+.tex-extension-active {
+  color: var(--tex-color-secondary);
+  opacity: 1;
+}
+
+.tex-extension-deleteSelected {
+  display: none;
+}
+
+.tex-extension-deleteSelected {
+  color: var(--tex-error);
+  opacity: 1;
+}
+
+.tex-selectable {
+  cursor: default !important;
+  user-select: none !important;
 }
 
 @media (hover: hover) {

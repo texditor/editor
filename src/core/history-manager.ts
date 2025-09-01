@@ -273,6 +273,12 @@ export default class HistoryManager {
           }
         }
       }
+
+      if (blockManager.isSelectionModeActive()) {
+        blockManager.disableSelectionMode();
+        blockManager.enableSelectionMode();
+      }
+
       this.isRestoring = false;
     }, 100);
   }

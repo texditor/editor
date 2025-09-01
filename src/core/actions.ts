@@ -2,7 +2,7 @@ import Texditor from "@/texditor";
 import { append, closest, css, make, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { ActionModelInterface } from "@/types/core/models";
-import DeleteAction from "@/actions/delete";
+import RemoveBlockAction from "@/actions/remove-block";
 import { ActionModelInstanceInterface } from "@/types/core/models";
 import MoveUpAction from "@/actions/moveup";
 import MoveDownAction from "@/actions/movedown";
@@ -22,7 +22,7 @@ export default class Actions {
     this.register(CreateBlockAction);
     this.register(MoveUpAction);
     this.register(MoveDownAction);
-    this.register(DeleteAction);
+    this.register(RemoveBlockAction);
   }
 
   render() {
