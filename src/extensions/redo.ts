@@ -6,6 +6,8 @@ export default class Redo extends ExtensionModel implements ExtensionModelInterf
   name: string = "redo";
   protected icon: string = IconRedo;
   protected translation: string = "redo";
+  protected toggleActive: boolean = false;
+  protected groupName: string = "history";
 
   onClick() {
     this.editor.historyManager.redo();

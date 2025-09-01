@@ -6,6 +6,8 @@ export default class Undo extends ExtensionModel implements ExtensionModelInterf
   name: string = "undo";
   protected icon: string = IconUndo;
   protected translation: string = "undo";
+  protected toggleActive: boolean = false;
+  protected groupName: string = "history";
 
   onClick() {
     this.editor.historyManager.undo();

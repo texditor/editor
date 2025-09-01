@@ -25,4 +25,6 @@
   --tex-button-secondary-text-color: #888;
   --tex-extensions-fixed-bg: rgba(255, 255, 255, 0.5);
   --tex-extensions-fixed-blur: 8px;
+  --tex-selected-outline: #1e764e;
+  --tex-selected-background: rgba(30, 118, 78, 0.1);
 }

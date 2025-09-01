@@ -1,0 +1,19 @@
+.tex-extension-selectionMode-wrap,
+.tex-extension-selectionMode-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.tex-extension-selectionMode-actions {
+  display: none;
+}
+
+.tex-extension-selectionMode-action-delete {
+  color: var(--tex-error);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}

@@ -24,7 +24,7 @@ import LinkTool from "@/tools/link";
 import SubscriptTool from "@/tools/subscript";
 import SuperscriptTool from "@/tools/superscript";
 import { Files } from "@/blocks";
-import { Undo } from "@/extensions";
+import { SelectionMode, Undo } from "@/extensions";
 import Redo from "@/extensions/redo";
 
 const editor = new Texditor({
@@ -34,10 +34,10 @@ const editor = new Texditor({
   // actionsTopOffset: 2,
   locale: "ru",
   toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
-  extensions: [Undo, Redo],
+  extensions: [Undo, Redo, SelectionMode],
   extensionsLtr: "left",
   extensionsFixed: true,
-  extensionVisibleTitle: false,
+  extensionVisibleTitle: true,
   extensionsFixedCss: {
     border: "1px solid #ebebeb",
     "z-index": "3000"

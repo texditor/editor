@@ -10,8 +10,9 @@ import Toolbar from "@/core/toolbar";
 import I18N from "@/core/i18n";
 import Actions from "@/core/actions";
 import API from "@/core/api";
-import Commands from "./core/commands";
-import HistoryManager from "./core/history-manager";
+import Commands from "@/core/commands";
+import HistoryManager from "@/core/history-manager";
+import Extensions from "./core/extensions";
 
 export default class Texditor {
   config: Config;
@@ -25,6 +26,7 @@ export default class Texditor {
   i18n: I18N;
   commands: Commands;
   historyManager: HistoryManager;
+  extensions: Extensions;
 
   constructor(config: ConfigStore) {
     this.config = new Config(config);
@@ -38,6 +40,7 @@ export default class Texditor {
     this.toolbar = new Toolbar(this);
     this.commands = new Commands(this);
     this.actions = new Actions(this);
+    this.extensions = new Extensions(this);
     this.events.onReady(() => {
       this.api.render();
       this.actions.apply();
