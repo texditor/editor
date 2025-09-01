@@ -1,4 +1,3 @@
-// extensions/selection-mode.extension.ts
 import ExtensionModel from "@/core/models/extension-model";
 import { IconCheck, IconTrash } from "@/icons";
 import { addClass, append, attr, css, make, query, removeClass } from "@/utils/dom";
