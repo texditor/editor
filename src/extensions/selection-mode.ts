@@ -1,6 +1,6 @@
 import ExtensionModel from "@/core/models/extension-model";
 import { IconCheck, IconTrash } from "@/icons";
-import { addClass, append, attr, css, make, query, removeClass } from "@/utils/dom";
+import { addClass, append, attr, css, make, removeClass } from "@/utils/dom";
 import "@/styles/extensions/selection-mode.css";
 import { HTMLBlockElement } from "@/types/core";
 import renderIcon from "@/utils/renderIcon";
@@ -33,12 +33,6 @@ export default class SelectionMode extends ExtensionModel {
       cssExtName = api.css("extension", false),
       cssName = cssExtName + "-" + this.getName();
 
-    this.editor.events.add("selectionChanged.extSelectionMode", (blocks: HTMLBlockElement[]) => {
-      query("." + cssName + "-actions", (act: HTMLElement) => {
-        css(act, "display", blocks.length > 0 ? "flex" : "");
-      });
-    });
-
     const wrap = make("div", (el: HTMLElement) => {
       addClass(el, cssName + "-wrap");
       append(el, created);
@@ -46,6 +40,9 @@ export default class SelectionMode extends ExtensionModel {
         el,
         make("div", (act: HTMLElement) => {
           addClass(act, cssName + "-actions");
+          this.editor.events.add("selectionChanged.extSelectionMode", (blocks: HTMLBlockElement[]) => {
+            css(act, "display", blocks.length > 0 ? "flex" : "");
+          });
           append(
             act,
             make("div", (del: HTMLElement) => {

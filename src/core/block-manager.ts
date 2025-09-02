@@ -519,27 +519,28 @@ export default class BlockManager {
     const blocks = this.getItems();
     const cssName = api.css("block", false);
 
-    blocks.forEach((block: HTMLElement) => {
-      const wasEditable = block.hasAttribute("contenteditable");
-      block.dataset.originalEditable = wasEditable ? "true" : "false";
-      block.setAttribute("contenteditable", "false");
+    blocks.forEach((block: HTMLBlockElement) => {
+      if (block.blockModel?.isEditable()) {
+        block.removeAttribute("contenteditable");
+        if (isEmptyString(block.innerHTML)) block.innerHTML = "\u200B";
+      }
+
       addClass(block, cssName + "-non-editable");
     });
   }
 
   public enableAllBlocks(): void {
-    const { api } = this.editor;
-    const blocks = this.getItems();
-    const cssName = api.css("block", false);
+    const { api } = this.editor,
+      blocks = this.getItems(),
+      cssName = api.css("block", false);
 
-    blocks.forEach((block: HTMLElement) => {
-      const wasEditable = block.dataset.originalEditable === "true";
+    blocks.forEach((block: HTMLBlockElement) => {
+      const wasEditable = block.blockModel?.isEditable();
 
       if (wasEditable) block.setAttribute("contenteditable", "true");
       else block.removeAttribute("contenteditable");
 
       removeClass(block, cssName + "-non-editable");
-      delete block.dataset.originalEditable;
     });
   }
 }
