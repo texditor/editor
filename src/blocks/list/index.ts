@@ -113,7 +113,7 @@ export default class List extends BlockModel implements BlockModelInterface {
     return make("li", (el: HTMLElement) => {
       addClass(el, "tex-list-item");
       el.contentEditable = "true";
-      el.innerHTML = isEmptyString(content ?? "") ? "\u200B" : content || "";
+      el.innerHTML = isEmptyString(content ?? "") ? "<br>" : content || "";
       el.id = this.getId() + "-li-" + generateRandomString(8);
     });
   }
@@ -193,7 +193,7 @@ export default class List extends BlockModel implements BlockModelInterface {
     });
 
     return this.create({
-      content: ul.innerHTML || "\u200B"
+      content: ul.innerHTML || "<br>"
     });
   }
 
@@ -332,13 +332,13 @@ export default class List extends BlockModel implements BlockModelInterface {
     return (
       isEmptyString(currentItem?.innerHTML || "") ||
       currentItem?.innerHTML == "<br>" ||
-      currentItem?.innerHTML == "\u200B"
+      currentItem?.innerHTML == "<br>"
     );
   }
 
   insertItem(
     currentItem: HTMLElement | null,
-    content: string = "\u200B",
+    content: string = "<br>",
     focus: boolean = true,
     method: InsertPosition = "afterend"
   ) {
