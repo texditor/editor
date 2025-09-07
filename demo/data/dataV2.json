@@ -17,7 +17,7 @@
           {
             "type": "a",
             "attr": {
-              "href": "https://nova.com"
+              "href": "https://priveted.com"
             },
             "data": ["list_link"]
           }
@@ -41,11 +41,11 @@
   },
   {
     "type": "h2",
-    "data": ["2 заголвок"]
+    "data": ["2 заголовок"]
   },
   {
     "type": "h3",
-    "data": ["3 заголвок"]
+    "data": ["3 заголовок"]
   },
   {
     "type": "p",
@@ -110,7 +110,7 @@
           {
             "type": "a",
             "attr": {
-              "href": "https://nova.com"
+              "href": "https://priveted.com"
             },
             "data": ["list_link"]
           }

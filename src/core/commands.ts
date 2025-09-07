@@ -443,7 +443,6 @@ export default class Commands {
           globalIndex += this.getNodeTextLength(remainingNode);
           remainingNode = null;
         } else {
-          // Нужно разделить узел на middle и after
           const [middlePart, afterPart] = this.splitNodeAtTextPosition(remainingNode, remainingLength);
           middleFragment.appendChild(middlePart);
           afterElement.appendChild(afterPart);

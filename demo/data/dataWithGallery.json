@@ -1,7 +1,7 @@
 [
   {
     "type": "h2",
-    "data": ["2 заголвок"]
+    "data": ["2 заголовок (cyrillic)  &amp;lt;script>alert(3)</script>"]
   },
   {
     "type": "ul",
@@ -14,16 +14,16 @@
   },
   {
     "type": "p",
-    "data": ["Test cleared paragraph"]
+    "data": ["Check the cleared paragraph"]
   },
   {
     "type": "p",
-    "data": ["Test cleared paragraph 2"]
+    "data": ["Check the cleared paragraph 2"]
   },
   {
     "type": "p",
     "data": [
-      "С ",
+      "This is a ",
       {
         "type": "a",
         "attr": {
@@ -32,7 +32,7 @@
         "data": [
           {
             "type": "b",
-            "data": ["жирссылка"]
+            "data": ["link with bold text"]
           }
         ]
       }
@@ -56,7 +56,7 @@
           {
             "type": "a",
             "attr": {
-              "href": "https://nova.com"
+              "href": "https://priveted.com"
             },
             "data": ["list_link"]
           }
@@ -82,7 +82,7 @@
           {
             "type": "a",
             "attr": {
-              "href": "https://nova.com"
+              "href": "https://priveted.com"
             },
             "data": ["list_link"]
           }
@@ -92,7 +92,7 @@
   },
   {
     "type": "code",
-    "data": ["this is code <p> test\n </p>"]
+    "data": ["this is code <p> test\n </p> <script>alert(3)</script>"]
   },
   {
     "type": "gallery",

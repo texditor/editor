@@ -16,6 +16,7 @@ import { isEmptyString } from "@/utils/string";
 import BlockModel from "./models/block-model";
 import { BlockModelInterface, BlockModelStructure } from "@/types/core/models";
 import { off, on } from "@/utils/events";
+import { sanitizeJson } from "@/utils/sanitizerJson";
 
 export default class BlockManager {
   private editor: Texditor;
@@ -55,17 +56,18 @@ export default class BlockManager {
             data: [""]
           }
         ];
-
       try {
         data =
           typeof initalData === "string"
             ? isEmptyString(initalData)
               ? []
-              : JSON.parse(initalData.trim())
+              : JSON.parse(sanitizeJson(initalData.trim()) || "")
             : initalData;
       } catch (e) {
         console.warn("The input data is not supported or contains errors when working with JSON", e);
       }
+
+      data = JSON.parse(sanitizeJson(data) || "");
 
       let blocks = parser.parseBlocks(data?.length ? data : emptyData);
 
