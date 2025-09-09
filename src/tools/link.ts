@@ -137,7 +137,7 @@ export default class LinkTool extends ToolModel {
           btn.title = i18n.get("delete", "Delete");
           on(btn, "click.link", () => {
             this.removeForamt();
-            document.body.click();
+            document.body?.click();
           });
         })
       );
@@ -154,6 +154,7 @@ export default class LinkTool extends ToolModel {
           on(btn, "click.link", () => {
             this.removeForamt();
             this.focedFormat();
+            document.body?.click();
           });
         })
       );

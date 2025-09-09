@@ -1,5 +1,11 @@
 [
   {
+    "type": "code",
+    "data": [
+      "\n{\n  &quot;user&quot;: {\n    &quot;data&quot;: {\n      &quot;personal&quot;: {\n        &quot;$where&quot;: &quot;function() { return true; }&quot;\n      }\n    }\n  }\n}\n\n"
+    ]
+  },
+  {
     "type": "h2",
     "data": ["2 заголовок (cyrillic)  &amp;lt;script>alert(3)</script>"]
   },
