@@ -20,7 +20,7 @@ const jsonPreview = (function (module: PreviewModule): PreviewModule {
   function stylize(string: string): string {
     string = string.replace(/"(\w+)"\s?:/g, '"<span class=sc_key>$1</span>" :');
     string = string.replace(
-      /"(paragraph|quote|list|header|link|code|image|delimiter|raw|checklist|table|embed|warning)"/g,
+      /"(paragraph|quote|list|header|link|code|image|delimiter|raw|checklist|table|embed|warning|h1|h2|h3|h4|h5|h6|p|ul|ol|files|gallery)"/g,
       '"<span class=sc_toolname>$1</span>"'
     );
     string = string.replace(/(&lt;[/a-z]+(&gt;)?)/gi, "<span class=sc_tag>$1</span>");

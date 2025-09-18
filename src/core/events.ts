@@ -1,7 +1,7 @@
 import Texditor from "@/texditor";
 import { EventTriggerObject } from "@/types/core";
 import { generateRandomString } from "@/utils/common";
-import { closest, mergeTextNodesToString } from "@/utils/dom";
+import { closest } from "@/utils/dom";
 import { on } from "@/utils/events";
 import { hasClass, query } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
@@ -375,10 +375,12 @@ export default class Events {
     if (!evt.clipboardData) return;
 
     const defBlock = config.get("defaultBlock", "p"),
-      currentModel = blockManager.getModel(),
-      input = parser.parseHtml(evt.clipboardData.getData("text/html") || "", true);
+      currentModel = blockManager.getModel();
 
+    // Если текущая модель имеет собственный обработчик вставки
     if (currentModel && "onPaste" in currentModel && typeof currentModel.onPaste === "function") {
+      const pasteData = evt.clipboardData.getData("text/html") || "";
+      const input = parser.parseHtml(pasteData, true);
       currentModel?.onPaste(evt, input);
       this.change({
         type: "paste",
@@ -391,53 +393,54 @@ export default class Events {
 
     evt.preventDefault();
 
-    if (input && input?.childNodes.length) {
-      let reversedNodes: Node[] = [],
-        isCreateBlocks = false;
+    if (currentModel?.isPreformatted()) {
+      const plainText = evt.clipboardData.getData("text/plain");
+      selectionApi.insertText(plainText);
+    } else {
+      const pasteData = evt.clipboardData.getData("text/html") || "";
+      const input = parser.parseHtml(pasteData, true);
 
-      input?.childNodes.forEach((item: Node) => {
-        reversedNodes.push(item);
+      if (input && input?.childNodes.length) {
+        let reversedNodes: Node[] = [],
+          isCreateBlocks = false;
 
-        if (item.nodeType === Node.ELEMENT_NODE) {
-          const element = item as Element;
+        input?.childNodes.forEach((item: Node) => {
+          reversedNodes.push(item);
 
-          if (api.getRealType(element.localName)) isCreateBlocks = true;
-        }
-      });
+          if (item.nodeType === Node.ELEMENT_NODE) {
+            const element = item as Element;
+            if (api.getRealType(element.localName)) isCreateBlocks = true;
+          }
+        });
 
-      if (isCreateBlocks) reversedNodes = reversedNodes.reverse();
+        if (isCreateBlocks) reversedNodes = reversedNodes.reverse();
 
-      if (currentModel?.isPasteAlwaysText()) isCreateBlocks = false;
-
-      reversedNodes.forEach((item: Node) => {
-        if (isCreateBlocks) {
-          if (item.nodeType === Node.TEXT_NODE) {
-            if (!isEmptyString(item?.textContent || "")) {
-              blockManager.createBlock(defBlock, null, {
-                content: item?.textContent || ""
-              });
-            }
-          } else if (item.nodeType === Node.ELEMENT_NODE) {
-            const tagName = item.nodeName.toLowerCase(),
-              realName = api.getRealType(tagName) || api.getRealType(defBlock) || "p";
-
-            if (realName) {
-              const html = (item as Element)?.innerHTML;
-
-              if (!isEmptyString(html)) {
-                blockManager.createBlock(realName, null, {
-                  content: html
+        reversedNodes.forEach((item: Node) => {
+          if (isCreateBlocks) {
+            if (item.nodeType === Node.TEXT_NODE) {
+              if (!isEmptyString(item?.textContent || "")) {
+                blockManager.createBlock(defBlock, null, {
+                  content: item?.textContent || ""
                 });
+              }
+            } else if (item.nodeType === Node.ELEMENT_NODE) {
+              const tagName = item.nodeName.toLowerCase(),
+                realName = api.getRealType(tagName) || api.getRealType(defBlock) || "p";
+
+              if (realName) {
+                const html = (item as Element)?.innerHTML;
+                if (!isEmptyString(html)) {
+                  blockManager.createBlock(realName, null, {
+                    content: html
+                  });
+                }
               }
             }
           }
-        } else {
-          const text = mergeTextNodesToString(reversedNodes);
-          selectionApi.insertText(text);
-        }
-      });
+        });
 
-      blockManager.detectEmpty();
+        blockManager.detectEmpty();
+      }
     }
 
     this.change();

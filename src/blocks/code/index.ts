@@ -25,7 +25,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
       rawOutput: true,
       backspaceRemove: false,
       isEnterCreate: false,
-      pasteAlwaysText: true
+      preformatted: true
     };
   }
 

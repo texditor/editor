@@ -175,17 +175,6 @@ export function appendText(el: Node | Element | HTMLElement, text: string): Node
   return append(el, document.createTextNode(text));
 }
 
-export function mergeTextNodesToString(nodes: Node[] | NodeListOf<ChildNode>): string {
-  return Array.from(nodes)
-    .map((node) => {
-      if (node.nodeType === Node.TEXT_NODE) return node.textContent || "";
-      else if (node.nodeType === Node.ELEMENT_NODE) return (node as HTMLElement).outerHTML || "";
-
-      return "";
-    })
-    .join("");
-}
-
 export function mergeAdjacentTextNodes(element: HTMLElement): void {
   let childNodes = Array.from(element.childNodes);
   let i = 0;

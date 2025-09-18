@@ -32,9 +32,9 @@ export default class BlockModel implements BlockModelInterface {
     type: "",
     relatedTypes: [],
     emptyDetect: false,
-    pasteAlwaysText: false,
     customSave: false,
-    normalize: false
+    normalize: false,
+    preformatted: false
   };
 
   constructor(editor: Texditor) {
@@ -167,8 +167,8 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("normalize", false);
   }
 
-  isPasteAlwaysText() {
-    return this.getConfig("pasteAlwaysText", false);
+  isPreformatted() {
+    return this.getConfig("preformatted", false);
   }
 
   isCustomSave() {
