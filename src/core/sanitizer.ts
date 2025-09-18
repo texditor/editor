@@ -1,4 +1,3 @@
-import { mergeTextNodesToString } from "@/utils/dom";
 import { SanitizerConfig, TransformerContext, TransformerOutput } from "@/types/core/sanitizer";
 
 export default class Sanitizer {
@@ -206,6 +205,17 @@ export default class Sanitizer {
     return output;
   }
 
+  mergeTextNodesToString(nodes: Node[] | NodeListOf<ChildNode>): string {
+    return Array.from(nodes)
+      .map((node) => {
+        if (node.nodeType === Node.TEXT_NODE) return node.textContent || "";
+        else if (node.nodeType === Node.ELEMENT_NODE) return (node as HTMLElement).outerHTML || "";
+
+        return "";
+      })
+      .join("");
+  }
+
   sanitize(html: string): string {
     const container = document.createElement("div");
     container.innerHTML = html;
@@ -221,6 +231,6 @@ export default class Sanitizer {
 
     if (fragment.normalize) fragment.normalize();
 
-    return mergeTextNodesToString(fragment.childNodes);
+    return this.mergeTextNodesToString(fragment.childNodes);
   }
 }

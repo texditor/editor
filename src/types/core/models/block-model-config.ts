@@ -18,7 +18,7 @@ export interface BlockModelConfig {
   type: string;
   relatedTypes: string[];
   emptyDetect: boolean;
-  pasteAlwaysText: boolean;
+  preformatted: boolean;
   customSave: boolean;
   normalize: boolean;
   placeholder?: string;
