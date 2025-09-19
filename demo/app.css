@@ -60,6 +60,12 @@ body {
   margin-top: 32px;
 }
 
+.test-block {
+  height: 1900px;
+  background-color: #bdbdbd;
+  margin-top: 64px;
+}
+
 @media screen and (max-width: 768px) {
   .app-wrap {
     grid-template-columns: 1fr;
