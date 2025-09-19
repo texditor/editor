@@ -258,8 +258,8 @@
 }
 
 .tex-extensions-fixed {
-  position: fixed;
-  top: 0;
+  position: sticky;
+  top: 16px;
   left: 50%;
   z-index: 1000;
   margin-top: 12px;
