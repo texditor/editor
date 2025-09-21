@@ -236,3 +236,20 @@ export function getChildNodes(element: Node): Node[] {
 
   return nodes;
 }
+
+export function getElementText(element: HTMLElement): string {
+  let result = "";
+
+  Array.from(element.childNodes).forEach((node) => {
+    if (node.nodeType === 3) {
+      const text = (node as Text).textContent;
+      if (text) {
+        result += text;
+      }
+    } else if (node.nodeType === 1) {
+      result += getElementText(node as HTMLElement);
+    }
+  });
+
+  return result;
+}

@@ -8,7 +8,6 @@ export default abstract class H2 extends Header {
       ...{
         type: "h2",
         tagName: "h2",
-        shortType: "h2",
         icon: IconHeader2,
         translationCode: "header2"
       }

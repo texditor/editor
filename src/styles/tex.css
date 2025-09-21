@@ -22,6 +22,31 @@
 .tex-blocks h6 {
   margin: 0;
   padding: 8px 0;
+  line-height: 3rem;
+}
+
+.tex-blocks h1 {
+  line-height: 36px;
+}
+
+.tex-blocks h2 {
+  line-height: 28px;
+}
+
+.tex-blocks h3 {
+  line-height: 24px;
+}
+
+.tex-blocks h4 {
+  line-height: 20px;
+}
+
+.tex-blocks h5 {
+  line-height: 18px;
+}
+
+.tex-blocks h6 {
+  line-height: 16px;
 }
 
 .tex-block {
@@ -109,12 +134,12 @@
   padding: 6px 12px;
 }
 
-.tex-action-deleteBlock {
+.tex-action-deleteAction {
   color: var(--tex-error);
   border-top: 1px solid var(--tex-border-color);
 }
 
-.tex-action-deleteBlock-confirm {
+.tex-action-deleteAction-confirm {
   background: var(--tex-error);
   color: #fff;
 }
@@ -323,7 +348,7 @@
     opacity: 0.6;
   }
 
-  .tex-action-deleteBlock-confirm:hover {
+  .tex-action-deleteAction-confirm:hover {
     background: var(--tex-error);
     color: #fff;
     opacity: 0.6;

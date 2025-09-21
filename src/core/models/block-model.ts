@@ -1,7 +1,7 @@
 import Texditor from "@/texditor";
 import { HTMLBlockElement } from "@/types/core";
 import { OutputBlockItem } from "@/types/output";
-import { addClass, make } from "@/utils/dom";
+import { addClass, append, appendText, getChildNodes, getElementText, make } from "@/utils/dom";
 import Sanitizer from "../sanitizer";
 import { SanitizerConfig } from "@/types/core/sanitizer";
 import { BlockModelConfig, BlockModelInterface } from "@/types/core/models";
@@ -34,7 +34,8 @@ export default class BlockModel implements BlockModelInterface {
     emptyDetect: false,
     customSave: false,
     normalize: false,
-    preformatted: false
+    preformatted: false,
+    convertible: false
   };
 
   constructor(editor: Texditor) {
@@ -86,7 +87,7 @@ export default class BlockModel implements BlockModelInterface {
     return null;
   }
 
-  getTagName() {
+  getTagName(): string {
     return this.getConfig("tagName");
   }
 
@@ -109,7 +110,7 @@ export default class BlockModel implements BlockModelInterface {
     });
   }
 
-  getId() {
+  getId(): string {
     if (!this.id) this.id = this.createId();
 
     return this.id;
@@ -159,23 +160,27 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("editableChilds", false);
   }
 
-  isRawOutput() {
+  isRawOutput(): boolean {
     return this.getConfig("rawOutput");
   }
 
-  isNormalize() {
+  isNormalize(): boolean {
     return this.getConfig("normalize", false);
   }
 
-  isPreformatted() {
+  isPreformatted(): boolean {
     return this.getConfig("preformatted", false);
   }
 
-  isCustomSave() {
+  isConvertible(): boolean {
+    return this.getConfig("convertible", false) as boolean;
+  }
+
+  isCustomSave(): boolean {
     return this.getConfig("customSave", false);
   }
 
-  isToolbar() {
+  isToolbar(): boolean {
     return this.getConfig("toolbar", false);
   }
 
@@ -183,11 +188,11 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("tools", []) as string[];
   }
 
-  getRelatedTypes() {
+  getRelatedTypes(): string[] {
     return this.getConfig("relatedTypes", []);
   }
 
-  private createId() {
+  private createId(): string {
     return this.getType() + "-" + Math.floor(Math.random() * Date.now()).toString();
   }
 
@@ -203,23 +208,22 @@ export default class BlockModel implements BlockModelInterface {
   sanitize() {
     if (this.getConfig("sanitizer", false)) {
       const container = this.sanitizerContainer();
-
       if (container || Array.isArray(container)) {
         const sanitizerConfig: SanitizerConfig = this.getConfig("sanitizerConfig", {}),
           sanitizer = new Sanitizer(sanitizerConfig);
 
         if (Array.isArray(container)) {
           container.forEach((el: HTMLElement) => {
-            el.innerHTML = sanitizer.sanitize(el.innerHTML);
+            el.innerHTML = sanitizer.sanitize(el);
           });
         } else {
-          container.innerHTML = sanitizer.sanitize(container.innerHTML);
+          container.innerHTML = sanitizer.sanitize(container);
         }
       }
     }
   }
 
-  protected sanitizerContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null {
+  sanitizerContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null {
     return this.getElement();
   }
 
@@ -266,5 +270,25 @@ export default class BlockModel implements BlockModelInterface {
 
   getStore(key: string | null): unknown {
     return key === null ? this.store : this.store[key] || null;
+  }
+
+  convert(block: HTMLBlockElement, newBlock: HTMLBlockElement): HTMLBlockElement {
+    const sanitizerConfig = this.getConfig("sanitizerConfig", {}),
+      isSanitize = Object.keys(sanitizerConfig).length,
+      isRaw = this.isRawOutput();
+
+    newBlock.innerHTML = "";
+
+    if (isRaw || !isSanitize) {
+      appendText(newBlock, getElementText(block));
+    } else {
+      append(newBlock, getChildNodes(block));
+    }
+
+    return newBlock;
+  }
+
+  toConvert(block: HTMLBlockElement, newBlock: HTMLBlockElement): [HTMLBlockElement, HTMLBlockElement] {
+    return [block, newBlock];
   }
 }

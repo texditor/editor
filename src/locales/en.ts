@@ -1,9 +1,9 @@
 export const EnLocale = {
   delete: "Delete",
   done: "Done",
-  deleteBlock: "Delete block",
-  moveUpBlock: "Move up",
-  moveDownBlock: "Move down",
+  deleteAction: "Delete block",
+  moveUpAction: "Move up",
+  moveDownAction: "Move down",
   paragraphPlaceholder: "Enter your text",
   headerPlaceholder: "Enter your title",
   codePlaceholder: "Enter your code",
@@ -13,7 +13,7 @@ export const EnLocale = {
   uploadFile: "Upload file",
   uploadFiles: "Upload files",
   addFiles: "Add files",
-  createBlockAction: "Add block",
+  createAction: "Add block",
   paragraph: "Paragraph",
   code: "Code",
   files: "Files",
@@ -41,5 +41,6 @@ export const EnLocale = {
   slide: "Slider",
   undo: "Undo",
   redo: "Redo",
-  select: "Select"
+  select: "Select",
+  convert: "Convert"
 };

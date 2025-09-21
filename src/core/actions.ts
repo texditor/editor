@@ -2,11 +2,12 @@ import Texditor from "@/texditor";
 import { append, closest, css, make, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { ActionModelInterface } from "@/types/core/models";
-import RemoveBlockAction from "@/actions/remove-block";
+import DeleteAction from "@/actions/delete-action";
 import { ActionModelInstanceInterface } from "@/types/core/models";
-import MoveUpAction from "@/actions/moveup";
-import MoveDownAction from "@/actions/movedown";
-import CreateBlockAction from "@/actions/create-block";
+import MoveUpAction from "@/actions/moveup-action";
+import MoveDownAction from "@/actions/movedown-action";
+import CreateAction from "@/actions/create-action";
+import ConvertAction from "@/actions/convert-action";
 
 export default class Actions {
   private editor: Texditor;
@@ -19,10 +20,11 @@ export default class Actions {
     this.repositionBar = this.repositionBar.bind(this);
 
     // Register default actions
-    this.register(CreateBlockAction);
+    this.register(CreateAction);
+    this.register(ConvertAction);
     this.register(MoveUpAction);
     this.register(MoveDownAction);
-    this.register(RemoveBlockAction);
+    this.register(DeleteAction);
   }
 
   render() {

@@ -46,7 +46,6 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       tagName: "div",
       translationCode: "files",
       type: "files",
-      shortType: "f",
       editable: false,
       sanitizer: false,
       cssClasses: "tex-files",

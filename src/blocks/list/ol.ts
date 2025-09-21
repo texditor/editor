@@ -8,7 +8,6 @@ export default abstract class OL extends List {
       ...{
         type: "ol",
         tagName: "ol",
-        shortType: "ol",
         icon: IconOrderedList,
         translationCode: "orderedList"
       }

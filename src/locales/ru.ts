@@ -1,9 +1,9 @@
 export const RuLocale = {
   delete: "Удалить",
   done: "Готово",
-  deleteBlock: "Удалить блок",
-  moveUpBlock: "Переместить вверх",
-  moveDownBlock: "Переместить вниз",
+  deleteAction: "Удалить блок",
+  moveUpAction: "Переместить вверх",
+  moveDownAction: "Переместить вниз",
   paragraphPlaceholder: "Введите ваш текст",
   headerPlaceholder: "Введите ваш заголовок",
   codePlaceholder: "Введите ваш код",
@@ -13,7 +13,7 @@ export const RuLocale = {
   uploadFile: "Загрузить файл",
   uploadFiles: "Загрузить файлы",
   addFiles: "Добавить файлы",
-  createBlockAction: "Добавить блок",
+  createAction: "Добавить блок",
   paragraph: "Параграф",
   code: "Код",
   files: "Файлы",
@@ -41,5 +41,6 @@ export const RuLocale = {
   slider: "Слайдер",
   undo: "Отменить",
   redo: "Повторить",
-  select: "Выбрать"
+  select: "Выбрать",
+  convert: "Конвертировать"
 };
