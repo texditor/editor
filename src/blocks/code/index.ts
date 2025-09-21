@@ -15,7 +15,6 @@ export default class Code extends BlockModel implements BlockModelInterface {
       tagName: "code",
       translationCode: "code",
       type: "code",
-      shortType: "c",
       icon: IconCode,
       cssClasses: "tex-code",
       placeholder: this.editor.i18n.get("codePlaceholder", "Enter your code"),
@@ -25,7 +24,8 @@ export default class Code extends BlockModel implements BlockModelInterface {
       rawOutput: true,
       backspaceRemove: false,
       isEnterCreate: false,
-      preformatted: true
+      preformatted: true,
+      convertible: true
     };
   }
 

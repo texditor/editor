@@ -17,7 +17,6 @@ export default abstract class Gallery extends Files {
       ...{
         type: "gallery",
         tagName: "div",
-        shortType: "g",
         listCss: "tex-gallery-list",
         cssClasses: "tex-gallery",
         itemCss: "tex-gallery-item",

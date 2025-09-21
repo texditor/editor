@@ -5,9 +5,9 @@ import { off, on } from "@/utils/events";
 import { BlockModelStructure } from "@/types/core/models";
 import BlockModel from "@/core/models/block-model";
 
-export default class CreateBlockAction extends ActionModel {
-  protected name: string = "createBlockAction";
-  protected tranlation: string = "createBlockAction";
+export default class CreateAction extends ActionModel {
+  protected name: string = "createAction";
+  protected translation: string = "createAction";
   protected icon: string = IconPlus;
   protected menu: boolean = true;
 
@@ -70,7 +70,7 @@ export default class CreateBlockAction extends ActionModel {
     });
 
     return {
-      title: i18n.get(this.tranlation, this.name),
+      title: i18n.get(this.translation, this.name),
       items: items
     };
   }

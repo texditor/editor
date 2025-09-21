@@ -1,6 +1,6 @@
 import Texditor from "@/texditor";
 import { EventTriggerObject } from "@/types/core";
-import { generateRandomString } from "@/utils/common";
+import { encodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
 import { closest } from "@/utils/dom";
 import { on } from "@/utils/events";
 import { hasClass, query } from "@/utils/dom";
@@ -368,7 +368,7 @@ export default class Events {
   }
 
   private onPasteHandle(evt: ClipboardEvent) {
-    const { api, config, parser, blockManager, selectionApi } = this.editor;
+    const { api, config, parser, blockManager, selectionApi, historyManager } = this.editor;
 
     this.trigger("onPaste", evt);
 
@@ -377,30 +377,20 @@ export default class Events {
     const defBlock = config.get("defaultBlock", "p"),
       currentModel = blockManager.getModel();
 
-    // Если текущая модель имеет собственный обработчик вставки
     if (currentModel && "onPaste" in currentModel && typeof currentModel.onPaste === "function") {
       const pasteData = evt.clipboardData.getData("text/html") || "";
       const input = parser.parseHtml(pasteData, true);
       currentModel?.onPaste(evt, input);
-      this.change({
-        type: "paste",
-        event: evt
-      });
-      currentModel?.sanitize();
-      this.trigger("onPasteEnd", evt);
-      return;
-    }
-
-    evt.preventDefault();
-
-    if (currentModel?.isPreformatted()) {
-      const plainText = evt.clipboardData.getData("text/plain");
-      selectionApi.insertText(plainText);
     } else {
+      evt.preventDefault();
+
       const pasteData = evt.clipboardData.getData("text/html") || "";
       const input = parser.parseHtml(pasteData, true);
+      const isBlockPaste = !!Array.from(input?.childNodes || []).filter(
+        (item) => item.nodeType == 1 && api.getRealType((item as HTMLElement).localName)
+      ).length;
 
-      if (input && input?.childNodes.length) {
+      if (input && isBlockPaste) {
         let reversedNodes: Node[] = [],
           isCreateBlocks = false;
 
@@ -440,13 +430,21 @@ export default class Events {
         });
 
         blockManager.detectEmpty();
+      } else {
+        const plainText = evt.clipboardData.getData("text/plain");
+
+        selectionApi.insertText(encodeHtmlSpecialChars(plainText));
       }
     }
 
-    this.change();
+    this.change({
+      type: "paste",
+      event: evt
+    });
+
     currentModel?.sanitize();
     this.trigger("onPasteEnd", evt);
-    this.editor.historyManager.save();
+    historyManager.save();
   }
 
   private onDragStart(evt: DragEvent): void {

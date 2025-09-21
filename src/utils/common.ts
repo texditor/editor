@@ -56,3 +56,15 @@ export function decodeHtmlSpecialChars(input: string): string {
 
   return input.replace(/&(amp|quot|#039|lt|gt);/g, (match) => entities[match] || match);
 }
+
+export function encodeHtmlSpecialChars(input: string): string {
+  const charToEntity: { [key: string]: string } = {
+    "&": "&amp;",
+    '"': "&quot;",
+    "'": "&#039;",
+    "<": "&lt;",
+    ">": "&gt;"
+  };
+
+  return input.replace(/[&"'<>]/g, (char) => charToEntity[char]);
+}

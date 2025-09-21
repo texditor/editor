@@ -12,7 +12,6 @@ export default class Header extends BlockModel implements BlockModelInterface {
       translationCode: "header1",
       tagName: "h1",
       type: "h1",
-      shortType: "h1",
       placeholder: this.editor.i18n.get("headerPlaceholder", "Enter your title"),
       cssClasses: "tex-header",
       editable: true,
@@ -22,6 +21,7 @@ export default class Header extends BlockModel implements BlockModelInterface {
       emptyDetect: true,
       normalize: true,
       sanitizer: true,
+      convertible: true,
       sanitizerConfig: {
         elements: ["a", "sup", "sub"],
         attributes: {

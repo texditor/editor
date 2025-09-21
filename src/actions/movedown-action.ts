@@ -2,7 +2,7 @@ import { IconArrowDown } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 
 export default class MoveDownAction extends ActionModel {
-  protected name = "moveDownBlock";
+  protected name = "moveDownAction";
   protected icon: string = IconArrowDown;
 
   protected onClick() {

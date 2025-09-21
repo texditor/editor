@@ -13,7 +13,6 @@ export default class Paragraph extends BlockModel implements BlockModelInterface
       translationCode: "paragraph",
       tagName: "p",
       type: "p",
-      shortType: "p",
       placeholder: this.editor.i18n.get("paragraphPlaceholder", "Enter your text"),
       editable: true,
       toolbar: true,
@@ -21,6 +20,7 @@ export default class Paragraph extends BlockModel implements BlockModelInterface
       normalize: true,
       cssClasses: "tex-paragraph",
       emptyDetect: true,
+      convertible: true,
       sanitizerConfig: {
         elements: ["b", "a", "i", "s", "u", "sup", "sub"],
         attributes: {

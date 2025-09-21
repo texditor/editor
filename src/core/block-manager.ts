@@ -147,7 +147,7 @@ export default class BlockManager {
     return this.createBlock(defaultBlock);
   }
 
-  getCurrentBlock(): HTMLElement | null {
+  getCurrentBlock(): HTMLBlockElement | null {
     return this.getByIndex(this.getIndex());
   }
 
@@ -544,5 +544,33 @@ export default class BlockManager {
 
       removeClass(block, cssName + "-non-editable");
     });
+  }
+
+  public convert(block: HTMLBlockElement, model: BlockModelInterface) {
+    const { events } = this.editor;
+
+    if (block) {
+      let newBlock = model.create() as HTMLBlockElement;
+      const curIndex = this.getElementIndex(block);
+
+      if (newBlock) {
+        const [cBlock, cNewBlock] = block.blockModel.toConvert(block, newBlock);
+
+        newBlock = cNewBlock.blockModel.convert(cBlock, cNewBlock);
+
+        block?.insertAdjacentElement("afterend", newBlock);
+
+        if (Object.keys(model.getConfig("sanitizerConfig", {})).length) newBlock.blockModel.sanitize();
+
+        block.remove();
+        this.focusByIndex(curIndex);
+        events.change({
+          type: "convertBlock",
+          index: curIndex,
+          block: newBlock
+        });
+        events.refresh();
+      }
+    }
   }
 }

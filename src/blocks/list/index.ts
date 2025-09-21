@@ -1,6 +1,16 @@
 import { BlockModelInterface } from "@/types/core/models";
 import BlockModel from "@/core/models/block-model";
-import { queryLength, hasClass, make, query, queryList, append, addClass, getChildNodes } from "@/utils/dom";
+import {
+  queryLength,
+  hasClass,
+  make,
+  query,
+  queryList,
+  append,
+  addClass,
+  getChildNodes,
+  appendText
+} from "@/utils/dom";
 import { OutputBlockItem } from "@/types/output";
 import { ListCreateOptions } from "@/types/blocks";
 import { generateRandomString } from "@/utils/common";
@@ -19,13 +29,13 @@ export default class List extends BlockModel implements BlockModelInterface {
       translationCode: "list",
       tagName: "ul",
       type: "ul",
-      shortType: "ul",
       icon: IconList,
       editable: false,
       editableChilds: true,
       toolbar: true,
       sanitizer: true,
       normalize: true,
+      convertible: true,
       cssClasses: "tex-list",
       sanitizerConfig: {
         elements: ["b", "a", "i", "s", "u", "sup", "sub"],
@@ -55,7 +65,7 @@ export default class List extends BlockModel implements BlockModelInterface {
     });
   }
 
-  protected sanitizerContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null {
+  sanitizerContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null {
     const block = this.getElement();
 
     if (!block) return null;
@@ -252,33 +262,37 @@ export default class List extends BlockModel implements BlockModelInterface {
 
     events.add("keydownBackspaceKey.list", (evt: KeyboardEvent) => {
       if (this.isTarget(evt)) {
-        const [cursorStart, cursorEnd] = selectionApi.getOffset(this.getItem(-1));
+        const currentItem = this.getItem(-1);
+        const [cursorStart, cursorEnd] = selectionApi.getOffset(currentItem);
+        const currentItemIndex = this.getItemIndex();
 
         if (this.isEmpty()) {
           evt.preventDefault();
           this.removeItem();
 
-          const prevIndex = this.getItemIndex() - 1,
-            prevElem = this.getItem(prevIndex, blockManager.getCurrentBlock()) || null,
-            prevTextLength = prevElem?.textContent?.length || 0;
+          const prevIndex = currentItemIndex - 1;
+          const prevElem = this.getItem(prevIndex, blockManager.getCurrentBlock()) || null;
+          const prevTextLength = prevElem?.textContent?.length || 0;
 
           prevElem?.focus();
           selectionApi.select(prevTextLength, prevTextLength, prevElem as HTMLElement);
         } else {
-          // Merge if not an empty item
           if (cursorStart === 0 && cursorEnd === 0) {
             evt.preventDefault();
 
-            const index = this.getItemIndex(),
-              finalItem = this.getItem(index - 1, blockManager.getCurrentBlock()),
-              prevTextLength = finalItem?.textContent?.length || 0;
+            if (currentItemIndex > 0) {
+              const prevItem = this.getItem(currentItemIndex - 1);
+              const prevTextLength = prevItem?.textContent?.length || 0;
 
-            this.mergeItems();
+              this.mergeItems();
 
-            if (finalItem) {
-              setTimeout(() => {
-                selectionApi.select(prevTextLength, prevTextLength, finalItem);
-              }, 10);
+              if (prevItem) {
+                setTimeout(() => {
+                  selectionApi.select(prevTextLength, prevTextLength, prevItem);
+                }, 10);
+              }
+            } else {
+              this.mergeItems();
             }
           }
         }
@@ -352,12 +366,12 @@ export default class List extends BlockModel implements BlockModelInterface {
   }
 
   merge(index: number): void {
-    const BM = this.editor.blockManager,
-      curBlock = BM.getCurrentBlock(),
-      container = BM.getByIndex(index - 1),
-      count = this.count(container),
-      listIndex = count > 0 ? count - 1 : 0,
-      lastItem = this.getItem(listIndex, container);
+    const BM = this.editor.blockManager;
+    const curBlock = BM.getCurrentBlock();
+    const container = BM.getByIndex(index);
+    const count = this.count(container);
+    const listIndex = count > 0 ? count - 1 : 0;
+    const lastItem = this.getItem(listIndex, container);
 
     if (curBlock?.nodeName != "UL" && curBlock?.nodeName != "OL") {
       // P => UL|OL
@@ -368,8 +382,56 @@ export default class List extends BlockModel implements BlockModelInterface {
     } else {
       // UL|OL => UL|OL
       const item = this.getItem(0);
+      const prevModel = BM.getModel(index - 1);
 
-      if (item && lastItem) this.mergeAndFocus(item, lastItem);
+      if (item && prevModel instanceof List) {
+        const prevContainer = BM.getByIndex(index - 1);
+        const prevCount = prevModel.count(prevContainer);
+        const prevLastItem = prevModel.getItem(prevCount > 0 ? prevCount - 1 : 0, prevContainer);
+
+        if (prevLastItem) {
+          this.mergeAndFocus(item, prevLastItem);
+        }
+      }
+    }
+  }
+
+  private mergeItems() {
+    const { blockManager, selectionApi } = this.editor;
+    const curIndex = blockManager.getIndex();
+
+    if (!curIndex) return;
+
+    const prevModel = blockManager.getModel(curIndex - 1);
+    const currentItem = this.getItem(-1);
+    const [cursorStart, cursorEnd] = selectionApi.getOffset(currentItem);
+    const isAtStartOfItem = cursorStart === 0 && cursorEnd === 0;
+    const currentItemIndex = this.getItemIndex();
+
+    if (!isAtStartOfItem) return;
+
+    if (currentItemIndex > 0) {
+      const prevItem = this.getItem(currentItemIndex - 1);
+      if (prevItem && currentItem) {
+        this.mergeAndFocus(currentItem, prevItem);
+        return;
+      }
+    }
+
+    if (prevModel?.getConfig("autoMerge") && prevModel?.isEditable()) {
+      const firstLi = this.getItem(0);
+      const prevElem = prevModel.getElement();
+
+      if (prevElem && firstLi?.childNodes) {
+        // LI => P
+        if (firstLi === currentItem) {
+          this.mergeAndFocus(firstLi, prevElem);
+          const count = this.count();
+          if (!count) blockManager.removeBlock();
+        }
+      }
+    } else {
+      prevModel?.merge(curIndex);
     }
   }
 
@@ -389,35 +451,52 @@ export default class List extends BlockModel implements BlockModelInterface {
     }
   }
 
-  private mergeItems() {
-    const { blockManager } = this.editor;
-    const curIndex = blockManager.getIndex(),
-      prevModel = blockManager.getModel(curIndex - 1);
+  convert(block: HTMLBlockElement, newBlock: HTMLBlockElement): HTMLBlockElement {
+    if (
+      (block.localName == "ol" || block.localName == "ul") &&
+      (newBlock.localName == "ol" || newBlock.localName == "ul")
+    ) {
+      newBlock.innerHTML = "";
+      query(
+        "li",
+        (li: HTMLLIElement) => {
+          append(newBlock, li);
+        },
+        block
+      );
 
-    if (curIndex) {
-      if (prevModel?.getConfig("autoMerge") && prevModel?.isEditable()) {
-        const firstLi = this.getItem(0),
-          prevElem = prevModel.getElement();
-
-        if (prevElem && firstLi?.childNodes) {
-          // LI => P
-          if (firstLi == this.getItem(this.getItemIndex())) {
-            this.mergeAndFocus(firstLi, prevElem);
-            const count = this.count();
-
-            if (!count) blockManager.removeBlock();
-          } else {
-            // LI => LI
-            const curItemIndex = this.getItemIndex(),
-              curItem = this.getItem(curItemIndex),
-              prevItem = this.getItem(curItemIndex - 1);
-
-            if (curItem && prevItem) this.mergeAndFocus(curItem, prevItem);
-          }
-        }
-      } else {
-        prevModel?.merge(curIndex);
-      }
+      return newBlock;
     }
+
+    newBlock.innerHTML = "";
+    const item = this.createItem("");
+    append(item, getChildNodes(block));
+    append(newBlock, item);
+
+    return newBlock;
+  }
+
+  toConvert(block: HTMLBlockElement, newBlock: HTMLBlockElement): [HTMLBlockElement, HTMLBlockElement] {
+    if (
+      !(
+        (block.localName == "ol" || block.localName == "ul") &&
+        (newBlock.localName == "ol" || newBlock.localName == "ul")
+      )
+    ) {
+      const tempBlock = make("div");
+      query(
+        "li",
+        (li: HTMLLIElement) => {
+          append(tempBlock, getChildNodes(li));
+          appendText(tempBlock, " ");
+        },
+        block
+      );
+
+      block.innerHTML = "";
+      append(block, getChildNodes(tempBlock));
+    }
+
+    return [block, newBlock];
   }
 }

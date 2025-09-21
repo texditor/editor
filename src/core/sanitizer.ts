@@ -11,6 +11,10 @@ export default class Sanitizer {
   private whitelistNodes: Node[] = [];
   private transformers: Array<(context: TransformerContext) => TransformerOutput | null>;
 
+  /**
+   * Creates a new Sanitizer instance with the provided configuration
+   * @param options - Configuration options for the sanitizer
+   */
   constructor(options: SanitizerConfig = {}) {
     this.config = {
       elements: options.elements ? options.elements : [],
@@ -50,6 +54,12 @@ export default class Sanitizer {
     this.transformers = options.transformers ? options.transformers : [];
   }
 
+  /**
+   * Finds the index of a node in an array
+   * @param needle - The node to search for
+   * @param haystack - The array of nodes to search in
+   * @returns The index of the node or -1 if not found
+   */
   private arrayIndex(needle: Node, haystack: Node[]): number {
     for (let i = 0; i < haystack.length; i++) {
       if (haystack[i] === needle) return i;
@@ -57,6 +67,11 @@ export default class Sanitizer {
     return -1;
   }
 
+  /**
+   * Merges multiple arrays while removing duplicates
+   * @param arrays - Arrays to merge
+   * @returns A new array with unique items from all input arrays
+   */
   private mergeArrays(...arrays: (string[] | undefined)[]): string[] {
     const result: string[] = [];
     const uniq_hash: Record<string, boolean> = {};
@@ -73,21 +88,22 @@ export default class Sanitizer {
     return result;
   }
 
+  /**
+   * Cleans a node based on its type
+   * @param elem - The node to clean
+   */
   private clean(elem: Node): void {
     let clone: Node;
 
     switch (elem.nodeType) {
-      // Element
       case 1:
         this.cleanElement(elem as Element);
         break;
-      // Text
       case 3:
       case 5:
-        clone = elem.cloneNode(false);
+        clone = this.dom.createTextNode(elem.textContent || "");
         this.currentElement?.appendChild(clone);
         break;
-      // Comment
       case 8:
         if (this.config.allowComments) {
           clone = elem.cloneNode(false);
@@ -100,6 +116,10 @@ export default class Sanitizer {
     }
   }
 
+  /**
+   * Cleans an element node by applying transformations and filtering attributes
+   * @param elem - The element to clean
+   */
   private cleanElement(elem: Element): void {
     const transform = this.transformElement(elem);
     elem = transform.node as Element;
@@ -165,6 +185,11 @@ export default class Sanitizer {
     this.currentElement = parentElement;
   }
 
+  /**
+   * Applies transformers to a node and returns the transformed result
+   * @param node - The node to transform
+   * @returns The transformation output containing whitelist status and attributes
+   */
   private transformElement(node: Node): TransformerOutput {
     const output: TransformerOutput = {
       attrWhitelist: [],
@@ -205,23 +230,52 @@ export default class Sanitizer {
     return output;
   }
 
+  /**
+   * Converts an array of nodes to a string, handling text and element nodes appropriately
+   * @param nodes - The nodes to convert to string
+   * @returns The concatenated string representation of the nodes
+   */
   mergeTextNodesToString(nodes: Node[] | NodeListOf<ChildNode>): string {
     return Array.from(nodes)
       .map((node) => {
-        if (node.nodeType === Node.TEXT_NODE) return node.textContent || "";
-        else if (node.nodeType === Node.ELEMENT_NODE) return (node as HTMLElement).outerHTML || "";
-
+        if (node.nodeType === Node.TEXT_NODE) {
+          return this.escapeHtml(node.textContent || "");
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          return (node as HTMLElement).outerHTML || "";
+        }
         return "";
       })
       .join("");
   }
 
-  sanitize(html: string): string {
-    const container = document.createElement("div");
-    container.innerHTML = html;
+  /**
+   * Escapes HTML special characters in text
+   * @param text - The text to escape
+   * @returns The escaped HTML string
+   */
+  private escapeHtml(text: string): string {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * Sanitizes HTML input by removing disallowed elements and attributes
+   * @param input - HTML string or HTMLElement to sanitize
+   * @returns The sanitized HTML string
+   */
+  sanitize(input: string | HTMLElement): string {
+    let container: HTMLElement;
+
+    if (typeof input === "string") {
+      container = document.createElement("div");
+      const textNode = document.createTextNode(input);
+      container.appendChild(textNode);
+    } else {
+      container = input;
+    }
 
     const fragment = this.dom.createDocumentFragment();
-
     this.currentElement = fragment;
     this.whitelistNodes = [];
 
