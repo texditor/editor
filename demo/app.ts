@@ -31,7 +31,7 @@ import Redo from "@/extensions/redo";
 const editor = new Texditor({
   handle: "texditor",
   initalData: data,
-  actionsLeftIndent: 32,
+  actionsLeftOffset: 32,
   // actionsTopOffset: 2,
   locale: "ru",
   toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
@@ -39,7 +39,7 @@ const editor = new Texditor({
   extensionsLtr: "left",
   extensionsFixed: true,
   extensionVisibleTitle: true,
-  extensionsFixedCss: {
+  extensionsFixedStyle: {
     border: "1px solid #ebebeb",
     "z-index": "3000"
   },
@@ -101,3 +101,15 @@ document.getElementById("saveButton")?.addEventListener(
   },
   true
 );
+
+const editor2 = new Texditor({
+  handle: "texditor2"
+});
+
+document.getElementById("destroy")?.addEventListener("click", () => {
+  editor.destroy();
+});
+
+document.getElementById("destroy2")?.addEventListener("click", () => {
+  editor2.destroy();
+});

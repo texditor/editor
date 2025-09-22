@@ -6,11 +6,13 @@ import MainView from "@/views/main";
 import { BlockModelInstanceInterface, BlockModelStructure } from "@/types/core/models";
 import Paragraph from "@/blocks/paragraph";
 import { BlockItemData, OutputBlockItem } from "@/types/output";
+import { generateRandomString } from "@/utils/common";
 
 export default class API {
   private editor: Texditor;
   private rootElement?: HTMLElement;
   private blockModels: BlockModelStructure[] = [];
+  private uniqueId: string = "";
   private cssNames: { [key: string]: string } = {
     editor: "tex",
     blocks: "tex-blocks",
@@ -30,11 +32,16 @@ export default class API {
   };
 
   constructor(editor: Texditor) {
+    this.uniqueId = generateRandomString(12);
     this.editor = editor;
   }
 
-  setRoot(el: HTMLElement) {
+  setRoot(el: HTMLElement): void {
     this.rootElement = el;
+  }
+
+  getUniqueId(): string {
+    return this.uniqueId;
   }
 
   getRoot(): HTMLElement | false {
@@ -206,6 +213,26 @@ export default class API {
   }
 
   setDisplay(wrap = "", visible: string = "") {
-    query(this.css(wrap), (el: HTMLElement) => (el.style.display = visible));
+    const root = this.getRoot();
+
+    if (root) query(this.css(wrap), (el: HTMLElement) => (el.style.display = visible), root);
+  }
+
+  destroy(): void {
+    const { actions, blockManager, events, extensions, historyManager, toolbar } = this.editor;
+    if (this.rootElement) this.rootElement.innerHTML = "";
+
+    const models = this.getModels();
+
+    models.forEach((modelStruct) => {
+      if (modelStruct.model.destroy) modelStruct.model.destroy();
+    });
+
+    actions.destroy();
+    blockManager.destroy();
+    events.destroy();
+    extensions.destroy();
+    toolbar.destroy();
+    historyManager.clear();
   }
 }

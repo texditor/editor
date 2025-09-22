@@ -1,10 +1,11 @@
 import Texditor from "@/texditor";
+import { ExtensionModelInterface } from "@/types/core/models";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, attr, make, removeClass, toggleClass } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import renderIcon from "@/utils/renderIcon";
 
-export default class ExtensionModel {
+export default class ExtensionModel implements ExtensionModelInterface {
   name: string = "";
   protected translation: string = "";
   protected editor: Texditor;
@@ -22,9 +23,9 @@ export default class ExtensionModel {
   onLoad(): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event & { el: EventTarget }) {}
+  onClick(evt: Event & { el: EventTarget }): void {}
 
-  private handleClick(evt: Event & { el: EventTarget }) {
+  handleClick(evt: Event & { el: EventTarget }) {
     const { api } = this.editor,
       cssName = api.css("extension", false);
 

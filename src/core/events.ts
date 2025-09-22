@@ -2,7 +2,7 @@ import Texditor from "@/texditor";
 import { EventTriggerObject } from "@/types/core";
 import { encodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
 import { closest } from "@/utils/dom";
-import { on } from "@/utils/events";
+import { off, on } from "@/utils/events";
 import { hasClass, query } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 
@@ -77,7 +77,8 @@ export default class Events {
 
   refresh() {
     const { blockManager, api } = this.editor,
-      blockContainer = blockManager.getContainer();
+      blockContainer = blockManager.getContainer(),
+      uniqueId = api.getUniqueId();
 
     if (!blockContainer) throw new Error("The root element of the editor was not found.");
 
@@ -100,7 +101,7 @@ export default class Events {
       blockContainer
     );
 
-    on(document, "selectionchange.e", this.onSelectionChangeHandle);
+    on(document, "selectionchange.e" + uniqueId, this.onSelectionChangeHandle);
   }
 
   onReady(callback: CallableFunction) {
@@ -528,5 +529,36 @@ export default class Events {
 
       this.trigger("onSelectionChangeEnd", evt);
     }
+  }
+
+  destroy(): void {
+    const { api } = this.editor;
+    const root = api.getRoot();
+
+    if (!root) return;
+
+    query(
+      api.css("block"),
+      (el: HTMLElement) => {
+        off(el, "keydown.e");
+        off(el, "keyup.e");
+        off(el, "paste.e");
+        off(el, "dragstart.e");
+        off(el, "dragleave.e");
+        off(el, "dragover.e");
+        off(el, "drag.e1");
+        off(el, "drop.e1");
+        off(el, "dragend.e");
+        off(el, "focus.e");
+        off(el, "blur.e");
+        off(el, "click.e");
+      },
+      root
+    );
+
+    const uniqueId = api.getUniqueId();
+
+    off(document, "selectionchange.e" + uniqueId);
+    this.triggers = {};
   }
 }

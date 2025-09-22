@@ -56,4 +56,8 @@ export default class Texditor {
   save(): object[] | [] {
     return this.api.save();
   }
+
+  destroy(): void {
+    this.api.destroy();
+  }
 }

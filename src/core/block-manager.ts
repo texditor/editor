@@ -410,7 +410,8 @@ export default class BlockManager {
 
   public enableSelectionMode(): void {
     const { actions, api, events, toolbar } = this.editor,
-      container = this.getContainer();
+      container = this.getContainer(),
+      uniqueId = api.getUniqueId();
 
     if (this.isSelectionMode) return;
 
@@ -432,8 +433,8 @@ export default class BlockManager {
         this.toggleBlockSelection(index);
       });
     });
-    off(document, "click.dc");
-    on(document, "click.dc", (evt) => {
+    off(document, "click.bmDoc" + uniqueId);
+    on(document, "click.bmDoc" + uniqueId, (evt) => {
       if (container && !closest(evt.target, container)) this.clearSelection();
     });
 
@@ -442,7 +443,8 @@ export default class BlockManager {
   }
 
   public disableSelectionMode(): void {
-    const { api, events } = this.editor;
+    const { api, events } = this.editor,
+      uniqueId = api.getUniqueId();
 
     if (!this.isSelectionMode) return;
 
@@ -450,7 +452,7 @@ export default class BlockManager {
     query(actionsOpen, (el: HTMLElement) => css(el, "display", ""));
     this.isSelectionMode = false;
     this.getItems().forEach((block: Element) => off(block, "click.bc"));
-    off(document, "click.dc");
+    off(document, "click.bmDoc" + uniqueId);
     this.clearSelection();
     this.enableAllBlocks();
     events.trigger("selectionModeDisabled");
@@ -572,5 +574,12 @@ export default class BlockManager {
         events.refresh();
       }
     }
+  }
+
+  destroy() {
+    const { api } = this.editor,
+      uniqueId = api.getUniqueId();
+
+    off(document, "click.bmDoc" + uniqueId);
   }
 }

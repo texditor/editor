@@ -472,7 +472,8 @@ export default abstract class Files extends BlockModel implements BlockModelInte
   }
 
   private createActionBar(item: HTMLElement, container: HTMLElement, block: HTMLBlockElement): HTMLElement {
-    const { events } = this.editor;
+    const { api, events } = this.editor,
+      uniqueId = api.getUniqueId();
 
     return make("div", (div: HTMLDivElement) => {
       addClass(div, "tex-files-actions");
@@ -521,10 +522,10 @@ export default abstract class Files extends BlockModel implements BlockModelInte
                   make("div", (editWrap: HTMLDivElement) => {
                     const closePopup = () => block.removeChild(editWrap);
 
-                    off(document, "click.clfp");
+                    off(document, "click.clfp" + uniqueId);
                     on(
                       document,
-                      "click.clfp",
+                      "click.clfp" + uniqueId,
                       (evt) => {
                         if (closest(editWrap, evt.target)) {
                           off(document, "click.clfp");
@@ -549,8 +550,8 @@ export default abstract class Files extends BlockModel implements BlockModelInte
                             }
                           }, 1);
                         };
-                        off(window, "resize.actEdit");
-                        on(window, "resize.actEdit", reposition);
+                        off(window, "resize.actEdit" + uniqueId);
+                        on(window, "resize.actEdit" + uniqueId, reposition);
                         reposition();
                       })
                     );
@@ -583,10 +584,10 @@ export default abstract class Files extends BlockModel implements BlockModelInte
       off(document, "click.cab");
       on(item, "click.cab", () => {
         hideActions();
-        off(document, "click.cab");
+        off(document, "click.cab" + +uniqueId);
         on(
           document,
-          "click.cab",
+          "click.cab" + uniqueId,
           (evt: MouseEvent) => {
             if (closest(item, evt.target)) hideActions();
           },
@@ -835,5 +836,13 @@ export default abstract class Files extends BlockModel implements BlockModelInte
           });
         });
     }
+  }
+
+  destroy() {
+    const { api } = this.editor,
+      uniqueId = api.getUniqueId();
+
+    off(document, "click.clfp" + uniqueId);
+    off(document, "click.cab" + +uniqueId);
   }
 }

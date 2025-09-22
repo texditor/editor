@@ -4,27 +4,27 @@ import { addClass, append, attr, closest, make, query, replaceWithChildren, togg
 import "@/styles/tools/link.css";
 import { off, on } from "@/utils/events";
 import renderIcon from "@/utils/renderIcon";
+import { ToolModelInterface } from "@/types/core/models";
 
-export default class LinkTool extends ToolModel {
-  protected name: string = "link";
+export default class LinkTool extends ToolModel implements ToolModelInterface {
+  name: string = "link";
   protected tagName: string = "a";
   protected tranlation: string = "link";
   protected icon: string = IconLink;
   private tagsInSelection: HTMLLinkElement[] = [];
 
-  protected onClick() {
+  onClick() {
     const tags = this.tagsInSelection;
 
     if (tags.length) {
       const isBlank = attr(tags[0], "target") === "_blank";
-
       this.createForm(attr(tags[0], "href") || "", isBlank);
     } else {
       this.createForm();
     }
   }
 
-  protected onLoad(): void {
+  onLoad(): void {
     const { commands, events } = this.editor;
 
     if (!events.exists("onSelectionChangeToolbarShow.link")) {
@@ -34,10 +34,11 @@ export default class LinkTool extends ToolModel {
     }
   }
 
-  protected onAfterFormat(tags: HTMLLinkElement[]): void {
-    const { config } = this.editor,
-      formElement = document.getElementById(config.get("handle") + "-form-link"),
-      valElement = document.getElementById(config.get("handle") + "-input-link") as HTMLInputElement;
+  onAfterFormat(tags: HTMLLinkElement[]): void {
+    const { api } = this.editor,
+      uniqueId = api.getUniqueId(),
+      formElement = document.getElementById("form-link-" + uniqueId),
+      valElement = document.getElementById("input-link-" + uniqueId) as HTMLInputElement;
 
     if (formElement && valElement) {
       tags.forEach((link) => {
@@ -55,17 +56,17 @@ export default class LinkTool extends ToolModel {
     if (root) {
       api.setDisplay("toolbarContent", "none");
       api.setDisplay("toolbarTools");
-
       query(".tex-link-form", (el: HTMLElement) => el.remove(), root);
     }
   }
 
   private createForm(link: string = "", targetBlank: boolean = false) {
-    const { api, config, i18n } = this.editor,
+    const { api, i18n } = this.editor,
+      uniqueId = api.getUniqueId(),
       root = api.getRoot();
 
     const linkForm = make("div", (el: HTMLElement) => {
-      el.id = config.get("handle") + "-form-link";
+      el.id = "form-link-" + uniqueId;
       el.dataset.targetBlank = "N";
       addClass(el, "tex-link-form");
       append(
@@ -95,7 +96,7 @@ export default class LinkTool extends ToolModel {
         el,
         make("input", (input: HTMLInputElement) => {
           attr(input, "type", "text");
-          input.id = config.get("handle") + "-input-link";
+          input.id = "input-link-" + uniqueId;
           input.value = link;
           input.placeholder = i18n.get("enterLink", "Enter the link");
           addClass(input, "tex-link-input");
@@ -136,7 +137,7 @@ export default class LinkTool extends ToolModel {
           });
           btn.title = i18n.get("delete", "Delete");
           on(btn, "click.link", () => {
-            this.removeForamt();
+            this.removeFormat();
             document.body?.click();
           });
         })
@@ -152,8 +153,8 @@ export default class LinkTool extends ToolModel {
           addClass(btn, "tex-link-form-btn");
           btn.title = i18n.get("done", "Done");
           on(btn, "click.link", () => {
-            this.removeForamt();
-            this.focedFormat();
+            this.removeFormat();
+            this.forcedFormat();
             document.body?.click();
           });
         })
@@ -165,19 +166,25 @@ export default class LinkTool extends ToolModel {
     api.setDisplay(content, "block");
     api.setDisplay("toolbarTools", "none");
 
-    query(api.css(content), (content: HTMLElement) => {
-      append(content, linkForm);
-    });
+    if (root) {
+      query(
+        api.css(content),
+        (content: HTMLElement) => {
+          append(content, linkForm);
+        },
+        root
+      );
+    }
 
     setTimeout(() => {
       if (root) {
-        on(document, "click.link", (evt: MouseEvent) => {
+        on(document, "click.link" + uniqueId, (evt: MouseEvent) => {
           query(
             ".tex-link-form",
             (el: HTMLElement) => {
               if (!closest(evt.target, el)) {
                 this.removeForm();
-                off(document, "click.link");
+                off(document, "click.link" + uniqueId);
               }
             },
             root
@@ -185,5 +192,12 @@ export default class LinkTool extends ToolModel {
         });
       }
     }, 100);
+  }
+
+  destroy() {
+    const { api } = this.editor,
+      uniqueId = api.getUniqueId();
+
+    off(document, "click.link" + uniqueId);
   }
 }
