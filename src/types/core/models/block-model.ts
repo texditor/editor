@@ -48,4 +48,5 @@ export interface BlockModelInterface {
   normalizeContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null;
   sanitizerContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null;
   setup?(config: Partial<BlockModelConfig>): typeof BlockModel;
+  destroy?(): void;
 }

@@ -1,7 +1,7 @@
 import Texditor from "@/texditor";
 import { addClass, append, css, make, query, queryLength, removeClass } from "@/utils/dom";
 import { off, on } from "@/utils/events";
-import { ExtensionModelInstanceInterface } from "@/types/core/models";
+import { ExtensionModelInstanceInterface, ExtensionModelInterface } from "@/types/core/models";
 
 export default class Extensions {
   private editor: Texditor;
@@ -25,34 +25,37 @@ export default class Extensions {
       const ltr = config.get("extensionsLtr", "left");
       addClass(el, cssName + " tex-" + ltr);
 
-      (extensions as ExtensionModelInstanceInterface[]).forEach((ext: ExtensionModelInstanceInterface) => {
-        const extInstance = new ext(this.editor);
-        if (extInstance?.create) {
-          const element = extInstance?.create(),
-            groupName = extInstance?.getGroupName ? extInstance.getGroupName() : "";
+      // Исправление: приведение типа через unknown
+      (extensions as unknown as ExtensionModelInstanceInterface[]).forEach(
+        (ExtClass: ExtensionModelInstanceInterface) => {
+          const extInstance: ExtensionModelInterface = new ExtClass(this.editor);
+          if (extInstance?.create) {
+            const element = extInstance.create(),
+              groupName = extInstance.getGroupName ? extInstance.getGroupName() : "";
 
-          if (groupName) {
-            const isExists = !!queryLength("." + cssName + "-group-" + groupName, el);
+            if (groupName) {
+              const isExists = !!queryLength("." + cssName + "-group-" + groupName, el);
 
-            if (isExists) {
-              query(
-                "." + cssName + "-group-" + groupName,
-                (group: HTMLElement) => {
+              if (isExists) {
+                query(
+                  "." + cssName + "-group-" + groupName,
+                  (group: HTMLElement) => {
+                    append(group, element);
+                  },
+                  el
+                );
+              } else {
+                const groupElement = make("div", (group: HTMLElement) => {
+                  addClass(group, cssName + "-group-" + groupName + " " + cssName + "-group");
                   append(group, element);
-                },
-                el
-              );
-            } else {
-              const groupElement = make("div", (group: HTMLElement) => {
-                addClass(group, cssName + "-group-" + groupName + " " + cssName + "-group");
-                append(group, element);
-              });
+                });
 
-              append(el, groupElement);
-            }
-          } else append(el, element);
+                append(el, groupElement);
+              }
+            } else append(el, element);
+          }
         }
-      });
+      );
     });
 
     events.trigger("extensions:render.end", extensionsBar);
@@ -61,7 +64,8 @@ export default class Extensions {
   }
 
   fixedBar() {
-    const { api, config } = this.editor;
+    const { api, config } = this.editor,
+      uniqueId = api.getUniqueId();
 
     if (config.get("extensionsFixed", true)) {
       const fixedExtensions = () => {
@@ -82,7 +86,7 @@ export default class Extensions {
               if (scrollTop >= editorRect.top + scrollTop) {
                 addClass(extEl, className + "-fixed");
                 css(extEl, { left: editorLeft, width: editorWidth });
-                const extCss = config.get("extensionsFixedCss", false);
+                const extCss = config.get("extensionsFixedStyle", false);
 
                 if (extCss) css(extEl, extCss);
               } else {
@@ -95,12 +99,24 @@ export default class Extensions {
         );
       };
 
-      off(window, "scroll.ext");
-      off(window, "scroll.ext");
-      off(window, "scroll.ext");
-      on(window, "scroll.ext", fixedExtensions);
-      on(window, "load.ext", fixedExtensions);
-      on(window, "resize.ext", fixedExtensions);
+      off(window, "scroll.ext" + uniqueId);
+      off(window, "scroll.ext" + uniqueId);
+      off(window, "scroll.ext" + uniqueId);
+      on(window, "scroll.ext" + uniqueId, fixedExtensions);
+      on(window, "load.ext" + uniqueId, fixedExtensions);
+      on(window, "resize.ext" + uniqueId, fixedExtensions);
     }
+  }
+
+  destroy() {
+    const { api } = this.editor,
+      uniqueId = api.getUniqueId();
+
+    off(window, "scroll.ext" + uniqueId);
+    off(window, "scroll.ext" + uniqueId);
+    off(window, "scroll.ext" + uniqueId);
+    off(window, "scroll.ext" + uniqueId);
+    off(window, "load.ext" + uniqueId);
+    off(window, "resize.ext" + uniqueId);
   }
 }

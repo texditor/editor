@@ -12,10 +12,10 @@ export interface ConfigStore {
   defaultLocale?: string;
   blockParseDataset?: string[];
   actionsTopOffset?: number;
-  actionsLeftIndent?: number;
+  actionsLeftOffset?: number;
   extensions?: ExtensionModelInterface[];
   extensionsLtr?: "left" | "right" | "center";
   extensionsFixed?: boolean;
-  extensionsFixedCss?: false | Record<string, string>;
+  extensionsFixedStyle?: false | Record<string, string>;
   extensionVisibleTitle?: boolean;
 }

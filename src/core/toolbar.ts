@@ -1,28 +1,27 @@
 import Texditor from "@/texditor";
 import { addClass, append, css, hasClass, query, removeClass } from "@/utils/dom";
-import { on } from "@/utils/events";
-import { ToolModelInterface } from "@/types/core/models";
+import { off, on } from "@/utils/events";
 import { ToolModelInstanceInterface } from "@/types/core/models";
 import BoldTool from "@/tools/bold";
 import ClearFormatingTool from "@/tools/clear-formating";
 import ItalicTool from "@/tools/italic";
 import { isEmptyString } from "@/utils/string";
 import LinkTool from "@/tools/link";
-import { detectMobileOS, generateRandomString, getCaretPosition } from "@/utils/common";
+import { detectMobileOS, getCaretPosition } from "@/utils/common";
 import SuperscriptTool from "@/tools/superscript";
 import SubscriptTool from "@/tools/subscript";
 export default class Toolbar {
   private editor: Texditor;
-  private tools: ToolModelInterface[] = [];
+  private tools: ToolModelInstanceInterface[] = [];
 
   constructor(editor: Texditor) {
     this.editor = editor;
     this.show = this.show.bind(this);
 
     // Register default tools
-    const toolModels = this.editor.config.get("toolModels", []) as object[];
+    const toolModels = this.editor.config.get("toolModels", []) as ToolModelInstanceInterface[];
     if (toolModels.length) {
-      (toolModels as ToolModelInterface[]).forEach((toolModel: ToolModelInterface) => {
+      toolModels.forEach((toolModel: ToolModelInstanceInterface) => {
         this.register(toolModel);
       });
     } else {
@@ -43,20 +42,15 @@ export default class Toolbar {
     events.trigger("toolbar:render:end");
   }
 
-  getTools(): ToolModelInterface[] {
-    return this.tools;
-  }
-
   show(fixed: boolean = true) {
-    const { api, blockManager, config, selectionApi } = this.editor,
+    const { api, blockManager, selectionApi } = this.editor,
       root = api.getRoot(),
       model = blockManager.getModel(),
-      tools = model?.getTolls();
+      tools = model?.getTolls(),
+      uniqueId = api.getUniqueId();
 
     if (root) {
       if (!tools) return;
-
-      const editorId = root.id || config.get("handle", generateRandomString(12));
 
       query(
         api.css("toolbar"),
@@ -109,8 +103,8 @@ export default class Toolbar {
             };
 
             reposition();
-            on(window, "resize." + editorId, () => reposition());
-            on(window, "scroll." + editorId, () => reposition());
+            on(window, "resize." + uniqueId, () => reposition());
+            on(window, "scroll." + uniqueId, () => reposition());
           }
         },
         root
@@ -155,7 +149,7 @@ export default class Toolbar {
     }
   }
 
-  register(action: ToolModelInterface) {
+  register(action: ToolModelInstanceInterface) {
     this.tools.push(action);
   }
 
@@ -165,10 +159,8 @@ export default class Toolbar {
       cssName = api.css("toolbar");
 
     if (root) {
-      const tools = this.tools as ToolModelInstanceInterface[];
-
-      tools.forEach((actionConstructor: ToolModelInstanceInterface) => {
-        const action = new actionConstructor(this.editor);
+      this.tools.forEach((ToolClass: ToolModelInstanceInterface) => {
+        const action = new ToolClass(this.editor);
 
         if (action?.create) {
           const actionElement = action.create();
@@ -181,9 +173,22 @@ export default class Toolbar {
             root
           );
 
-          if (action?.applyEvents) action.applyEvents();
+          if (action.applyEvents) action.applyEvents();
         }
       });
     }
+  }
+
+  destroy() {
+    const { api } = this.editor,
+      uniqueId = api.getUniqueId();
+    this.tools.forEach((ToolClass: ToolModelInstanceInterface) => {
+      const action = new ToolClass(this.editor);
+
+      if (action.destroy) action.destroy();
+    });
+
+    off(window, "resize." + uniqueId);
+    off(window, "scroll." + uniqueId);
   }
 }

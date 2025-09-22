@@ -28,13 +28,14 @@ export default class Actions {
   }
 
   render() {
-    const { events } = this.editor;
+    const { api, events } = this.editor,
+      uniqueId = api.getUniqueId();
 
     events.trigger("actions:render");
     this.hide();
     this.repositionBar();
-    on(window, "resize.a", this.repositionBar);
-    on(window, "scroll.a", this.repositionBar);
+    on(window, "resize.a" + uniqueId, this.repositionBar);
+    on(window, "scroll.a" + uniqueId, this.repositionBar);
     events.trigger("actions:render:end");
   }
 
@@ -48,7 +49,7 @@ export default class Actions {
       query(
         api.css("actions"),
         (el: HTMLElement) => {
-          const leftOffset = config.get("actionsLeftIndent", 24) as number,
+          const leftOffset = config.get("actionsLeftOffset", 24) as number,
             offsetTop = config.get("actionsTopOffset", 0) as number;
 
           const rect = curBlock.getBoundingClientRect(),
@@ -176,10 +177,13 @@ export default class Actions {
   }
 
   show() {
+    const { api } = this.editor,
+      uniqueId = api.getUniqueId();
+
     this.wrap((el: HTMLElement) => {
       css(el, "display", "block");
-      off(document, "click.actions");
-      on(document, "click.actions", this.handleClose);
+      off(document, "click.actions" + uniqueId);
+      on(document, "click.actions" + uniqueId, this.handleClose);
       setTimeout(() => this.repositionBar(), 100);
     });
   }
@@ -238,5 +242,13 @@ export default class Actions {
         root
       );
     }
+  }
+
+  destroy() {
+    const { api } = this.editor,
+      uniqueId = api.getUniqueId();
+    off(window, "resize.a" + uniqueId);
+    off(window, "scroll.a" + uniqueId);
+    off(document, "click.actions" + uniqueId);
   }
 }

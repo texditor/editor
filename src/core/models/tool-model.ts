@@ -4,9 +4,10 @@ import { addClass, attr, make } from "@/utils/dom";
 import { on } from "@/utils/events";
 import renderIcon from "@/utils/renderIcon";
 import Commands from "../commands";
+import { ToolModelInterface } from "@/types/core/models";
 
-export default class ToolModel {
-  protected name: string = "";
+export default class ToolModel implements ToolModelInterface {
+  name: string = "";
   protected tagName: string = "";
   protected translation?: string;
   protected editor: Texditor;
@@ -29,9 +30,9 @@ export default class ToolModel {
     });
   }
 
-  protected onLoad(): void {}
+  onLoad(): void {}
 
-  private formatAction(callback: CallableFunction) {
+  formatAction(callback: CallableFunction) {
     const tagName = this.getTagName(),
       { commands, events, selectionApi } = this.editor;
 
@@ -52,23 +53,23 @@ export default class ToolModel {
     });
   }
 
-  focedFormat() {
+  forcedFormat(): void {
     this.formatAction((tagName: string, commands: Commands) => {
       commands.createFormat(tagName);
     });
   }
 
-  removeForamt(): void {
+  removeFormat(): void {
     this.format(true);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onClick(evt: Event) {}
+  onClick(evt: Event) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onAfterFormat(tags: HTMLElement[]): void {}
+  onAfterFormat(tags: HTMLElement[]): void {}
 
-  private handleClick(evt: Event): void {
+  handleClick(evt: Event): void {
     const { events } = this.editor;
 
     this.onClick(evt);
@@ -81,19 +82,19 @@ export default class ToolModel {
     events.refresh();
   }
 
-  protected getId(): string {
+  getId(): string {
     return this.editor.api.css("tool", false) + "-" + this.getName() + "-" + this.randomId;
   }
 
-  protected getElement(): HTMLElement | null {
+  getElement(): HTMLElement | null {
     return document.getElementById(this.getId());
   }
 
-  protected getName(): string {
+  getName(): string {
     return this.name;
   }
 
-  protected getTagName(): string {
+  getTagName(): string {
     return this.tagName;
   }
 
@@ -139,7 +140,9 @@ export default class ToolModel {
     if (element) on(element, "click.tm", this.handleClick);
   }
 
-  protected isVisible() {
+  isVisible() {
     return true;
   }
+
+  destroy(): void {}
 }

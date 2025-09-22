@@ -291,4 +291,6 @@ export default class BlockModel implements BlockModelInterface {
   toConvert(block: HTMLBlockElement, newBlock: HTMLBlockElement): [HTMLBlockElement, HTMLBlockElement] {
     return [block, newBlock];
   }
+
+  destroy(): void {}
 }
