@@ -1,4 +1,4 @@
-# Texditor (Beta) - Minimalistic Block Editor 🧱✏️
+# Texditor - Minimalistic Block Editor 🧱✏️
 
 A modern, modular block-based text editor built with TypeScript. Featuring a clean architecture, extensible design, and customizable content blocks.
 
