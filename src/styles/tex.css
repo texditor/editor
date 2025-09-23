@@ -86,7 +86,6 @@
   cursor: pointer;
   display: inline-flex;
   color: var(--tex-color);
-  opacity: 0.5;
 }
 
 .tex-actions-container,
@@ -101,6 +100,10 @@
 
 .tex-action-confirm {
   background: var(--tex-background-secondary);
+}
+
+.tex-action-title {
+  flex-grow: 1;
 }
 
 .tex-actions-wrap {
@@ -356,5 +359,27 @@
 
   .tex-tool:hover {
     background-color: var(--tex-background-lite);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .tex-actions-open {
+    background-color: var(--tex-background);
+    box-shadow: 0 0 8px 0 var(--tex-shadow-color);
+    border: 1px solid var(--tex-border-color);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    justify-content: center;
+    align-items: center;
+    margin-top: -36px;
+  }
+
+  .tex-actions-open svg {
+    margin-top: 3px;
+  }
+
+  .tex-actions-wrap {
+    margin-left: 0;
   }
 }
