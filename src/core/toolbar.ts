@@ -115,21 +115,28 @@ export default class Toolbar {
   highlightActiveTools() {
     const { api, selectionApi } = this.editor,
       cssName = api.css("tool"),
-      curElement = selectionApi.current()?.element;
+      curElement = selectionApi.current()?.element,
+      root = api.getRoot();
 
-    query(cssName, (el: HTMLElement) => removeClass(el, "active"));
+    if (!root) return;
+
+    query(cssName, (el: HTMLElement) => removeClass(el, "active"), root);
 
     if (!curElement) return;
 
     const tags = selectionApi.findTags(curElement);
 
     if (tags.length) {
-      query(cssName, (el: HTMLElement) => {
-        tags.forEach((selected: HTMLElement) => {
-          if (hasClass(el, "tool-tag-" + selected.localName) && !isEmptyString(selected?.textContent || ""))
-            addClass(el, "active");
-        });
-      });
+      query(
+        cssName,
+        (el: HTMLElement) => {
+          tags.forEach((selected: HTMLElement) => {
+            if (hasClass(el, "tool-tag-" + selected.localName) && !isEmptyString(selected?.textContent || ""))
+              addClass(el, "active");
+          });
+        },
+        root
+      );
     }
   }
 

@@ -36,7 +36,7 @@ export default class BlockManager {
       query(
         "*",
         (el: HTMLElement, i: number) => {
-          if (i === 0) this.focus(el);
+          if (config.get("autofocus", true)) if (i === 0) this.focus(el);
         },
         blocksElement
       );
@@ -233,13 +233,20 @@ export default class BlockManager {
   }
 
   getTargetBlock(target: EventTarget): HTMLElement | null {
+    const { api } = this.editor,
+      root = api.getRoot();
+
+    if (!root) return null;
+
     let blockElement = null;
 
-    query(this.editor.api.css("block"), (el: HTMLElement) => {
-      if (closest(target, el)) {
-        blockElement = el;
-      }
-    });
+    query(
+      api.css("block"),
+      (el: HTMLElement) => {
+        if (closest(target, el)) blockElement = el;
+      },
+      root
+    );
 
     return blockElement;
   }

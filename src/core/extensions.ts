@@ -82,18 +82,22 @@ export default class Extensions {
               editorLeft = editorRect.left,
               editorWidth = rootEditor.offsetWidth;
 
-            query("." + className, (extEl: HTMLElement) => {
-              if (scrollTop >= editorRect.top + scrollTop) {
-                addClass(extEl, className + "-fixed");
-                css(extEl, { left: editorLeft, width: editorWidth });
-                const extCss = config.get("extensionsFixedStyle", false);
+            query(
+              "." + className,
+              (extEl: HTMLElement) => {
+                if (scrollTop >= editorRect.top + scrollTop) {
+                  addClass(extEl, className + "-fixed");
+                  css(extEl, { left: editorLeft, width: editorWidth });
+                  const extCss = config.get("extensionsFixedStyle", false);
 
-                if (extCss) css(extEl, extCss);
-              } else {
-                removeClass(extEl, className + "-fixed");
-                extEl.removeAttribute("style");
-              }
-            });
+                  if (extCss) css(extEl, extCss);
+                } else {
+                  removeClass(extEl, className + "-fixed");
+                  extEl.removeAttribute("style");
+                }
+              },
+              rootEditor
+            );
           },
           root
         );

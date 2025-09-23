@@ -43,6 +43,7 @@ const editor = new Texditor({
     border: "1px solid #ebebeb",
     "z-index": "3000"
   },
+  // autofocus: false,
   blockModels: [
     Paragraph,
     H1,
@@ -103,7 +104,8 @@ document.getElementById("saveButton")?.addEventListener(
 );
 
 const editor2 = new Texditor({
-  handle: "texditor2"
+  handle: "texditor2",
+  autofocus: false
 });
 
 document.getElementById("destroy")?.addEventListener("click", () => {

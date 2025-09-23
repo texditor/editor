@@ -65,10 +65,14 @@ export default class API {
     });
 
     if (editorElement) {
-      query(this.css("block"), (item: HTMLElement) => {
-        const block = item as HTMLBlockElement;
-        block.blockModel.onRender();
-      });
+      query(
+        this.css("block"),
+        (item: HTMLElement) => {
+          const block = item as HTMLBlockElement;
+          block.blockModel.onRender();
+        },
+        editorElement
+      );
     }
   }
 

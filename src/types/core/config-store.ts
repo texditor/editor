@@ -18,4 +18,5 @@ export interface ConfigStore {
   extensionsFixed?: boolean;
   extensionsFixedStyle?: false | Record<string, string>;
   extensionVisibleTitle?: boolean;
+  autofocus?: boolean;
 }
