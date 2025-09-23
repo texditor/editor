@@ -21,8 +21,8 @@ export default function ActionsView(editor: Texditor): HTMLElement {
             html(
               btn,
               renderIcon(IconBars, {
-                width: 11,
-                height: 11
+                width: 14,
+                height: 14
               })
             );
           })

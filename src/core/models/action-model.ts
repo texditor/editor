@@ -1,3 +1,4 @@
+import { IconArrowRight } from "@/icons";
 import Texditor from "@/texditor";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, make } from "@/utils/dom";
@@ -115,12 +116,23 @@ export default class ActionModel {
         });
       }
 
-      append(
-        el,
+      const moreIcon = make("span", (span: HTMLSpanElement) => {
+        span.innerHTML = renderIcon(IconArrowRight, {
+          width: 12,
+          height: 12
+        });
+      });
+
+      const buttonItems = [
         make("span", (span: HTMLSpanElement) => {
+          addClass(span, cssName + "-title");
           span.textContent = i18n.get(this.translation || this.getName(), this.getName());
         })
-      );
+      ];
+
+      if (this.menu) buttonItems.push(moreIcon);
+
+      append(el, buttonItems);
     });
   }
 

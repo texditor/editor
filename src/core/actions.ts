@@ -43,18 +43,19 @@ export default class Actions {
     const { api, blockManager, config } = this.editor,
       curBlock = blockManager.getCurrentBlock(),
       root = api.getRoot(),
-      className = api.css("actions", false);
+      className = api.css("actions", false),
+      windowWidth = window.innerWidth;
 
     if (root && curBlock) {
       query(
         api.css("actions"),
         (el: HTMLElement) => {
-          const leftOffset = config.get("actionsLeftOffset", 24) as number,
-            offsetTop = config.get("actionsTopOffset", 0) as number;
-
           const rect = curBlock.getBoundingClientRect(),
             windowHeight = window.innerHeight,
             elementHeight = el.offsetHeight;
+
+          const leftOffset = windowWidth <= 768 ? 0 : (config.get("actionsLeftOffset", 24) as number),
+            offsetTop = windowWidth <= 768 ? 0 : (config.get("actionsTopOffset", 0) as number);
 
           const setDirecton = (dir: string) => {
             query(

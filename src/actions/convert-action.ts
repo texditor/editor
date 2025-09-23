@@ -45,6 +45,14 @@ export default class ConvertAction extends ActionModel {
   }
 
   protected isVisible() {
-    return !!this.editor.blockManager.getModel()?.isConvertible();
+    const { api, blockManager } = this.editor,
+      blockModels = api.getModels(),
+      curBlock = blockManager.getCurrentBlock();
+
+    const filtered = blockModels.filter(
+      (item) => item.model.isConvertible() && curBlock?.blockModel.getType() !== item.model.getType()
+    );
+
+    return !!this.editor.blockManager.getModel()?.isConvertible() && !!filtered.length;
   }
 }

@@ -411,16 +411,17 @@ export default class BlockManager {
   public enableSelectionMode(): void {
     const { actions, api, events, toolbar } = this.editor,
       container = this.getContainer(),
-      uniqueId = api.getUniqueId();
+      uniqueId = api.getUniqueId(),
+      root = api.getRoot();
 
-    if (this.isSelectionMode) return;
+    if (this.isSelectionMode || !root) return;
 
     this.isSelectionMode = true;
 
     toolbar.hide();
     actions.hideMenu();
     const actionsOpen = api.css("actionsOpen");
-    query(actionsOpen, (el: HTMLElement) => css(el, "display", "none"));
+    query(actionsOpen, (el: HTMLElement) => css(el, "display", "none"), root);
 
     this.getItems().forEach((block: Element) => {
       on(block, "click.bc", (evt: MouseEvent) => {
@@ -444,12 +445,13 @@ export default class BlockManager {
 
   public disableSelectionMode(): void {
     const { api, events } = this.editor,
-      uniqueId = api.getUniqueId();
+      uniqueId = api.getUniqueId(),
+      root = api.getRoot();
 
-    if (!this.isSelectionMode) return;
+    if (!this.isSelectionMode || !root) return;
 
     const actionsOpen = api.css("actionsOpen");
-    query(actionsOpen, (el: HTMLElement) => css(el, "display", ""));
+    query(actionsOpen, (el: HTMLElement) => css(el, "display", ""), root);
     this.isSelectionMode = false;
     this.getItems().forEach((block: Element) => off(block, "click.bc"));
     off(document, "click.bmDoc" + uniqueId);

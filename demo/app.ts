@@ -31,7 +31,7 @@ import Redo from "@/extensions/redo";
 const editor = new Texditor({
   handle: "texditor",
   initalData: data,
-  actionsLeftOffset: 32,
+  // actionsLeftOffset: 32,
   // actionsTopOffset: 2,
   locale: "ru",
   toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
