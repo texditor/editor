@@ -8,7 +8,7 @@ import renderIcon from "@/utils/renderIcon";
 import { off, on } from "@/utils/events";
 import { OutputBlockItem } from "@/types/output";
 
-export default abstract class Gallery extends Files {
+export default class Gallery extends Files {
   private defaultStyles: string[] = ["grid", "slider", "single"];
 
   configure() {
