@@ -4,7 +4,16 @@ import { off, on } from "@/utils/events";
 import { ToolModelInstanceInterface } from "@/types/core/models";
 import { isEmptyString } from "@/utils/string";
 import { detectMobileOS, getCaretPosition } from "@/utils/common";
-import { BoldTool, ItalicTool, InlineCodeTool, LinkTool, MarkerTool, SubscriptTool, SuperscriptTool, ClearFormatingTool } from "@/tools";
+import {
+  BoldTool,
+  ItalicTool,
+  InlineCodeTool,
+  LinkTool,
+  MarkerTool,
+  SubscriptTool,
+  SuperscriptTool,
+  ClearFormatingTool
+} from "@/tools";
 export default class Toolbar {
   private editor: Texditor;
   private tools: ToolModelInstanceInterface[] = [];
