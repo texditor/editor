@@ -42,5 +42,6 @@ export const EnLocale = {
   undo: "Undo",
   redo: "Redo",
   select: "Select",
-  convert: "Convert"
+  convert: "Convert",
+  marker: "Marker"
 };

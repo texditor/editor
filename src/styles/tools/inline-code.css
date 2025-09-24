@@ -1,0 +1,5 @@
+.tex-block code {
+    background-color: var(--tex-background-secondary);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
