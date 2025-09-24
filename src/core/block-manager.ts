@@ -14,14 +14,16 @@ import {
 } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 import BlockModel from "./models/block-model";
-import { BlockModelInterface, BlockModelStructure } from "@/types/core/models";
+import { BlockModelInstanceInterface, BlockModelInterface, BlockModelStructure } from "@/types/core/models";
 import { off, on } from "@/utils/events";
 import { sanitizeJson } from "@/utils/sanitizerJson";
+import { Paragraph } from "@/blocks";
 
 export default class BlockManager {
   private editor: Texditor;
   private blockIndex: number = 0;
   private isSelectionMode: boolean = false;
+  private blockModels: BlockModelStructure[] = [];
 
   constructor(editor: Texditor) {
     this.editor = editor;
@@ -358,8 +360,8 @@ export default class BlockManager {
   }
 
   createBlock(name: string, index: number | null = null, content?: object): HTMLElement | null {
-    const { api, events } = this.editor,
-      blockModels = api.getModels(),
+    const { blockManager, events } = this.editor,
+      blockModels = blockManager.getBlockModels(),
       element = null;
 
     (blockModels as BlockModelStructure[]).forEach((formatedModel: BlockModelStructure) => {
@@ -583,6 +585,45 @@ export default class BlockManager {
         events.refresh();
       }
     }
+  }
+
+  getBlockModels(): BlockModelStructure[] {
+    if (this.blockModels.length > 0) return this.blockModels;
+
+    const blockModels = this.editor.config.get("blockModels", []);
+
+    if (!blockModels) return [];
+
+    if (blockModels.length == 0) {
+      blockModels.push(Paragraph);
+    }
+
+    (blockModels as BlockModelInstanceInterface[]).forEach((model: BlockModelInstanceInterface) => {
+      const md = new model(this.editor);
+
+      this.blockModels.push({
+        instance: model,
+        model: md,
+        type: md.getType(),
+        types: [md.getType(), ...md.getRelatedTypes()],
+        translation: md.getTranslation(),
+        icon: md.getIcon()
+      });
+    });
+
+    return this.blockModels;
+  }
+
+  getRealType(relatedName: string) {
+    let type = null;
+
+    (this.editor.blockManager.getBlockModels() as BlockModelStructure[]).forEach((model: BlockModelStructure) => {
+      if (model.types && model.types.includes(relatedName)) {
+        type = model.type;
+      }
+    });
+
+    return type;
   }
 
   destroy() {

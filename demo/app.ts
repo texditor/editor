@@ -34,14 +34,7 @@ const editor = new Texditor({
   // actionsLeftOffset: 32,
   // actionsTopOffset: 2,
   locale: "ru",
-  tools: [
-    BoldTool,
-    ItalicTool,
-    LinkTool,
-    SubscriptTool,
-    SuperscriptTool,
-    ClearFormatingTool
-  ],
+  tools: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
   extensions: [Undo, Redo, SelectionMode],
   extensionsLtr: "left",
   extensionsFixed: true,
@@ -50,13 +43,7 @@ const editor = new Texditor({
     border: "1px solid #ebebeb",
     "z-index": "3000"
   },
-  actions: [
-    CreateAction,
-    ConvertAction,
-    DeleteAction,
-    MoveUpAction,
-    MoveDownAction
-  ],
+  actions: [CreateAction, ConvertAction, DeleteAction, MoveUpAction, MoveDownAction],
   // autofocus: false,
   blockModels: [
     Paragraph,

@@ -3,8 +3,7 @@ import { HTMLBlockElement } from "@/types/core";
 import { queryLength, query, append, findDatasetsWithPrefix } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 import MainView from "@/views/main";
-import { BlockModelInstanceInterface, BlockModelStructure } from "@/types/core/models";
-import Paragraph from "@/blocks/paragraph";
+import { BlockModelStructure } from "@/types/core/models";
 import { BlockItemData, OutputBlockItem } from "@/types/output";
 import { generateRandomString } from "@/utils/common";
 
@@ -177,45 +176,6 @@ export default class API {
     return data;
   }
 
-  getModels(): BlockModelStructure[] {
-    if (this.blockModels.length > 0) return this.blockModels;
-
-    const blockModels = this.editor.config.get("blockModels", []);
-
-    if (!blockModels) return [];
-
-    if (blockModels.length == 0) {
-      blockModels.push(Paragraph);
-    }
-
-    (blockModels as BlockModelInstanceInterface[]).forEach((model: BlockModelInstanceInterface) => {
-      const md = new model(this.editor);
-
-      this.blockModels.push({
-        instance: model,
-        model: md,
-        type: md.getType(),
-        types: [md.getType(), ...md.getRelatedTypes()],
-        translation: md.getTranslation(),
-        icon: md.getIcon()
-      });
-    });
-
-    return this.blockModels;
-  }
-
-  getRealType(relatedName: string) {
-    let type = null;
-
-    (this.getModels() as BlockModelStructure[]).forEach((model: BlockModelStructure) => {
-      if (model.types && model.types.includes(relatedName)) {
-        type = model.type;
-      }
-    });
-
-    return type;
-  }
-
   setDisplay(wrap = "", visible: string = "") {
     const root = this.getRoot();
 
@@ -226,7 +186,7 @@ export default class API {
     const { actions, blockManager, events, extensions, historyManager, toolbar } = this.editor;
     if (this.rootElement) this.rootElement.innerHTML = "";
 
-    const models = this.getModels();
+    const models = blockManager.getBlockModels();
 
     models.forEach((modelStruct) => {
       if (modelStruct.model.destroy) modelStruct.model.destroy();
