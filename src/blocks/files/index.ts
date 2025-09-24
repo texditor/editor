@@ -31,7 +31,7 @@ declare global {
   }
 }
 
-export default abstract class Files extends BlockModel implements BlockModelInterface {
+export default class Files extends BlockModel implements BlockModelInterface {
   private renderCallbacks: Record<string, CallableFunction> = {};
 
   configure() {
