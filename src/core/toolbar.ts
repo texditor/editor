@@ -2,14 +2,9 @@ import Texditor from "@/texditor";
 import { addClass, append, css, hasClass, query, removeClass } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { ToolModelInstanceInterface } from "@/types/core/models";
-import BoldTool from "@/tools/bold";
-import ClearFormatingTool from "@/tools/clear-formating";
-import ItalicTool from "@/tools/italic";
 import { isEmptyString } from "@/utils/string";
-import LinkTool from "@/tools/link";
 import { detectMobileOS, getCaretPosition } from "@/utils/common";
-import SuperscriptTool from "@/tools/superscript";
-import SubscriptTool from "@/tools/subscript";
+import { BoldTool, ItalicTool, InlineCodeTool, LinkTool, MarkerTool, SubscriptTool, SuperscriptTool, ClearFormatingTool } from "@/tools";
 export default class Toolbar {
   private editor: Texditor;
   private tools: ToolModelInstanceInterface[] = [];
@@ -30,6 +25,8 @@ export default class Toolbar {
       this.register(LinkTool);
       this.register(SubscriptTool);
       this.register(SuperscriptTool);
+      this.register(MarkerTool);
+      this.register(InlineCodeTool);
       this.register(ClearFormatingTool);
     }
   }

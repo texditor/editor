@@ -42,5 +42,6 @@ export const RuLocale = {
   undo: "Отменить",
   redo: "Повторить",
   select: "Выбрать",
-  convert: "Конвертировать"
+  convert: "Конвертировать",
+  marker: "Маркер"
 };

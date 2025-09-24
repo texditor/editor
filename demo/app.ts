@@ -18,15 +18,10 @@ import Gallery from "@/blocks/gallery";
 import H4 from "@/blocks/header/H4";
 import H5 from "@/blocks/header/H5";
 import H6 from "@/blocks/header/H6";
-import BoldTool from "@/tools/bold";
-import ItalicTool from "@/tools/italic";
-import ClearFormatingTool from "@/tools/clear-formating";
-import LinkTool from "@/tools/link";
-import SubscriptTool from "@/tools/subscript";
-import SuperscriptTool from "@/tools/superscript";
 import { Files } from "@/blocks";
 import { SelectionMode, Undo, Redo } from "@/extensions";
 import { ConvertAction, CreateAction, DeleteAction, MoveDownAction, MoveUpAction } from "@/actions";
+import { BoldTool, ItalicTool, InlineCodeTool, LinkTool, MarkerTool, SubscriptTool, SuperscriptTool, ClearFormatingTool } from "@/tools";
 
 const editor = new Texditor({
   handle: "texditor",
@@ -34,7 +29,7 @@ const editor = new Texditor({
   // actionsLeftOffset: 32,
   // actionsTopOffset: 2,
   locale: "ru",
-  tools: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
+  tools: [BoldTool, ItalicTool, InlineCodeTool, LinkTool, MarkerTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
   extensions: [Undo, Redo, SelectionMode],
   extensionsLtr: "left",
   extensionsFixed: true,
