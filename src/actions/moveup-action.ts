@@ -1,11 +1,12 @@
 import { IconArrowUp } from "@/icons";
 import ActionModel from "@/core/models/action-model";
+import { ActionModelInterface } from "@/types";
 
-export default class MoveUpAction extends ActionModel {
-  protected name = "moveUpAction";
+export default class MoveUpAction extends ActionModel implements ActionModelInterface {
+  name = "moveUpAction";
   protected icon: string = IconArrowUp;
 
-  protected onClick() {
+  onClick() {
     const { actions, blockManager, events } = this.editor;
 
     const curIndex = blockManager.getIndex(),
@@ -38,7 +39,7 @@ export default class MoveUpAction extends ActionModel {
     setTimeout(() => actions.show(), 40);
   }
 
-  protected isVisible() {
+  isVisible() {
     const { blockManager } = this.editor;
     return blockManager.getIndex() > 0 && blockManager.count() !== 0;
   }

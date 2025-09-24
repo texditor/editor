@@ -1,3 +1,4 @@
+import { BlockModelInterface } from "@/types";
 import Header from ".";
 
-export default abstract class H1 extends Header {}
+export default class H1 extends Header implements BlockModelInterface {}

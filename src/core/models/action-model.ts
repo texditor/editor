@@ -1,12 +1,13 @@
 import { IconArrowRight } from "@/icons";
 import Texditor from "@/texditor";
+import { ActionModelInterface } from "@/types";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, make } from "@/utils/dom";
 import { on } from "@/utils/events";
 import renderIcon from "@/utils/renderIcon";
 
-export default class ActionModel {
-  protected name: string = "";
+export default class ActionModel implements ActionModelInterface {
+  name: string = "";
   protected translation: string = "";
   protected editor: Texditor;
   protected icon: string = "";
@@ -26,12 +27,12 @@ export default class ActionModel {
     });
   }
 
-  protected onLoad(): void {}
+  onLoad(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onClick(evt: Event) {}
+  onClick(evt: Event) { }
 
-  protected menuConfig(): {
+  menuConfig(): {
     title: string;
     items: [] | HTMLElement[];
     onCreate?: CallableFunction;
@@ -88,15 +89,15 @@ export default class ActionModel {
     toolbar.hide();
   }
 
-  protected getId(): string {
+  getId(): string {
     return this.editor.api.css("action", false) + "-" + this.getName() + "-" + this.randomId;
   }
 
-  protected getElement(): HTMLElement | null {
+  getElement(): HTMLElement | null {
     return document.getElementById(this.getId());
   }
 
-  protected getName() {
+  getName() {
     return this.name;
   }
 
@@ -144,7 +145,7 @@ export default class ActionModel {
     if (element) on(element, "click.am", this.handleClick);
   }
 
-  protected isVisible() {
+  isVisible() {
     return true;
   }
 }

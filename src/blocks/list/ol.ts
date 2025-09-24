@@ -1,7 +1,8 @@
 import { IconOrderedList } from "@/icons";
 import List from ".";
+import { BlockModelInterface } from "@/types";
 
-export default abstract class OL extends List {
+export default class OL extends List implements BlockModelInterface {
   configure() {
     return {
       ...super.configure(),

@@ -49,7 +49,7 @@ import {
 const editor = new Texditor({
   handle: "texditor",
   extensions: [Undo, Redo],
-  toolModels: [
+  tools: [
     BoldTool,
     LinkTool
     // Add more tools...

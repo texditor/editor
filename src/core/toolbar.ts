@@ -18,13 +18,13 @@ export default class Toolbar {
     this.editor = editor;
     this.show = this.show.bind(this);
 
-    // Register default tools
-    const toolModels = this.editor.config.get("toolModels", []) as ToolModelInstanceInterface[];
-    if (toolModels.length) {
-      toolModels.forEach((toolModel: ToolModelInstanceInterface) => {
+    const tools = this.editor.config.get("tools", []) as ToolModelInstanceInterface[];
+    if (tools.length) {
+      tools.forEach((toolModel: ToolModelInstanceInterface) => {
         this.register(toolModel);
       });
     } else {
+      // Register default tools
       this.register(BoldTool);
       this.register(ItalicTool);
       this.register(LinkTool);

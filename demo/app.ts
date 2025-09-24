@@ -25,8 +25,8 @@ import LinkTool from "@/tools/link";
 import SubscriptTool from "@/tools/subscript";
 import SuperscriptTool from "@/tools/superscript";
 import { Files } from "@/blocks";
-import { SelectionMode, Undo } from "@/extensions";
-import Redo from "@/extensions/redo";
+import { SelectionMode, Undo, Redo } from "@/extensions";
+import { ConvertAction, CreateAction, DeleteAction, MoveDownAction, MoveUpAction } from "@/actions";
 
 const editor = new Texditor({
   handle: "texditor",
@@ -34,7 +34,14 @@ const editor = new Texditor({
   // actionsLeftOffset: 32,
   // actionsTopOffset: 2,
   locale: "ru",
-  toolModels: [BoldTool, ItalicTool, LinkTool, SubscriptTool, SuperscriptTool, ClearFormatingTool],
+  tools: [
+    BoldTool,
+    ItalicTool,
+    LinkTool,
+    SubscriptTool,
+    SuperscriptTool,
+    ClearFormatingTool
+  ],
   extensions: [Undo, Redo, SelectionMode],
   extensionsLtr: "left",
   extensionsFixed: true,
@@ -43,6 +50,13 @@ const editor = new Texditor({
     border: "1px solid #ebebeb",
     "z-index": "3000"
   },
+  actions: [
+    CreateAction,
+    ConvertAction,
+    DeleteAction,
+    MoveUpAction,
+    MoveDownAction
+  ],
   // autofocus: false,
   blockModels: [
     Paragraph,

@@ -14,10 +14,12 @@ export default {
     lib: {
       entry: {
         main: path.resolve(__dirname, "src/texditor.ts"),
+        actions: path.resolve(__dirname, "src/actions/index.ts"),
         blocks: path.resolve(__dirname, "src/blocks/index.ts"),
         tools: path.resolve(__dirname, "src/tools/index.ts"),
         locales: path.resolve(__dirname, "src/locales/index.ts"),
-        extensions: path.resolve(__dirname, "src/extensions/index.ts")
+        extensions: path.resolve(__dirname, "src/extensions/index.ts"),
+        "core/models": path.resolve(__dirname, "src/core/models/index.ts"),
       },
       name: "Texditor",
       fileName: (format: string, entryName: string) => {

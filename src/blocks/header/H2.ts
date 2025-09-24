@@ -1,7 +1,8 @@
 import { IconHeader2 } from "@/icons";
 import Header from ".";
+import { BlockModelInterface } from "@/types";
 
-export default abstract class H2 extends Header {
+export default class H2 extends Header implements BlockModelInterface {
   configure() {
     return {
       ...super.configure(),
