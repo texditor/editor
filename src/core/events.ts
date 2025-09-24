@@ -369,7 +369,7 @@ export default class Events {
   }
 
   private onPasteHandle(evt: ClipboardEvent) {
-    const { api, config, parser, blockManager, selectionApi, historyManager } = this.editor;
+    const { config, parser, blockManager, selectionApi, historyManager } = this.editor;
 
     this.trigger("onPaste", evt);
 
@@ -388,7 +388,7 @@ export default class Events {
       const pasteData = evt.clipboardData.getData("text/html") || "";
       const input = parser.parseHtml(pasteData, true);
       const isBlockPaste = !!Array.from(input?.childNodes || []).filter(
-        (item) => item.nodeType == 1 && api.getRealType((item as HTMLElement).localName)
+        (item) => item.nodeType == 1 && blockManager.getRealType((item as HTMLElement).localName)
       ).length;
 
       if (input && isBlockPaste) {
@@ -400,7 +400,7 @@ export default class Events {
 
           if (item.nodeType === Node.ELEMENT_NODE) {
             const element = item as Element;
-            if (api.getRealType(element.localName)) isCreateBlocks = true;
+            if (blockManager.getRealType(element.localName)) isCreateBlocks = true;
           }
         });
 
@@ -416,7 +416,7 @@ export default class Events {
               }
             } else if (item.nodeType === Node.ELEMENT_NODE) {
               const tagName = item.nodeName.toLowerCase(),
-                realName = api.getRealType(tagName) || api.getRealType(defBlock) || "p";
+                realName = blockManager.getRealType(tagName) || blockManager.getRealType(defBlock) || "p";
 
               if (realName) {
                 const html = (item as Element)?.innerHTML;

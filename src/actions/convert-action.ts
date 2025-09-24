@@ -11,9 +11,9 @@ export default class ConvertAction extends ActionModel implements ActionModelInt
   protected menu: boolean = true;
 
   menuConfig() {
-    const { api, blockManager, i18n } = this.editor,
+    const { blockManager, i18n } = this.editor,
       items: HTMLElement[] = [];
-    const blockModels = api.getModels();
+    const blockModels = blockManager.getBlockModels();
 
     blockModels.forEach((modelStructure: BlockModelStructure) => {
       const curBlock = blockManager.getCurrentBlock(),
@@ -45,14 +45,14 @@ export default class ConvertAction extends ActionModel implements ActionModelInt
   }
 
   isVisible() {
-    const { api, blockManager } = this.editor,
-      blockModels = api.getModels(),
+    const { blockManager } = this.editor,
+      blockModels = blockManager.getBlockModels(),
       curBlock = blockManager.getCurrentBlock();
 
     const filtered = blockModels.filter(
       (item) => item.model.isConvertible() && curBlock?.blockModel.getType() !== item.model.getType()
     );
 
-    return !!this.editor.blockManager.getModel()?.isConvertible() && !!filtered.length;
+    return !!blockManager.getModel()?.isConvertible() && !!filtered.length;
   }
 }

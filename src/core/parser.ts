@@ -102,8 +102,8 @@ export default class Parser {
   }
 
   parseBlocks(data: object[], createDefault: boolean = false, skipDecode: boolean = false): Node[] | [] {
-    const { api, config } = this.editor,
-      models = api.getModels();
+    const { blockManager, config } = this.editor,
+      models = blockManager.getBlockModels();
 
     const blocks = make("div", (el: HTMLBlockElement) => {
       (data as OutputBlockItem[]).forEach((item: OutputBlockItem) => {

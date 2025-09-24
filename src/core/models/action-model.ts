@@ -27,10 +27,10 @@ export default class ActionModel implements ActionModelInterface {
     });
   }
 
-  onLoad(): void { }
+  onLoad(): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) { }
+  onClick(evt: Event) {}
 
   menuConfig(): {
     title: string;

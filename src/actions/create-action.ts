@@ -12,9 +12,9 @@ export default class CreateAction extends ActionModel implements ActionModelInte
   protected menu: boolean = true;
 
   menuConfig() {
-    const { api, blockManager, events, i18n } = this.editor,
+    const { blockManager, events, i18n } = this.editor,
       items: HTMLElement[] = [];
-    const blockModels = api.getModels();
+    const blockModels = blockManager.getBlockModels();
 
     blockModels.forEach((modelStructure: BlockModelStructure) => {
       const modelElement = make("div", (el: HTMLDivElement) => {
