@@ -1,7 +1,6 @@
 import Texditor from "@/texditor";
 import { append, closest, css, make, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
-import { ActionModelInterface } from "@/types/core/models";
 import DeleteAction from "@/actions/delete-action";
 import { ActionModelInstanceInterface } from "@/types/core/models";
 import MoveUpAction from "@/actions/moveup-action";
@@ -11,20 +10,27 @@ import ConvertAction from "@/actions/convert-action";
 
 export default class Actions {
   private editor: Texditor;
-  private actions: ActionModelInterface[] = [];
+  private actions: ActionModelInstanceInterface[] = [];
 
   constructor(editor: Texditor) {
     this.editor = editor;
     this.show = this.show.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.repositionBar = this.repositionBar.bind(this);
+    const actions = this.editor.config.get("actions", []) as ActionModelInstanceInterface[];
 
-    // Register default actions
-    this.register(CreateAction);
-    this.register(ConvertAction);
-    this.register(MoveUpAction);
-    this.register(MoveDownAction);
-    this.register(DeleteAction);
+    if (actions.length) {
+      actions.forEach((toolModel: ActionModelInstanceInterface) => {
+        this.register(toolModel);
+      });
+    } else {
+      // Register default actions
+      this.register(CreateAction);
+      this.register(ConvertAction);
+      this.register(MoveUpAction);
+      this.register(MoveDownAction);
+      this.register(DeleteAction);
+    }
   }
 
   render() {
@@ -205,7 +211,7 @@ export default class Actions {
     });
   }
 
-  register(action: ActionModelInterface) {
+  register(action: ActionModelInstanceInterface) {
     this.actions.push(action);
   }
 

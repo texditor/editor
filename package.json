@@ -11,6 +11,10 @@
       "import": "./dist/texditor.mjs",
       "types": "./dist/types/texditor.d.ts"
     },
+    "./actions": {
+      "import": "./dist/actions.mjs",
+      "types": "./dist/types/actions.d.ts"
+    },
     "./blocks": {
       "import": "./dist/blocks.mjs",
       "types": "./dist/types/blocks.d.ts"
@@ -26,6 +30,10 @@
     "./extensions": {
       "import": "./dist/extensions.mjs",
       "types": "./dist/types/extensions.d.ts"
+    },
+    "./core/models": {
+      "import": "./dist/core/models.mjs",
+      "types": "./dist/types/core/models.d.ts"
     },
     "./styles/*.css": {
       "default": "./dist/styles/*.css"

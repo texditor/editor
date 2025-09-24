@@ -1,16 +1,22 @@
-import { ExtensionModelInterface } from "./models";
+import {
+  ActionModelInstanceInterface,
+  BlockModelInstanceInterface,
+  ExtensionModelInterface,
+  ToolModelInstanceInterface
+} from "./models";
 
 export interface ConfigStore {
   handle?: string;
   onReady?: CallableFunction;
   onChange?: CallableFunction;
   initalData?: object[] | string;
-  blockModels?: object[];
-  toolModels?: object[];
+  blockModels?: BlockModelInstanceInterface[];
+  tools?: ToolModelInstanceInterface[];
   defaultBlock?: string;
   locale?: string;
   defaultLocale?: string;
   blockParseDataset?: string[];
+  actions?: ActionModelInstanceInterface[];
   actionsTopOffset?: number;
   actionsLeftOffset?: number;
   extensions?: ExtensionModelInterface[];
