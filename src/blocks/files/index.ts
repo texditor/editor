@@ -153,8 +153,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
     return this.create(data as FileItem[], options);
   }
 
-  save(block: OutputBlockItem): OutputBlockItem {
-    const root = this.getElement();
+  save(block: OutputBlockItem, blockElement?: HTMLElement): OutputBlockItem {
+    const root = blockElement || this.getElement();
     block.data = [];
     block = this.onSaveBefore(block, root);
 
@@ -179,7 +179,6 @@ export default class Files extends BlockModel implements BlockModelInterface {
     }
 
     block = this.onSaveAfter(block, root);
-
     return block;
   }
 
@@ -780,7 +779,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
       }
 
       const formData = new FormData(),
-        { data } = userOptions;
+        { data } = userOptions || {};
 
       if (
         data &&
@@ -813,7 +812,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
         onUploadProgress: (progressEvent: ProgressEvent) => {
           if (onUploadCallback) onUploadCallback(progressEvent);
         },
-        headers: userOptions.headers ? { ...userOptions.headers } : {}
+        headers: userOptions?.headers ? { ...userOptions.headers } : {}
       };
 
       fetchRequest(ajaxConfig.url, requestOptions)

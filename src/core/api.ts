@@ -142,7 +142,7 @@ export default class API {
           };
 
           if (el.blockModel?.isCustomSave()) {
-            const savedBlock = el.blockModel.save(block);
+            const savedBlock = el.blockModel.save(block, el);
             block = savedBlock as OutputBlockItem;
           } else {
             for (const itemData in el.dataset) {
