@@ -111,13 +111,24 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   getId(): string {
-    if (!this.id) this.id = this.createId();
+    if (!this.id) {
+      this.id = this.createId();
+      const existingElement = document.getElementById(this.id);
+
+      if (existingElement) {
+        this.id = this.createId();
+      }
+    }
 
     return this.id;
   }
 
   getElement(): HTMLBlockElement | HTMLElement | null {
-    return document.getElementById(this.getId()) || null;
+    if (!this.id) {
+      return null;
+    }
+
+    return document.getElementById(this.id);
   }
 
   getConfig(key: string, defaultValue: string): string;
@@ -192,8 +203,12 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("relatedTypes", []);
   }
 
-  private createId(): string {
-    return this.getType() + "-" + Math.floor(Math.random() * Date.now()).toString();
+  protected createId(): string {
+    const array = new Uint8Array(8);
+    crypto.getRandomValues(array);
+    const randomHex = Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+
+    return `${this.getType()}-${randomHex}-${Date.now().toString(36)}`;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -253,7 +268,8 @@ export default class BlockModel implements BlockModelInterface {
 
   onRender(): void {}
 
-  save(block: { [key: string]: unknown }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  save(block: OutputBlockItem, blockElement?: HTMLElement): OutputBlockItem {
     return block;
   }
 
