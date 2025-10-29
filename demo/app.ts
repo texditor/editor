@@ -76,7 +76,7 @@ const editor = new Texditor({
       }
     }),
     Gallery.setup({
-      mimeTypes: ["image/png", "image/jpeg", "video/mp4"],
+      mimeTypes: ["image/png", "image/jpeg", "video/mp4", "image/webp"],
       multiple: true,
       uploadLabelMessage: "Upload your files in .png, .jpg or .gif",
       showOnlyWhenEmpty: true,

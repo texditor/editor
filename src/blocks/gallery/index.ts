@@ -164,11 +164,14 @@ export default class Gallery extends Files {
       }
     }
 
-    this.setRenderCallback(["image/jpeg", "image/png", "image/gif"], (item: FileItem): HTMLElement => {
-      return make("img", (img: HTMLImageElement) => {
-        img.src = item.url;
-      });
-    });
+    this.setRenderCallback(
+      ["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/bmp"],
+      (item: FileItem): HTMLElement => {
+        return make("img", (img: HTMLImageElement) => {
+          img.src = item.url;
+        });
+      }
+    );
 
     this.setRenderCallback(
       ["video/mp4", "video/webm", "video/ogg", "video/mpeg", "video/quicktime", "video/x-msvideo"],
