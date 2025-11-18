@@ -27,7 +27,7 @@ export const RuLocale = {
   list: "Список",
   orderedList: "Упорядоченный список",
   emptyUrl: "Ошибка запроса. Не указан URL-адрес сервера",
-  fileUploadError: "Ошибка загрузки файла",
+  fileUploadError: "Ошибка загрузки",
   fileUploadSuccess: "Файлы загружены",
   invalidFileType: "Недопустимый формат файла",
   edit: "Редактировать",
