@@ -27,7 +27,7 @@ export const EnLocale = {
   list: "List",
   orderedList: "Ordered list",
   emptyUrl: "Request error. The server url is not specified",
-  fileUploadError: "File upload error",
+  fileUploadError: "Error when uploading",
   fileUploadSuccess: "Files uploaded",
   invalidFileType: "Invalid file type",
   edit: "Edit",

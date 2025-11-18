@@ -23,6 +23,7 @@ import { off, on } from "@/utils/events";
 import { IconArrowLeft, IconArrowRight, IconFile, IconPencil, IconPlus, IconTrash } from "@/icons";
 import renderIcon from "@/utils/renderIcon";
 import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
+import { Response } from "@/types";
 
 declare global {
   interface HTMLElement {
@@ -54,6 +55,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
       mimeTypes: [],
       multiple: true,
       inputName: "files",
+      responseMessageField: "message",
+      responseMessageErrorField: "errors",
       listCss: "tex-files-list-c",
       itemCss: "tex-files-item-c",
       sourceWrapCss: "tex-files-item-source-c",
@@ -349,22 +352,14 @@ export default class Files extends BlockModel implements BlockModelInterface {
             css(labelFile, "visibility", "hidden");
             this.ajax(
               input,
-              ({
-                success,
-                data,
-                message
-              }: {
-                success: boolean;
-                data: Record<string, string | number>[];
-                message?: string;
-              }) => {
-                if (success && Array.isArray(data) && data.length) {
+              (response: Response) => {
+                if (response.success && Array.isArray(response.data) && response.data.length) {
                   const list = this.getListElement(block);
 
                   if (list) {
                     const items: FileItem[] = [];
 
-                    data.forEach((item: Record<string, string | number>) => {
+                    response.data.forEach((item: Record<string, string | number>) => {
                       if (item?.url && item?.type) {
                         const fileItem = {
                           url: item?.url,
@@ -381,10 +376,9 @@ export default class Files extends BlockModel implements BlockModelInterface {
                       this.item(list, item, "before", block);
                     });
                   }
-
-                  this.createMessage(i18n.get("fileUploadSuccess"), "success");
+                  this.createMessage(this.responseMessage(response, i18n.get("fileUploadSuccess")), "success");
                 } else {
-                  this.createMessage(message || i18n.get("fileUploadError"));
+                  this.createMessage(this.responseMessage(response, i18n.get("fileUploadError"), true));
                 }
                 onloaded();
               },
@@ -825,7 +819,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
           });
         })
         .catch((error) => {
-          this.createMessage(i18n.get("fileUploadError") + ": " + error.message);
+          const message = this.responseMessage(error?.response, error.message, true);
+          this.createMessage(i18n.get("fileUploadError") + ": " + message);
           if (onError) onError(error);
 
           events.change({
@@ -835,6 +830,66 @@ export default class Files extends BlockModel implements BlockModelInterface {
           });
         });
     }
+  }
+
+  private responseMessage(response?: Response, defaultMessage?: string, isError: boolean = false): string {
+    const messageField = isError
+      ? (this.getConfig("responseMessageErrorField", "message") as string)
+      : (this.getConfig("responseMessageField", "message") as string);
+
+    if (!response) {
+      return defaultMessage || "";
+    }
+
+    let message: unknown;
+
+    if (messageField in response) {
+      message = response[messageField];
+    } else if (
+      response.data &&
+      typeof response.data === "object" &&
+      response.data !== null &&
+      messageField in response.data
+    ) {
+      message = (response.data as Record<string, unknown>)[messageField];
+    } else {
+      for (const key in response) {
+        if (key !== "data" && key !== "success" && typeof response[key] === "string") {
+          message = response[key];
+          break;
+        }
+      }
+
+      if (!message && response.data && typeof response.data === "object") {
+        for (const key in response.data) {
+          if (typeof (response.data as Record<string, unknown>)[key] === "string") {
+            message = (response.data as Record<string, unknown>)[key];
+            break;
+          }
+        }
+      }
+    }
+
+    return this.normalizeMessage(message, defaultMessage);
+  }
+
+  private normalizeMessage(message: unknown, defaultMessage?: string): string {
+    if (typeof message === "string") {
+      return message;
+    }
+
+    if (Array.isArray(message)) {
+      return message
+        .map((item) => this.normalizeMessage(item))
+        .filter((msg) => msg)
+        .join(" | ");
+    }
+
+    if (message !== null && message !== undefined) {
+      return String(message);
+    }
+
+    return defaultMessage || "Unknown error";
   }
 
   destroy() {
