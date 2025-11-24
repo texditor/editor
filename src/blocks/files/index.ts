@@ -1,33 +1,29 @@
-import { BlockModelInterface } from "@/types/core/models";
+import { BlockModelInterface, FileActionModelInstanceInterface, FileActionModelInterface } from "@/types/core/models";
 import { FilesCreateOptions, FileItem } from "@/types/blocks";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/files.css";
 import { OutputBlockItem } from "@/types/output";
-import {
-  addClass,
-  append,
-  attr,
-  closest,
-  css,
-  hasClass,
-  make,
-  prepend,
-  query,
-  queryLength,
-  removeClass
-} from "@/utils/dom";
+import { addClass, append, attr, closest, css, hasClass, make, prepend, query, queryLength } from "@/utils/dom";
 import { HTMLBlockElement } from "@/types/core";
 import { isEmptyString } from "@/utils/string";
 import { decodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
 import { off, on } from "@/utils/events";
-import { IconArrowLeft, IconArrowRight, IconFile, IconPencil, IconPlus, IconTrash } from "@/icons";
+import { IconFile, IconPlus } from "@/icons";
 import renderIcon from "@/utils/renderIcon";
 import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
 import { Response } from "@/types";
 
+import MoveRightFileAction from "./actions/MoveLeftFileAction";
+import MoveLeftFileAction from "./actions/MoveLeftFileAction";
+import DeleteFileAction from "./actions/DeleteFileAction";
+import EditFileAction from "./actions/EditFileAction";
+
+export { MoveRightFileAction, MoveLeftFileAction, DeleteFileAction, EditFileAction };
+
 declare global {
   interface HTMLElement {
     fileSize?: number;
+    fileId?: number;
     thumbnail?: string;
   }
 }
@@ -41,6 +37,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
     return {
       autoParse: false,
       autoMerge: false,
+      actions: [MoveLeftFileAction, EditFileAction, DeleteFileAction, MoveRightFileAction],
       icon: IconFile,
       backspaceRemove: false,
       isEnterCreate: false,
@@ -87,6 +84,10 @@ export default class Files extends BlockModel implements BlockModelInterface {
       append(el, this.form(allItems, el, options));
       append(el, this.createList(allItems, el, options || {}));
     });
+  }
+
+  onRender(): void {
+    this.editor.events.trigger("file:actions:render:end");
   }
 
   protected onListCreate(items: FileItem[], block: HTMLBlockElement | null, options: FilesCreateOptions) {
@@ -169,6 +170,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
           if (el.dataset.caption) preparedItem.caption = el.dataset.caption;
           if (el.dataset.desc) preparedItem.desc = el.dataset.desc;
           if (el.fileSize) preparedItem.size = el.fileSize;
+          if (el.fileId) preparedItem.id = el.fileId;
           if (el.thumbnail) preparedItem.thumbnail = el.thumbnail;
 
           const fileItem = this.onSaveItem(preparedItem, el);
@@ -331,14 +333,17 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
           if (mimeTypes.length) attr(input, "accept", mimeTypes.join(", "));
 
-          const onloaded = () => {
+          const onloaded = (error: boolean = false) => {
             setTimeout(() => {
               css(labelFile, "visibility", "");
               this.hideProgress(id);
-              document.getElementById("label-" + id)?.remove();
 
-              if (isMultiple) prepend(form, this.createLabel(this.getItem(0) ? 1 : 0, id));
-              else form.remove();
+              if (!error) {
+                document.getElementById("label-" + id)?.remove();
+
+                if (isMultiple) prepend(form, this.createLabel(this.getItem(0) ? 1 : 0, id));
+                else form.remove();
+              }
             }, 500);
           };
 
@@ -367,6 +372,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
                         } as FileItem;
 
                         if (item?.size) fileItem.size = item.size as number;
+                        if (item?.id) fileItem.id = item.id as number;
 
                         items.push(fileItem);
                       }
@@ -383,7 +389,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
                 onloaded();
               },
               (event: ProgressEvent) => this.progress(id, event.percent || 0),
-              () => onloaded()
+              () => onloaded(true)
             );
           });
         });
@@ -400,7 +406,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
     });
   }
 
-  protected move(item: HTMLElement, index: number) {
+  moveItem(item: HTMLElement, index: number): void {
     const block = this.getElement();
 
     if (block) {
@@ -434,38 +440,16 @@ export default class Files extends BlockModel implements BlockModelInterface {
     return data;
   }
 
-  private arrowsVisible(item: HTMLElement) {
+  getItemsLength(): number {
     const block = this.getElement();
 
-    if (block) {
-      const length = queryLength(".tex-files-item", block);
-      let moveLeftBtn,
-        moveRightBtn,
-        index = 0;
+    if (!block) return 0;
 
-      query(
-        ".tex-files-item",
-        (el: HTMLElement, i: number) => {
-          if (el === item) index = i;
-        },
-        block
-      );
-
-      query(".move-btn-left", (el: HTMLElement) => (moveLeftBtn = el), item);
-      query(".move-btn-right", (el: HTMLElement) => (moveRightBtn = el), item);
-
-      if (moveLeftBtn && moveRightBtn) {
-        removeClass(moveLeftBtn, "unactive");
-        removeClass(moveRightBtn, "unactive");
-
-        if (!index) addClass(moveLeftBtn, "unactive");
-        if (index + 1 >= length) addClass(moveRightBtn, "unactive");
-      }
-    }
+    return queryLength(".tex-files-item", block);
   }
 
   private createActionBar(item: HTMLElement, container: HTMLElement, block: HTMLBlockElement): HTMLElement {
-    const { api, events } = this.editor,
+    const { api } = this.editor,
       uniqueId = api.getUniqueId();
 
     return make("div", (div: HTMLDivElement) => {
@@ -474,97 +458,18 @@ export default class Files extends BlockModel implements BlockModelInterface {
         addClass(wrap, "tex-files-actions-wrap tex-animate-fadeIn");
         append(
           wrap,
-          make("div", (actionList: HTMLDivElement) => {
-            addClass(actionList, "tex-files-actions-list");
+          make("div", (fileActions: HTMLDivElement) => {
+            addClass(fileActions, "tex-files-actions-list");
 
-            const newAction = (
-                icon: string,
-                onClick: CallableFunction,
-                eventName: string = "",
-                cssName: string = ""
-              ) => {
-                return make("div", (act: HTMLDivElement) => {
-                  addClass(act, "tex-files-action " + cssName);
-                  act.innerHTML = renderIcon(icon, {
-                    width: 18,
-                    height: 18
-                  });
-                  on(act, "click.action", () => {
-                    onClick(act);
-                    if (eventName) {
-                      events.change({
-                        type: eventName,
-                        block: block,
-                        item: item
-                      });
-                    }
-                  });
-                });
-              },
-              deleteBtn = newAction(
-                IconTrash,
-                () => {
-                  item.remove();
-                  this.removeIsEmpty(block);
-                },
-                "deleteFileItem"
-              ),
-              editBtn = newAction(IconPencil, () => {
-                container.insertAdjacentElement(
-                  "beforebegin",
-                  make("div", (editWrap: HTMLDivElement) => {
-                    const closePopup = () => block.removeChild(editWrap);
+            const actionList = this.getConfig("actions");
 
-                    off(document, "click.clfp" + uniqueId);
-                    on(
-                      document,
-                      "click.clfp" + uniqueId,
-                      (evt) => {
-                        if (closest(editWrap, evt.target)) {
-                          off(document, "click.clfp");
-                          closePopup();
-                        }
-                      },
-                      true
-                    );
+            (actionList as FileActionModelInstanceInterface[]).forEach(
+              (fileAction: FileActionModelInstanceInterface) => {
+                const fileActionInstance = new fileAction(this.editor, item, container, block);
 
-                    addClass(editWrap, "tex-files-item-edit tex-animate-fadeIn");
-                    append(
-                      editWrap,
-                      make("div", (editContent: HTMLDivElement) => {
-                        addClass(editContent, "tex-files-item-edit-content");
-                        append(editContent, this.renderEditItem(item));
-                        const reposition = () => {
-                          setTimeout(() => {
-                            if (block.offsetHeight < editContent.offsetHeight + item.offsetTop) {
-                              css(editContent, "top", block.offsetHeight - editContent.offsetHeight - 48);
-                            } else {
-                              css(editContent, "top", item.offsetTop - 24);
-                            }
-                          }, 1);
-                        };
-                        off(window, "resize.actEdit" + uniqueId);
-                        on(window, "resize.actEdit" + uniqueId, reposition);
-                        reposition();
-                      })
-                    );
-                  })
-                );
-              }),
-              moveRightBtn = newAction(
-                IconArrowRight,
-                () => this.move(item, ((this.getItem(item) || 0) as number) + 1),
-                "moveRightFileItem",
-                "tex-files-item-moveRight move-btn move-btn-right"
-              ),
-              moveLeftBtn = newAction(
-                IconArrowLeft,
-                () => this.move(item, ((this.getItem(item) || 0) as number) - 1),
-                "moveLeftFileItem",
-                "tex-files-item-moveLeft move-btn move-btn-left"
-              );
-
-            append(actionList, [moveLeftBtn, editBtn, deleteBtn, moveRightBtn]);
+                append(fileActions, fileActionInstance.create());
+              }
+            );
           })
         );
       });
@@ -576,6 +481,17 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
       off(document, "click.cab");
       on(item, "click.cab", () => {
+        query(
+          ".tex-files-action",
+          (actionElement: HTMLElement) => {
+            if ("fileAction" in actionElement) {
+              const fileAction = actionElement?.fileAction as FileActionModelInterface;
+              fileAction?.refresh();
+            }
+          },
+          container
+        );
+
         hideActions();
         off(document, "click.cab" + +uniqueId);
         on(
@@ -587,71 +503,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
           true
         );
         css(div, "display", "block");
-        this.arrowsVisible(item);
       });
-    });
-  }
-
-  protected renderEditItem(item: HTMLElement) {
-    const { events, i18n } = this.editor;
-
-    return make("div", (el: HTMLElement) => {
-      addClass(el, "tex-files-item-edit-popup");
-
-      const captionImput = make("input", (input: HTMLInputElement) => {
-          input.type = "text";
-          input.value = item.dataset.caption || "";
-          attr(input, "placeholder", i18n.get("caption", "Caption"));
-          addClass(input, "tex-input tex-files-input");
-        }) as HTMLInputElement,
-        descInput = make("input", (input: HTMLInputElement) => {
-          input.type = "text";
-          input.value = item.dataset.desc || "";
-          attr(input, "placeholder", i18n.get("desc", "Description"));
-          addClass(input, "tex-input tex-files-input");
-        }) as HTMLInputElement;
-
-      append(el, [
-        make("div", (div: HTMLDivElement) => {
-          addClass(div, "tex-files-item-edit-popup-h");
-          div.textContent = i18n.get("edit", "Edit");
-        }),
-        captionImput,
-        descInput,
-        make("div", (div: HTMLDivElement) => {
-          addClass(div, "tex-files-item-edit-popup-btns");
-          append(div, [
-            make("button", (btn: HTMLButtonElement) => {
-              btn.type = "button";
-              addClass(btn, "tex-btn tex-btn-primary tex-btn-radius tex-btn-padding");
-              btn.textContent = i18n.get("save", "Save");
-              on(btn, "click.sv", () => {
-                document.body.click();
-                const captionValue = captionImput?.value || "",
-                  descValue = descInput?.value || "";
-
-                if (!isEmptyString(captionValue)) item.dataset.caption = captionValue;
-
-                if (!isEmptyString(descValue)) item.dataset.desc = descValue;
-
-                events.change({
-                  type: "changeFileItem",
-                  block: this.getElement(),
-                  item: item
-                });
-              });
-            }),
-            make("button", (btn: HTMLButtonElement) => {
-              btn.type = "button";
-              addClass(btn, "tex-btn tex-btn-secondary tex-btn-radius tex-btn-padding");
-              btn.textContent = i18n.get("сancel", "Сancel");
-              on(btn, "click.cn", () => {
-                document.body.click();
-              });
-            })
-          ]);
-        })
-      ]);
     });
   }
 
@@ -698,9 +550,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
         el.dataset.url = item.url;
 
         if (item?.size) el.fileSize = item.size;
-
+        if (item?.id) el.fileId = item.id;
         if (item?.thumbnail) el.thumbnail = item.thumbnail;
-
         if (item.caption) el.dataset.caption = decodeHtmlSpecialChars(item.caption);
         if (item.desc) el.dataset.desc = decodeHtmlSpecialChars(item.desc);
 
@@ -721,7 +572,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
     }
   }
 
-  private removeIsEmpty(block: HTMLBlockElement) {
+  removeIsEmpty(block: HTMLBlockElement) {
     const { blockManager } = this.editor;
     const len = queryLength(".tex-files-item", block);
 

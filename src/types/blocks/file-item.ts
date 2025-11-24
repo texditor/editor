@@ -5,5 +5,6 @@ export interface FileItem {
   caption?: string;
   desc?: string;
   size?: number;
+  id?: number;
   [key: string]: unknown;
 }
