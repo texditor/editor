@@ -15,7 +15,7 @@ import HistoryManager from "@/core/history-manager";
 import Extensions from "./core/extensions";
 
 export * from "./types";
-export * from './utils';
+export * from "./utils";
 
 export default class Texditor {
   config: Config;
