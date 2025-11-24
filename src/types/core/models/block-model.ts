@@ -28,7 +28,9 @@ export interface BlockModelInterface {
   onPaste?(evt: Event, input: Element | null): void;
   getItemIndex(): number;
   setItemIndex(index: number): void;
-  getItem(index: HTMLElement | number, container: HTMLElement | null): HTMLElement | number | null;
+  getItem(index: HTMLElement | number, container?: HTMLElement | null): HTMLElement | number | null;
+  moveItem?(item: HTMLElement, index: number): void;
+  getItemsLength?(): number;
   isEmptyDetect(): boolean;
   isBackspaceRemove(): boolean;
   isTextArea(): boolean;

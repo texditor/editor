@@ -70,7 +70,9 @@ const editor = new Texditor({
     OrderdList,
     Code,
     Files.setup({
+      mimeTypes: ["image/png"],
       multiple: false,
+      showOnlyWhenEmpty: true,
       ajaxConfig: {
         url: "http://localhost/upload.php"
       }

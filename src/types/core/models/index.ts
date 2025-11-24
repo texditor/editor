@@ -8,3 +8,5 @@ export * from "./extension-model-instance";
 export * from "./tool-model";
 export * from "./tool-model-instance";
 export * from "./block-model-structure";
+export * from "./file-action-model";
+export * from "./file-action-model-instance";
