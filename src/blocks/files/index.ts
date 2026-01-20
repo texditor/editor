@@ -13,7 +13,7 @@ import renderIcon from "@/utils/renderIcon";
 import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
 import { Response } from "@/types";
 
-import MoveRightFileAction from "./actions/MoveLeftFileAction";
+import MoveRightFileAction from "./actions/MoveRightFileAction";
 import MoveLeftFileAction from "./actions/MoveLeftFileAction";
 import DeleteFileAction from "./actions/DeleteFileAction";
 import EditFileAction from "./actions/EditFileAction";
