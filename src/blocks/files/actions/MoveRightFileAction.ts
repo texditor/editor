@@ -2,7 +2,7 @@ import { IconArrowRight } from "@/icons";
 import type { FileActionModelInterface } from "@/types";
 import FileActionModel from "@/core/models/file-action-model";
 
-export default class MoveRightAction extends FileActionModel implements FileActionModelInterface {
+export default class MoveRightFileAction extends FileActionModel implements FileActionModelInterface {
   name: string = "moveRight";
   protected icon: string = IconArrowRight;
 
