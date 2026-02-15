@@ -9,7 +9,7 @@ import { isEmptyString } from "@/utils/string";
 import { decodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
 import { off, on } from "@/utils/events";
 import { IconFile, IconPlus } from "@/icons";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon } from "@/utils/icon";
 import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
 import { Response } from "@/types";
 
@@ -102,11 +102,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
     return make("div", (div: HTMLElement) => {
       addClass(div, "tex-files-default-item");
       const icon = make("span", (span: HTMLSpanElement) => {
-          span.innerHTML = renderIcon(IconFile, {
-            width: 20,
-            height: 20
-          });
-        }),
+        span.innerHTML = renderIcon(IconFile, {
+          width: 20,
+          height: 20
+        });
+      }),
         ext = make("span", (span: HTMLSpanElement) => {
           const parts = item?.url.split(".");
           span.innerText = "." + (parts.pop() || "");
@@ -284,10 +284,10 @@ export default class Files extends BlockModel implements BlockModelInterface {
       const labelCnt = make("div", (labelContainer: HTMLDivElement) => {
         addClass(labelContainer, "tex-files-form-label-container");
         const text = make(
-            "span",
-            (span: HTMLSpanElement) =>
-              (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText)
-          ),
+          "span",
+          (span: HTMLSpanElement) =>
+            (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText)
+        ),
           icon = make("span", (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
 
         append(labelContainer, [icon, text]);
@@ -591,9 +591,9 @@ export default class Files extends BlockModel implements BlockModelInterface {
   ) {
     const { events, i18n } = this.editor;
     const ajaxConfig = this.getConfig("ajaxConfig") as {
-        url: string;
-        options: AjaxOptions;
-      },
+      url: string;
+      options: AjaxOptions;
+    },
       inputName = this.getConfig("inputName", "files");
 
     if (isEmptyString(ajaxConfig?.url || "")) {

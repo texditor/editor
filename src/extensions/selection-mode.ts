@@ -3,13 +3,14 @@ import { IconCheck, IconTrash } from "@/icons";
 import { addClass, append, attr, css, make, removeClass } from "@/utils/dom";
 import "@/styles/extensions/selection-mode.css";
 import { HTMLBlockElement } from "@/types/core";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon } from "@/utils/icon";
 import { off, on } from "@/utils/events";
+import { RenderIconContent } from "@/types";
 
 export default class SelectionMode extends ExtensionModel {
   name: string = "selectionMode";
   translation: string = "select";
-  icon: string = IconCheck;
+  icon: RenderIconContent = IconCheck;
   toggleActive: boolean = true;
   protected groupName: string = "selectionMode";
 

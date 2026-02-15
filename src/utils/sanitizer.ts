@@ -1,5 +1,6 @@
 /**
  * Sanitizes JSON by removing or escaping control characters and Unicode formatting marks
+ * 
  * @param json - Input JSON as string or object
  * @returns Sanitized JSON string or null if parsing fails
  */

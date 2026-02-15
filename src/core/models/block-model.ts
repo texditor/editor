@@ -5,7 +5,7 @@ import { addClass, append, appendText, getChildNodes, getElementText, make } fro
 import Sanitizer from "../sanitizer";
 import { SanitizerConfig } from "@/types/core/sanitizer";
 import { BlockModelConfig, BlockModelInterface } from "@/types/core/models";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon }  from "@/utils/icon";
 
 export default class BlockModel implements BlockModelInterface {
   protected id: string = "";

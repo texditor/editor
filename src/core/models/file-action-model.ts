@@ -3,7 +3,7 @@ import type { BlockModelInterface, FileActionModelInterface, HTMLBlockElement } 
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, make } from "@/utils/dom";
 import { on } from "@/utils/events";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon } from "@/utils/icon";
 
 export default class FileActionModel implements FileActionModelInterface {
   name: string = "";
@@ -29,10 +29,10 @@ export default class FileActionModel implements FileActionModelInterface {
     });
   }
 
-  onLoad(): void {}
+  onLoad(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) {}
+  onClick(evt: Event) { }
 
   menuConfig(): {
     title: string;

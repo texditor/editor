@@ -1,16 +1,16 @@
 import { IconArrowRight } from "@/icons";
 import Texditor from "@/texditor";
-import { ActionModelInterface } from "@/types";
+import { ActionModelInterface, RenderIconContent } from "@/types";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, make } from "@/utils/dom";
 import { on } from "@/utils/events";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon }  from "@/utils/icon";
 
 export default class ActionModel implements ActionModelInterface {
   name: string = "";
   protected translation: string = "";
   protected editor: Texditor;
-  protected icon: string = "";
+  protected icon: RenderIconContent = "";
   protected menu: boolean = false;
   protected confirm: boolean = false;
   private randomId: string = generateRandomString(10);

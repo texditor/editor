@@ -1,10 +1,10 @@
 import { IconArrowDown } from "@/icons";
 import ActionModel from "@/core/models/action-model";
-import { ActionModelInterface } from "@/types";
+import { ActionModelInterface, RenderIconContent } from "@/types";
 
 export default class MoveDownAction extends ActionModel implements ActionModelInterface {
   name = "moveDownAction";
-  protected icon: string = IconArrowDown;
+  protected icon: RenderIconContent = IconArrowDown;
 
   onClick() {
     const { actions, blockManager, events } = this.editor;

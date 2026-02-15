@@ -1,7 +1,7 @@
 import { IconBars } from "@/icons";
 import Texditor from "@/texditor";
 import { append, make, html, addClass } from "@/utils/dom";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon } from "@/utils/icon";
 
 export default function ActionsView(editor: Texditor): HTMLElement {
   return make("div", (el: HTMLElement) => {
