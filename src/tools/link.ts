@@ -3,7 +3,7 @@ import ToolModel from "@/core/models/tool-model";
 import { addClass, append, attr, closest, make, query, replaceWithChildren, toggleClass } from "@/utils/dom";
 import "@/styles/tools/link.css";
 import { off, on } from "@/utils/events";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon } from "@/utils/icon";
 import { ToolModelInterface } from "@/types/core/models";
 
 export default class LinkTool extends ToolModel implements ToolModelInterface {

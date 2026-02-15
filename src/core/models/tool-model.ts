@@ -2,7 +2,7 @@ import Texditor from "@/texditor";
 import { generateRandomString } from "@/utils/common";
 import { addClass, attr, make } from "@/utils/dom";
 import { on } from "@/utils/events";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon } from "@/utils/icon";
 import Commands from "../commands";
 import { ToolModelInterface } from "@/types/core/models";
 

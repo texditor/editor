@@ -16,7 +16,7 @@ import { isEmptyString } from "@/utils/string";
 import BlockModel from "./models/block-model";
 import { BlockModelInstanceInterface, BlockModelInterface, BlockModelStructure } from "@/types/core/models";
 import { off, on } from "@/utils/events";
-import { sanitizeJson } from "@/utils/sanitizerJson";
+import { sanitizeJson } from "@/utils/sanitizer";
 import { Paragraph } from "@/blocks";
 
 export default class BlockManager {

@@ -1,15 +1,15 @@
-import Texditor from "@/texditor";
+import Texditor, { RenderIconContent } from "@/texditor";
 import { ExtensionModelInterface } from "@/types/core/models";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, attr, make, removeClass, toggleClass } from "@/utils/dom";
 import { off, on } from "@/utils/events";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon }  from "@/utils/icon";
 
 export default class ExtensionModel implements ExtensionModelInterface {
   name: string = "";
   protected translation: string = "";
   protected editor: Texditor;
-  protected icon: string = "";
+  protected icon: RenderIconContent = "";
   protected toggleActive: boolean = true;
   private randomId: string = generateRandomString(10);
   protected groupName = "";

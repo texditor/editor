@@ -1,10 +1,10 @@
 import { IconArrowUp } from "@/icons";
 import ActionModel from "@/core/models/action-model";
-import { ActionModelInterface } from "@/types";
+import { ActionModelInterface, RenderIconContent } from "@/types";
 
 export default class MoveUpAction extends ActionModel implements ActionModelInterface {
   name = "moveUpAction";
-  protected icon: string = IconArrowUp;
+  protected icon: RenderIconContent = IconArrowUp;
 
   onClick() {
     const { actions, blockManager, events } = this.editor;

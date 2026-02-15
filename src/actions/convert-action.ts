@@ -3,11 +3,12 @@ import ActionModel from "@/core/models/action-model";
 import { addClass, make } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { ActionModelInterface, BlockModelInterface, BlockModelStructure } from "@/types/core/models";
+import { RenderIconContent } from "@/types";
 
 export default class ConvertAction extends ActionModel implements ActionModelInterface {
   name: string = "convertAction";
   protected translation: string = "convert";
-  protected icon: string = IconConvert;
+  protected icon: RenderIconContent = IconConvert;
   protected menu: boolean = true;
 
   menuConfig() {

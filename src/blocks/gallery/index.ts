@@ -4,7 +4,7 @@ import { addClass, append, attr, make, prepend, query, removeClass } from "@/uti
 import { HTMLBlockElement } from "@/types/core";
 import { IconGallery, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from "@/icons";
 import "@/styles/blocks/galllery.css";
-import renderIcon from "@/utils/renderIcon";
+import { renderIcon }  from "@/utils/icon";
 import { off, on } from "@/utils/events";
 import { OutputBlockItem } from "@/types/output";
 

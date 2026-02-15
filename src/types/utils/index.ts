@@ -1,2 +1,3 @@
 export * from "./events";
-export * from "./dom-node";
+export * from "./dom";
+export * from "./icon";

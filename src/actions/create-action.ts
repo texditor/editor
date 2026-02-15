@@ -4,11 +4,12 @@ import { addClass, make } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { ActionModelInterface, BlockModelStructure } from "@/types/core/models";
 import BlockModel from "@/core/models/block-model";
+import { RenderIconContent } from "@/types";
 
 export default class CreateAction extends ActionModel implements ActionModelInterface {
   name: string = "createAction";
   protected translation: string = "createAction";
-  protected icon: string = IconPlus;
+  protected icon: RenderIconContent = IconPlus;
   protected menu: boolean = true;
 
   menuConfig() {
