@@ -97,7 +97,7 @@ export default class Actions {
   }
 
   private handleClose(evt: Event) {
-    const { api } = this.editor,
+    const { api, events } = this.editor,
       root = api.getRoot(),
       cssName = api.css("actions"),
       cssAction = api.css("action");
@@ -124,6 +124,8 @@ export default class Actions {
       query(cssName + "-container > " + cssAction + "-confirm", (el: HTMLElement) => el.remove(), root);
 
       if (status) this.hide();
+
+      events.refresh();
     }
   }
 

@@ -4,7 +4,7 @@ import { ActionModelInterface, RenderIconContent } from "@/types";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, make } from "@/utils/dom";
 import { on } from "@/utils/events";
-import { renderIcon }  from "@/utils/icon";
+import { renderIcon } from "@/utils/icon";
 
 export default class ActionModel implements ActionModelInterface {
   name: string = "";
@@ -27,10 +27,10 @@ export default class ActionModel implements ActionModelInterface {
     });
   }
 
-  onLoad(): void {}
+  onLoad(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) {}
+  onClick(evt: Event) { }
 
   menuConfig(): {
     title: string;
@@ -73,6 +73,7 @@ export default class ActionModel implements ActionModelInterface {
                 this.onClick(evt);
                 cfm.remove();
                 element.style.display = "";
+                this.editor.events.refresh();
               });
             })
           );
@@ -84,7 +85,10 @@ export default class ActionModel implements ActionModelInterface {
         actions.show();
         actions.showMenu(items, title);
       }, 1);
-    } else this.onClick(evt);
+    } else {
+      this.onClick(evt);
+      this.editor.events.refresh();
+    }
 
     toolbar.hide();
   }
