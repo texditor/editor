@@ -80,7 +80,10 @@ export default class List extends BlockModel implements BlockModelInterface {
     return this.sanitizerContainer();
   }
 
-  editableChild(container?: HTMLElement | null, isCreate: boolean = false): HTMLElement | HTMLElement[] | null {
+  editableChild(
+    container?: HTMLElement | null,
+    isCreate: boolean = false
+  ): HTMLElement | HTMLElement[] | null {
     const listContainer = container ?? this.getCurrentBlock();
     if (!listContainer) return null;
 
@@ -152,9 +155,14 @@ export default class List extends BlockModel implements BlockModelInterface {
     return queryLength(".tex-list-item", listContainer);
   }
 
-  getItem(index: number, container: HTMLElement | null = null): HTMLElement | null {
+  getItem(
+    index: number,
+    container: HTMLElement | null = null
+  ): HTMLElement | null {
     const realIndex = index === -1 ? this.getItemIndex() : index,
-      listContainer = container ? container : this.getCurrentBlock() || this.getElement();
+      listContainer = container
+        ? container
+        : this.getCurrentBlock() || this.getElement();
 
     if (!listContainer) return null;
 
@@ -214,7 +222,8 @@ export default class List extends BlockModel implements BlockModelInterface {
     this.addEvents();
 
     setTimeout(() => {
-      if (this.editor.blockManager.getCurrentBlock() === this.getCurrentBlock()) this.focusChild()?.focus();
+      if (this.editor.blockManager.getCurrentBlock() === this.getCurrentBlock())
+        this.focusChild()?.focus();
     }, 1);
   }
 
@@ -236,7 +245,8 @@ export default class List extends BlockModel implements BlockModelInterface {
     const activeItem = this.getActiveListItem();
     if (!activeItem) return this.itemIndex;
 
-    const items = this.getCurrentBlock()?.querySelectorAll(".tex-list-item") || [];
+    const items =
+      this.getCurrentBlock()?.querySelectorAll(".tex-list-item") || [];
     return Array.from(items).indexOf(activeItem);
   }
 
@@ -284,11 +294,16 @@ export default class List extends BlockModel implements BlockModelInterface {
           this.removeItem();
 
           const prevIndex = currentItemIndex - 1;
-          const prevElem = this.getItem(prevIndex, blockManager.getCurrentBlock()) || null;
+          const prevElem =
+            this.getItem(prevIndex, blockManager.getCurrentBlock()) || null;
           const prevTextLength = prevElem?.textContent?.length || 0;
 
           prevElem?.focus();
-          selectionApi.select(prevTextLength, prevTextLength, prevElem as HTMLElement);
+          selectionApi.select(
+            prevTextLength,
+            prevTextLength,
+            prevElem as HTMLElement
+          );
         } else {
           if (cursorStart === 0 && cursorEnd === 0) {
             domEvent.preventDefault();
@@ -334,7 +349,10 @@ export default class List extends BlockModel implements BlockModelInterface {
             this.insertItem(currentItem);
           } else {
             if (cursorStart === cursorEnd) {
-              this.insertItem(currentItem, selectionApi.splitContent(currentItem));
+              this.insertItem(
+                currentItem,
+                selectionApi.splitContent(currentItem)
+              );
             } else {
               this.insertItem(currentItem);
             }
@@ -348,7 +366,8 @@ export default class List extends BlockModel implements BlockModelInterface {
     const curBlock = this.getCurrentBlock(),
       li = curBlock?.firstChild;
 
-    if (!li || !(li instanceof HTMLElement) || li.localName !== "li") return null;
+    if (!li || !(li instanceof HTMLElement) || li.localName !== "li")
+      return null;
 
     return li;
   }
@@ -402,7 +421,10 @@ export default class List extends BlockModel implements BlockModelInterface {
       if (item && prevModel instanceof List) {
         const prevContainer = BM.getByIndex(index - 1);
         const prevCount = prevModel.count(prevContainer);
-        const prevLastItem = prevModel.getItem(prevCount > 0 ? prevCount - 1 : 0, prevContainer);
+        const prevLastItem = prevModel.getItem(
+          prevCount > 0 ? prevCount - 1 : 0,
+          prevContainer
+        );
 
         if (prevLastItem) {
           this.mergeAndFocus(item, prevLastItem);
@@ -450,7 +472,10 @@ export default class List extends BlockModel implements BlockModelInterface {
     }
   }
 
-  private mergeAndFocus(curElement: HTMLBlockElement | HTMLElement, prevElement: HTMLBlockElement | HTMLElement) {
+  private mergeAndFocus(
+    curElement: HTMLBlockElement | HTMLElement,
+    prevElement: HTMLBlockElement | HTMLElement
+  ) {
     const { selectionApi } = this.editor,
       prevTextContent = prevElement?.textContent,
       nodes = getChildNodes(curElement);
@@ -466,7 +491,10 @@ export default class List extends BlockModel implements BlockModelInterface {
     }
   }
 
-  convert(block: HTMLBlockElement, newBlock: HTMLBlockElement): HTMLBlockElement {
+  convert(
+    block: HTMLBlockElement,
+    newBlock: HTMLBlockElement
+  ): HTMLBlockElement {
     if (
       (block.localName == "ol" || block.localName == "ul") &&
       (newBlock.localName == "ol" || newBlock.localName == "ul")
@@ -491,7 +519,10 @@ export default class List extends BlockModel implements BlockModelInterface {
     return newBlock;
   }
 
-  toConvert(block: HTMLBlockElement, newBlock: HTMLBlockElement): [HTMLBlockElement, HTMLBlockElement] {
+  toConvert(
+    block: HTMLBlockElement,
+    newBlock: HTMLBlockElement
+  ): [HTMLBlockElement, HTMLBlockElement] {
     if (
       !(
         (block.localName == "ol" || block.localName == "ul") &&

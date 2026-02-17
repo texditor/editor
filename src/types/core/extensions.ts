@@ -1,10 +1,10 @@
 export interface ExtensionsInterface {
-    // Render methods
-    render(): HTMLElement | Node;
+  // Render methods
+  render(): HTMLElement | Node;
 
-    // Fixed bar management
-    fixedBar(): void;
+  // Fixed bar management
+  fixedBar(): void;
 
-    // Cleanup method
-    destroy(): void;
+  // Cleanup method
+  destroy(): void;
 }

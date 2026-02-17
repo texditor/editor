@@ -2,7 +2,7 @@ import type {
   CommandsInterface,
   TexditorInterface,
   ToolModelInterface
-} from '@/types';
+} from "@/types";
 import { generateRandomString } from "@/utils/common";
 import { addClass, attr, make } from "@/utils/dom";
 import { on } from "@/utils/events";
@@ -32,7 +32,7 @@ export default class ToolModel implements ToolModelInterface {
     });
   }
 
-  onLoad(): void { }
+  onLoad(): void {}
 
   formatAction(callback: CallableFunction) {
     const tagName = this.getTagName(),
@@ -66,10 +66,10 @@ export default class ToolModel implements ToolModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) { }
+  onClick(evt: Event) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onAfterFormat(tags: HTMLElement[]): void { }
+  onAfterFormat(tags: HTMLElement[]): void {}
 
   handleClick(evt: Event): void {
     const { events } = this.editor;
@@ -85,7 +85,13 @@ export default class ToolModel implements ToolModelInterface {
   }
 
   getId(): string {
-    return this.editor.api.css("tool", false) + "-" + this.getName() + "-" + this.randomId;
+    return (
+      this.editor.api.css("tool", false) +
+      "-" +
+      this.getName() +
+      "-" +
+      this.randomId
+    );
   }
 
   getElement(): HTMLElement | null {
@@ -108,15 +114,15 @@ export default class ToolModel implements ToolModelInterface {
       addClass(
         el,
         cssName +
-        " tool-tag-" +
-        this.getTagName() +
-        " " +
-        "tool-name-" +
-        this.getName() +
-        " " +
-        cssName +
-        "-" +
-        this.getName()
+          " tool-tag-" +
+          this.getTagName() +
+          " " +
+          "tool-name-" +
+          this.getName() +
+          " " +
+          cssName +
+          "-" +
+          this.getName()
       );
 
       attr(el, "title", i18n.get(this.translation || this.getName()));
@@ -146,5 +152,5 @@ export default class ToolModel implements ToolModelInterface {
     return true;
   }
 
-  destroy(): void { }
+  destroy(): void {}
 }

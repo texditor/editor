@@ -30,7 +30,10 @@ export interface ConfigStoreInterface {
 export type ConfigGetFunction = {
   (key: "defaultBlock", defaultValue: string): string;
   <K extends keyof ConfigStoreInterface>(key: K): ConfigStoreInterface[K];
-  <K extends keyof ConfigStoreInterface>(key: K, defaultValue: ConfigStoreInterface[K]): ConfigStoreInterface[K];
+  <K extends keyof ConfigStoreInterface>(
+    key: K,
+    defaultValue: ConfigStoreInterface[K]
+  ): ConfigStoreInterface[K];
   (key: string, defaultValue: unknown): unknown;
 };
 

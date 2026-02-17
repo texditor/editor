@@ -34,7 +34,20 @@ const editor = new Texditor({
 ##### Advanced Configuration
 
 ```js
-import { Code, Files, Gallery, H1, H2, H3, H4, H5, H6, List, OrderedList, Paragraph } from "@texditor/editor/blocks";
+import {
+  Code,
+  Files,
+  Gallery,
+  H1,
+  H2,
+  H3,
+  H4,
+  H5,
+  H6,
+  List,
+  OrderedList,
+  Paragraph
+} from "@texditor/editor/blocks";
 import { Undo, Redo } from "@texditor/editor/extensions";
 
 import {

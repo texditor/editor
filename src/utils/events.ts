@@ -20,7 +20,9 @@ export function on(
   };
 
   const [eventType, id] = eventName.split("."),
-    storageKey = id ? `${eventType}.${id}` : `${eventType}.${Math.random().toString(36).slice(2)}`;
+    storageKey = id
+      ? `${eventType}.${id}`
+      : `${eventType}.${Math.random().toString(36).slice(2)}`;
 
   let handlers = eventStore.get(element);
 
@@ -39,7 +41,11 @@ export function on(
   element.addEventListener(eventType, wrappedHandler as EventListener, options);
 }
 
-export function off(element: EventTarget, eventName: string, options?: AddEventListenerOptions | boolean): void {
+export function off(
+  element: EventTarget,
+  eventName: string,
+  options?: AddEventListenerOptions | boolean
+): void {
   const [eventType, id] = eventName.split("."),
     handlers = eventStore.get(element);
 
@@ -48,7 +54,11 @@ export function off(element: EventTarget, eventName: string, options?: AddEventL
   if (!id) {
     for (const [key, handler] of handlers) {
       if (key.startsWith(`${eventType}.`)) {
-        element.removeEventListener(eventType, handler as EventListener, options);
+        element.removeEventListener(
+          eventType,
+          handler as EventListener,
+          options
+        );
         handlers.delete(key);
       }
     }

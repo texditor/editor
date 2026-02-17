@@ -39,7 +39,10 @@ export default class Code extends BlockModel implements BlockModelInterface {
 
   parse(item: OutputBlockItem) {
     return this.create({
-      content: typeof item.data[0] === "string" ? decodeHtmlSpecialChars(item.data[0]) : ""
+      content:
+        typeof item.data[0] === "string"
+          ? decodeHtmlSpecialChars(item.data[0])
+          : ""
     });
   }
 }

@@ -1,11 +1,11 @@
-import type {
-  FileActionModelInterface,
-  RenderIconContent
-} from "@/types";
+import type { FileActionModelInterface, RenderIconContent } from "@/types";
 import { IconArrowRight } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
 
-export default class MoveRightFileAction extends FileActionModel implements FileActionModelInterface {
+export default class MoveRightFileAction
+  extends FileActionModel
+  implements FileActionModelInterface
+{
   name: string = "moveRight";
   protected icon: RenderIconContent = IconArrowRight;
   protected translation: string = "moveRight";
@@ -25,7 +25,10 @@ export default class MoveRightFileAction extends FileActionModel implements File
     const { model, currentItem } = this.use();
 
     if (currentItem && model?.moveItem) {
-      model.moveItem(currentItem, (model?.getItem(currentItem || 0) as number) + 1);
+      model.moveItem(
+        currentItem,
+        (model?.getItem(currentItem || 0) as number) + 1
+      );
     }
   }
 
@@ -34,6 +37,9 @@ export default class MoveRightFileAction extends FileActionModel implements File
 
     if (!model.getItemsLength) return false;
 
-    return (model?.getItem(currentItem || 0) as number) !== model.getItemsLength() - 1;
+    return (
+      (model?.getItem(currentItem || 0) as number) !==
+      model.getItemsLength() - 1
+    );
   }
 }

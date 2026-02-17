@@ -15,7 +15,10 @@ export interface BlockManagerInterface {
   getPrevBlock(): HTMLBlockElement | null;
   getCurrentBlock(): HTMLBlockElement | null;
   getTargetBlock(target: EventTarget): HTMLElement | null;
-  getElementIndex(element: HTMLElement | EventTarget | null, findTargetBlock?: boolean): number;
+  getElementIndex(
+    element: HTMLElement | EventTarget | null,
+    findTargetBlock?: boolean
+  ): number;
 
   // Block counting and state checking methods
   count(): number;
@@ -33,9 +36,17 @@ export interface BlockManagerInterface {
 
   // Block manipulation methods
   createDefaultBlock(): HTMLElement | null;
-  createBlock(name: string, index?: number | null, content?: object): HTMLElement | null;
+  createBlock(
+    name: string,
+    index?: number | null,
+    content?: object
+  ): HTMLElement | null;
   removeBlock(index?: number | number[] | null): number | null;
-  merge(index: number, currentIndex?: number | null, children?: HTMLElement | null): void;
+  merge(
+    index: number,
+    currentIndex?: number | null,
+    children?: HTMLElement | null
+  ): void;
   convert(block: HTMLBlockElement, model: BlockModelInterface): void;
 
   // Normalization and detection methods

@@ -118,7 +118,12 @@ export default class SelectionAPI {
     };
   }
 
-  select(startPos: number, endPos: number, container?: Element, scrollToContainer: boolean = false): void {
+  select(
+    startPos: number,
+    endPos: number,
+    container?: Element,
+    scrollToContainer: boolean = false
+  ): void {
     const { element } = this.current();
     const wrapContainer = container || element || null;
 
@@ -137,7 +142,11 @@ export default class SelectionAPI {
     let startOffset = 0;
     let endOffset = 0;
 
-    const walker = document.createTreeWalker(wrapContainer, NodeFilter.SHOW_TEXT, null);
+    const walker = document.createTreeWalker(
+      wrapContainer,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
 
     let node: Text | null;
     while ((node = walker.nextNode() as Text | null)) {
@@ -174,7 +183,8 @@ export default class SelectionAPI {
       }
     }
 
-    if (container && scrollToContainer) container.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (container && scrollToContainer)
+      container.scrollIntoView({ behavior: "smooth", block: "center" });
 
     selection.removeAllRanges();
     selection.addRange(range);
@@ -184,7 +194,11 @@ export default class SelectionAPI {
     const selection = this.getSelection(),
       activeElement = document.activeElement as HTMLElement;
 
-    if (activeElement?.isContentEditable && selection && selection.rangeCount > 0) {
+    if (
+      activeElement?.isContentEditable &&
+      selection &&
+      selection.rangeCount > 0
+    ) {
       const range = this.getRange();
       if (!range) return false;
 
@@ -192,7 +206,9 @@ export default class SelectionAPI {
       const div = document.createElement("div");
       div.innerHTML = content;
 
-      range.insertNode(document.createTextNode(cleanHtml ? div.textContent || "" : content));
+      range.insertNode(
+        document.createTextNode(cleanHtml ? div.textContent || "" : content)
+      );
 
       return true;
     }
@@ -206,7 +222,9 @@ export default class SelectionAPI {
     if (!selection || selection.rangeCount === 0) return "";
 
     const range = selection.getRangeAt(0);
-    const currentParagraph = container ? container : this.editor.blockManager.getCurrentBlock();
+    const currentParagraph = container
+      ? container
+      : this.editor.blockManager.getCurrentBlock();
 
     if (!currentParagraph) return "";
 
@@ -226,7 +244,11 @@ export default class SelectionAPI {
         let currentNode: Node = textNode;
         const parents: Node[] = [];
 
-        while (currentNode && currentNode !== currentParagraph && currentNode.parentNode !== currentParagraph) {
+        while (
+          currentNode &&
+          currentNode !== currentParagraph &&
+          currentNode.parentNode !== currentParagraph
+        ) {
           parents.push(currentNode.parentNode!);
           currentNode = currentNode.parentNode!;
         }
@@ -274,7 +296,10 @@ export default class SelectionAPI {
     return newBlock?.innerHTML.trim();
   }
 
-  findTags(container: Element | HTMLElement, childrens: boolean = true): HTMLElement[] {
+  findTags(
+    container: Element | HTMLElement,
+    childrens: boolean = true
+  ): HTMLElement[] {
     const selection = this.getSelection();
 
     if (!selection || selection.rangeCount === 0) return [];
@@ -333,7 +358,11 @@ export default class SelectionAPI {
     }
 
     let absoluteOffset = 0;
-    for (let i = 0, len = Math.min(container.childNodes.length, offset); i < len; i++) {
+    for (
+      let i = 0, len = Math.min(container.childNodes.length, offset);
+      i < len;
+      i++
+    ) {
       const childNode = container.childNodes[i];
 
       this.searchNode(childNode, childNode, (node) => {
@@ -359,7 +388,9 @@ export default class SelectionAPI {
     }
 
     for (let i = 0, len = startNode.childNodes.length; i < len; i++) {
-      if (this.searchNode(startNode, startNode.childNodes[i], predicate, true)) {
+      if (
+        this.searchNode(startNode, startNode.childNodes[i], predicate, true)
+      ) {
         return true;
       }
     }
@@ -391,7 +422,11 @@ export default class SelectionAPI {
     const { element } = this.current();
     const wrapContainer = container || element || null;
 
-    if (!range || !wrapContainer || range.startContainer.ownerDocument !== wrapContainer.ownerDocument) {
+    if (
+      !range ||
+      !wrapContainer ||
+      range.startContainer.ownerDocument !== wrapContainer.ownerDocument
+    ) {
       return [-1, -1];
     }
 

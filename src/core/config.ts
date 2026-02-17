@@ -11,9 +11,15 @@ export default class Config {
 
   get(key: "defaultBlock", defaultValue: string): string;
   get<K extends keyof ConfigStoreInterface>(key: K): ConfigStoreInterface[K];
-  get<K extends keyof ConfigStoreInterface>(key: K, defaultValue: ConfigStoreInterface[K]): ConfigStoreInterface[K];
+  get<K extends keyof ConfigStoreInterface>(
+    key: K,
+    defaultValue: ConfigStoreInterface[K]
+  ): ConfigStoreInterface[K];
   get(key: string, defaultValue: unknown): unknown;
-  get(key: keyof ConfigStoreInterface | string, defaultValue: unknown = ""): unknown {
+  get(
+    key: keyof ConfigStoreInterface | string,
+    defaultValue: unknown = ""
+  ): unknown {
     const value = (this.store as Record<string, unknown>)[key];
 
     if (value !== undefined) {

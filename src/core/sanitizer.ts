@@ -12,7 +12,9 @@ export default class Sanitizer {
   private dom: Document;
   private currentElement: Node | null = null;
   private whitelistNodes: Node[] = [];
-  private transformers: Array<(context: TransformerContext) => TransformerOutput | null>;
+  private transformers: Array<
+    (context: TransformerContext) => TransformerOutput | null
+  >;
 
   /**
    * Creates a new Sanitizer instance with the provided configuration
@@ -33,7 +35,9 @@ export default class Sanitizer {
     };
 
     if (this.config.attributes)
-      this.config.attributes[Sanitizer.ALL] = this.config.attributes[Sanitizer.ALL]
+      this.config.attributes[Sanitizer.ALL] = this.config.attributes[
+        Sanitizer.ALL
+      ]
         ? this.config.attributes[Sanitizer.ALL]
         : [];
 
@@ -47,7 +51,9 @@ export default class Sanitizer {
     if (options.removeContents) {
       if (Array.isArray(options.removeContents)) {
         for (let i = 0; i < options.removeContents.length; i++) {
-          (this.config.removeElementContents as Record<string, boolean>)[options.removeContents[i]] = true;
+          (this.config.removeElementContents as Record<string, boolean>)[
+            options.removeContents[i]
+          ] = true;
         }
       } else {
         this.config.removeAllContents = true;
@@ -146,7 +152,9 @@ export default class Sanitizer {
           let attr_ok = true;
           if (this.config.protocols?.[name]?.[attr_name]) {
             const protocols = this.config.protocols[name][attr_name];
-            const del = attr.value.toLowerCase().match(Sanitizer.REGEX_PROTOCOL);
+            const del = attr.value
+              .toLowerCase()
+              .match(Sanitizer.REGEX_PROTOCOL);
             if (del) {
               attr_ok = protocols.indexOf(del[1]) !== -1;
             } else {
@@ -176,7 +184,10 @@ export default class Sanitizer {
       parentElement?.appendChild(this.currentElement);
     }
 
-    if (!this.config.removeAllContents && !(this.config.removeElementContents as Record<string, boolean>)[name]) {
+    if (
+      !this.config.removeAllContents &&
+      !(this.config.removeElementContents as Record<string, boolean>)[name]
+    ) {
       for (let i = 0; i < elem.childNodes.length; i++) {
         this.clean(elem.childNodes[i]);
       }
@@ -217,7 +228,12 @@ export default class Sanitizer {
 
       if (transform.whitelistNodes?.length) {
         for (let j = 0; j < transform.whitelistNodes.length; j++) {
-          if (this.arrayIndex(transform.whitelistNodes[j], this.whitelistNodes) === -1) {
+          if (
+            this.arrayIndex(
+              transform.whitelistNodes[j],
+              this.whitelistNodes
+            ) === -1
+          ) {
             this.whitelistNodes.push(transform.whitelistNodes[j]);
           }
         }
@@ -225,7 +241,10 @@ export default class Sanitizer {
 
       output.whitelist = transform.whitelist ? true : false;
       if (transform.attrWhitelist) {
-        output.attrWhitelist = this.mergeArrays(output.attrWhitelist, transform.attrWhitelist);
+        output.attrWhitelist = this.mergeArrays(
+          output.attrWhitelist,
+          transform.attrWhitelist
+        );
       }
       output.node = transform.node ? transform.node : output.node;
     }

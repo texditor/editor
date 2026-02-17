@@ -2,7 +2,7 @@ import type {
   CommandsInterface,
   SelectionAPIInterface,
   TexditorInterface
-} from '@/types';
+} from "@/types";
 import { isEmptyString } from "@/utils/string";
 import { closest, mergeAdjacentTextNodes, query } from "@/utils/dom";
 export default class Commands implements CommandsInterface {
@@ -17,7 +17,8 @@ export default class Commands implements CommandsInterface {
   static DIR_FULL_SPACE_RIGHT: string = "FULL_SPACE_RIGHT"; // ( <b>|......</b>_| )
   static DIR_INSIDE: string = "INSIDE"; // ( <b>|->.<-|->....<-|->.<-|</b> )
   static DIR_MULTIPLE_INSIDE_TO_INSIDE: string = "MULTIPLE_INSIDE_TO_INSIDE"; // ( <b>~|~</b>...<b>~|~</b> )
-  static DIR_MULTIPLE_INSIDE_TO_PARENT_INSIDE: string = "MULTIPLE_INSIDE_TO_PARENT_INSIDE"; // ( <b>~|~</b>...<i><b>~|~</b</i> )
+  static DIR_MULTIPLE_INSIDE_TO_PARENT_INSIDE: string =
+    "MULTIPLE_INSIDE_TO_PARENT_INSIDE"; // ( <b>~|~</b>...<i><b>~|~</b</i> )
   static DIR_MULTIPLE_INSIDE_TO_RIGHT: string = "MULTIPLE_INSIDE_TO_RIGHT"; // ( <b>~|~</b>...<b>...</b~|~ )
   static DIR_MULTIPLE_INSIDE_TO_LEFT: string = "MULTIPLE_INSIDE_TO_LEFT"; // ( ~|~<b>...</b>...<b>~|~</b )
   static DIR_OUTSIDE: string = "OUTSIDE"; // ( |~ <b>......</b>.~.| )
@@ -29,7 +30,12 @@ export default class Commands implements CommandsInterface {
     this.editor = editor;
   }
 
-  formatTextRange(tagName: string, startOffset: number, endOffset: number, container: HTMLElement): void {
+  formatTextRange(
+    tagName: string,
+    startOffset: number,
+    endOffset: number,
+    container: HTMLElement
+  ): void {
     let pos = 0;
     const nodes: { node: Text; start: number; end: number }[] = [],
       collectNodes = (node: Node) => {
@@ -50,7 +56,9 @@ export default class Commands implements CommandsInterface {
 
     collectNodes(container);
 
-    const startNode = nodes.find((n) => startOffset >= n.start && startOffset < n.end),
+    const startNode = nodes.find(
+        (n) => startOffset >= n.start && startOffset < n.end
+      ),
       endNode = nodes.find((n) => endOffset > n.start && endOffset <= n.end);
 
     if (!startNode || !endNode) {
@@ -154,122 +162,160 @@ export default class Commands implements CommandsInterface {
   }
 
   createFormat(tagName: string) {
-    this.selection(({ selectionApi }: { selectionApi: SelectionAPIInterface }) => {
-      const { element, position } = selectionApi.current();
+    this.selection(
+      ({ selectionApi }: { selectionApi: SelectionAPIInterface }) => {
+        const { element, position } = selectionApi.current();
 
-      if (element) {
-        this.formatTextRange(tagName, position.start, position.end, element);
+        if (element) {
+          this.formatTextRange(tagName, position.start, position.end, element);
+        }
       }
-    });
+    );
   }
 
-  removeFormat(tagName: string, focus: boolean = false, normalize: boolean = true): void {
-    this.selection(({ selectionApi }: { range: Range; selectionApi: SelectionAPIInterface }) => {
-      const elements = this.findTags(tagName),
-        direction = this.getSelectionDirection(tagName),
-        isMultiple =
-          direction === Commands.DIR_MULTIPLE_OUTSIDE ||
-          direction === Commands.DIR_MULTIPLE_INSIDE_TO_INSIDE ||
-          direction === Commands.DIR_MULTIPLE_INSIDE_TO_LEFT ||
-          direction === Commands.DIR_MULTIPLE_INSIDE_TO_RIGHT,
-        clearFull = (el: HTMLElement | HTMLElement[]) => {
-          if (Array.isArray(el)) el.forEach((item: HTMLElement) => clearFull(item));
-          else {
-            const splited = this.splitElement(el, 0, el?.textContent?.length || 0);
+  removeFormat(
+    tagName: string,
+    focus: boolean = false,
+    normalize: boolean = true
+  ): void {
+    this.selection(
+      ({
+        selectionApi
+      }: {
+        range: Range;
+        selectionApi: SelectionAPIInterface;
+      }) => {
+        const elements = this.findTags(tagName),
+          direction = this.getSelectionDirection(tagName),
+          isMultiple =
+            direction === Commands.DIR_MULTIPLE_OUTSIDE ||
+            direction === Commands.DIR_MULTIPLE_INSIDE_TO_INSIDE ||
+            direction === Commands.DIR_MULTIPLE_INSIDE_TO_LEFT ||
+            direction === Commands.DIR_MULTIPLE_INSIDE_TO_RIGHT,
+          clearFull = (el: HTMLElement | HTMLElement[]) => {
+            if (Array.isArray(el))
+              el.forEach((item: HTMLElement) => clearFull(item));
+            else {
+              const splited = this.splitElement(
+                el,
+                0,
+                el?.textContent?.length || 0
+              );
+              el.parentNode?.insertBefore(splited[1], el);
+              el.parentElement?.removeChild(el);
+            }
+          },
+          clearLeft = (el: HTMLElement) => {
+            const { isEmptyLastChar, lastChar } = this.getEdgeChars(
+              el?.textContent || ""
+            );
+
+            if (isEmptyLastChar && lastChar.length) {
+              el?.insertAdjacentText("afterend", " ");
+            }
+
+            const offset = selectionApi.getOffset(el),
+              splited = this.splitElement(el, 0, offset[1]);
+
+            el.parentNode?.insertBefore(splited[1], el);
+
+            if (!isEmptyString(splited[2].textContent || ""))
+              el.parentNode?.insertBefore(splited[2], el);
+
+            el.parentElement?.removeChild(el);
+          },
+          clearRight = (el: HTMLElement) => {
+            const [start] = selectionApi.getOffset(el),
+              splited = this.splitElement(
+                el,
+                start,
+                el?.textContent?.length || 0
+              );
+
+            if (!isEmptyString(splited[0].textContent || ""))
+              el.parentNode?.insertBefore(splited[0], el);
+
             el.parentNode?.insertBefore(splited[1], el);
             el.parentElement?.removeChild(el);
-          }
-        },
-        clearLeft = (el: HTMLElement) => {
-          const { isEmptyLastChar, lastChar } = this.getEdgeChars(el?.textContent || "");
+          };
 
-          if (isEmptyLastChar && lastChar.length) {
-            el?.insertAdjacentText("afterend", " ");
-          }
+        if (elements.length === 1 && !isMultiple) {
+          const element = elements[0];
 
-          const offset = selectionApi.getOffset(el),
-            splited = this.splitElement(el, 0, offset[1]);
+          if (
+            direction === Commands.DIR_FULL ||
+            direction === Commands.DIR_FULL_SPACE ||
+            direction === Commands.DIR_FULL_SPACE_LEFT ||
+            direction === Commands.DIR_FULL_SPACE_RIGHT ||
+            direction === Commands.DIR_OUTSIDE
+          ) {
+            clearFull(element);
+          } else if (
+            direction === Commands.DIR_LEFT ||
+            direction === Commands.DIR_LEFT_SPACE
+          ) {
+            clearLeft(element);
+          } else if (
+            direction === Commands.DIR_RIGHT ||
+            direction === Commands.DIR_RIGHT_SPACE
+          ) {
+            clearRight(element);
+          } else if (direction === Commands.DIR_INSIDE) {
+            const [start, end] = selectionApi.getOffset(element),
+              splited = this.splitElement(element, start, end);
 
-          el.parentNode?.insertBefore(splited[1], el);
-
-          if (!isEmptyString(splited[2].textContent || "")) el.parentNode?.insertBefore(splited[2], el);
-
-          el.parentElement?.removeChild(el);
-        },
-        clearRight = (el: HTMLElement) => {
-          const [start] = selectionApi.getOffset(el),
-            splited = this.splitElement(el, start, el?.textContent?.length || 0);
-
-          if (!isEmptyString(splited[0].textContent || "")) el.parentNode?.insertBefore(splited[0], el);
-
-          el.parentNode?.insertBefore(splited[1], el);
-          el.parentElement?.removeChild(el);
-        };
-
-      if (elements.length === 1 && !isMultiple) {
-        const element = elements[0];
-
-        if (
-          direction === Commands.DIR_FULL ||
-          direction === Commands.DIR_FULL_SPACE ||
-          direction === Commands.DIR_FULL_SPACE_LEFT ||
-          direction === Commands.DIR_FULL_SPACE_RIGHT ||
-          direction === Commands.DIR_OUTSIDE
-        ) {
-          clearFull(element);
-        } else if (direction === Commands.DIR_LEFT || direction === Commands.DIR_LEFT_SPACE) {
-          clearLeft(element);
-        } else if (direction === Commands.DIR_RIGHT || direction === Commands.DIR_RIGHT_SPACE) {
-          clearRight(element);
-        } else if (direction === Commands.DIR_INSIDE) {
-          const [start, end] = selectionApi.getOffset(element),
-            splited = this.splitElement(element, start, end);
-
-          splited.forEach((item: HTMLElement | DocumentFragment) => {
-            if (!isEmptyString(item?.textContent || "")) {
-              element.parentNode?.insertBefore(item, element);
-            } else {
-              if ((item?.textContent || "").length > 0) {
-                element.parentNode?.insertBefore(document.createTextNode(" "), element);
+            splited.forEach((item: HTMLElement | DocumentFragment) => {
+              if (!isEmptyString(item?.textContent || "")) {
+                element.parentNode?.insertBefore(item, element);
+              } else {
+                if ((item?.textContent || "").length > 0) {
+                  element.parentNode?.insertBefore(
+                    document.createTextNode(" "),
+                    element
+                  );
+                }
               }
+            });
+
+            element.parentElement?.removeChild(element);
+          }
+        } else if (elements.length > 1 && isMultiple) {
+          if (direction === Commands.DIR_MULTIPLE_OUTSIDE) {
+            clearFull(elements);
+          } else {
+            const cloneElements: HTMLElement[] = elements;
+
+            const firstElement = cloneElements.shift(),
+              lastElement = cloneElements.pop();
+
+            clearFull(cloneElements);
+
+            if (direction === Commands.DIR_MULTIPLE_INSIDE_TO_LEFT) {
+              if (firstElement) clearFull(firstElement);
+
+              if (lastElement) clearLeft(lastElement);
+            } else if (direction === Commands.DIR_MULTIPLE_INSIDE_TO_RIGHT) {
+              if (lastElement) clearFull(lastElement);
+
+              if (firstElement) clearRight(firstElement);
+            } else if (direction === Commands.DIR_MULTIPLE_INSIDE_TO_INSIDE) {
+              if (lastElement) clearLeft(lastElement);
+
+              if (firstElement) clearRight(firstElement);
             }
-          });
-
-          element.parentElement?.removeChild(element);
-        }
-      } else if (elements.length > 1 && isMultiple) {
-        if (direction === Commands.DIR_MULTIPLE_OUTSIDE) {
-          clearFull(elements);
-        } else {
-          const cloneElements: HTMLElement[] = elements;
-
-          const firstElement = cloneElements.shift(),
-            lastElement = cloneElements.pop();
-
-          clearFull(cloneElements);
-
-          if (direction === Commands.DIR_MULTIPLE_INSIDE_TO_LEFT) {
-            if (firstElement) clearFull(firstElement);
-
-            if (lastElement) clearLeft(lastElement);
-          } else if (direction === Commands.DIR_MULTIPLE_INSIDE_TO_RIGHT) {
-            if (lastElement) clearFull(lastElement);
-
-            if (firstElement) clearRight(firstElement);
-          } else if (direction === Commands.DIR_MULTIPLE_INSIDE_TO_INSIDE) {
-            if (lastElement) clearLeft(lastElement);
-
-            if (firstElement) clearRight(firstElement);
           }
         }
-      }
 
-      if (normalize) this.normalize();
-    }, focus);
+        if (normalize) this.normalize();
+      },
+      focus
+    );
   }
 
   replaceEmptyEdges(el: HTMLElement, item?: HTMLElement | Node) {
-    const { isEmptyFirstChar, isEmptyLastChar } = this.getEdgeChars((item || el)?.textContent || "");
+    const { isEmptyFirstChar, isEmptyLastChar } = this.getEdgeChars(
+      (item || el)?.textContent || ""
+    );
 
     if (isEmptyFirstChar) {
       el.parentNode?.insertBefore(document.createTextNode(" "), el);
@@ -314,69 +360,87 @@ export default class Commands implements CommandsInterface {
 
     const tagsNotChilds = this.findTags(element.localName, false);
 
-    this.selection(({ range }: { range: Range; selectionApi: SelectionAPIInterface }) => {
-      const { startContainer, endContainer } = range;
+    this.selection(
+      ({ range }: { range: Range; selectionApi: SelectionAPIInterface }) => {
+        const { startContainer, endContainer } = range;
 
-      const isFullSelection = (): boolean => {
-        const fullRange = document.createRange();
-        fullRange.selectNodeContents(element);
+        const isFullSelection = (): boolean => {
+          const fullRange = document.createRange();
+          fullRange.selectNodeContents(element);
 
-        const startComparison = range.compareBoundaryPoints(Range.START_TO_START, fullRange);
+          const startComparison = range.compareBoundaryPoints(
+            Range.START_TO_START,
+            fullRange
+          );
 
-        return (
-          fullRange.startOffset === 0 &&
-          (startComparison === -1 || startComparison === 1) &&
-          range.toString().trim() === element.textContent?.trim()
-        );
-      };
+          return (
+            fullRange.startOffset === 0 &&
+            (startComparison === -1 || startComparison === 1) &&
+            range.toString().trim() === element.textContent?.trim()
+          );
+        };
 
-      const startsInside = element.contains(startContainer) && !(startContainer === element && range.startOffset === 0);
+        const startsInside =
+          element.contains(startContainer) &&
+          !(startContainer === element && range.startOffset === 0);
 
-      const endsInside =
-        element.contains(endContainer) && !(endContainer === element && range.endOffset === element.childNodes.length);
+        const endsInside =
+          element.contains(endContainer) &&
+          !(
+            endContainer === element &&
+            range.endOffset === element.childNodes.length
+          );
 
-      const str = range.toString(),
-        { isEmptyFirstChar, isEmptyLastChar, lastChar } = this.getEdgeChars(str);
+        const str = range.toString(),
+          { isEmptyFirstChar, isEmptyLastChar, lastChar } =
+            this.getEdgeChars(str);
 
-      if (isFullSelection()) {
-        direction = Commands.DIR_FULL;
+        if (isFullSelection()) {
+          direction = Commands.DIR_FULL;
 
-        if (isEmptyFirstChar && isEmptyLastChar) direction += "_SPACE";
-        else if (isEmptyFirstChar) direction += "_SPACE_LEFT";
-        else if (isEmptyLastChar) direction += "_SPACE_RIGHT";
-      } else if (startsInside && endsInside) {
-        direction = Commands.DIR_INSIDE;
-      } else if (startsInside && !endsInside) {
-        let multipleType = null;
+          if (isEmptyFirstChar && isEmptyLastChar) direction += "_SPACE";
+          else if (isEmptyFirstChar) direction += "_SPACE_LEFT";
+          else if (isEmptyLastChar) direction += "_SPACE_RIGHT";
+        } else if (startsInside && endsInside) {
+          direction = Commands.DIR_INSIDE;
+        } else if (startsInside && !endsInside) {
+          let multipleType = null;
 
-        if (tags.length > 1) {
-          if (closest(startContainer.parentNode, element) && !closest(endContainer.parentNode, tags[tags.length - 1])) {
-            multipleType = Commands.DIR_MULTIPLE_INSIDE_TO_RIGHT;
-          } else {
-            multipleType =
-              tagsNotChilds.length > 1
-                ? Commands.DIR_MULTIPLE_INSIDE_TO_INSIDE
-                : Commands.DIR_MULTIPLE_INSIDE_TO_PARENT_INSIDE;
+          if (tags.length > 1) {
+            if (
+              closest(startContainer.parentNode, element) &&
+              !closest(endContainer.parentNode, tags[tags.length - 1])
+            ) {
+              multipleType = Commands.DIR_MULTIPLE_INSIDE_TO_RIGHT;
+            } else {
+              multipleType =
+                tagsNotChilds.length > 1
+                  ? Commands.DIR_MULTIPLE_INSIDE_TO_INSIDE
+                  : Commands.DIR_MULTIPLE_INSIDE_TO_PARENT_INSIDE;
+            }
           }
-        }
 
-        direction = multipleType
-          ? multipleType
-          : isEmptyString(lastChar)
-            ? Commands.DIR_RIGHT_SPACE
-            : Commands.DIR_RIGHT;
-      } else if (!startsInside && endsInside) {
-        direction = isEmptyFirstChar ? "LEFT_SPACE" : Commands.DIR_LEFT;
-      } else if (!startsInside && !endsInside && tags.length > 1) {
-        direction = Commands.DIR_MULTIPLE_OUTSIDE;
+          direction = multipleType
+            ? multipleType
+            : isEmptyString(lastChar)
+              ? Commands.DIR_RIGHT_SPACE
+              : Commands.DIR_RIGHT;
+        } else if (!startsInside && endsInside) {
+          direction = isEmptyFirstChar ? "LEFT_SPACE" : Commands.DIR_LEFT;
+        } else if (!startsInside && !endsInside && tags.length > 1) {
+          direction = Commands.DIR_MULTIPLE_OUTSIDE;
 
-        if (!closest(startContainer.parentNode, element) && closest(endContainer.parentNode, tags[tags.length - 1])) {
-          direction = Commands.DIR_MULTIPLE_INSIDE_TO_LEFT;
+          if (
+            !closest(startContainer.parentNode, element) &&
+            closest(endContainer.parentNode, tags[tags.length - 1])
+          ) {
+            direction = Commands.DIR_MULTIPLE_INSIDE_TO_LEFT;
+          }
+        } else if (tags.length > 0) {
+          direction = Commands.DIR_OUTSIDE;
         }
-      } else if (tags.length > 0) {
-        direction = Commands.DIR_OUTSIDE;
       }
-    });
+    );
 
     return direction;
   }
@@ -433,7 +497,10 @@ export default class Commands implements CommandsInterface {
 
       if (globalIndex < startIndex) {
         const splitPos = startIndex - globalIndex,
-          [beforePart, middlePart] = this.splitNodeAtTextPosition(remainingNode, splitPos);
+          [beforePart, middlePart] = this.splitNodeAtTextPosition(
+            remainingNode,
+            splitPos
+          );
         beforeElement.appendChild(beforePart);
         remainingNode = middlePart;
         globalIndex = startIndex;
@@ -446,7 +513,10 @@ export default class Commands implements CommandsInterface {
           globalIndex += this.getNodeTextLength(remainingNode);
           remainingNode = null;
         } else {
-          const [middlePart, afterPart] = this.splitNodeAtTextPosition(remainingNode, remainingLength);
+          const [middlePart, afterPart] = this.splitNodeAtTextPosition(
+            remainingNode,
+            remainingLength
+          );
           middleFragment.appendChild(middlePart);
           afterElement.appendChild(afterPart);
           globalIndex = endIndex;
@@ -464,16 +534,21 @@ export default class Commands implements CommandsInterface {
   }
 
   private splitNodeAtTextPosition(node: Node, position: number): [Node, Node] {
-    if (position <= 0) return [document.createDocumentFragment(), node.cloneNode(true)];
+    if (position <= 0)
+      return [document.createDocumentFragment(), node.cloneNode(true)];
 
     const nodeText = node.textContent || "";
-    if (position >= nodeText.length) return [node.cloneNode(true), document.createDocumentFragment()];
+    if (position >= nodeText.length)
+      return [node.cloneNode(true), document.createDocumentFragment()];
 
     if (node.nodeType === Node.TEXT_NODE) {
       const textNode = node as Text;
       const beforeText = textNode.textContent?.substring(0, position) || "";
       const afterText = textNode.textContent?.substring(position) || "";
-      return [document.createTextNode(beforeText), document.createTextNode(afterText)];
+      return [
+        document.createTextNode(beforeText),
+        document.createTextNode(afterText)
+      ];
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as HTMLElement;
       const beforeElement = element.cloneNode(false) as HTMLElement;
@@ -491,7 +566,10 @@ export default class Commands implements CommandsInterface {
           beforeElement.appendChild(child.cloneNode(true));
           remainingPosition -= childLength;
         } else {
-          const [beforePart, afterPart] = this.splitNodeAtTextPosition(child, remainingPosition);
+          const [beforePart, afterPart] = this.splitNodeAtTextPosition(
+            child,
+            remainingPosition
+          );
           beforeElement.appendChild(beforePart);
           afterElement.appendChild(afterPart);
           remainingPosition = 0;
@@ -527,14 +605,24 @@ export default class Commands implements CommandsInterface {
 
           while (j < children.length) {
             if (children[j].nodeType === Node.ELEMENT_NODE) {
-              if ((current as Element).tagName === (children[j] as Element).tagName) {
+              if (
+                (current as Element).tagName ===
+                (children[j] as Element).tagName
+              ) {
                 if (hasOnlyWhitespace) {
-                  if (j > i + 1 || (j === i + 1 && children[i + 1].nodeType === Node.TEXT_NODE)) {
-                    (current as Element).appendChild(document.createTextNode(" "));
+                  if (
+                    j > i + 1 ||
+                    (j === i + 1 && children[i + 1].nodeType === Node.TEXT_NODE)
+                  ) {
+                    (current as Element).appendChild(
+                      document.createTextNode(" ")
+                    );
                   }
 
                   while (children[j].firstChild) {
-                    current.appendChild(children[j].firstChild as ChildNode | Node);
+                    current.appendChild(
+                      children[j].firstChild as ChildNode | Node
+                    );
                   }
 
                   for (let k = j; k > i; k--) {

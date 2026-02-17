@@ -38,7 +38,7 @@ import MoveRightFileAction from "./actions/MoveRightFileAction";
 import MoveLeftFileAction from "./actions/MoveLeftFileAction";
 import DeleteFileAction from "./actions/DeleteFileAction";
 import EditFileAction from "./actions/EditFileAction";
-import DownloadFileAction from './actions/DownloadFileAction'
+import DownloadFileAction from "./actions/DownloadFileAction";
 import "@/styles/blocks/files.css";
 
 export {
@@ -112,10 +112,14 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   onPaste(evt: Event, input: Element | null): void {
-    if (input !== null && !hasClass(evt.target, "tex-input")) evt.preventDefault();
+    if (input !== null && !hasClass(evt.target, "tex-input"))
+      evt.preventDefault();
   }
 
-  create(items: FileItem[], options?: FilesCreateOptions): HTMLBlockElement | HTMLElement {
+  create(
+    items: FileItem[],
+    options?: FilesCreateOptions
+  ): HTMLBlockElement | HTMLElement {
     const allItems = items || [];
 
     return this.make("div", (el: HTMLBlockElement) => {
@@ -125,10 +129,16 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   __onRenderComplete__(): void {
-    this.editor.events.trigger("file:actions:render:end", { block: this.getElement() as HTMLBlockElement });
+    this.editor.events.trigger("file:actions:render:end", {
+      block: this.getElement() as HTMLBlockElement
+    });
   }
 
-  protected onListCreate(items: FileItem[], block: HTMLBlockElement | null, options: FilesCreateOptions) {
+  protected onListCreate(
+    items: FileItem[],
+    block: HTMLBlockElement | null,
+    options: FilesCreateOptions
+  ) {
     return {
       items: items,
       block: block,
@@ -137,24 +147,24 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   protected defaultRenderItem(item: FileItem): HTMLElement {
-    const itemIcon = this.getConfig('itemIcon', IconFile),
-      isRenderImage = this.getConfig('renderImage', true),
-      fileCss = this.getConfig('fileCss', 'tex-file');
+    const itemIcon = this.getConfig("itemIcon", IconFile),
+      isRenderImage = this.getConfig("renderImage", true),
+      fileCss = this.getConfig("fileCss", "tex-file");
 
     return make("div", (div: HTMLElement) => {
-      const className = fileCss + '-layout',
-        isImage = item.type.includes('image/');
+      const className = fileCss + "-layout",
+        isImage = item.type.includes("image/");
 
       addClass(div, className);
 
-      const layoutGrid = make('div', (lg: HTMLElement) => {
-        addClass(lg, className + '-grid');
+      const layoutGrid = make("div", (lg: HTMLElement) => {
+        addClass(lg, className + "-grid");
 
         const leftBlock = make("div", (lb: HTMLDivElement) => {
-          addClass(lb, className + '-left');
+          addClass(lb, className + "-left");
 
           const iconWrap = make("div", (iconWrap: HTMLDivElement) => {
-            addClass(iconWrap, className + '-icon-wrap');
+            addClass(iconWrap, className + "-icon-wrap");
 
             let iconHtml = renderIcon(itemIcon, {
               width: 16,
@@ -162,9 +172,9 @@ export default class Files extends BlockModel implements BlockModelInterface {
             });
 
             if (isImage && isRenderImage) {
-              const imagePreview = make('img', (img: HTMLImageElement) => {
+              const imagePreview = make("img", (img: HTMLImageElement) => {
                 addClass(img, className + "-img");
-                img.src = item.url
+                img.src = item.url;
               });
 
               iconHtml = imagePreview.outerHTML;
@@ -177,10 +187,10 @@ export default class Files extends BlockModel implements BlockModelInterface {
             addClass(cnt, className + "-content");
 
             const name = make("div", (nameEl: HTMLDivElement) => {
-              addClass(nameEl, className + '-name');
+              addClass(nameEl, className + "-name");
 
               if (item?.name) {
-                nameEl.innerText = item?.name
+                nameEl.innerText = item?.name;
               } else {
                 const parts = item?.url.split(".");
                 nameEl.innerText = "." + (parts.pop() || "");
@@ -191,20 +201,20 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
             if (item?.caption) {
               const caption = make("div", (captionEl: HTMLDivElement) => {
-                addClass(captionEl, className + '-caption tex-file-caption');
-                html(captionEl, encodeHtmlSpecialChars(item.caption || ''));
+                addClass(captionEl, className + "-caption tex-file-caption");
+                html(captionEl, encodeHtmlSpecialChars(item.caption || ""));
               });
 
-              contentElements.push(caption)
+              contentElements.push(caption);
             }
 
             if (item?.desc) {
               const desc = make("div", (descEl: HTMLDivElement) => {
-                addClass(descEl, className + '-desc tex-file-desc');
-                html(descEl, encodeHtmlSpecialChars(item.desc || ''))
+                addClass(descEl, className + "-desc tex-file-desc");
+                html(descEl, encodeHtmlSpecialChars(item.desc || ""));
               });
 
-              contentElements.push(desc)
+              contentElements.push(desc);
             }
 
             append(cnt, contentElements);
@@ -214,11 +224,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
         });
 
         const rightBlock = make("div", (rb: HTMLDivElement) => {
-          addClass(rb, className + '-right');
+          addClass(rb, className + "-right");
 
           if (item?.size) {
             const size = make("div", (sizeEl: HTMLDivElement) => {
-              addClass(sizeEl, className + '-size');
+              addClass(sizeEl, className + "-size");
               html(sizeEl, formatBytes(item?.size || 0));
             });
 
@@ -233,15 +243,24 @@ export default class Files extends BlockModel implements BlockModelInterface {
     });
   }
 
-  protected createList(items: FileItem[], block: HTMLBlockElement, options: FilesCreateOptions): HTMLElement {
-    this.setRenderCallback("default", (item: FileItem) => this.defaultRenderItem(item));
+  protected createList(
+    items: FileItem[],
+    block: HTMLBlockElement,
+    options: FilesCreateOptions
+  ): HTMLElement {
+    this.setRenderCallback("default", (item: FileItem) =>
+      this.defaultRenderItem(item)
+    );
     this.onListCreate(items, block, options);
 
     return make("div", (el: HTMLElement) => {
-      addClass(el, 'tex-files-list-container');
+      addClass(el, "tex-files-list-container");
 
-      const list = make('div', (list: HTMLDivElement) => {
-        addClass(list, "tex-files-list " + this.getConfig("listCss", "tex-files-list-c"));
+      const list = make("div", (list: HTMLDivElement) => {
+        addClass(
+          list,
+          "tex-files-list " + this.getConfig("listCss", "tex-files-list-c")
+        );
 
         if (items && Array.isArray(items)) {
           const finalyItems: FileItem[] = [];
@@ -256,7 +275,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
             this.onCreateItemAfter(item, list);
           });
         }
-      })
+      });
 
       append(el, list);
     });
@@ -289,7 +308,10 @@ export default class Files extends BlockModel implements BlockModelInterface {
       query(
         ".tex-file",
         (el: HTMLElement) => {
-          const preparedItem = { url: el.dataset.url, type: el.dataset.type } as FileItem;
+          const preparedItem = {
+            url: el.dataset.url,
+            type: el.dataset.type
+          } as FileItem;
           if (el.dataset.caption) preparedItem.caption = el.dataset.caption;
           if (el.dataset.desc) preparedItem.desc = el.dataset.desc;
           if (el.fileName) preparedItem.name = el.fileName;
@@ -311,33 +333,53 @@ export default class Files extends BlockModel implements BlockModelInterface {
     return block;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onSaveBefore(block: OutputBlockItem, blockElement: HTMLElement | HTMLBlockElement | null): OutputBlockItem {
+  protected onSaveBefore(
+    block: OutputBlockItem,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    blockElement: HTMLElement | HTMLBlockElement | null
+  ): OutputBlockItem {
     return block;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onSaveAfter(block: OutputBlockItem, blockElement: HTMLElement | HTMLBlockElement | null): OutputBlockItem {
+  protected onSaveAfter(
+    block: OutputBlockItem,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    blockElement: HTMLElement | HTMLBlockElement | null
+  ): OutputBlockItem {
     return block;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onSaveItem(item: FileItem, el: HTMLElement): FileItem {
+  protected onSaveItem(
+    item: FileItem,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    el: HTMLElement
+  ): FileItem {
     return item;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onCreateItemBefore(item: FileItem, el: HTMLElement) {
+  protected onCreateItemBefore(
+    item: FileItem,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    el: HTMLElement
+  ) {
     return item;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onCreateItemAfter(item: FileItem, el: HTMLElement) {
+  protected onCreateItemAfter(
+    item: FileItem,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    el: HTMLElement
+  ) {
     return item;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onFormCreate(el: HTMLElement, block: HTMLBlockElement, options?: FilesCreateOptions): HTMLElement {
+  protected onFormCreate(
+    el: HTMLElement,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    block: HTMLBlockElement,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: FilesCreateOptions
+  ): HTMLElement {
     return el;
   }
 
@@ -408,11 +450,18 @@ export default class Files extends BlockModel implements BlockModelInterface {
       const labelCnt = make("div", (labelContainer: HTMLDivElement) => {
         addClass(labelContainer, "tex-files-form-label-container");
         const text = make(
-          "span",
-          (span: HTMLSpanElement) =>
-            (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText)
-        ),
-          icon = make("span", (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
+            "span",
+            (span: HTMLSpanElement) =>
+              (span.innerHTML = isMultiple
+                ? length >= 1
+                  ? addLabelText
+                  : multipleLabelText
+                : labelText)
+          ),
+          icon = make(
+            "span",
+            (span: HTMLSpanElement) => (span.innerHTML = iconLabel)
+          );
 
         append(labelContainer, [icon, text]);
       });
@@ -436,7 +485,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
     });
   }
 
-  protected form(items: FileItem[], block: HTMLBlockElement, options?: FilesCreateOptions) {
+  protected form(
+    items: FileItem[],
+    block: HTMLBlockElement,
+    options?: FilesCreateOptions
+  ) {
     const mimeTypes = this.getConfig("mimeTypes", []) as string[],
       isMultiple = this.getConfig("multiple", true),
       id = generateRandomString(16),
@@ -465,7 +518,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
               if (!error) {
                 document.getElementById("label-" + id)?.remove();
 
-                if (isMultiple) prepend(form, this.createLabel(this.getItem(0) ? 1 : 0, id));
+                if (isMultiple)
+                  prepend(form, this.createLabel(this.getItem(0) ? 1 : 0, id));
                 else form.remove();
               }
             }, 500);
@@ -482,33 +536,51 @@ export default class Files extends BlockModel implements BlockModelInterface {
             this.ajax(
               input,
               (response: Response) => {
-                if (response.success && Array.isArray(response.data) && response.data.length) {
+                if (
+                  response.success &&
+                  Array.isArray(response.data) &&
+                  response.data.length
+                ) {
                   const list = this.getListElement(block);
 
                   if (list) {
                     const items: FileItem[] = [];
 
-                    response.data.forEach((item: Record<string, string | number>) => {
-                      if (item?.url && item?.type) {
-                        const fileItem = {
-                          url: item?.url,
-                          type: item?.type
-                        } as FileItem;
+                    response.data.forEach(
+                      (item: Record<string, string | number>) => {
+                        if (item?.url && item?.type) {
+                          const fileItem = {
+                            url: item?.url,
+                            type: item?.type
+                          } as FileItem;
 
-                        if (item?.size) fileItem.size = item.size as number;
-                        if (item?.id) fileItem.id = item.id as number;
+                          if (item?.size) fileItem.size = item.size as number;
+                          if (item?.id) fileItem.id = item.id as number;
 
-                        items.push(fileItem);
+                          items.push(fileItem);
+                        }
                       }
-                    });
+                    );
 
                     items.forEach((item: FileItem) => {
                       this.item(list, item, "before", block);
                     });
                   }
-                  this.createMessage(this.responseMessage(response, i18n.get("fileUploadSuccess")), "success");
+                  this.createMessage(
+                    this.responseMessage(
+                      response,
+                      i18n.get("fileUploadSuccess")
+                    ),
+                    "success"
+                  );
                 } else {
-                  this.createMessage(this.responseMessage(response, i18n.get("fileUploadError"), true));
+                  this.createMessage(
+                    this.responseMessage(
+                      response,
+                      i18n.get("fileUploadError"),
+                      true
+                    )
+                  );
                 }
                 onloaded();
               },
@@ -572,7 +644,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
     return queryLength(".tex-file", block);
   }
 
-  private createActionBar(item: HTMLElement, container: HTMLElement, block: HTMLBlockElement): HTMLElement {
+  private createActionBar(
+    item: HTMLElement,
+    container: HTMLElement,
+    block: HTMLBlockElement
+  ): HTMLElement {
     const { api } = this.editor,
       uniqueId = api.getUniqueId();
 
@@ -589,7 +665,12 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
             (actionList as FileActionModelInstanceInterface[]).forEach(
               (fileAction: FileActionModelInstanceInterface) => {
-                const fileActionInstance = new fileAction(this.editor, item, container, block);
+                const fileActionInstance = new fileAction(
+                  this.editor,
+                  item,
+                  container,
+                  block
+                );
                 append(fileActions, fileActionInstance.create());
               }
             );
@@ -601,26 +682,23 @@ export default class Files extends BlockModel implements BlockModelInterface {
         query(
           ".tex-files-actions",
           (actions: HTMLElement) => {
-            css(actions, "display", "")
+            css(actions, "display", "");
           },
           container
-        )
-      }
+        );
+      };
 
-      const closeIcon = make(
-        'div',
-        (close: HTMLDivElement) => {
-          addClass(close, 'tex-files-actions-close');
-          html(
-            close,
-            renderIcon(IconClose, {
-              width: 14,
-              height: 14
-            })
-          );
-          on(close, 'click.close', () => setTimeout(() => hideActions(), 5));
-        }
-      );
+      const closeIcon = make("div", (close: HTMLDivElement) => {
+        addClass(close, "tex-files-actions-close");
+        html(
+          close,
+          renderIcon(IconClose, {
+            width: 14,
+            height: 14
+          })
+        );
+        on(close, "click.close", () => setTimeout(() => hideActions(), 5));
+      });
 
       append(div, [actionsWrap, closeIcon]);
 
@@ -630,7 +708,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
           ".tex-files-action",
           (actionElement: HTMLElement) => {
             if ("fileAction" in actionElement) {
-              const fileAction = actionElement?.fileAction as FileActionModelInterface;
+              const fileAction =
+                actionElement?.fileAction as FileActionModelInterface;
               fileAction?.refresh();
             }
           },
@@ -687,7 +766,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
     block: HTMLBlockElement
   ) {
     const methodName = this.getRenderCallback(item.type);
-    const fileCss = this.getConfig("fileCss", "tex-file")
+    const fileCss = this.getConfig("fileCss", "tex-file");
 
     if (typeof methodName === "function") {
       const itemElement = make("div", (el: HTMLElement) => {
@@ -700,7 +779,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
         if (item?.size) el.fileSize = item.size;
         if (item?.id) el.fileId = item.id;
         if (item?.thumbnail) el.thumbnail = item.thumbnail;
-        if (item.caption) el.dataset.caption = decodeHtmlSpecialChars(item.caption);
+        if (item.caption)
+          el.dataset.caption = decodeHtmlSpecialChars(item.caption);
         if (item.desc) el.dataset.desc = decodeHtmlSpecialChars(item.desc);
 
         const wrapper = make("div", (wrap: HTMLElement) => {
@@ -743,9 +823,9 @@ export default class Files extends BlockModel implements BlockModelInterface {
   ) {
     const { events, i18n } = this.editor;
     const ajaxConfig = this.getConfig("ajaxConfig") as {
-      url: string;
-      options: AjaxOptions;
-    },
+        url: string;
+        options: AjaxOptions;
+      },
       inputName = this.getConfig("inputName", "files");
 
     if (isEmptyString(ajaxConfig?.url || "")) {
@@ -823,7 +903,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
           });
         })
         .catch((error) => {
-          const message = this.responseMessage(error?.response, error.message, true);
+          const message = this.responseMessage(
+            error?.response,
+            error.message,
+            true
+          );
           this.createMessage(i18n.get("fileUploadError") + ": " + message);
           if (onError) onError(error);
 
@@ -837,7 +921,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
     }
   }
 
-  private responseMessage(response?: Response, defaultMessage?: string, isError: boolean = false): string {
+  private responseMessage(
+    response?: Response,
+    defaultMessage?: string,
+    isError: boolean = false
+  ): string {
     const messageField = isError
       ? (this.getConfig("responseMessageErrorField", "message") as string)
       : (this.getConfig("responseMessageField", "message") as string);
@@ -859,7 +947,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
       message = (response.data as Record<string, unknown>)[messageField];
     } else {
       for (const key in response) {
-        if (key !== "data" && key !== "success" && typeof response[key] === "string") {
+        if (
+          key !== "data" &&
+          key !== "success" &&
+          typeof response[key] === "string"
+        ) {
           message = response[key];
           break;
         }
@@ -867,7 +959,9 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
       if (!message && response.data && typeof response.data === "object") {
         for (const key in response.data) {
-          if (typeof (response.data as Record<string, unknown>)[key] === "string") {
+          if (
+            typeof (response.data as Record<string, unknown>)[key] === "string"
+          ) {
             message = (response.data as Record<string, unknown>)[key];
             break;
           }

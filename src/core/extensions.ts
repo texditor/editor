@@ -15,7 +15,6 @@ import {
 } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 
-
 export default class Extensions implements ExtensionsInterface {
   private editor: TexditorInterface;
 
@@ -41,14 +40,21 @@ export default class Extensions implements ExtensionsInterface {
       // Исправление: приведение типа через unknown
       (extensions as unknown as ExtensionModelInstanceInterface[]).forEach(
         (ExtClass: ExtensionModelInstanceInterface) => {
-          const extInstance: ExtensionModelInterface = new ExtClass(this.editor);
+          const extInstance: ExtensionModelInterface = new ExtClass(
+            this.editor
+          );
 
           if (extInstance?.create) {
             const element = extInstance.create(),
-              groupName = extInstance.getGroupName ? extInstance.getGroupName() : "";
+              groupName = extInstance.getGroupName
+                ? extInstance.getGroupName()
+                : "";
 
             if (groupName) {
-              const isExists = !!queryLength("." + cssName + "-group-" + groupName, el);
+              const isExists = !!queryLength(
+                "." + cssName + "-group-" + groupName,
+                el
+              );
 
               if (isExists) {
                 query(
@@ -60,7 +66,10 @@ export default class Extensions implements ExtensionsInterface {
                 );
               } else {
                 const groupElement = make("div", (group: HTMLElement) => {
-                  addClass(group, cssName + "-group-" + groupName + " " + cssName + "-group");
+                  addClass(
+                    group,
+                    cssName + "-group-" + groupName + " " + cssName + "-group"
+                  );
                   append(group, element);
                 });
 
@@ -91,7 +100,8 @@ export default class Extensions implements ExtensionsInterface {
         query(
           api.css("editor"),
           (rootEditor: HTMLElement) => {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop,
+            const scrollTop =
+                window.pageYOffset || document.documentElement.scrollTop,
               editorRect = rootEditor.getBoundingClientRect(),
               editorLeft = editorRect.left,
               editorWidth = rootEditor.offsetWidth;

@@ -2,8 +2,10 @@ import type { RenderIconContent, ExtensionModelInterface } from "@/types";
 import ExtensionModel from "@/core/models/extension-model";
 import { IconRedo } from "@/icons";
 
-
-export default class Redo extends ExtensionModel implements ExtensionModelInterface {
+export default class Redo
+  extends ExtensionModel
+  implements ExtensionModelInterface
+{
   name: string = "redo";
   protected icon: RenderIconContent = IconRedo;
   protected translation: string = "redo";

@@ -1,37 +1,54 @@
-import type {
-  FileActionModelInterface,
-  RenderIconContent
-} from "@/types";
+import type { FileActionModelInterface, RenderIconContent } from "@/types";
 import { IconPencil } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
-import { addClass, append, attr, closest, css, html, make, query } from "@/utils/dom";
+import {
+  addClass,
+  append,
+  attr,
+  closest,
+  css,
+  html,
+  make,
+  query
+} from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
 import { encodeHtmlSpecialChars } from "@/utils";
 
-export default class EditFileAction extends FileActionModel implements FileActionModelInterface {
+export default class EditFileAction
+  extends FileActionModel
+  implements FileActionModelInterface
+{
   name: string = "edit";
   prepare: boolean = true;
   protected icon: RenderIconContent = IconPencil;
   protected translation: string = "edit";
   protected defaultTitle: string = "Edit";
 
-  onClick() { }
+  onClick() {}
 
   private afterSave(item: HTMLElement) {
-    const caption = item?.dataset?.caption || '',
-      desc = item?.dataset?.desc || '';
+    const caption = item?.dataset?.caption || "",
+      desc = item?.dataset?.desc || "";
 
     if (caption) {
-      query('.tex-file-caption', (el: HTMLElement) => {
-        html(el, encodeHtmlSpecialChars(caption));
-      }, item);
+      query(
+        ".tex-file-caption",
+        (el: HTMLElement) => {
+          html(el, encodeHtmlSpecialChars(caption));
+        },
+        item
+      );
     }
 
     if (desc) {
-      query('.tex-file-desc', (el: HTMLElement) => {
-        html(el, encodeHtmlSpecialChars(desc));
-      }, item);
+      query(
+        ".tex-file-desc",
+        (el: HTMLElement) => {
+          html(el, encodeHtmlSpecialChars(desc));
+        },
+        item
+      );
     }
   }
 
@@ -64,8 +81,15 @@ export default class EditFileAction extends FileActionModel implements FileActio
           append(editContent, this.renderEditItem(item));
           const reposition = () => {
             setTimeout(() => {
-              if (block.offsetHeight < editContent.offsetHeight + item.offsetTop) {
-                css(editContent, "top", block.offsetHeight - editContent.offsetHeight - 48);
+              if (
+                block.offsetHeight <
+                editContent.offsetHeight + item.offsetTop
+              ) {
+                css(
+                  editContent,
+                  "top",
+                  block.offsetHeight - editContent.offsetHeight - 48
+                );
               } else {
                 css(editContent, "top", item.offsetTop - 24);
               }
@@ -86,11 +110,11 @@ export default class EditFileAction extends FileActionModel implements FileActio
       addClass(el, "tex-file-edit-popup");
 
       const captionImput = make("input", (input: HTMLInputElement) => {
-        input.type = "text";
-        input.value = item.dataset.caption || "";
-        attr(input, "placeholder", i18n.get("caption", "Caption"));
-        addClass(input, "tex-input tex-files-input");
-      }) as HTMLInputElement,
+          input.type = "text";
+          input.value = item.dataset.caption || "";
+          attr(input, "placeholder", i18n.get("caption", "Caption"));
+          addClass(input, "tex-input tex-files-input");
+        }) as HTMLInputElement,
         descInput = make("input", (input: HTMLInputElement) => {
           input.type = "text";
           input.value = item.dataset.desc || "";
@@ -110,14 +134,18 @@ export default class EditFileAction extends FileActionModel implements FileActio
           append(div, [
             make("button", (btn: HTMLButtonElement) => {
               btn.type = "button";
-              addClass(btn, "tex-btn tex-btn-primary tex-btn-radius tex-btn-padding");
+              addClass(
+                btn,
+                "tex-btn tex-btn-primary tex-btn-radius tex-btn-padding"
+              );
               btn.textContent = i18n.get("save", "Save");
               on(btn, "click.sv", () => {
                 document.body.click();
                 const captionValue = captionImput?.value || "",
                   descValue = descInput?.value || "";
 
-                if (!isEmptyString(captionValue)) item.dataset.caption = captionValue;
+                if (!isEmptyString(captionValue))
+                  item.dataset.caption = captionValue;
 
                 if (!isEmptyString(descValue)) item.dataset.desc = descValue;
 
@@ -132,7 +160,10 @@ export default class EditFileAction extends FileActionModel implements FileActio
             }),
             make("button", (btn: HTMLButtonElement) => {
               btn.type = "button";
-              addClass(btn, "tex-btn tex-btn-secondary tex-btn-radius tex-btn-padding");
+              addClass(
+                btn,
+                "tex-btn tex-btn-secondary tex-btn-radius tex-btn-padding"
+              );
               btn.textContent = i18n.get("сancel", "Сancel");
               on(btn, "click.cn", () => {
                 document.body.click();

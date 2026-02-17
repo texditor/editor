@@ -11,4 +11,17 @@ import List from "./list";
 import OrderedList from "./list/ol";
 import Paragraph from "./paragraph";
 
-export { Code, Files, Gallery, H1, H2, H3, H4, H5, H6, List, OrderedList, Paragraph };
+export {
+  Code,
+  Files,
+  Gallery,
+  H1,
+  H2,
+  H3,
+  H4,
+  H5,
+  H6,
+  List,
+  OrderedList,
+  Paragraph
+};

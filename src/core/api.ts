@@ -5,7 +5,12 @@ import type {
   BlockItemData,
   OutputBlockItem
 } from "@/types";
-import { queryLength, query, append, findDatasetsWithPrefix } from "@/utils/dom";
+import {
+  queryLength,
+  query,
+  append,
+  findDatasetsWithPrefix
+} from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 import MainView from "@/views/main";
 import { generateRandomString } from "@/utils/common";
@@ -56,7 +61,8 @@ export default class API implements APIInterface {
   render(): void {
     const editorId = this.editor.config.get("handle", "texditor");
 
-    if (!queryLength("#" + editorId)) throw new Error("The editor's ID was not found.");
+    if (!queryLength("#" + editorId))
+      throw new Error("The editor's ID was not found.");
 
     let editorElement = null;
     query("#" + editorId, (el: HTMLElement) => {
@@ -149,7 +155,11 @@ export default class API implements APIInterface {
             block = savedBlock as OutputBlockItem;
           } else {
             for (const itemData in el.dataset) {
-              if ((config.get("blockParseDataset", []) as string[]).includes(itemData)) {
+              if (
+                (config.get("blockParseDataset", []) as string[]).includes(
+                  itemData
+                )
+              ) {
                 block[itemData] = el.dataset[itemData];
               }
             }
@@ -161,7 +171,9 @@ export default class API implements APIInterface {
               const parsedData = parser.htmlToData(el.innerHTML);
 
               block.data = parsedData.filter(
-                (item) => typeof item === "string" || (typeof item === "object" && item !== null)
+                (item) =>
+                  typeof item === "string" ||
+                  (typeof item === "object" && item !== null)
               ) as BlockItemData;
             }
           }
@@ -182,15 +194,23 @@ export default class API implements APIInterface {
   setDisplay(wrap = "", visible: string = "") {
     const root = this.getRoot();
 
-    if (root) query(
-      this.css(wrap),
-      (el: HTMLElement) => (el.style.display = visible),
-      root
-    );
+    if (root)
+      query(
+        this.css(wrap),
+        (el: HTMLElement) => (el.style.display = visible),
+        root
+      );
   }
 
   destroy(): void {
-    const { actions, blockManager, events, extensions, historyManager, toolbar } = this.editor;
+    const {
+      actions,
+      blockManager,
+      events,
+      extensions,
+      historyManager,
+      toolbar
+    } = this.editor;
     if (this.rootElement) this.rootElement.innerHTML = "";
 
     const models = blockManager.getBlockModels();

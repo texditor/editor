@@ -44,10 +44,13 @@ export default class SelectionMode extends ExtensionModel {
         el,
         make("div", (act: HTMLElement) => {
           addClass(act, cssName + "-actions");
-          this.editor.events.add("selectionChanged.extSelectionMode", (evt: TexditorEvent) => {
-            const blocks = evt.selectedBlocks as HTMLBlockElement[];
-            css(act, "display", blocks.length > 0 ? "flex" : "");
-          });
+          this.editor.events.add(
+            "selectionChanged.extSelectionMode",
+            (evt: TexditorEvent) => {
+              const blocks = evt.selectedBlocks as HTMLBlockElement[];
+              css(act, "display", blocks.length > 0 ? "flex" : "");
+            }
+          );
           append(
             act,
             make("div", (del: HTMLElement) => {
@@ -57,7 +60,10 @@ export default class SelectionMode extends ExtensionModel {
               append(
                 del,
                 make("span", (span: HTMLSpanElement) => {
-                  span.innerHTML = renderIcon(IconTrash, { width: 14, height: 14 });
+                  span.innerHTML = renderIcon(IconTrash, {
+                    width: 14,
+                    height: 14
+                  });
                 })
               );
 
@@ -68,7 +74,10 @@ export default class SelectionMode extends ExtensionModel {
               if (config.get("extensionVisibleTitle", false))
                 append(
                   del,
-                  make("span", (span: HTMLSpanElement) => (span.innerHTML = title))
+                  make(
+                    "span",
+                    (span: HTMLSpanElement) => (span.innerHTML = title)
+                  )
                 );
             })
           );

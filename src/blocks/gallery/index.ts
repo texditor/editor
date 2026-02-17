@@ -25,7 +25,7 @@ import {
 import "@/styles/blocks/galllery.css";
 import { renderIcon } from "@/utils/icon";
 import { off, on } from "@/utils/events";
-import '@/styles/slider.css';
+import "@/styles/slider.css";
 import Slider from "@/core/slider";
 
 export default class Gallery extends Files {
@@ -68,7 +68,9 @@ export default class Gallery extends Files {
   }
 
   private isStyles() {
-    return (this.getConfig("styles", []) as string[]).every((key: string) => this.defaultStyles.includes(key));
+    return (this.getConfig("styles", []) as string[]).every((key: string) =>
+      this.defaultStyles.includes(key)
+    );
   }
 
   private getDefaultStyle() {
@@ -79,7 +81,11 @@ export default class Gallery extends Files {
     return defaultStyle;
   }
 
-  protected onFormCreate(el: HTMLElement, block: HTMLBlockElement, options?: FilesCreateOptions): HTMLElement {
+  protected onFormCreate(
+    el: HTMLElement,
+    block: HTMLBlockElement,
+    options?: FilesCreateOptions
+  ): HTMLElement {
     const { events, i18n } = this.editor,
       styles = this.getConfig("styles", []) as string[],
       defaultStyle = this.getDefaultStyle();
@@ -107,7 +113,10 @@ export default class Gallery extends Files {
 
       const styleItem = (code: string, icon: string) => {
         return make("div", (item: HTMLDivElement) => {
-          addClass(item, "tex-gallery-style-item tex-gallery-style-item-" + code);
+          addClass(
+            item,
+            "tex-gallery-style-item tex-gallery-style-item-" + code
+          );
           off(item, "click.style");
           on(item, "click.style", () => {
             setActveItem(code);
@@ -117,13 +126,17 @@ export default class Gallery extends Files {
               type: "galleryStyle",
               block: block
             });
-            this.initSlider(code === 'slider');
+            this.initSlider(code === "slider");
           });
           item.innerHTML = renderIcon(icon, {
             width: 16,
             height: 16
           });
-          attr(item, "title", i18n.get("appearance", "Appearance") + ": " + i18n.get(code));
+          attr(
+            item,
+            "title",
+            i18n.get("appearance", "Appearance") + ": " + i18n.get(code)
+          );
         });
       };
 
@@ -135,9 +148,12 @@ export default class Gallery extends Files {
             addClass(div, "tex-gallery-style-list");
             const items = [];
 
-            if (styles.includes("single")) items.push(styleItem("single", IconSingleGrid));
-            if (styles.includes("grid")) items.push(styleItem("grid", IconMultipleGrid));
-            if (styles.includes("slider")) items.push(styleItem("slider", IconSlider));
+            if (styles.includes("single"))
+              items.push(styleItem("single", IconSingleGrid));
+            if (styles.includes("grid"))
+              items.push(styleItem("grid", IconMultipleGrid));
+            if (styles.includes("slider"))
+              items.push(styleItem("slider", IconSlider));
 
             append(div, items);
           })
@@ -145,7 +161,8 @@ export default class Gallery extends Files {
       });
 
       if (this.isStyles() && styles.length) {
-        const ltrClass = ltr === "right" ? "tex-gallery-right" : "tex-gallery-left";
+        const ltrClass =
+          ltr === "right" ? "tex-gallery-right" : "tex-gallery-left";
 
         if (ltr === "right") append(el, stylePanel);
         else prepend(el, stylePanel);
@@ -161,14 +178,20 @@ export default class Gallery extends Files {
     return el;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onSaveItem(item: FileItem, el: HTMLElement): FileItem {
+  protected onSaveItem(
+    item: FileItem,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    el: HTMLElement
+  ): FileItem {
     if (item.size) delete item.size;
 
     return item;
   }
 
-  protected onSaveAfter(block: OutputBlockItem, blockElement: HTMLBlockElement): OutputBlockItem {
+  protected onSaveAfter(
+    block: OutputBlockItem,
+    blockElement: HTMLBlockElement
+  ): OutputBlockItem {
     const defaultStyle = this.getDefaultStyle();
 
     if (this.isStyles()) {
@@ -193,41 +216,50 @@ export default class Gallery extends Files {
 
   protected initSlider(
     isSlider: boolean = false,
-    onChange?: (index: number) => void) {
+    onChange?: (index: number) => void
+  ) {
     const { events } = this.editor;
     const block = this.getElement();
-    const isSliderBlock = (block?.dataset?.optionsStyle === 'slider' || isSlider);
+    const isSliderBlock = block?.dataset?.optionsStyle === "slider" || isSlider;
 
     if (block && isSliderBlock) {
-      query('.tex-files-list-container', (cnt: HTMLDivElement) => {
-        this.slider = new Slider(cnt, {
-          infinite: this.getConfig('sliderInfinite', true) as boolean,
-          onChange: onChange
-        });
-      }, block)
-      events.add('onChange.fileAction', (evt: TexditorEvent) => {
+      query(
+        ".tex-files-list-container",
+        (cnt: HTMLDivElement) => {
+          this.slider = new Slider(cnt, {
+            infinite: this.getConfig("sliderInfinite", true) as boolean,
+            onChange: onChange
+          });
+        },
+        block
+      );
+      events.add("onChange.fileAction", (evt: TexditorEvent) => {
         if (evt?.fileAction) {
           const lastIndex = evt.index || 0;
 
           this.destroySlider();
-          this.initSlider(true, onChange)
+          this.initSlider(true, onChange);
           this.slider?.goToSlide(lastIndex);
         }
-      })
+      });
     }
   }
 
   private destroySlider() {
     const { events } = this.editor;
     this.slider?.destroy();
-    events.remove('onChange', 'fileActionSlider');
+    events.remove("onChange", "fileActionSlider");
   }
 
   onRender(): void {
     this.initSlider();
   }
 
-  protected onListCreate(items: FileItem[], block: HTMLBlockElement | null, options: FilesCreateOptions) {
+  protected onListCreate(
+    items: FileItem[],
+    block: HTMLBlockElement | null,
+    options: FilesCreateOptions
+  ) {
     const styles = this.getConfig("styles", []) as string[];
 
     if (this.isStyles()) {
@@ -239,7 +271,7 @@ export default class Gallery extends Files {
     }
 
     this.setRenderCallback(
-      this.getConfig('imageMimeTypes', []) as string[],
+      this.getConfig("imageMimeTypes", []) as string[],
       (item: FileItem): HTMLElement => {
         return make("img", (img: HTMLImageElement) => {
           img.src = item.url;
@@ -248,18 +280,18 @@ export default class Gallery extends Files {
     );
 
     this.setRenderCallback(
-      this.getConfig('videoMimeTypes', []) as string[],
+      this.getConfig("videoMimeTypes", []) as string[],
       (item: FileItem): HTMLElement => {
         const videoContainer = make("div", (vc: HTMLDivElement) => {
           const video = make("video", (video: HTMLVideoElement) => {
-            append(
-              video,
-              make("source", (source: HTMLSourceElement) => {
-                source.src = item.url;
-                attr(source, "type", item.type);
-              })
-            );
-          }),
+              append(
+                video,
+                make("source", (source: HTMLSourceElement) => {
+                  source.src = item.url;
+                  attr(source, "type", item.type);
+                })
+              );
+            }),
             playIcon = make("div", (div: HTMLDivElement) => {
               addClass(div, "tex-gallery-item-play");
               div.innerHTML = renderIcon(IconPlay, {

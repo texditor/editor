@@ -41,10 +41,10 @@ export default class FileActionModel implements FileActionModelInterface {
     });
   }
 
-  onLoad(): void { }
+  onLoad(): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) { }
+  onClick(evt: Event) {}
 
   onCreate(el: HTMLElement): HTMLElement {
     return el;
@@ -73,7 +73,7 @@ export default class FileActionModel implements FileActionModelInterface {
           item: this.getItem(),
           index: this.getItemIndex(),
           container: this.getContainer(),
-          isFileAction: true,
+          isFileAction: true
         });
       }
     };
@@ -92,7 +92,13 @@ export default class FileActionModel implements FileActionModelInterface {
   }
 
   getId(): string {
-    return this.editor.api.css("editor", false) + "-file-action-" + this.getName() + "-" + this.randomId;
+    return (
+      this.editor.api.css("editor", false) +
+      "-file-action-" +
+      this.getName() +
+      "-" +
+      this.randomId
+    );
   }
 
   getElement(): HTMLElement | null {
@@ -109,13 +115,17 @@ export default class FileActionModel implements FileActionModelInterface {
 
   getItemIndex(): number {
     const block = this.getCurrentBlock();
-    let realIndex = 0
+    let realIndex = 0;
 
-    query('.tex-file', (file: HTMLDivElement, index: number) => {
-      if (file === this.getItem()) {
-        realIndex = index;
-      }
-    }, block);
+    query(
+      ".tex-file",
+      (file: HTMLDivElement, index: number) => {
+        if (file === this.getItem()) {
+          realIndex = index;
+        }
+      },
+      block
+    );
 
     return realIndex;
   }
@@ -133,7 +143,8 @@ export default class FileActionModel implements FileActionModelInterface {
   }
 
   create(): HTMLElement {
-    const cssName = "tex-files-action-item-" + this.getName() + " " + this.className;
+    const cssName =
+      "tex-files-action-item-" + this.getName() + " " + this.className;
 
     this.handleClick = this.handleClick.bind(this);
 
@@ -141,10 +152,8 @@ export default class FileActionModel implements FileActionModelInterface {
       act.id = this.getId();
       addClass(act, "tex-files-action " + cssName);
       act.setAttribute(
-        'title',
-        this.editor.i18n.get(
-          this.translation,
-          this.defaultTitle)
+        "title",
+        this.editor.i18n.get(this.translation, this.defaultTitle)
       );
 
       Object.defineProperty(act, "fileAction", {

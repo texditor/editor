@@ -1,6 +1,6 @@
 import type { TexditorInterface } from "@/types";
 export interface ToolModelInstanceInterface {
-  new(editor: TexditorInterface): ToolModelInterface;
+  new (editor: TexditorInterface): ToolModelInterface;
 }
 
 export interface ToolModelInterface {
