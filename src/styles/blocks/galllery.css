@@ -9,50 +9,79 @@
 
 .tex-gallery-list {
   display: grid;
+}
+
+.tex-gallery[data-options-style~="grid"] .tex-gallery-list {
   grid-template-columns: repeat(auto-fit, minmax(calc(50% - 6px), 1fr));
   gap: 12px;
 }
 
-.tex-gallery-item:last-child:nth-child(odd) {
+.tex-gallery[data-options-style~="single"] .tex-gallery-list {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.tex-gallery[data-options-style~="grid"] .tex-file:last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
 
-.tex-files-item {
+.tex-gallery .tex-file {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
-  padding-top: 60%;
   position: relative;
   cursor: pointer;
 }
 
-.tex-files-gallery:has(> .tex-files-gallery:only-child) {
-  padding-top: unset;
+.tex-gallery[data-options-style~="grid"] .tex-file-wrapper,
+.tex-gallery[data-options-style~="slider"] .tex-file-wrapper {
+  padding-top: 60%;
 }
 
-.tex-gallery-item-source {
+.tex-gallery .tex-file-source {
+  -webkit-user-select: none;
+  user-select: none;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--tex-background-secondary);
+}
+
+.tex-gallery .tex-file-source img,
+.tex-gallery .tex-file-source video {
+  object-fit: cover;
+}
+
+.tex-gallery[data-options-style~="grid"] .tex-file-source img,
+.tex-gallery[data-options-style~="slider"] .tex-file-source img,
+.tex-gallery[data-options-style~="grid"] .tex-file-source video,
+.tex-gallery[data-options-style~="slider"] .tex-file-source video {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tex-gallery[data-options-style~="grid"] .tex-file-source,
+.tex-gallery[data-options-style~="slider"] .tex-file-source {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  -webkit-user-select: none;
-  user-select: none;
-  overflow: hidden;
-  border-radius: 6px;
 }
 
-.tex-gallery-item-source img,
-.tex-gallery-item-source video {
-  object-fit: cover;
-  position: absolute;
-  top: 0;
+.tex-gallery .tex-file-source>* {
+  width: 100%;
+}
+
+.tex-gallery .tex-file-layout {
   width: 100%;
   height: 100%;
-}
-
-.tex-gallery-item-source > * {
-  width: 100%;
+  position: relative;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .tex-gallery-item-play {

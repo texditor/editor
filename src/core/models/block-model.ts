@@ -5,7 +5,7 @@ import { addClass, append, appendText, getChildNodes, getElementText, make } fro
 import Sanitizer from "../sanitizer";
 import { SanitizerConfig } from "@/types/core/sanitizer";
 import { BlockModelConfig, BlockModelInterface } from "@/types/core/models";
-import { renderIcon }  from "@/utils/icon";
+import { renderIcon } from "@/utils/icon";
 
 export default class BlockModel implements BlockModelInterface {
   protected id: string = "";
@@ -212,13 +212,13 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  merge(index: number): void {}
+  merge(index: number): void { }
 
   focusChild(): HTMLElement | null {
     return null;
   }
 
-  protected onLoad(): void {}
+  protected onLoad(): void { }
 
   sanitize() {
     if (this.getConfig("sanitizer", false)) {
@@ -257,16 +257,17 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setItemIndex(index: number): void {}
+  setItemIndex(index: number): void { }
 
   getItemIndex(): number {
     return 0;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onCreate(newBlock?: HTMLBlockElement | null) {}
+  protected onCreate(newBlock?: HTMLBlockElement | null) { }
 
-  onRender(): void {}
+  onRender(): void { }
+  __onRenderComplete__(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   save(block: OutputBlockItem, blockElement?: HTMLElement): OutputBlockItem {
@@ -308,5 +309,5 @@ export default class BlockModel implements BlockModelInterface {
     return [block, newBlock];
   }
 
-  destroy(): void {}
+  destroy(): void { }
 }

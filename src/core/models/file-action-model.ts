@@ -1,7 +1,7 @@
 import Texditor from "@/texditor";
-import type { BlockModelInterface, FileActionModelInterface, HTMLBlockElement } from "@/types";
+import type { BlockModelInterface, FileActionModelInterface, HTMLBlockElement, RenderIconContent } from "@/types";
 import { generateRandomString } from "@/utils/common";
-import { addClass, append, make } from "@/utils/dom";
+import { addClass, append, make, query } from "@/utils/dom";
 import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
@@ -9,15 +9,22 @@ export default class FileActionModel implements FileActionModelInterface {
   name: string = "";
   className: string = "";
   protected translation: string = "";
+  protected defaultTitle: string = "";
+  protected tagName: string = "div";
   protected editor: Texditor;
-  protected icon: string = "";
+  protected icon: RenderIconContent = "";
   protected prepare: boolean = false;
   private randomId: string = generateRandomString(10);
   private item: HTMLElement;
   private container: HTMLElement;
   private currentBlock: HTMLBlockElement;
 
-  constructor(editor: Texditor, item: HTMLElement, container: HTMLElement, fileBlock: HTMLBlockElement) {
+  constructor(
+    editor: Texditor,
+    item: HTMLElement,
+    container: HTMLElement,
+    fileBlock: HTMLBlockElement
+  ) {
     this.editor = editor;
     this.item = item;
     this.container = container;
@@ -33,6 +40,10 @@ export default class FileActionModel implements FileActionModelInterface {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onClick(evt: Event) { }
+
+  onCreate(el: HTMLElement): HTMLElement {
+    return el;
+  }
 
   menuConfig(): {
     title: string;
@@ -55,7 +66,9 @@ export default class FileActionModel implements FileActionModelInterface {
           type: eventName,
           block: this.getCurrentBlock(),
           item: this.getItem(),
-          container: this.getContainer()
+          index: this.getItemIndex(),
+          container: this.getContainer(),
+          isFileAction: true,
         });
       }
     };
@@ -89,6 +102,19 @@ export default class FileActionModel implements FileActionModelInterface {
     return this.item;
   }
 
+  getItemIndex(): number {
+    const block = this.getCurrentBlock();
+    let realIndex = 0
+
+    query('.tex-file', (file: HTMLDivElement, index: number) => {
+      if (file === this.getItem()) {
+        realIndex = index;
+      }
+    }, block);
+
+    return realIndex;
+  }
+
   getContainer(): HTMLElement {
     return this.container;
   }
@@ -106,9 +132,15 @@ export default class FileActionModel implements FileActionModelInterface {
 
     this.handleClick = this.handleClick.bind(this);
 
-    return make("div", (act: HTMLDivElement) => {
+    const elem = make(this.tagName, (act: HTMLDivElement) => {
       act.id = this.getId();
       addClass(act, "tex-files-action " + cssName);
+      act.setAttribute(
+        'title',
+        this.editor.i18n.get(
+          this.translation,
+          this.defaultTitle)
+      );
 
       Object.defineProperty(act, "fileAction", {
         value: this,
@@ -126,6 +158,10 @@ export default class FileActionModel implements FileActionModelInterface {
         this.handleClick(evt);
       });
     });
+
+    this.onCreate(elem);
+
+    return this.onCreate(elem);
   }
 
   refresh(): void {

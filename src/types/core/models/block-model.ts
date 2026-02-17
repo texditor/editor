@@ -22,6 +22,7 @@ export interface BlockModelInterface {
   afterCreate(newBlock?: HTMLBlockElement | null): void;
   focusChild(): HTMLElement | null;
   onRender(): void;
+  __onRenderComplete__(): void;
   save(block: OutputBlockItem, blockElement?: HTMLElement): OutputBlockItem;
   setStore(key: string, value: unknown): this;
   getStore(key: string | null): unknown;

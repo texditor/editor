@@ -1,15 +1,19 @@
 import { FileItem, FilesCreateOptions } from "@/types/blocks";
 import Files from "../files";
 import { addClass, append, attr, make, prepend, query, removeClass } from "@/utils/dom";
-import { HTMLBlockElement } from "@/types/core";
+import { EditorEvent, HTMLBlockElement } from "@/types/core";
 import { IconGallery, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from "@/icons";
 import "@/styles/blocks/galllery.css";
-import { renderIcon }  from "@/utils/icon";
+import { renderIcon } from "@/utils/icon";
 import { off, on } from "@/utils/events";
 import { OutputBlockItem } from "@/types/output";
+import '@/styles/slider.css';
+import Slider from "@/core/slider";
+import Texditor from "@/texditor";
 
 export default class Gallery extends Files {
   private defaultStyles: string[] = ["grid", "slider", "single"];
+  private slider?: Slider;
 
   configure() {
     return {
@@ -19,13 +23,29 @@ export default class Gallery extends Files {
         tagName: "div",
         listCss: "tex-gallery-list",
         cssClasses: "tex-gallery",
-        itemCss: "tex-gallery-item",
-        sourceWrapCss: "tex-gallery-item-source",
         icon: IconGallery,
         translationCode: "gallery",
         styles: ["grid", "slider", "single"],
         stylesLtr: "right",
-        defaultStyle: "single"
+        defaultStyle: "single",
+        renderImage: false,
+        sliderInfinite: true,
+        imageMimeTypes: [
+          "image/jpeg",
+          "image/png",
+          "image/gif",
+          "image/webp",
+          "image/avif",
+          "image/bmp"
+        ],
+        videoMimeTypes: [
+          "video/mp4",
+          "video/webm",
+          "video/ogg",
+          "video/mpeg",
+          "video/quicktime",
+          "video/x-msvideo"
+        ]
       }
     };
   }
@@ -75,11 +95,12 @@ export default class Gallery extends Files {
           on(item, "click.style", () => {
             setActveItem(code);
             block.dataset.optionsStyle = code;
-
+            this.destroySlider();
             events.change({
               type: "galleryStyle",
               block: block
             });
+            this.initSlider(code === 'slider');
           });
           item.innerHTML = renderIcon(icon, {
             width: 16,
@@ -153,6 +174,43 @@ export default class Gallery extends Files {
     return block;
   }
 
+  protected initSlider(
+    isSlider: boolean = false,
+    onChange?: (index: number) => void) {
+    const { events } = this.editor;
+    const block = this.getElement();
+    const isSliderBlock = (block?.dataset?.optionsStyle === 'slider' || isSlider);
+
+    if (block && isSliderBlock) {
+      query('.tex-files-list-container', (cnt: HTMLDivElement) => {
+        this.slider = new Slider(cnt, {
+          infinite: this.getConfig('sliderInfinite', true) as boolean,
+          onChange: onChange
+        });
+      }, block)
+      events.add('onChange.fileAction', (
+        editor: Texditor,
+        evt: EditorEvent
+      ) => {
+        const lastIndex = evt.index || 0;
+
+        this.destroySlider();
+        this.initSlider(true, onChange)
+        this.slider?.goToSlide(lastIndex);
+      })
+    }
+  }
+
+  private destroySlider() {
+    const { events } = this.editor;
+    this.slider?.destroy();
+    events.remove('onChange', 'fileActionSlider');
+  }
+
+  onRender(): void {
+    this.initSlider();
+  }
+
   protected onListCreate(items: FileItem[], block: HTMLBlockElement | null, options: FilesCreateOptions) {
     const styles = this.getConfig("styles", []) as string[];
 
@@ -165,7 +223,7 @@ export default class Gallery extends Files {
     }
 
     this.setRenderCallback(
-      ["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/bmp"],
+      this.getConfig('imageMimeTypes', []) as string[],
       (item: FileItem): HTMLElement => {
         return make("img", (img: HTMLImageElement) => {
           img.src = item.url;
@@ -174,18 +232,18 @@ export default class Gallery extends Files {
     );
 
     this.setRenderCallback(
-      ["video/mp4", "video/webm", "video/ogg", "video/mpeg", "video/quicktime", "video/x-msvideo"],
+      this.getConfig('videoMimeTypes', []) as string[],
       (item: FileItem): HTMLElement => {
         const videoContainer = make("div", (vc: HTMLDivElement) => {
           const video = make("video", (video: HTMLVideoElement) => {
-              append(
-                video,
-                make("source", (source: HTMLSourceElement) => {
-                  source.src = item.url;
-                  attr(source, "type", item.type);
-                })
-              );
-            }),
+            append(
+              video,
+              make("source", (source: HTMLSourceElement) => {
+                source.src = item.url;
+                attr(source, "type", item.type);
+              })
+            );
+          }),
             playIcon = make("div", (div: HTMLDivElement) => {
               addClass(div, "tex-gallery-item-play");
               div.innerHTML = renderIcon(IconPlay, {

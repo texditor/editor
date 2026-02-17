@@ -43,5 +43,8 @@ export const EnLocale = {
   redo: "Redo",
   select: "Select",
   convert: "Convert",
-  marker: "Marker"
+  marker: "Marker",
+  downloadFile: "Download file",
+  moveLeft: "Move left",
+  moveRight: "Move right"
 };

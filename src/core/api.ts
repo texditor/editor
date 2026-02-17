@@ -69,6 +69,7 @@ export default class API {
         (item: HTMLElement) => {
           const block = item as HTMLBlockElement;
           block.blockModel.onRender();
+          block.blockModel.__onRenderComplete__();
         },
         editorElement
       );

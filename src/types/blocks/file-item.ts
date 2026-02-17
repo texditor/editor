@@ -4,6 +4,7 @@ export interface FileItem {
   thumbnail?: string;
   caption?: string;
   desc?: string;
+  name?: string;
   size?: number;
   id?: number;
   [key: string]: unknown;
