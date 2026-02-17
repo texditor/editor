@@ -1,6 +1,7 @@
+import type { ToolModelInterface } from "@/types";
 import { IconSubscript } from "@/icons";
 import ToolModel from "@/core/models/tool-model";
-import { ToolModelInterface } from "@/types/core/models";
+
 export default class SubscriptTool extends ToolModel implements ToolModelInterface {
   name: string = "subscript";
   protected tagName: string = "sub";

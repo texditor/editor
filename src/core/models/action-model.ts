@@ -1,6 +1,9 @@
+import type {
+  ActionModelInterface,
+  RenderIconContent,
+  TexditorInterface
+} from "@/types";
 import { IconArrowRight } from "@/icons";
-import Texditor from "@/texditor";
-import { ActionModelInterface, RenderIconContent } from "@/types";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, make } from "@/utils/dom";
 import { on } from "@/utils/events";
@@ -9,13 +12,13 @@ import { renderIcon } from "@/utils/icon";
 export default class ActionModel implements ActionModelInterface {
   name: string = "";
   protected translation: string = "";
-  protected editor: Texditor;
+  protected editor: TexditorInterface;
   protected icon: RenderIconContent = "";
   protected menu: boolean = false;
   protected confirm: boolean = false;
   private randomId: string = generateRandomString(10);
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.onLoad();
     this.editor.events.add("actions:render:end", () => {

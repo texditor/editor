@@ -1,21 +1,23 @@
-import Texditor from "@/texditor";
+import type {
+  CommandsInterface,
+  TexditorInterface,
+  ToolModelInterface
+} from '@/types';
 import { generateRandomString } from "@/utils/common";
 import { addClass, attr, make } from "@/utils/dom";
 import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
-import Commands from "../commands";
-import { ToolModelInterface } from "@/types/core/models";
 
 export default class ToolModel implements ToolModelInterface {
   name: string = "";
   protected tagName: string = "";
   protected translation?: string;
-  protected editor: Texditor;
+  protected editor: TexditorInterface;
   protected icon: string = "";
   protected detectActive: boolean = true;
   private randomId: string = generateRandomString(10);
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.onLoad();
 
@@ -30,7 +32,7 @@ export default class ToolModel implements ToolModelInterface {
     });
   }
 
-  onLoad(): void {}
+  onLoad(): void { }
 
   formatAction(callback: CallableFunction) {
     const tagName = this.getTagName(),
@@ -47,14 +49,14 @@ export default class ToolModel implements ToolModelInterface {
   }
 
   format(onlyRemove: boolean = false): void {
-    this.formatAction((tagName: string, commands: Commands) => {
+    this.formatAction((tagName: string, commands: CommandsInterface) => {
       if (onlyRemove) commands.removeFormat(tagName);
       else commands.format(tagName);
     });
   }
 
   forcedFormat(): void {
-    this.formatAction((tagName: string, commands: Commands) => {
+    this.formatAction((tagName: string, commands: CommandsInterface) => {
       commands.createFormat(tagName);
     });
   }
@@ -64,10 +66,10 @@ export default class ToolModel implements ToolModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) {}
+  onClick(evt: Event) { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onAfterFormat(tags: HTMLElement[]): void {}
+  onAfterFormat(tags: HTMLElement[]): void { }
 
   handleClick(evt: Event): void {
     const { events } = this.editor;
@@ -106,15 +108,15 @@ export default class ToolModel implements ToolModelInterface {
       addClass(
         el,
         cssName +
-          " tool-tag-" +
-          this.getTagName() +
-          " " +
-          "tool-name-" +
-          this.getName() +
-          " " +
-          cssName +
-          "-" +
-          this.getName()
+        " tool-tag-" +
+        this.getTagName() +
+        " " +
+        "tool-name-" +
+        this.getName() +
+        " " +
+        cssName +
+        "-" +
+        this.getName()
       );
 
       attr(el, "title", i18n.get(this.translation || this.getName()));
@@ -144,5 +146,5 @@ export default class ToolModel implements ToolModelInterface {
     return true;
   }
 
-  destroy(): void {}
+  destroy(): void { }
 }

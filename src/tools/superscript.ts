@@ -1,6 +1,6 @@
+import type { ToolModelInterface } from "@/types";
 import { IconSuperscript } from "@/icons";
 import SubscriptTool from "./subscript";
-import { ToolModelInterface } from "@/types/core/models";
 
 export default class SuperscriptTool extends SubscriptTool implements ToolModelInterface {
   name: string = "superscript";

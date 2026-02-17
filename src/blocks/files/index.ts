@@ -1,22 +1,45 @@
-import { BlockModelInterface, FileActionModelInstanceInterface, FileActionModelInterface } from "@/types/core/models";
-import { FilesCreateOptions, FileItem } from "@/types/blocks";
+import type {
+  BlockModelInterface,
+  FileActionModelInstanceInterface,
+  FileActionModelInterface,
+  FilesCreateOptions,
+  FileItem,
+  OutputBlockItem,
+  HTMLBlockElement,
+  Response
+} from "@/types";
+
 import BlockModel from "@/core/models/block-model";
-import "@/styles/blocks/files.css";
-import { OutputBlockItem } from "@/types/output";
-import { addClass, append, attr, closest, css, hasClass, html, make, prepend, query, queryLength } from "@/utils/dom";
-import { HTMLBlockElement } from "@/types/core";
+import {
+  addClass,
+  append,
+  attr,
+  closest,
+  css,
+  hasClass,
+  html,
+  make,
+  prepend,
+  query,
+  queryLength
+} from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
-import { decodeHtmlSpecialChars, encodeHtmlSpecialChars, formatBytes, generateRandomString } from "@/utils/common";
+import {
+  decodeHtmlSpecialChars,
+  encodeHtmlSpecialChars,
+  formatBytes,
+  generateRandomString
+} from "@/utils/common";
 import { off, on } from "@/utils/events";
 import { IconClose, IconFile, IconPlus } from "@/icons";
 import { renderIcon } from "@/utils/icon";
 import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
-import { Response } from "@/types";
 import MoveRightFileAction from "./actions/MoveRightFileAction";
 import MoveLeftFileAction from "./actions/MoveLeftFileAction";
 import DeleteFileAction from "./actions/DeleteFileAction";
 import EditFileAction from "./actions/EditFileAction";
 import DownloadFileAction from './actions/DownloadFileAction'
+import "@/styles/blocks/files.css";
 
 export {
   MoveRightFileAction,
@@ -102,7 +125,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   __onRenderComplete__(): void {
-    this.editor.events.trigger("file:actions:render:end");
+    this.editor.events.trigger("file:actions:render:end", { block: this.getElement() as HTMLBlockElement });
   }
 
   protected onListCreate(items: FileItem[], block: HTMLBlockElement | null, options: FilesCreateOptions) {
@@ -795,7 +818,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
           events.change({
             type: "upload",
             success: true,
-            response: response
+            response: response,
+            fileAction: true
           });
         })
         .catch((error) => {
@@ -806,7 +830,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
           events.change({
             type: "upload",
             success: false,
-            error: error
+            error: error,
+            fileAction: true
           });
         });
     }

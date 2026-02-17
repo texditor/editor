@@ -1,5 +1,5 @@
-import Texditor from "@/texditor";
+import type { TexditorInterface } from "@/types";
 
-export default function ExtensionsView(editor: Texditor): HTMLElement | Node {
+export default function ExtensionsView(editor: TexditorInterface): HTMLElement | Node {
   return editor.extensions.render();
 }

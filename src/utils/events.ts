@@ -1,5 +1,5 @@
+import type { EventHandler } from "@/types";
 import { eventStore } from "@/store/eventStore";
-import { EventHandler } from "@/types/utils";
 
 export function on<T extends Event>(
   element: EventTarget,

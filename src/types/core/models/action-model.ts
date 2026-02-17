@@ -1,3 +1,8 @@
+import type { TexditorInterface } from "@/types";
+export interface ActionModelInstanceInterface {
+  new(editor: TexditorInterface): ActionModelInterface;
+}
+
 export interface ActionModelInterface {
   onLoad(): void;
   create(): HTMLElement;

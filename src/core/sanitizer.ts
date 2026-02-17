@@ -1,5 +1,8 @@
-import { SanitizerConfig, TransformerContext, TransformerOutput } from "@/types/core/sanitizer";
-
+import type {
+  SanitizerConfig,
+  TransformerContext,
+  TransformerOutput
+} from "@/types";
 export default class Sanitizer {
   static REGEX_PROTOCOL = /^([A-Za-z0-9+\-.&;*\s]*?)(?::|&*0*58|&*x0*3a)/i;
   static RELATIVE = "**";

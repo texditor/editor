@@ -1,6 +1,19 @@
-import "@/styles/tex.css";
-import "@/styles/animations.css";
-import { ConfigStore } from "@/types/core";
+import type {
+  BlockManagerInterface,
+  CommandsInterface,
+  ConfigInterface,
+  TexditorInterface,
+  SelectionAPIInterface,
+  APIInterface,
+  EventsInterface,
+  ParserInterface,
+  ToolbarInterface,
+  ActionsInterface,
+  I18NInterface,
+  HistoryManagerInterface,
+  ExtensionsInterface,
+  ConfigStoreInterface
+} from "./types";
 import Events from "@/core/events";
 import BlockManager from "@/core/block-manager";
 import Config from "@/core/config";
@@ -13,25 +26,27 @@ import API from "@/core/api";
 import Commands from "@/core/commands";
 import HistoryManager from "@/core/history-manager";
 import Extensions from "./core/extensions";
+import "@/styles/tex.css";
+import "@/styles/animations.css";
 
 export * from "./types";
 export * from "./utils";
 
-export default class Texditor {
-  config: Config;
-  blockManager: BlockManager;
-  selectionApi: SelectionAPI;
-  api: API;
-  events: Events;
-  parser: Parser;
-  toolbar: Toolbar;
-  actions: Actions;
-  i18n: I18N;
-  commands: Commands;
-  historyManager: HistoryManager;
-  extensions: Extensions;
+export default class Texditor implements TexditorInterface {
+  config: ConfigInterface;
+  blockManager: BlockManagerInterface;
+  selectionApi: SelectionAPIInterface;
+  api: APIInterface;
+  events: EventsInterface;
+  parser: ParserInterface;
+  toolbar: ToolbarInterface;
+  actions: ActionsInterface;
+  i18n: I18NInterface;
+  commands: CommandsInterface;
+  historyManager: HistoryManagerInterface;
+  extensions: ExtensionsInterface;
 
-  constructor(config: ConfigStore) {
+  constructor(config: ConfigStoreInterface) {
     this.config = new Config(config);
     this.i18n = new I18N(this);
     this.api = new API(this);

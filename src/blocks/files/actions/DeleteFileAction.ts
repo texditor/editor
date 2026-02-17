@@ -1,5 +1,8 @@
+import type {
+  FileActionModelInterface,
+  RenderIconContent
+} from "@/types";
 import { IconTrash } from "@/icons";
-import type { FileActionModelInterface, RenderIconContent } from "@/types";
 import FileActionModel from "@/core/models/file-action-model";
 import Files from "..";
 

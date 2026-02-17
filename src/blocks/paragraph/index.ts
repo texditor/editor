@@ -1,8 +1,10 @@
-import { BlockModelInterface } from "@/types/core/models";
+import type {
+  BlockModelInterface,
+  ParagraphCreateOptions,
+  HTMLBlockElement
+} from "@/types";
 import BlockModel from "@/core/models/block-model";
-import { ParagraphCreateOptions } from "@/types/blocks";
 import "@/styles/blocks/paragraph.css";
-import { HTMLBlockElement } from "@/types/core";
 import { IconParagraph } from "@/icons";
 
 export default class Paragraph extends BlockModel implements BlockModelInterface {

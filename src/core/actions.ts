@@ -1,18 +1,21 @@
-import Texditor from "@/texditor";
+import type {
+  ActionsInterface,
+  ActionModelInstanceInterface,
+  TexditorInterface
+} from '@/types'
 import { append, closest, css, make, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import DeleteAction from "@/actions/delete-action";
-import { ActionModelInstanceInterface } from "@/types/core/models";
 import MoveUpAction from "@/actions/moveup-action";
 import MoveDownAction from "@/actions/movedown-action";
 import CreateAction from "@/actions/create-action";
 import ConvertAction from "@/actions/convert-action";
 
-export default class Actions {
-  private editor: Texditor;
+export default class Actions implements ActionsInterface {
+  private editor: TexditorInterface;
   private actions: ActionModelInstanceInterface[] = [];
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.show = this.show.bind(this);
     this.handleClose = this.handleClose.bind(this);

@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 package-lock.json
 .env
-tests
+demo

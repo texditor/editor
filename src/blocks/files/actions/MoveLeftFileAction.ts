@@ -1,5 +1,8 @@
+import type {
+  FileActionModelInterface,
+  RenderIconContent
+} from "@/types";
 import { IconArrowLeft } from "@/icons";
-import type { FileActionModelInterface, RenderIconContent } from "@/types";
 import FileActionModel from "@/core/models/file-action-model";
 
 export default class MoveLeftFileAction extends FileActionModel implements FileActionModelInterface {

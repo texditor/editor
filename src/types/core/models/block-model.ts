@@ -1,7 +1,62 @@
-import { OutputBlockItem } from "@/types/output";
-import { HTMLBlockElement } from "@/types/core";
-import { BlockModelConfig } from "@/types/core/models";
+import type {
+  OutputBlockItem,
+  HTMLBlockElement,
+} from "@/types";
 import BlockModel from "@/core/models/block-model";
+
+import type {
+  TexditorInterface,
+} from "@/types";
+
+export interface BlockModelInstanceInterface {
+  new(editor: TexditorInterface): BlockModelInterface;
+}
+
+export interface BlockModelStructure {
+  instance: BlockModelInstanceInterface;
+  model: BlockModelInterface;
+  type: string;
+  types: string[];
+  translation: string;
+  icon: string;
+}
+
+export interface BlockModelStructure {
+  instance: BlockModelInstanceInterface;
+  model: BlockModelInterface;
+  type: string;
+  types: string[];
+  translation: string;
+  icon: string;
+}
+
+
+export interface BlockModelConfig {
+  autoMerge: boolean;
+  icon: string;
+  autoParse: boolean;
+  translationCode: string;
+  backspaceRemove: boolean;
+  cssClasses: string;
+  toolbar: boolean;
+  tools: unknown[];
+  editable: boolean;
+  editableChilds: boolean;
+  isEnterCreate: boolean;
+  rawOutput: boolean;
+  sanitizer: boolean;
+  sanitizerConfig: Record<string, unknown>;
+  tagName: string;
+  textArea: boolean;
+  type: string;
+  relatedTypes: string[];
+  emptyDetect: boolean;
+  preformatted: boolean;
+  customSave: boolean;
+  normalize: boolean;
+  placeholder?: string;
+  [key: string]: unknown;
+}
 
 export interface BlockModelInterface {
   create(options?: object | null): HTMLElement | null;

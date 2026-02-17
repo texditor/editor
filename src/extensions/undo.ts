@@ -1,7 +1,6 @@
+import type { RenderIconContent, ExtensionModelInterface } from "@/types";
 import ExtensionModel from "@/core/models/extension-model";
 import { IconUndo } from "@/icons";
-import { RenderIconContent } from "@/types";
-import { ExtensionModelInterface } from "@/types/core/models";
 
 export default class Undo extends ExtensionModel implements ExtensionModelInterface {
   name: string = "undo";

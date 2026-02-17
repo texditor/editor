@@ -1,5 +1,10 @@
-import Texditor from "@/texditor";
-import type { BlockModelInterface, FileActionModelInterface, HTMLBlockElement, RenderIconContent } from "@/types";
+import type {
+  BlockModelInterface,
+  FileActionModelInterface,
+  HTMLBlockElement,
+  RenderIconContent,
+  TexditorInterface
+} from "@/types";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, make, query } from "@/utils/dom";
 import { on } from "@/utils/events";
@@ -11,7 +16,7 @@ export default class FileActionModel implements FileActionModelInterface {
   protected translation: string = "";
   protected defaultTitle: string = "";
   protected tagName: string = "div";
-  protected editor: Texditor;
+  protected editor: TexditorInterface;
   protected icon: RenderIconContent = "";
   protected prepare: boolean = false;
   private randomId: string = generateRandomString(10);
@@ -20,7 +25,7 @@ export default class FileActionModel implements FileActionModelInterface {
   private currentBlock: HTMLBlockElement;
 
   constructor(
-    editor: Texditor,
+    editor: TexditorInterface,
     item: HTMLElement,
     container: HTMLElement,
     fileBlock: HTMLBlockElement

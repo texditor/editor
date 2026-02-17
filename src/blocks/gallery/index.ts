@@ -1,15 +1,32 @@
-import { FileItem, FilesCreateOptions } from "@/types/blocks";
+import type {
+  FileItem,
+  FilesCreateOptions,
+  TexditorEvent,
+  HTMLBlockElement,
+  OutputBlockItem
+} from "@/types";
 import Files from "../files";
-import { addClass, append, attr, make, prepend, query, removeClass } from "@/utils/dom";
-import { EditorEvent, HTMLBlockElement } from "@/types/core";
-import { IconGallery, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from "@/icons";
+import {
+  addClass,
+  append,
+  attr,
+  make,
+  prepend,
+  query,
+  removeClass
+} from "@/utils/dom";
+import {
+  IconGallery,
+  IconMultipleGrid,
+  IconPlay,
+  IconSingleGrid,
+  IconSlider
+} from "@/icons";
 import "@/styles/blocks/galllery.css";
 import { renderIcon } from "@/utils/icon";
 import { off, on } from "@/utils/events";
-import { OutputBlockItem } from "@/types/output";
 import '@/styles/slider.css';
 import Slider from "@/core/slider";
-import Texditor from "@/texditor";
 
 export default class Gallery extends Files {
   private defaultStyles: string[] = ["grid", "slider", "single"];
@@ -188,15 +205,14 @@ export default class Gallery extends Files {
           onChange: onChange
         });
       }, block)
-      events.add('onChange.fileAction', (
-        editor: Texditor,
-        evt: EditorEvent
-      ) => {
-        const lastIndex = evt.index || 0;
+      events.add('onChange.fileAction', (evt: TexditorEvent) => {
+        if (evt?.fileAction) {
+          const lastIndex = evt.index || 0;
 
-        this.destroySlider();
-        this.initSlider(true, onChange)
-        this.slider?.goToSlide(lastIndex);
+          this.destroySlider();
+          this.initSlider(true, onChange)
+          this.slider?.goToSlide(lastIndex);
+        }
       })
     }
   }

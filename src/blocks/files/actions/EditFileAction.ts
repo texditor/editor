@@ -1,5 +1,8 @@
+import type {
+  FileActionModelInterface,
+  RenderIconContent
+} from "@/types";
 import { IconPencil } from "@/icons";
-import type { FileActionModelInterface, RenderIconContent } from "@/types";
 import FileActionModel from "@/core/models/file-action-model";
 import { addClass, append, attr, closest, css, html, make, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";

@@ -1,10 +1,13 @@
+import type {
+  RenderIconContent,
+  ActionModelInterface,
+  BlockModelStructure
+} from "@/types";
 import { IconPlus } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 import { addClass, make } from "@/utils/dom";
 import { off, on } from "@/utils/events";
-import { ActionModelInterface, BlockModelStructure } from "@/types/core/models";
 import BlockModel from "@/core/models/block-model";
-import { RenderIconContent } from "@/types";
 
 export default class CreateAction extends ActionModel implements ActionModelInterface {
   name: string = "createAction";

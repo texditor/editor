@@ -1,15 +1,18 @@
-import Texditor from "@/texditor";
-import { HTMLBlockElement } from "@/types/core";
-import { OutputBlockItem } from "@/types/output";
+import type {
+  HTMLBlockElement,
+  TexditorInterface,
+  OutputBlockItem,
+  SanitizerConfig,
+  BlockModelConfig,
+  BlockModelInterface
+} from "@/types";
 import { addClass, append, appendText, getChildNodes, getElementText, make } from "@/utils/dom";
 import Sanitizer from "../sanitizer";
-import { SanitizerConfig } from "@/types/core/sanitizer";
-import { BlockModelConfig, BlockModelInterface } from "@/types/core/models";
 import { renderIcon } from "@/utils/icon";
 
 export default class BlockModel implements BlockModelInterface {
   protected id: string = "";
-  protected editor: Texditor;
+  protected editor: TexditorInterface;
   protected store: Record<string, unknown> = {};
   private static userConfig: Partial<BlockModelConfig> = {};
   private config: Partial<BlockModelConfig> = {
@@ -38,7 +41,7 @@ export default class BlockModel implements BlockModelInterface {
     convertible: false
   };
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.config = {
       ...this.config,

@@ -1,5 +1,4 @@
-import { RenderIconContent, RenderIconOptions } from "@/types";
-
+import type { RenderIconContent, RenderIconOptions } from "@/types";
 
 export function renderIcon(
   content: RenderIconContent,

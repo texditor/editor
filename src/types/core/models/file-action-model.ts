@@ -1,5 +1,16 @@
-import { HTMLBlockElement } from "../html-block-element";
-import { BlockModelInterface } from "./block-model";
+import type {
+  TexditorInterface,
+  HTMLBlockElement,
+  BlockModelInterface
+} from "@/types";
+export interface FileActionModelInstanceInterface {
+  new(
+    editor: TexditorInterface,
+    item: HTMLElement,
+    container: HTMLElement,
+    fileBlock: HTMLBlockElement
+  ): FileActionModelInterface;
+}
 
 export interface FileActionModelInterface {
   onLoad(): void;

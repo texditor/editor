@@ -1,12 +1,14 @@
-import { BlockModelInterface } from "@/types/core/models";
+import type {
+  BlockModelInterface,
+  OutputBlockItem,
+  HTMLBlockElement,
+  CodeCreateOptions
+} from "@/types";
 import BlockModel from "@/core/models/block-model";
-import { CodeCreateOptions } from "@/types/blocks/code-create-options";
-import "@/styles/blocks/code.css";
-import { OutputBlockItem } from "@/types/output";
-import { HTMLBlockElement } from "@/types/core";
 import { appendText } from "@/utils/dom";
 import { IconCode } from "@/icons";
 import { decodeHtmlSpecialChars } from "@/utils/common";
+import "@/styles/blocks/code.css";
 
 export default class Code extends BlockModel implements BlockModelInterface {
   configure() {

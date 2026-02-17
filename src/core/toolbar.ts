@@ -1,7 +1,10 @@
-import Texditor from "@/texditor";
+import type {
+  TexditorInterface,
+  ToolbarInterface,
+  ToolModelInstanceInterface
+} from '@/types'
 import { addClass, append, css, hasClass, query, removeClass } from "@/utils/dom";
 import { off, on } from "@/utils/events";
-import { ToolModelInstanceInterface } from "@/types/core/models";
 import { isEmptyString } from "@/utils/string";
 import { detectMobileOS, getCaretPosition } from "@/utils/common";
 import {
@@ -14,11 +17,11 @@ import {
   SuperscriptTool,
   ClearFormatingTool
 } from "@/tools";
-export default class Toolbar {
-  private editor: Texditor;
+export default class Toolbar implements ToolbarInterface {
+  private editor: TexditorInterface;
   private tools: ToolModelInstanceInterface[] = [];
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.show = this.show.bind(this);
 
