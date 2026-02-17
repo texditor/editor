@@ -6,7 +6,9 @@ export interface SanitizerConfig {
   addAttributes?: Record<string, Record<string, string>>;
   dom?: Document;
   removeContents?: string[] | boolean;
-  transformers?: Array<(context: TransformerContext) => TransformerOutput | null>;
+  transformers?: Array<
+    (context: TransformerContext) => TransformerOutput | null
+  >;
   removeAllContents?: boolean;
   removeElementContents?: object;
 }

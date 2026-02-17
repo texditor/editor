@@ -2,7 +2,7 @@ import type {
   ActionsInterface,
   ActionModelInstanceInterface,
   TexditorInterface
-} from '@/types'
+} from "@/types";
 import { append, closest, css, make, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import DeleteAction from "@/actions/delete-action";
@@ -20,7 +20,10 @@ export default class Actions implements ActionsInterface {
     this.show = this.show.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.repositionBar = this.repositionBar.bind(this);
-    const actions = this.editor.config.get("actions", []) as ActionModelInstanceInterface[];
+    const actions = this.editor.config.get(
+      "actions",
+      []
+    ) as ActionModelInstanceInterface[];
 
     if (actions.length) {
       actions.forEach((toolModel: ActionModelInstanceInterface) => {
@@ -63,8 +66,14 @@ export default class Actions implements ActionsInterface {
             windowHeight = window.innerHeight,
             elementHeight = el.offsetHeight;
 
-          const leftOffset = windowWidth <= 768 ? 0 : (config.get("actionsLeftOffset", 24) as number),
-            offsetTop = windowWidth <= 768 ? 0 : (config.get("actionsTopOffset", 0) as number);
+          const leftOffset =
+              windowWidth <= 768
+                ? 0
+                : (config.get("actionsLeftOffset", 24) as number),
+            offsetTop =
+              windowWidth <= 768
+                ? 0
+                : (config.get("actionsTopOffset", 0) as number);
 
           const setDirecton = (dir: string) => {
             query(
@@ -124,7 +133,11 @@ export default class Actions implements ActionsInterface {
         root
       );
 
-      query(cssName + "-container > " + cssAction + "-confirm", (el: HTMLElement) => el.remove(), root);
+      query(
+        cssName + "-container > " + cssAction + "-confirm",
+        (el: HTMLElement) => el.remove(),
+        root
+      );
 
       if (status) this.hide();
 
@@ -182,7 +195,11 @@ export default class Actions implements ActionsInterface {
       cssName = api.css("actions");
 
     if (root) {
-      query(cssName + " " + cssName + "-wrap", (el: HTMLElement) => callback(el, cssName), root);
+      query(
+        cssName + " " + cssName + "-wrap",
+        (el: HTMLElement) => callback(el, cssName),
+        root
+      );
     }
 
     events.refresh();
@@ -196,7 +213,7 @@ export default class Actions implements ActionsInterface {
       css(el, "display", "block");
       off(document, "click.actions" + uniqueId);
       on(document, "click.actions" + uniqueId, this.handleClose);
-      setTimeout(() => this.repositionBar(), 100);
+      setTimeout(() => this.repositionBar(), 10);
     });
   }
 

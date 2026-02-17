@@ -7,7 +7,10 @@ import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/paragraph.css";
 import { IconParagraph } from "@/icons";
 
-export default class Paragraph extends BlockModel implements BlockModelInterface {
+export default class Paragraph
+  extends BlockModel
+  implements BlockModelInterface
+{
   configure() {
     return {
       icon: IconParagraph,
@@ -15,7 +18,10 @@ export default class Paragraph extends BlockModel implements BlockModelInterface
       translationCode: "paragraph",
       tagName: "p",
       type: "p",
-      placeholder: this.editor.i18n.get("paragraphPlaceholder", "Enter your text"),
+      placeholder: this.editor.i18n.get(
+        "paragraphPlaceholder",
+        "Enter your text"
+      ),
       editable: true,
       toolbar: true,
       sanitizer: true,

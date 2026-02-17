@@ -8,7 +8,9 @@ export function css(
   let result = "";
 
   const toCamelCase = (str: string): string => {
-    return str.replace(/-+(.)?/g, (_, chr: string) => (chr ? chr.toUpperCase() : ""));
+    return str.replace(/-+(.)?/g, (_, chr: string) =>
+      chr ? chr.toUpperCase() : ""
+    );
   };
 
   const addPxSuffix = (value: string | number): string => {
@@ -29,28 +31,41 @@ export function css(
         if (camelCaseProp in element.style) {
           const styleKey = camelCaseProp as keyof CSSStyleDeclaration;
 
-          if (typeof element.style[styleKey] === "string" || typeof element.style[styleKey] === "undefined") {
+          if (
+            typeof element.style[styleKey] === "string" ||
+            typeof element.style[styleKey] === "undefined"
+          ) {
             element.style.setProperty(prop, addPxSuffix(value));
           }
         }
       }
     } else {
-      result = window.getComputedStyle(element, "").getPropertyValue(prop) || "";
+      result =
+        window.getComputedStyle(element, "").getPropertyValue(prop) || "";
     }
   }
 
   return result;
 }
 
-export function hasClass(element: HTMLElement | EventTarget | null, className: string): boolean {
+export function hasClass(
+  element: HTMLElement | EventTarget | null,
+  className: string
+): boolean {
   if (!element || !(element instanceof HTMLElement)) {
     return false;
   }
 
-  return !!element.className.match(new RegExp("(\\s|^)" + className + "(\\s|$)"));
+  return !!element.className.match(
+    new RegExp("(\\s|^)" + className + "(\\s|$)")
+  );
 }
 
-export function setClass(el: HTMLElement, className: string, active: boolean | number = true) {
+export function setClass(
+  el: HTMLElement,
+  className: string,
+  active: boolean | number = true
+) {
   let name = el.className;
 
   if (el) {
@@ -99,7 +114,10 @@ export function query(
   return elements.length;
 }
 
-export function queryList(selector: string, context: HTMLElement | Document | undefined = document) {
+export function queryList(
+  selector: string,
+  context: HTMLElement | Document | undefined = document
+) {
   const list: HTMLElement[] = [];
 
   query(selector, (el: HTMLElement) => list.push(el), context);
@@ -107,7 +125,10 @@ export function queryList(selector: string, context: HTMLElement | Document | un
   return list;
 }
 
-export function queryLength(selector: string, context: HTMLElement | Document | undefined = document): number {
+export function queryLength(
+  selector: string,
+  context: HTMLElement | Document | undefined = document
+): number {
   let length = 0;
 
   query(selector, () => length++, context);
@@ -117,12 +138,15 @@ export function queryLength(selector: string, context: HTMLElement | Document | 
 
 export function html(el: HTMLElement, value?: string | null): string;
 export function html(el: HTMLElement, value: string): HTMLElement;
-export function html(el: HTMLElement, value?: string | null): HTMLElement | string {
+export function html(
+  el: HTMLElement,
+  value?: string | null
+): HTMLElement | string {
   if (value != null) {
     el.innerHTML = value;
     return el;
   }
-  
+
   return el.innerHTML;
 }
 
@@ -130,8 +154,10 @@ export function append(
   el: Node | Element | HTMLElement,
   child: HTMLElement | Node | NodeList | Node[]
 ): Element | HTMLElement | Node {
-  if (child instanceof NodeList) child.forEach((item: Node) => append(el, item));
-  else if (Array.isArray(child)) Array.from(child).forEach((item: Node) => append(el, item));
+  if (child instanceof NodeList)
+    child.forEach((item: Node) => append(el, item));
+  else if (Array.isArray(child))
+    Array.from(child).forEach((item: Node) => append(el, item));
   else el.appendChild(child);
 
   return el;
@@ -176,7 +202,10 @@ export function closest(
   return false;
 }
 
-export function appendText(el: Node | Element | HTMLElement, text: string): Node | Element | HTMLElement {
+export function appendText(
+  el: Node | Element | HTMLElement,
+  text: string
+): Node | Element | HTMLElement {
   return append(el, document.createTextNode(text));
 }
 
@@ -188,8 +217,12 @@ export function mergeAdjacentTextNodes(element: HTMLElement): void {
     const currentNode = childNodes[i],
       nextNode = childNodes[i + 1];
 
-    if (currentNode.nodeType === Node.TEXT_NODE && nextNode.nodeType === Node.TEXT_NODE) {
-      const combinedText = (currentNode.textContent || "") + (nextNode.textContent || ""),
+    if (
+      currentNode.nodeType === Node.TEXT_NODE &&
+      nextNode.nodeType === Node.TEXT_NODE
+    ) {
+      const combinedText =
+          (currentNode.textContent || "") + (nextNode.textContent || ""),
         newTextNode = document.createTextNode(combinedText);
 
       element.replaceChild(newTextNode, currentNode);
@@ -215,13 +248,18 @@ export function replaceWithChildren(element: HTMLElement): void {
   parent.removeChild(element);
 }
 
-export function findDatasetsWithPrefix(element: HTMLElement, prefix: string): Record<string, string | number> {
+export function findDatasetsWithPrefix(
+  element: HTMLElement,
+  prefix: string
+): Record<string, string | number> {
   const result: Record<string, string | number> = {};
   const dataPrefix = `data-${prefix}`;
 
   Array.from(element.attributes).forEach((attr) => {
     if (attr.name.startsWith(dataPrefix)) {
-      const key = attr.name.replace(`${dataPrefix}-`, "").replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      const key = attr.name
+        .replace(`${dataPrefix}-`, "")
+        .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 
       const value = isNaN(Number(attr.value)) ? attr.value : Number(attr.value);
       result[key] = value;

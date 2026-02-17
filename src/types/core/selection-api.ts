@@ -22,10 +22,18 @@ export interface SelectionAPIInterface {
   getTextareaCursor(input: HTMLTextAreaElement): CursorPosition;
 
   // Selection methods
-  select(startPos: number, endPos: number, container?: Element, scrollToContainer?: boolean): void;
+  select(
+    startPos: number,
+    endPos: number,
+    container?: Element,
+    scrollToContainer?: boolean
+  ): void;
   insertText(content: string, cleanHtml?: boolean): boolean;
   splitContent(container?: HTMLElement | null): string;
-  findTags(container: Element | HTMLElement, childrens?: boolean): HTMLElement[];
+  findTags(
+    container: Element | HTMLElement,
+    childrens?: boolean
+  ): HTMLElement[];
 
   // Selection retrieval methods
   getSelection(): Selection | null;

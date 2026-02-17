@@ -6,7 +6,14 @@ import type {
   BlockModelConfig,
   BlockModelInterface
 } from "@/types";
-import { addClass, append, appendText, getChildNodes, getElementText, make } from "@/utils/dom";
+import {
+  addClass,
+  append,
+  appendText,
+  getChildNodes,
+  getElementText,
+  make
+} from "@/utils/dom";
 import Sanitizer from "../sanitizer";
 import { renderIcon } from "@/utils/icon";
 
@@ -61,10 +68,17 @@ export default class BlockModel implements BlockModelInterface {
     return null;
   }
 
-  protected make(tagName: string, callback: CallableFunction): HTMLBlockElement | HTMLElement {
+  protected make(
+    tagName: string,
+    callback: CallableFunction
+  ): HTMLBlockElement | HTMLElement {
     return make(tagName, (el: HTMLBlockElement) => {
       const classList = this.getConfig("cssClasses", "");
-      addClass(el, "tex-block" + (classList ? " " + classList : " tex-" + this.getConfig("type")));
+      addClass(
+        el,
+        "tex-block" +
+          (classList ? " " + classList : " tex-" + this.getConfig("type"))
+      );
 
       el.id = this.getId();
       el.dataset.tagName = this.getConfig("tagName");
@@ -74,7 +88,8 @@ export default class BlockModel implements BlockModelInterface {
 
       if (this.isEditable()) el.contentEditable = "true";
 
-      if (this.getConfig("placeholder")) el.dataset.placeholder = this.getConfig("placeholder");
+      if (this.getConfig("placeholder"))
+        el.dataset.placeholder = this.getConfig("placeholder");
 
       Object.defineProperty(el, "blockModel", {
         value: this,
@@ -136,9 +151,15 @@ export default class BlockModel implements BlockModelInterface {
 
   getConfig(key: string, defaultValue: string): string;
   getConfig<K extends keyof BlockModelConfig>(key: K): BlockModelConfig[K];
-  getConfig<K extends keyof BlockModelConfig>(key: K, defaultValue: BlockModelConfig[K]): BlockModelConfig[K];
+  getConfig<K extends keyof BlockModelConfig>(
+    key: K,
+    defaultValue: BlockModelConfig[K]
+  ): BlockModelConfig[K];
   getConfig(key: string, defaultValue: unknown): unknown;
-  getConfig(key: keyof BlockModelConfig | string, defaultValue: unknown = ""): unknown {
+  getConfig(
+    key: keyof BlockModelConfig | string,
+    defaultValue: unknown = ""
+  ): unknown {
     const value = (this.config as Record<string, unknown>)[key];
 
     if (value !== undefined) {
@@ -209,25 +230,30 @@ export default class BlockModel implements BlockModelInterface {
   protected createId(): string {
     const array = new Uint8Array(8);
     crypto.getRandomValues(array);
-    const randomHex = Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    const randomHex = Array.from(array, (byte) =>
+      byte.toString(16).padStart(2, "0")
+    ).join("");
 
     return `${this.getType()}-${randomHex}-${Date.now().toString(36)}`;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  merge(index: number): void { }
+  merge(index: number): void {}
 
   focusChild(): HTMLElement | null {
     return null;
   }
 
-  protected onLoad(): void { }
+  protected onLoad(): void {}
 
   sanitize() {
     if (this.getConfig("sanitizer", false)) {
       const container = this.sanitizerContainer();
       if (container || Array.isArray(container)) {
-        const sanitizerConfig: SanitizerConfig = this.getConfig("sanitizerConfig", {}),
+        const sanitizerConfig: SanitizerConfig = this.getConfig(
+            "sanitizerConfig",
+            {}
+          ),
           sanitizer = new Sanitizer(sanitizerConfig);
 
         if (Array.isArray(container)) {
@@ -249,31 +275,40 @@ export default class BlockModel implements BlockModelInterface {
     return this.getElement();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  editableChild(container?: HTMLElement | null, isCreate: boolean = false): HTMLElement | HTMLElement[] | null {
+  editableChild(
+    container?: HTMLElement | null,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isCreate: boolean = false
+  ): HTMLElement | HTMLElement[] | null {
+    return null;
+  }
+
+  getItem(
+    index: HTMLElement | number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    container: HTMLElement | null = null
+  ): HTMLElement | number | null {
     return null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getItem(index: HTMLElement | number, container: HTMLElement | null = null): HTMLElement | number | null {
-    return null;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setItemIndex(index: number): void { }
+  setItemIndex(index: number): void {}
 
   getItemIndex(): number {
     return 0;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onCreate(newBlock?: HTMLBlockElement | null) { }
+  protected onCreate(newBlock?: HTMLBlockElement | null) {}
 
-  onRender(): void { }
-  __onRenderComplete__(): void { }
+  onRender(): void {}
+  __onRenderComplete__(): void {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  save(block: OutputBlockItem, blockElement?: HTMLElement): OutputBlockItem {
+  save(
+    block: OutputBlockItem,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    blockElement?: HTMLElement
+  ): OutputBlockItem {
     return block;
   }
 
@@ -292,7 +327,10 @@ export default class BlockModel implements BlockModelInterface {
     return key === null ? this.store : this.store[key] || null;
   }
 
-  convert(block: HTMLBlockElement, newBlock: HTMLBlockElement): HTMLBlockElement {
+  convert(
+    block: HTMLBlockElement,
+    newBlock: HTMLBlockElement
+  ): HTMLBlockElement {
     const sanitizerConfig = this.getConfig("sanitizerConfig", {}),
       isSanitize = Object.keys(sanitizerConfig).length,
       isRaw = this.isRawOutput();
@@ -308,9 +346,12 @@ export default class BlockModel implements BlockModelInterface {
     return newBlock;
   }
 
-  toConvert(block: HTMLBlockElement, newBlock: HTMLBlockElement): [HTMLBlockElement, HTMLBlockElement] {
+  toConvert(
+    block: HTMLBlockElement,
+    newBlock: HTMLBlockElement
+  ): [HTMLBlockElement, HTMLBlockElement] {
     return [block, newBlock];
   }
 
-  destroy(): void { }
+  destroy(): void {}
 }

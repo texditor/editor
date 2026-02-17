@@ -7,6 +7,14 @@ export interface ParserInterface {
   htmlToData(html: string): Array<OutputBlockItem | string>;
 
   // Block parsing methods
-  parseBlocks(data: object[], createDefault?: boolean, skipDecode?: boolean): Node[] | [];
-  parseChilds(block: OutputBlockItem, childRender?: boolean, skipDecode?: boolean): Node | Node[];
+  parseBlocks(
+    data: object[],
+    createDefault?: boolean,
+    skipDecode?: boolean
+  ): Node[] | [];
+  parseChilds(
+    block: OutputBlockItem,
+    childRender?: boolean,
+    skipDecode?: boolean
+  ): Node | Node[];
 }

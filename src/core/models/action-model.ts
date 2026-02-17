@@ -30,10 +30,10 @@ export default class ActionModel implements ActionModelInterface {
     });
   }
 
-  onLoad(): void { }
+  onLoad(): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) { }
+  onClick(evt: Event) {}
 
   menuConfig(): {
     title: string;
@@ -61,7 +61,17 @@ export default class ActionModel implements ActionModelInterface {
           element?.insertAdjacentElement(
             "beforebegin",
             make("div", (cfm: HTMLElement) => {
-              addClass(cfm, cssName + " " + cssName + "-confirm " + cssName + "-" + this.getName() + "-confirm");
+              addClass(
+                cfm,
+                cssName +
+                  " " +
+                  cssName +
+                  "-confirm " +
+                  cssName +
+                  "-" +
+                  this.getName() +
+                  "-confirm"
+              );
 
               if (this.icon) {
                 cfm.innerHTML = renderIcon(this.icon, {
@@ -97,7 +107,13 @@ export default class ActionModel implements ActionModelInterface {
   }
 
   getId(): string {
-    return this.editor.api.css("action", false) + "-" + this.getName() + "-" + this.randomId;
+    return (
+      this.editor.api.css("action", false) +
+      "-" +
+      this.getName() +
+      "-" +
+      this.randomId
+    );
   }
 
   getElement(): HTMLElement | null {
@@ -134,7 +150,10 @@ export default class ActionModel implements ActionModelInterface {
       const buttonItems = [
         make("span", (span: HTMLSpanElement) => {
           addClass(span, cssName + "-title");
-          span.textContent = i18n.get(this.translation || this.getName(), this.getName());
+          span.textContent = i18n.get(
+            this.translation || this.getName(),
+            this.getName()
+          );
         })
       ];
 

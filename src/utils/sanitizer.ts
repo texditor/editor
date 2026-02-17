@@ -1,6 +1,6 @@
 /**
  * Sanitizes JSON by removing or escaping control characters and Unicode formatting marks
- * 
+ *
  * @param json - Input JSON as string or object
  * @returns Sanitized JSON string or null if parsing fails
  */
@@ -9,7 +9,12 @@ export function sanitizeJson(json: string | object): string | null {
 
   // Create control characters regex dynamically
   const controlCharsRegex = new RegExp(
-    "[" + String.fromCharCode(0x0000) + "-" + String.fromCharCode(0x001f) + String.fromCharCode(0x007f) + "]",
+    "[" +
+      String.fromCharCode(0x0000) +
+      "-" +
+      String.fromCharCode(0x001f) +
+      String.fromCharCode(0x007f) +
+      "]",
     "g"
   );
 
@@ -42,7 +47,10 @@ export function sanitizeJson(json: string | object): string | null {
   cleaned = cleaned.replace(unicodeControlRegex, "");
 
   // Second pass: escape remaining control characters
-  cleaned = cleaned.replace(controlCharsRegex, (match) => "\\u" + match.charCodeAt(0).toString(16).padStart(4, "0"));
+  cleaned = cleaned.replace(
+    controlCharsRegex,
+    (match) => "\\u" + match.charCodeAt(0).toString(16).padStart(4, "0")
+  );
 
   try {
     return JSON.stringify(JSON.parse(cleaned));

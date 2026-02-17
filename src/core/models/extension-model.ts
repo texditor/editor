@@ -4,7 +4,14 @@ import type {
   TexditorInterface
 } from "@/types";
 import { generateRandomString } from "@/utils/common";
-import { addClass, append, attr, make, removeClass, toggleClass } from "@/utils/dom";
+import {
+  addClass,
+  append,
+  attr,
+  make,
+  removeClass,
+  toggleClass
+} from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
@@ -23,10 +30,10 @@ export default class ExtensionModel implements ExtensionModelInterface {
     this.handleClick = this.handleClick.bind(this);
   }
 
-  onLoad(): void { }
+  onLoad(): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event & { el: EventTarget }): void { }
+  onClick(evt: Event & { el: EventTarget }): void {}
 
   handleClick(evt: Event & { el: EventTarget }) {
     const { api } = this.editor,
@@ -65,7 +72,10 @@ export default class ExtensionModel implements ExtensionModelInterface {
         });
       }
 
-      const title = i18n.get(this.translation || this.getName(), this.getName());
+      const title = i18n.get(
+        this.translation || this.getName(),
+        this.getName()
+      );
 
       attr(el, "title", title);
 
@@ -78,7 +88,13 @@ export default class ExtensionModel implements ExtensionModelInterface {
   }
 
   getId(): string {
-    return this.editor.api.css("extension", false) + "-" + this.getName() + "-" + this.randomId;
+    return (
+      this.editor.api.css("extension", false) +
+      "-" +
+      this.getName() +
+      "-" +
+      this.randomId
+    );
   }
 
   getElement(): HTMLElement | null {

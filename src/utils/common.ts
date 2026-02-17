@@ -1,7 +1,8 @@
 export function generateRandomString(length: number): string {
   let result = "";
 
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+  const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
     charactersLength = characters.length;
 
   for (let i = 0; i < length; i++) {
@@ -11,21 +12,35 @@ export function generateRandomString(length: number): string {
   return result;
 }
 
-export function detectMobileOS(): "android" | "ios" | "windows_phone" | "other" {
+export function detectMobileOS():
+  | "android"
+  | "ios"
+  | "windows_phone"
+  | "other" {
   const ua = navigator.userAgent.toLowerCase();
 
   if (/android/.test(ua) && !/chrome os|cros/.test(ua)) return "android";
-  if (/ipad|iphone|ipod/.test(ua) || (/mac/.test(navigator.platform.toLowerCase()) && navigator.maxTouchPoints > 1))
+
+  // Обновленная проверка для iOS
+  if (
+    /ipad|iphone|ipod/.test(ua) ||
+    (/mac/.test(ua) && navigator.maxTouchPoints > 1)
+  )
     return "ios";
+
   if (/windows phone|iemobile|edge mobile/.test(ua)) return "windows_phone";
 
   return "other";
 }
 
-export function getCaretPosition(event?: PointerEvent | TouchEvent): { x: number; y: number } | null {
+export function getCaretPosition(
+  event?: PointerEvent | TouchEvent
+): { x: number; y: number } | null {
   if (event) {
-    const clientX = "touches" in event ? event.touches[0].clientX : event.clientX;
-    const clientY = "touches" in event ? event.touches[0].clientY : event.clientY;
+    const clientX =
+      "touches" in event ? event.touches[0].clientX : event.clientX;
+    const clientY =
+      "touches" in event ? event.touches[0].clientY : event.clientY;
     return { x: clientX, y: clientY };
   }
 
@@ -54,7 +69,10 @@ export function decodeHtmlSpecialChars(input: string): string {
     "&gt;": ">"
   };
 
-  return input.replace(/&(amp|quot|#039|lt|gt);/g, (match) => entities[match] || match);
+  return input.replace(
+    /&(amp|quot|#039|lt|gt);/g,
+    (match) => entities[match] || match
+  );
 }
 
 export function encodeHtmlSpecialChars(input: string): string {
@@ -77,25 +95,25 @@ export function encodeHtmlSpecialChars(input: string): string {
  */
 export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) {
-    return new Intl.NumberFormat(navigator.language).format(0) + ' B';
+    return new Intl.NumberFormat(navigator.language).format(0) + " B";
   }
 
   const k = 1024;
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 
   const unitTranslations: Record<string, string[]> = {
-    'ru': ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ', 'ПБ', 'ЭБ', 'ЗБ', 'ЙБ'],
-    'uk': ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ', 'ПБ', 'ЕБ', 'ЗБ', 'ЙБ'],
-    'de': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    'fr': ['o', 'Ko', 'Mo', 'Go', 'To', 'Po', 'Eo', 'Zo', 'Yo'],
-    'es': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    'it': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    'pl': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    'zh': ['字节', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    'ja': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    'ko': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    'ar': ['ب', 'ك ب', 'م ب', 'ج ب', 'ت ب', 'ب ب', 'ا ب', 'ز ب', 'ي ب'],
-    'hi': ['बाइट', 'कीबी', 'मीबी', 'गीबी', 'तीबी', 'पीबी', 'ईबी', 'जीबी', 'यीबी']
+    ru: ["Б", "КБ", "МБ", "ГБ", "ТБ", "ПБ", "ЭБ", "ЗБ", "ЙБ"],
+    uk: ["Б", "КБ", "МБ", "ГБ", "ТБ", "ПБ", "ЕБ", "ЗБ", "ЙБ"],
+    de: ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    fr: ["o", "Ko", "Mo", "Go", "To", "Po", "Eo", "Zo", "Yo"],
+    es: ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    it: ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    pl: ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    zh: ["字节", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    ja: ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    ko: ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    ar: ["ب", "ك ب", "م ب", "ج ب", "ت ب", "ب ب", "ا ب", "ز ب", "ي ب"],
+    hi: ["बाइट", "कीबी", "मीबी", "गीबी", "तीबी", "पीबी", "ईबी", "जीबी", "यीबी"]
   };
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -106,7 +124,7 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
     maximumFractionDigits: decimals
   }).format(value);
 
-  const langCode = navigator.language.split('-')[0];
+  const langCode = navigator.language.split("-")[0];
   const localizedUnits = unitTranslations[langCode] || units;
 
   return `${formattedValue} ${localizedUnits[i]}`;

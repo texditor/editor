@@ -73,10 +73,10 @@ export default class Events implements EventsInterface {
     const trigger = this.triggers[name];
     const defaultParams = {
       type: name
-    }
+    };
 
     if (typeof trigger === "object") {
-      const mergedParams = { ...defaultParams, ...params }
+      const mergedParams = { ...defaultParams, ...params };
 
       for (const eventId in trigger) {
         trigger[eventId](mergedParams);
@@ -89,7 +89,8 @@ export default class Events implements EventsInterface {
       blockContainer = blockManager.getContainer(),
       uniqueId = api.getUniqueId();
 
-    if (!blockContainer) throw new Error("The root element of the editor was not found.");
+    if (!blockContainer)
+      throw new Error("The root element of the editor was not found.");
 
     query(
       api.css("block"),
@@ -134,7 +135,8 @@ export default class Events implements EventsInterface {
     blockManager.normalize();
 
     if (changeHandle && typeof changeHandle === "function") {
-      if (!this.exists("onChange.onReady")) this.add("onChange.onReady", changeHandle);
+      if (!this.exists("onChange.onReady"))
+        this.add("onChange.onReady", changeHandle);
     }
 
     this.trigger("onChange", event);
@@ -277,11 +279,19 @@ export default class Events implements EventsInterface {
           };
 
           // Merge if not an empty block
-          if (cursorStart === 0 && cursorEnd === 0 && !curModel?.isEditableChilds()) {
+          if (
+            cursorStart === 0 &&
+            cursorEnd === 0 &&
+            !curModel?.isEditableChilds()
+          ) {
             if (curModel?.isBackspaceRemove()) {
               evt.preventDefault();
 
-              if (prevModel?.getConfig("autoMerge") && curModel.getConfig("autoMerge")) blockManager.merge(index - 1);
+              if (
+                prevModel?.getConfig("autoMerge") &&
+                curModel.getConfig("autoMerge")
+              )
+                blockManager.merge(index - 1);
               else prevModel?.merge(index);
               reSelect();
             } else {
@@ -318,7 +328,11 @@ export default class Events implements EventsInterface {
       event: evt
     });
 
-    if (evt.key === "Enter" || evt.key === "Backspace" || evt.key === "Delete") {
+    if (
+      evt.key === "Enter" ||
+      evt.key === "Backspace" ||
+      evt.key === "Delete"
+    ) {
       this.editor.historyManager.save();
     } else {
       this.editor.historyManager.scheduleSave();
@@ -356,7 +370,7 @@ export default class Events implements EventsInterface {
   }
 
   private performUndo(): void {
-    this.trigger("undo", { type: 'undo' });
+    this.trigger("undo", { type: "undo" });
 
     const { historyManager } = this.editor;
     if (historyManager && typeof historyManager.undo === "function") {
@@ -365,7 +379,7 @@ export default class Events implements EventsInterface {
   }
 
   private performRedo(): void {
-    this.trigger("redo", { type: 'undo' });
+    this.trigger("redo", { type: "undo" });
 
     const { historyManager } = this.editor;
     if (historyManager && typeof historyManager.redo === "function") {
@@ -378,7 +392,8 @@ export default class Events implements EventsInterface {
   }
 
   private onPasteHandle(evt: ClipboardEvent) {
-    const { config, parser, blockManager, selectionApi, historyManager } = this.editor;
+    const { config, parser, blockManager, selectionApi, historyManager } =
+      this.editor;
 
     this.trigger("onPaste", { domEvent: evt });
 
@@ -387,7 +402,11 @@ export default class Events implements EventsInterface {
     const defBlock = config.get("defaultBlock", "p"),
       currentModel = blockManager.getModel();
 
-    if (currentModel && "onPaste" in currentModel && typeof currentModel.onPaste === "function") {
+    if (
+      currentModel &&
+      "onPaste" in currentModel &&
+      typeof currentModel.onPaste === "function"
+    ) {
       const pasteData = evt.clipboardData.getData("text/html") || "";
       const input = parser.parseHtml(pasteData, true);
       currentModel?.onPaste(evt, input);
@@ -397,7 +416,9 @@ export default class Events implements EventsInterface {
       const pasteData = evt.clipboardData.getData("text/html") || "";
       const input = parser.parseHtml(pasteData, true);
       const isBlockPaste = !!Array.from(input?.childNodes || []).filter(
-        (item) => item.nodeType == 1 && blockManager.getRealType((item as HTMLElement).localName)
+        (item) =>
+          item.nodeType == 1 &&
+          blockManager.getRealType((item as HTMLElement).localName)
       ).length;
 
       if (input && isBlockPaste) {
@@ -409,7 +430,8 @@ export default class Events implements EventsInterface {
 
           if (item.nodeType === Node.ELEMENT_NODE) {
             const element = item as Element;
-            if (blockManager.getRealType(element.localName)) isCreateBlocks = true;
+            if (blockManager.getRealType(element.localName))
+              isCreateBlocks = true;
           }
         });
 
@@ -425,7 +447,10 @@ export default class Events implements EventsInterface {
               }
             } else if (item.nodeType === Node.ELEMENT_NODE) {
               const tagName = item.nodeName.toLowerCase(),
-                realName = blockManager.getRealType(tagName) || blockManager.getRealType(defBlock) || "p";
+                realName =
+                  blockManager.getRealType(tagName) ||
+                  blockManager.getRealType(defBlock) ||
+                  "p";
 
               if (realName) {
                 const html = (item as Element)?.innerHTML;
@@ -525,9 +550,15 @@ export default class Events implements EventsInterface {
 
               if (range && !range.collapsed && model?.isToolbar()) {
                 toolbar.show();
-                this.trigger("onSelectionChangeToolbarShow", { domEvent: evt, range: range });
+                this.trigger("onSelectionChangeToolbarShow", {
+                  domEvent: evt,
+                  range: range
+                });
               } else {
-                this.trigger("onSelectionChangeToolbaHide", { domEvent: evt, range: range });
+                this.trigger("onSelectionChangeToolbaHide", {
+                  domEvent: evt,
+                  range: range
+                });
                 toolbar.hide();
               }
             }

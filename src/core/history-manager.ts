@@ -74,7 +74,10 @@ export default class HistoryManager implements HistoryManagerInterface {
         blockIndex = blockManager.getIndex(),
         model = blockManager.getModel();
 
-      const selectionData: HistoryStateSelectionData = { index: blockIndex, ...selection };
+      const selectionData: HistoryStateSelectionData = {
+        index: blockIndex,
+        ...selection
+      };
 
       if (model?.isEditableChilds()) {
         selectionData.itemIndex = model.getItemIndex();
@@ -129,7 +132,12 @@ export default class HistoryManager implements HistoryManagerInterface {
   private isDeepEqual(obj1: unknown, obj2: unknown): boolean {
     if (obj1 === obj2) return true;
 
-    if (typeof obj1 !== "object" || obj1 === null || typeof obj2 !== "object" || obj2 === null) {
+    if (
+      typeof obj1 !== "object" ||
+      obj1 === null ||
+      typeof obj2 !== "object" ||
+      obj2 === null
+    ) {
       return false;
     }
 
@@ -144,7 +152,12 @@ export default class HistoryManager implements HistoryManagerInterface {
       const val1 = (obj1 as Record<string, unknown>)[key];
       const val2 = (obj2 as Record<string, unknown>)[key];
 
-      if (typeof val1 === "object" && val1 !== null && typeof val2 === "object" && val2 !== null) {
+      if (
+        typeof val1 === "object" &&
+        val1 !== null &&
+        typeof val2 === "object" &&
+        val2 !== null
+      ) {
         if (!this.isDeepEqual(val1, val2)) return false;
       } else {
         if (val1 !== val2) return false;
@@ -260,20 +273,29 @@ export default class HistoryManager implements HistoryManagerInterface {
     api.setContent(state.content);
 
     setTimeout(() => {
-      const targetIndex = focusIndex !== undefined ? focusIndex : state.selection.index,
+      const targetIndex =
+          focusIndex !== undefined ? focusIndex : state.selection.index,
         currentBlock = blockManager.getByIndex(targetIndex);
 
       if (currentBlock) {
         const { selectionApi } = this.editor,
           model = blockManager.getModel(targetIndex),
           select = (elem: HTMLElement) => {
-            selectionApi.select(state.selection.start, state.selection.end, elem, true);
+            selectionApi.select(
+              state.selection.start,
+              state.selection.end,
+              elem,
+              true
+            );
           };
 
         if (model?.isEditable() && !model?.isEditableChilds()) {
           select(currentBlock);
         } else {
-          if (model?.isEditableChilds() && state.selection.itemIndex != undefined) {
+          if (
+            model?.isEditableChilds() &&
+            state.selection.itemIndex != undefined
+          ) {
             const item = model.getItem(state.selection.itemIndex, currentBlock);
 
             if (item) {
@@ -281,7 +303,10 @@ export default class HistoryManager implements HistoryManagerInterface {
             }
           } else {
             currentBlock.click();
-            currentBlock.scrollIntoView({ behavior: "smooth", block: "center" });
+            currentBlock.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
           }
         }
       }

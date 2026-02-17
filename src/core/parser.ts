@@ -27,7 +27,10 @@ export default class Parser implements ParserInterface {
   parseHtml(html: string, isFragment: boolean = false): Element | null {
     const input = isFragment ? this.stripFragmentTags(html) : html,
       parser = new DOMParser(),
-      doc = parser.parseFromString(`<parser-rawblock>${input}</parser-rawblock>`, "text/html");
+      doc = parser.parseFromString(
+        `<parser-rawblock>${input}</parser-rawblock>`,
+        "text/html"
+      );
 
     return doc.querySelector("parser-rawblock");
   }
@@ -50,7 +53,9 @@ export default class Parser implements ParserInterface {
       if (
         !(
           (nodes.length === 1 && nodes[0]!.nodeType === Node.TEXT_NODE) ||
-          (nodes[0]!.nodeType === Node.TEXT_NODE && nodes.length === 2 && nodes[1]!.nodeName === "BR")
+          (nodes[0]!.nodeType === Node.TEXT_NODE &&
+            nodes.length === 2 &&
+            nodes[1]!.nodeName === "BR")
         )
       ) {
         Array.from(nodes).forEach((node) => {
@@ -65,12 +70,19 @@ export default class Parser implements ParserInterface {
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
             const objAttr: Record<string, string> = {};
-            let outContent: Array<OutputBlockItem | string> = [node.textContent || ""];
+            let outContent: Array<OutputBlockItem | string> = [
+              node.textContent || ""
+            ];
 
             if (node.childNodes.length) {
               const childNodes = node.childNodes;
 
-              if (!(childNodes.length === 1 && childNodes[0]!.nodeType === Node.TEXT_NODE)) {
+              if (
+                !(
+                  childNodes.length === 1 &&
+                  childNodes[0]!.nodeType === Node.TEXT_NODE
+                )
+              ) {
                 outContent = this.htmlToData(element.innerHTML);
               }
             }
@@ -105,71 +117,102 @@ export default class Parser implements ParserInterface {
     return this.emptyFilter(result);
   }
 
-  parseBlocks(data: object[], createDefault: boolean = false, skipDecode: boolean = false): Node[] | [] {
+  parseBlocks(
+    data: object[],
+    createDefault: boolean = false,
+    skipDecode: boolean = false
+  ): Node[] | [] {
     const { blockManager, config } = this.editor,
       models = blockManager.getBlockModels();
 
     const blocks = make("div", (el: HTMLBlockElement) => {
       (data as OutputBlockItem[]).forEach((item: OutputBlockItem) => {
-        (models as BlockModelStructure[]).forEach((formatedModel: BlockModelStructure) => {
-          if (formatedModel.types && formatedModel.types.includes(item.type)) {
-            const blockModel = new formatedModel.instance(this.editor);
+        (models as BlockModelStructure[]).forEach(
+          (formatedModel: BlockModelStructure) => {
+            if (
+              formatedModel.types &&
+              formatedModel.types.includes(item.type)
+            ) {
+              const blockModel = new formatedModel.instance(this.editor);
 
-            let elBlock = null;
+              let elBlock = null;
 
-            if (blockModel.getConfig("autoParse")) {
-              elBlock = blockModel.create();
+              if (blockModel.getConfig("autoParse")) {
+                elBlock = blockModel.create();
 
-              if (elBlock) {
-                append(elBlock, this.parseChilds(item, false, skipDecode));
-                append(el, elBlock);
-              }
-            } else {
-              if (typeof blockModel?.parse !== "undefined") {
-                elBlock = blockModel?.parse(item);
-
-                if (elBlock && elBlock !== null) {
+                if (elBlock) {
+                  append(elBlock, this.parseChilds(item, false, skipDecode));
                   append(el, elBlock);
                 }
-              }
-            }
+              } else {
+                if (typeof blockModel?.parse !== "undefined") {
+                  elBlock = blockModel?.parse(item);
 
-            if (blockModel.afterCreate) blockModel.afterCreate(elBlock as HTMLBlockElement);
+                  if (elBlock && elBlock !== null) {
+                    append(el, elBlock);
+                  }
+                }
+              }
+
+              if (blockModel.afterCreate)
+                blockModel.afterCreate(elBlock as HTMLBlockElement);
+            }
           }
-        });
+        );
       });
 
       if (el.childNodes.length === 0 && createDefault) {
-        (models as BlockModelStructure[]).forEach((formatedModel: BlockModelStructure) => {
-          if (formatedModel.types && formatedModel.types.includes(config.get("defaultBlock", "p"))) {
-            const blockModel = new formatedModel.instance(this.editor);
+        (models as BlockModelStructure[]).forEach(
+          (formatedModel: BlockModelStructure) => {
+            if (
+              formatedModel.types &&
+              formatedModel.types.includes(config.get("defaultBlock", "p"))
+            ) {
+              const blockModel = new formatedModel.instance(this.editor);
 
-            if (blockModel) {
-              const elBlock = blockModel.create();
-              if (elBlock) append(el, elBlock);
+              if (blockModel) {
+                const elBlock = blockModel.create();
+                if (elBlock) append(el, elBlock);
+              }
+
+              if (blockModel.afterCreate) blockModel.afterCreate();
             }
-
-            if (blockModel.afterCreate) blockModel.afterCreate();
           }
-        });
+        );
       }
     });
 
     return blocks.childNodes.length ? Array.from(blocks.childNodes) : [];
   }
 
-  parseChilds(block: OutputBlockItem, childRender: boolean = false, skipDecode: boolean = false): Node | Node[] {
-    if (block.data !== null && block.data !== undefined && block.type !== undefined) {
+  parseChilds(
+    block: OutputBlockItem,
+    childRender: boolean = false,
+    skipDecode: boolean = false
+  ): Node | Node[] {
+    if (
+      block.data !== null &&
+      block.data !== undefined &&
+      block.type !== undefined
+    ) {
       const element = make(block.type);
 
       if (Array.isArray(block.data)) {
-        (block.data as (OutputBlockItem | string)[]).forEach((item: OutputBlockItem | string) => {
-          if (typeof item === "string") {
-            appendText(element, skipDecode ? item : decodeHtmlSpecialChars(item));
-          } else {
-            append(element, this.parseChilds(item, true, skipDecode) as HTMLElement);
+        (block.data as (OutputBlockItem | string)[]).forEach(
+          (item: OutputBlockItem | string) => {
+            if (typeof item === "string") {
+              appendText(
+                element,
+                skipDecode ? item : decodeHtmlSpecialChars(item)
+              );
+            } else {
+              append(
+                element,
+                this.parseChilds(item, true, skipDecode) as HTMLElement
+              );
+            }
           }
-        });
+        );
       } else if (typeof block.data === "string") {
         appendText(element, block.data);
       }
@@ -188,7 +231,9 @@ export default class Parser implements ParserInterface {
     }
   }
 
-  private emptyFilter(result: Array<OutputBlockItem | string>): Array<OutputBlockItem | string> {
+  private emptyFilter(
+    result: Array<OutputBlockItem | string>
+  ): Array<OutputBlockItem | string> {
     const filtered: Array<OutputBlockItem | string> = [];
 
     result.forEach((item) => {

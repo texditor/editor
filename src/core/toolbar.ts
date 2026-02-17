@@ -2,8 +2,15 @@ import type {
   TexditorInterface,
   ToolbarInterface,
   ToolModelInstanceInterface
-} from '@/types'
-import { addClass, append, css, hasClass, query, removeClass } from "@/utils/dom";
+} from "@/types";
+import {
+  addClass,
+  append,
+  css,
+  hasClass,
+  query,
+  removeClass
+} from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
 import { detectMobileOS, getCaretPosition } from "@/utils/common";
@@ -25,7 +32,10 @@ export default class Toolbar implements ToolbarInterface {
     this.editor = editor;
     this.show = this.show.bind(this);
 
-    const tools = this.editor.config.get("tools", []) as ToolModelInstanceInterface[];
+    const tools = this.editor.config.get(
+      "tools",
+      []
+    ) as ToolModelInstanceInterface[];
     if (tools.length) {
       tools.forEach((toolModel: ToolModelInstanceInterface) => {
         this.register(toolModel);
@@ -65,7 +75,11 @@ export default class Toolbar implements ToolbarInterface {
         api.css("toolbar"),
         (el: HTMLElement) => {
           const toggleTool = (display: string = "") => {
-            query(api.css("tool"), (tool: HTMLElement) => (tool.style.display = display), el);
+            query(
+              api.css("tool"),
+              (tool: HTMLElement) => (tool.style.display = display),
+              el
+            );
           };
 
           toggleTool();
@@ -73,7 +87,11 @@ export default class Toolbar implements ToolbarInterface {
           if (tools.length) {
             toggleTool("none");
             tools.forEach((name: string) => {
-              query(".tool-name-" + name, (tool: HTMLElement) => (tool.style.display = ""), el);
+              query(
+                ".tool-name-" + name,
+                (tool: HTMLElement) => (tool.style.display = ""),
+                el
+              );
             });
           }
 
@@ -99,10 +117,18 @@ export default class Toolbar implements ToolbarInterface {
 
                 if (
                   contextMenuRect?.y &&
-                  (isTopNegative || (mobileDevice != "other" && contextMenuRect?.y > rect.top))
+                  (isTopNegative ||
+                    (mobileDevice != "other" && contextMenuRect?.y > rect.top))
                 ) {
-                  toolbarTop = rect.top + contextMenuRect.y - rect.top + rect.height / 2 - 10;
-                } else toolbarTop = rect.top - (el.clientHeight / 2 + 10) - rect.height;
+                  toolbarTop =
+                    rect.top +
+                    contextMenuRect.y -
+                    rect.top +
+                    rect.height / 2 -
+                    10;
+                } else
+                  toolbarTop =
+                    rect.top - (el.clientHeight / 2 + 10) - rect.height;
 
                 css(el, {
                   top: toolbarTop,
@@ -140,7 +166,10 @@ export default class Toolbar implements ToolbarInterface {
         cssName,
         (el: HTMLElement) => {
           tags.forEach((selected: HTMLElement) => {
-            if (hasClass(el, "tool-tag-" + selected.localName) && !isEmptyString(selected?.textContent || ""))
+            if (
+              hasClass(el, "tool-tag-" + selected.localName) &&
+              !isEmptyString(selected?.textContent || "")
+            )
               addClass(el, "active");
           });
         },

@@ -4,7 +4,7 @@ import type {
   BlockModelInterface
 } from "@/types";
 export interface FileActionModelInstanceInterface {
-  new(
+  new (
     editor: TexditorInterface,
     item: HTMLElement,
     container: HTMLElement,

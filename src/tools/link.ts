@@ -21,7 +21,6 @@ import "@/styles/tools/link.css";
 import { off, on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
-
 export default class LinkTool extends ToolModel implements ToolModelInterface {
   name: string = "link";
   protected tagName: string = "a";
@@ -45,7 +44,9 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
 
     if (!events.exists("onSelectionChangeToolbarShow.link")) {
       events.add("onSelectionChangeToolbarShow.link", () => {
-        this.tagsInSelection = commands.findTags(this.getTagName()) as HTMLLinkElement[];
+        this.tagsInSelection = commands.findTags(
+          this.getTagName()
+        ) as HTMLLinkElement[];
       });
     }
   }
@@ -54,13 +55,16 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
     const { api } = this.editor,
       uniqueId = api.getUniqueId(),
       formElement = document.getElementById("form-link-" + uniqueId),
-      valElement = document.getElementById("input-link-" + uniqueId) as HTMLInputElement;
+      valElement = document.getElementById(
+        "input-link-" + uniqueId
+      ) as HTMLInputElement;
 
     if (formElement && valElement) {
       tags.forEach((link) => {
         if (valElement?.value) attr(link, "href", valElement?.value);
 
-        if (formElement.dataset.targetBlank == "Y") attr(link, "target", "_blank");
+        if (formElement.dataset.targetBlank == "Y")
+          attr(link, "target", "_blank");
       });
     }
   }
@@ -136,7 +140,8 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
           });
           btn.title = i18n.get("delete", "Delete");
           on(btn, "click.link", () => {
-            if (this.tagsInSelection[0]) replaceWithChildren(this.tagsInSelection[0]);
+            if (this.tagsInSelection[0])
+              replaceWithChildren(this.tagsInSelection[0]);
 
             document.body.click();
           });

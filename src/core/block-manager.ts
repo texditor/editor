@@ -52,10 +52,10 @@ export default class BlockManager implements BlockManagerInterface {
       addClass(el, api.css("blocks", false));
       let data = [];
       const initalData =
-        (renderData && Array.isArray(renderData) && renderData.length) ||
+          (renderData && Array.isArray(renderData) && renderData.length) ||
           (typeof renderData === "string" && !isEmptyString(renderData))
-          ? renderData
-          : config.get("initalData", []),
+            ? renderData
+            : config.get("initalData", []),
         emptyData = [
           {
             type: config.get("defaultBlock", "p"),
@@ -70,14 +70,18 @@ export default class BlockManager implements BlockManagerInterface {
               : JSON.parse(sanitizeJson(initalData.trim()) || "")
             : initalData;
       } catch (e) {
-        console.warn("The input data is not supported or contains errors when working with JSON", e);
+        console.warn(
+          "The input data is not supported or contains errors when working with JSON",
+          e
+        );
       }
 
       data = JSON.parse(sanitizeJson(data) || "");
 
       let blocks = parser.parseBlocks(data?.length ? data : emptyData);
 
-      if (!blocks.length && data?.length) blocks = parser.parseBlocks(emptyData);
+      if (!blocks.length && data?.length)
+        blocks = parser.parseBlocks(emptyData);
 
       if (blocks.length) append(el, blocks);
     });
@@ -103,7 +107,11 @@ export default class BlockManager implements BlockManagerInterface {
       blockContainer = this.getContainer();
 
     if (blockContainer) {
-      query(this.editor.api.css("block"), (el: HTMLBlockElement) => blocks.push(el), blockContainer);
+      query(
+        this.editor.api.css("block"),
+        (el: HTMLBlockElement) => blocks.push(el),
+        blockContainer
+      );
     }
 
     return blocks;
@@ -162,11 +170,15 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   isEmpty(index: number | null = null): boolean {
-    const blockElement = index !== null ? this.getByIndex(index) : this.getCurrentBlock();
+    const blockElement =
+      index !== null ? this.getByIndex(index) : this.getCurrentBlock();
 
     if (!blockElement) return false;
 
-    return isEmptyString(blockElement?.innerHTML || "") || blockElement?.innerHTML == "<br>";
+    return (
+      isEmptyString(blockElement?.innerHTML || "") ||
+      blockElement?.innerHTML == "<br>"
+    );
   }
 
   detectEmpty(emptyAttr: boolean = true) {
@@ -179,7 +191,11 @@ export default class BlockManager implements BlockManagerInterface {
         (el: HTMLBlockElement) => {
           if (el.blockModel?.isEmptyDetect()) {
             const index = this.getElementIndex(el);
-            el.dataset["empty"] = !emptyAttr ? "false" : this.isEmpty(index) ? "true" : "false";
+            el.dataset["empty"] = !emptyAttr
+              ? "false"
+              : this.isEmpty(index)
+                ? "true"
+                : "false";
           }
         },
         root
@@ -194,7 +210,10 @@ export default class BlockManager implements BlockManagerInterface {
     items.forEach((item: HTMLBlockElement) => {
       const model = item.blockModel;
 
-      if ((model?.isEditable() || model?.isEditableChilds()) && model?.isNormalize()) {
+      if (
+        (model?.isEditable() || model?.isEditableChilds()) &&
+        model?.isNormalize()
+      ) {
         const container = model.normalizeContainer();
 
         if (container) {
@@ -219,7 +238,11 @@ export default class BlockManager implements BlockManagerInterface {
     this.blockIndex = index;
 
     if (root && block) {
-      query("." + cssName, (block: HTMLElement) => removeClass(block, cssName + "-active"), root);
+      query(
+        "." + cssName,
+        (block: HTMLElement) => removeClass(block, cssName + "-active"),
+        root
+      );
 
       addClass(block, cssName + "-active");
     }
@@ -257,10 +280,16 @@ export default class BlockManager implements BlockManagerInterface {
     return blockElement;
   }
 
-  getElementIndex(element: HTMLElement | EventTarget | null, findTargetBlock: boolean = false): number {
+  getElementIndex(
+    element: HTMLElement | EventTarget | null,
+    findTargetBlock: boolean = false
+  ): number {
     let index = 0;
 
-    const realElement = findTargetBlock && element instanceof EventTarget ? this.getTargetBlock(element) : element;
+    const realElement =
+      findTargetBlock && element instanceof EventTarget
+        ? this.getTargetBlock(element)
+        : element;
 
     query(
       this.editor.api.css("block"),
@@ -363,56 +392,71 @@ export default class BlockManager implements BlockManagerInterface {
     return lastRemovedIndex;
   }
 
-  createBlock(name: string, index: number | null = null, content?: object): HTMLElement | null {
+  createBlock(
+    name: string,
+    index: number | null = null,
+    content?: object
+  ): HTMLElement | null {
     const { blockManager, events } = this.editor,
       blockModels = blockManager.getBlockModels(),
       element = null;
 
-    (blockModels as BlockModelStructure[]).forEach((formatedModel: BlockModelStructure) => {
-      if (formatedModel.types && formatedModel.types.includes(name)) {
-        const blockInstance: BlockModelInterface = new formatedModel.instance(this.editor);
+    (blockModels as BlockModelStructure[]).forEach(
+      (formatedModel: BlockModelStructure) => {
+        if (formatedModel.types && formatedModel.types.includes(name)) {
+          const blockInstance: BlockModelInterface = new formatedModel.instance(
+            this.editor
+          );
 
-        if (blockInstance) {
-          if (index !== null && index === -1) {
-            const blockContainer = this.getContainer();
+          if (blockInstance) {
+            if (index !== null && index === -1) {
+              const blockContainer = this.getContainer();
 
-            if (blockContainer) {
-              const block = blockInstance.create(content);
+              if (blockContainer) {
+                const block = blockInstance.create(content);
+
+                if (block) {
+                  append(blockContainer, block);
+                }
+              }
+            } else {
+              const curIndex = index !== null ? index : this.getIndex(),
+                curBlock = this.getByIndex(curIndex),
+                block = blockInstance.create(content);
 
               if (block) {
-                append(blockContainer, block);
+                curBlock?.insertAdjacentElement("afterend", block);
               }
             }
-          } else {
-            const curIndex = index !== null ? index : this.getIndex(),
-              curBlock = this.getByIndex(curIndex),
-              block = blockInstance.create(content);
 
-            if (block) {
-              curBlock?.insertAdjacentElement("afterend", block);
+            const newBlock = blockInstance.getElement();
+
+            if (newBlock) {
+              this.focus(newBlock);
             }
+
+            if (blockInstance.afterCreate)
+              blockInstance.afterCreate(newBlock as HTMLBlockElement);
+
+            events.refresh();
+
+            return newBlock;
           }
-
-          const newBlock = blockInstance.getElement();
-
-          if (newBlock) {
-            this.focus(newBlock);
-          }
-
-          if (blockInstance.afterCreate) blockInstance.afterCreate(newBlock as HTMLBlockElement);
-
-          events.refresh();
-
-          return newBlock;
         }
       }
-    });
+    );
     return element;
   }
 
-  merge(index: number, currentIndex?: number | null, children?: HTMLElement | null) {
+  merge(
+    index: number,
+    currentIndex?: number | null,
+    children?: HTMLElement | null
+  ) {
     const finalBlock = this.getByIndex(index),
-      currentBlock = currentIndex ? this.getByIndex(currentIndex) : this.getCurrentBlock();
+      currentBlock = currentIndex
+        ? this.getByIndex(currentIndex)
+        : this.getCurrentBlock();
 
     if (currentBlock && finalBlock) {
       const element = children ? children : finalBlock;
@@ -443,7 +487,9 @@ export default class BlockManager implements BlockManagerInterface {
         evt.preventDefault();
         evt.stopPropagation();
 
-        const index = this.getElementIndex(evt.currentTarget as HTMLBlockElement);
+        const index = this.getElementIndex(
+          evt.currentTarget as HTMLBlockElement
+        );
         this.toggleBlockSelection(index);
       });
     });
@@ -482,10 +528,13 @@ export default class BlockManager implements BlockManagerInterface {
     const block = this.getByIndex(index);
 
     if (block) {
-      if (hasClass(block, api.css("block", false) + "-selected")) this.removeBlockSelection(index);
+      if (hasClass(block, api.css("block", false) + "-selected"))
+        this.removeBlockSelection(index);
       else this.addBlockSelection(index);
 
-      events.trigger("selectionChanged", { selectedBlocks: this.getSelectedBlocks() });
+      events.trigger("selectionChanged", {
+        selectedBlocks: this.getSelectedBlocks()
+      });
     }
   }
 
@@ -527,7 +576,9 @@ export default class BlockManager implements BlockManagerInterface {
     const blocks = this.getSelectedBlocks();
     if (blocks.length === 0) return;
     const indexes: number[] = [];
-    blocks.forEach((element: HTMLElement) => indexes.push(this.getElementIndex(element)));
+    blocks.forEach((element: HTMLElement) =>
+      indexes.push(this.getElementIndex(element))
+    );
     this.removeBlock(indexes);
     this.clearSelection();
     this.disableSelectionMode();
@@ -577,7 +628,8 @@ export default class BlockManager implements BlockManagerInterface {
 
         block?.insertAdjacentElement("afterend", newBlock);
 
-        if (Object.keys(model.getConfig("sanitizerConfig", {})).length) newBlock.blockModel.sanitize();
+        if (Object.keys(model.getConfig("sanitizerConfig", {})).length)
+          newBlock.blockModel.sanitize();
 
         block.remove();
         this.focusByIndex(curIndex);
@@ -602,18 +654,20 @@ export default class BlockManager implements BlockManagerInterface {
       blockModels.push(Paragraph);
     }
 
-    (blockModels as BlockModelInstanceInterface[]).forEach((model: BlockModelInstanceInterface) => {
-      const md = new model(this.editor);
+    (blockModels as BlockModelInstanceInterface[]).forEach(
+      (model: BlockModelInstanceInterface) => {
+        const md = new model(this.editor);
 
-      this.blockModels.push({
-        instance: model,
-        model: md,
-        type: md.getType(),
-        types: [md.getType(), ...md.getRelatedTypes()],
-        translation: md.getTranslation(),
-        icon: md.getIcon()
-      });
-    });
+        this.blockModels.push({
+          instance: model,
+          model: md,
+          type: md.getType(),
+          types: [md.getType(), ...md.getRelatedTypes()],
+          translation: md.getTranslation(),
+          icon: md.getIcon()
+        });
+      }
+    );
 
     return this.blockModels;
   }
@@ -621,7 +675,9 @@ export default class BlockManager implements BlockManagerInterface {
   getRealType(relatedName: string) {
     let type = null;
 
-    (this.editor.blockManager.getBlockModels() as BlockModelStructure[]).forEach((model: BlockModelStructure) => {
+    (
+      this.editor.blockManager.getBlockModels() as BlockModelStructure[]
+    ).forEach((model: BlockModelStructure) => {
       if (model.types && model.types.includes(relatedName)) {
         type = model.type;
       }

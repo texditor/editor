@@ -9,7 +9,10 @@ import { addClass, make } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import BlockModel from "@/core/models/block-model";
 
-export default class CreateAction extends ActionModel implements ActionModelInterface {
+export default class CreateAction
+  extends ActionModel
+  implements ActionModelInterface
+{
   name: string = "createAction";
   protected translation: string = "createAction";
   protected icon: RenderIconContent = IconPlus;
@@ -27,7 +30,8 @@ export default class CreateAction extends ActionModel implements ActionModelInte
 
         if (icon) el.innerHTML = "<span>" + icon + "</span>";
 
-        el.innerHTML += "<span>" + (modelStructure?.translation || "") + "</span>";
+        el.innerHTML +=
+          "<span>" + (modelStructure?.translation || "") + "</span>";
 
         off(el, "click.am");
         on(el, "click.am", () => {

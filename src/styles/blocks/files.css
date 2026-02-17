@@ -128,7 +128,7 @@
   border-radius: 6px;
 }
 
-.tex-file-source>* {
+.tex-file-source > * {
   width: 100%;
   display: block;
 }
