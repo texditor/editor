@@ -3,26 +3,33 @@ import { FilesCreateOptions, FileItem } from "@/types/blocks";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/files.css";
 import { OutputBlockItem } from "@/types/output";
-import { addClass, append, attr, closest, css, hasClass, make, prepend, query, queryLength } from "@/utils/dom";
+import { addClass, append, attr, closest, css, hasClass, html, make, prepend, query, queryLength } from "@/utils/dom";
 import { HTMLBlockElement } from "@/types/core";
 import { isEmptyString } from "@/utils/string";
-import { decodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
+import { decodeHtmlSpecialChars, encodeHtmlSpecialChars, formatBytes, generateRandomString } from "@/utils/common";
 import { off, on } from "@/utils/events";
-import { IconFile, IconPlus } from "@/icons";
+import { IconClose, IconFile, IconPlus } from "@/icons";
 import { renderIcon } from "@/utils/icon";
 import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
 import { Response } from "@/types";
-
 import MoveRightFileAction from "./actions/MoveRightFileAction";
 import MoveLeftFileAction from "./actions/MoveLeftFileAction";
 import DeleteFileAction from "./actions/DeleteFileAction";
 import EditFileAction from "./actions/EditFileAction";
+import DownloadFileAction from './actions/DownloadFileAction'
 
-export { MoveRightFileAction, MoveLeftFileAction, DeleteFileAction, EditFileAction };
+export {
+  MoveRightFileAction,
+  MoveLeftFileAction,
+  DownloadFileAction,
+  DeleteFileAction,
+  EditFileAction
+};
 
 declare global {
   interface HTMLElement {
     fileSize?: number;
+    fileName?: string;
     fileId?: number;
     thumbnail?: string;
   }
@@ -37,8 +44,16 @@ export default class Files extends BlockModel implements BlockModelInterface {
     return {
       autoParse: false,
       autoMerge: false,
-      actions: [MoveLeftFileAction, EditFileAction, DeleteFileAction, MoveRightFileAction],
+      actions: [
+        MoveLeftFileAction,
+        EditFileAction,
+        DownloadFileAction,
+        DeleteFileAction,
+        MoveRightFileAction
+      ],
       icon: IconFile,
+      itemIcon: IconFile,
+      renderImage: true,
       backspaceRemove: false,
       isEnterCreate: false,
       tagName: "div",
@@ -55,8 +70,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
       responseMessageField: "message",
       responseMessageErrorField: "errors",
       listCss: "tex-files-list-c",
-      itemCss: "tex-files-item-c",
-      sourceWrapCss: "tex-files-item-source-c",
+      fileCss: "tex-file",
+      sourceWrapCss: "tex-file-source-c",
       uploadLabelIcon: renderIcon(IconPlus, {
         width: 12,
         height: 12
@@ -86,7 +101,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
     });
   }
 
-  onRender(): void {
+  __onRenderComplete__(): void {
     this.editor.events.trigger("file:actions:render:end");
   }
 
@@ -99,20 +114,99 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   protected defaultRenderItem(item: FileItem): HTMLElement {
+    const itemIcon = this.getConfig('itemIcon', IconFile),
+      isRenderImage = this.getConfig('renderImage', true),
+      fileCss = this.getConfig('fileCss', 'tex-file');
+
     return make("div", (div: HTMLElement) => {
-      addClass(div, "tex-files-default-item");
-      const icon = make("span", (span: HTMLSpanElement) => {
-        span.innerHTML = renderIcon(IconFile, {
-          width: 20,
-          height: 20
-        });
-      }),
-        ext = make("span", (span: HTMLSpanElement) => {
-          const parts = item?.url.split(".");
-          span.innerText = "." + (parts.pop() || "");
+      const className = fileCss + '-layout',
+        isImage = item.type.includes('image/');
+
+      addClass(div, className);
+
+      const layoutGrid = make('div', (lg: HTMLElement) => {
+        addClass(lg, className + '-grid');
+
+        const leftBlock = make("div", (lb: HTMLDivElement) => {
+          addClass(lb, className + '-left');
+
+          const iconWrap = make("div", (iconWrap: HTMLDivElement) => {
+            addClass(iconWrap, className + '-icon-wrap');
+
+            let iconHtml = renderIcon(itemIcon, {
+              width: 16,
+              height: 16
+            });
+
+            if (isImage && isRenderImage) {
+              const imagePreview = make('img', (img: HTMLImageElement) => {
+                addClass(img, className + "-img");
+                img.src = item.url
+              });
+
+              iconHtml = imagePreview.outerHTML;
+            }
+
+            html(iconWrap, iconHtml);
+          });
+
+          const content = make("div", (cnt: HTMLDivElement) => {
+            addClass(cnt, className + "-content");
+
+            const name = make("div", (nameEl: HTMLDivElement) => {
+              addClass(nameEl, className + '-name');
+
+              if (item?.name) {
+                nameEl.innerText = item?.name
+              } else {
+                const parts = item?.url.split(".");
+                nameEl.innerText = "." + (parts.pop() || "");
+              }
+            });
+
+            const contentElements = [name];
+
+            if (item?.caption) {
+              const caption = make("div", (captionEl: HTMLDivElement) => {
+                addClass(captionEl, className + '-caption tex-file-caption');
+                html(captionEl, encodeHtmlSpecialChars(item.caption || ''));
+              });
+
+              contentElements.push(caption)
+            }
+
+            if (item?.desc) {
+              const desc = make("div", (descEl: HTMLDivElement) => {
+                addClass(descEl, className + '-desc tex-file-desc');
+                html(descEl, encodeHtmlSpecialChars(item.desc || ''))
+              });
+
+              contentElements.push(desc)
+            }
+
+            append(cnt, contentElements);
+          });
+
+          append(lb, [iconWrap, content]);
         });
 
-      append(div, [icon, ext]);
+        const rightBlock = make("div", (rb: HTMLDivElement) => {
+          addClass(rb, className + '-right');
+
+          if (item?.size) {
+            const size = make("div", (sizeEl: HTMLDivElement) => {
+              addClass(sizeEl, className + '-size');
+              html(sizeEl, formatBytes(item?.size || 0));
+            });
+
+            append(rb, size);
+          }
+        });
+
+        append(lg, [leftBlock, rightBlock]);
+      });
+
+      append(div, layoutGrid);
     });
   }
 
@@ -121,21 +215,27 @@ export default class Files extends BlockModel implements BlockModelInterface {
     this.onListCreate(items, block, options);
 
     return make("div", (el: HTMLElement) => {
-      addClass(el, "tex-files-list " + this.getConfig("listCss", "tex-files-list-c"));
+      addClass(el, 'tex-files-list-container');
 
-      if (items && Array.isArray(items)) {
-        const finalyItems: FileItem[] = [];
+      const list = make('div', (list: HTMLDivElement) => {
+        addClass(list, "tex-files-list " + this.getConfig("listCss", "tex-files-list-c"));
 
-        items.forEach((item: FileItem) => {
-          if (item?.url && item?.type) finalyItems.push(item);
-        });
+        if (items && Array.isArray(items)) {
+          const finalyItems: FileItem[] = [];
 
-        finalyItems.forEach((item: FileItem) => {
-          this.onCreateItemBefore(item, el);
-          this.item(el, item, "after", block);
-          this.onCreateItemAfter(item, el);
-        });
-      }
+          items.forEach((item: FileItem) => {
+            if (item?.url && item?.type) finalyItems.push(item);
+          });
+
+          finalyItems.forEach((item: FileItem) => {
+            this.onCreateItemBefore(item, list);
+            this.item(list, item, "after", block);
+            this.onCreateItemAfter(item, list);
+          });
+        }
+      })
+
+      append(el, list);
     });
   }
 
@@ -164,11 +264,12 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
     if (root) {
       query(
-        ".tex-files-item",
+        ".tex-file",
         (el: HTMLElement) => {
           const preparedItem = { url: el.dataset.url, type: el.dataset.type } as FileItem;
           if (el.dataset.caption) preparedItem.caption = el.dataset.caption;
           if (el.dataset.desc) preparedItem.desc = el.dataset.desc;
+          if (el.fileName) preparedItem.name = el.fileName;
           if (el.fileSize) preparedItem.size = el.fileSize;
           if (el.fileId) preparedItem.id = el.fileId;
           if (el.thumbnail) preparedItem.thumbnail = el.thumbnail;
@@ -428,7 +529,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
     if (block) {
       query(
-        ".tex-files-item",
+        ".tex-file",
         (el: HTMLElement, i: number) => {
           if (typeof item === "number" && i === item) data = el;
           if (el === item) data = i;
@@ -445,7 +546,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
     if (!block) return 0;
 
-    return queryLength(".tex-files-item", block);
+    return queryLength(".tex-file", block);
   }
 
   private createActionBar(item: HTMLElement, container: HTMLElement, block: HTMLBlockElement): HTMLElement {
@@ -466,7 +567,6 @@ export default class Files extends BlockModel implements BlockModelInterface {
             (actionList as FileActionModelInstanceInterface[]).forEach(
               (fileAction: FileActionModelInstanceInterface) => {
                 const fileActionInstance = new fileAction(this.editor, item, container, block);
-
                 append(fileActions, fileActionInstance.create());
               }
             );
@@ -474,10 +574,32 @@ export default class Files extends BlockModel implements BlockModelInterface {
         );
       });
 
-      append(div, actionsWrap);
+      const hideActions = () => {
+        query(
+          ".tex-files-actions",
+          (actions: HTMLElement) => {
+            css(actions, "display", "")
+          },
+          container
+        )
+      }
 
-      const hideActions = () =>
-        query(".tex-files-actions", (actions: HTMLElement) => css(actions, "display", ""), container);
+      const closeIcon = make(
+        'div',
+        (close: HTMLDivElement) => {
+          addClass(close, 'tex-files-actions-close');
+          html(
+            close,
+            renderIcon(IconClose, {
+              width: 14,
+              height: 14
+            })
+          );
+          on(close, 'click.close', () => setTimeout(() => hideActions(), 5));
+        }
+      );
+
+      append(div, [actionsWrap, closeIcon]);
 
       off(document, "click.cab");
       on(item, "click.cab", () => {
@@ -542,29 +664,36 @@ export default class Files extends BlockModel implements BlockModelInterface {
     block: HTMLBlockElement
   ) {
     const methodName = this.getRenderCallback(item.type);
+    const fileCss = this.getConfig("fileCss", "tex-file")
 
     if (typeof methodName === "function") {
       const itemElement = make("div", (el: HTMLElement) => {
-        addClass(el, "tex-files-item " + this.getConfig("itemCss", "tex-files-item-c"));
+        addClass(el, fileCss);
         el.dataset.type = item.type;
         el.dataset.url = item.url;
+        el.id = block.id + "-" + generateRandomString(12);
 
+        if (item?.name) el.fileName = item.name;
         if (item?.size) el.fileSize = item.size;
         if (item?.id) el.fileId = item.id;
         if (item?.thumbnail) el.thumbnail = item.thumbnail;
         if (item.caption) el.dataset.caption = decodeHtmlSpecialChars(item.caption);
         if (item.desc) el.dataset.desc = decodeHtmlSpecialChars(item.desc);
 
-        el.id = block.id + "-" + generateRandomString(12);
-        append(el, this.createActionBar(el, container, block));
+        const wrapper = make("div", (wrap: HTMLElement) => {
+          addClass(wrap, fileCss + "-wrapper");
+          append(wrap, this.createActionBar(el, container, block));
 
-        const source = make("div", (src: HTMLElement) => {
-          const sourceElement = methodName(item, block, container);
-          addClass(src, "tex-files-item-source " + this.getConfig("sourceWrapCss", "tex-files-item-source-c"));
-          append(src, sourceElement);
+          const source = make("div", (src: HTMLElement) => {
+            const sourceElement = methodName(item, block, container);
+            addClass(src, fileCss + "-source");
+            append(src, sourceElement);
+          });
+
+          append(wrap, source);
         });
 
-        append(el, source);
+        append(el, wrapper);
       });
 
       if (insert === "before") prepend(container, itemElement);
@@ -574,7 +703,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
   removeIsEmpty(block: HTMLBlockElement) {
     const { blockManager } = this.editor;
-    const len = queryLength(".tex-files-item", block);
+    const len = queryLength(".tex-file", block);
 
     if (!len) {
       const curIndex = blockManager.getIndex();

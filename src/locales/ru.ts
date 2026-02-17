@@ -43,5 +43,8 @@ export const RuLocale = {
   redo: "Повторить",
   select: "Выбрать",
   convert: "Конвертировать",
-  marker: "Маркер"
+  marker: "Маркер",
+  downloadFile: "Cкачать файл",
+  moveLeft: "Переместиться влево",
+  moveRight: "Переместиться вправо"
 };

@@ -1,10 +1,12 @@
 import { IconArrowRight } from "@/icons";
-import type { FileActionModelInterface } from "@/types";
+import type { FileActionModelInterface, RenderIconContent } from "@/types";
 import FileActionModel from "@/core/models/file-action-model";
 
 export default class MoveRightFileAction extends FileActionModel implements FileActionModelInterface {
   name: string = "moveRight";
-  protected icon: string = IconArrowRight;
+  protected icon: RenderIconContent = IconArrowRight;
+  protected translation: string = "moveRight";
+  protected defaultTitle: string = "Move right";
 
   private use() {
     const model = this.getCurrentBlockModel(),

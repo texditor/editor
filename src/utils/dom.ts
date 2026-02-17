@@ -115,10 +115,15 @@ export function queryLength(selector: string, context: HTMLElement | Document | 
   return length;
 }
 
-export function html(el: HTMLElement, value?: string | undefined) {
-  if (value !== undefined) el.innerHTML = value;
-
-  return el;
+export function html(el: HTMLElement, value?: string | null): string;
+export function html(el: HTMLElement, value: string): HTMLElement;
+export function html(el: HTMLElement, value?: string | null): HTMLElement | string {
+  if (value != null) {
+    el.innerHTML = value;
+    return el;
+  }
+  
+  return el.innerHTML;
 }
 
 export function append(

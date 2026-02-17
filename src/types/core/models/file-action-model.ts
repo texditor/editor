@@ -5,10 +5,12 @@ export interface FileActionModelInterface {
   onLoad(): void;
   create(): HTMLElement;
   onClick(evt: Event): void;
+  onCreate?(el: HTMLElement): HTMLElement;
   getId(): string;
   getName(): string;
   getName(): string;
   getItem(): HTMLElement;
+  getItemIndex(): number;
   getElement(): HTMLElement | null;
   getContainer(): HTMLElement;
   getCurrentBlock(): HTMLBlockElement;

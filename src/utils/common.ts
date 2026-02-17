@@ -68,3 +68,46 @@ export function encodeHtmlSpecialChars(input: string): string {
 
   return input.replace(/[&"'<>]/g, (char) => charToEntity[char]);
 }
+
+/**
+ * Converts bytes to a human readable string with automatic browser locale detection
+ * @param bytes - The number of bytes to format
+ * @param decimals - Number of decimal places (default: 2)
+ * @returns
+ */
+export function formatBytes(bytes: number, decimals: number = 2): string {
+  if (bytes === 0) {
+    return new Intl.NumberFormat(navigator.language).format(0) + ' B';
+  }
+
+  const k = 1024;
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  const unitTranslations: Record<string, string[]> = {
+    'ru': ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ', 'ПБ', 'ЭБ', 'ЗБ', 'ЙБ'],
+    'uk': ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ', 'ПБ', 'ЕБ', 'ЗБ', 'ЙБ'],
+    'de': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+    'fr': ['o', 'Ko', 'Mo', 'Go', 'To', 'Po', 'Eo', 'Zo', 'Yo'],
+    'es': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+    'it': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+    'pl': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+    'zh': ['字节', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+    'ja': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+    'ko': ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+    'ar': ['ب', 'ك ب', 'م ب', 'ج ب', 'ت ب', 'ب ب', 'ا ب', 'ز ب', 'ي ب'],
+    'hi': ['बाइट', 'कीबी', 'मीबी', 'गीबी', 'तीबी', 'पीबी', 'ईबी', 'जीबी', 'यीबी']
+  };
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const value = bytes / Math.pow(k, i);
+
+  const formattedValue = new Intl.NumberFormat(navigator.language, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value);
+
+  const langCode = navigator.language.split('-')[0];
+  const localizedUnits = unitTranslations[langCode] || units;
+
+  return `${formattedValue} ${localizedUnits[i]}`;
+}

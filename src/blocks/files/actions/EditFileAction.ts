@@ -1,16 +1,36 @@
 import { IconPencil } from "@/icons";
-import type { FileActionModelInterface } from "@/types";
+import type { FileActionModelInterface, RenderIconContent } from "@/types";
 import FileActionModel from "@/core/models/file-action-model";
-import { addClass, append, attr, closest, css, make } from "@/utils/dom";
+import { addClass, append, attr, closest, css, html, make, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
+import { encodeHtmlSpecialChars } from "@/utils";
 
 export default class EditFileAction extends FileActionModel implements FileActionModelInterface {
   name: string = "edit";
   prepare: boolean = true;
-  protected icon: string = IconPencil;
+  protected icon: RenderIconContent = IconPencil;
+  protected translation: string = "edit";
+  protected defaultTitle: string = "Edit";
 
-  onClick() {}
+  onClick() { }
+
+  private afterSave(item: HTMLElement) {
+    const caption = item?.dataset?.caption || '',
+      desc = item?.dataset?.desc || '';
+
+    if (caption) {
+      query('.tex-file-caption', (el: HTMLElement) => {
+        html(el, encodeHtmlSpecialChars(caption));
+      }, item);
+    }
+
+    if (desc) {
+      query('.tex-file-desc', (el: HTMLElement) => {
+        html(el, encodeHtmlSpecialChars(desc));
+      }, item);
+    }
+  }
 
   protected render(): HTMLElement | null {
     const block = this.getCurrentBlock(),
@@ -33,11 +53,11 @@ export default class EditFileAction extends FileActionModel implements FileActio
         true
       );
 
-      addClass(editWrap, "tex-files-item-edit tex-animate-fadeIn");
+      addClass(editWrap, "tex-file-edit tex-animate-fadeIn");
       append(
         editWrap,
         make("div", (editContent: HTMLDivElement) => {
-          addClass(editContent, "tex-files-item-edit-content");
+          addClass(editContent, "tex-file-edit-content");
           append(editContent, this.renderEditItem(item));
           const reposition = () => {
             setTimeout(() => {
@@ -60,14 +80,14 @@ export default class EditFileAction extends FileActionModel implements FileActio
     const { events, i18n } = this.editor;
 
     return make("div", (el: HTMLElement) => {
-      addClass(el, "tex-files-item-edit-popup");
+      addClass(el, "tex-file-edit-popup");
 
       const captionImput = make("input", (input: HTMLInputElement) => {
-          input.type = "text";
-          input.value = item.dataset.caption || "";
-          attr(input, "placeholder", i18n.get("caption", "Caption"));
-          addClass(input, "tex-input tex-files-input");
-        }) as HTMLInputElement,
+        input.type = "text";
+        input.value = item.dataset.caption || "";
+        attr(input, "placeholder", i18n.get("caption", "Caption"));
+        addClass(input, "tex-input tex-files-input");
+      }) as HTMLInputElement,
         descInput = make("input", (input: HTMLInputElement) => {
           input.type = "text";
           input.value = item.dataset.desc || "";
@@ -77,13 +97,13 @@ export default class EditFileAction extends FileActionModel implements FileActio
 
       append(el, [
         make("div", (div: HTMLDivElement) => {
-          addClass(div, "tex-files-item-edit-popup-h");
+          addClass(div, "tex-file-edit-popup-h");
           div.textContent = i18n.get("edit", "Edit");
         }),
         captionImput,
         descInput,
         make("div", (div: HTMLDivElement) => {
-          addClass(div, "tex-files-item-edit-popup-btns");
+          addClass(div, "tex-file-edit-popup-btns");
           append(div, [
             make("button", (btn: HTMLButtonElement) => {
               btn.type = "button";
@@ -97,6 +117,8 @@ export default class EditFileAction extends FileActionModel implements FileActio
                 if (!isEmptyString(captionValue)) item.dataset.caption = captionValue;
 
                 if (!isEmptyString(descValue)) item.dataset.desc = descValue;
+
+                this.afterSave(item);
 
                 events.change({
                   type: "changeFileItem",
