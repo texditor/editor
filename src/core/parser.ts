@@ -1,15 +1,19 @@
-import Texditor from "@/texditor";
-import { HTMLBlockElement } from "@/types/core";
-import { BlockModelStructure } from "@/types/core/models";
-import { BlockItemData, OutputBlockItem } from "@/types/output";
+import type {
+  HTMLBlockElement,
+  ParserInterface,
+  BlockModelStructure,
+  BlockItemData,
+  OutputBlockItem,
+  TexditorInterface
+} from "@/types";
 import { decodeHtmlSpecialChars } from "@/utils/common";
 import { appendText, append, attr, make } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 
-export default class Parser {
-  editor: Texditor;
+export default class Parser implements ParserInterface {
+  editor: TexditorInterface;
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
   }
 
@@ -30,7 +34,7 @@ export default class Parser {
 
   htmlToData(html: string): Array<OutputBlockItem | string> {
     const { events } = this.editor;
-    events.trigger("htmlToData", html);
+    events.trigger("htmlToData", { html: html });
 
     const input = html,
       rawblock = this.parseHtml(input);
@@ -50,12 +54,12 @@ export default class Parser {
         )
       ) {
         Array.from(nodes).forEach((node) => {
-          events.trigger("htmlToDataNode", node);
+          events.trigger("htmlToDataNode", { node: node });
 
           if (node.nodeType === Node.TEXT_NODE) {
             const text = node.textContent;
 
-            events.trigger("htmlToDataTextOutput", text);
+            events.trigger("htmlToDataTextOutput", { text: text });
 
             if (text?.trim()) result.push(text);
           } else if (node.nodeType === Node.ELEMENT_NODE) {
@@ -96,7 +100,7 @@ export default class Parser {
       }
     }
 
-    events.trigger("htmlToDataEnd", result);
+    events.trigger("htmlToDataEnd", { data: result });
 
     return this.emptyFilter(result);
   }

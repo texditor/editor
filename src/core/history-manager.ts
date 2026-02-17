@@ -1,8 +1,13 @@
-import Texditor from "@/texditor";
-import { HistoryState, HistoryStateSelectionData } from "@/types/core/history-state";
+import type {
+  HistoryState,
+  HistoryStateSelectionData,
+  HistoryManagerInterface,
+  TexditorEvent,
+  TexditorInterface
+} from "@/types";
 
-export default class HistoryManager {
-  private editor: Texditor;
+export default class HistoryManager implements HistoryManagerInterface {
+  private editor: TexditorInterface;
   private history: HistoryState[] = [];
   private future: HistoryState[] = [];
   private maxHistorySize: number = 100;
@@ -11,10 +16,17 @@ export default class HistoryManager {
   private saveInterval: number = 800;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
-    this.editor.events.add("onChange.history", (texditor: Texditor, evt: Event) => {
-      if (evt && evt.type != "keydown" && evt.type != "keyup" && evt.type != "historySave") {
+    this.editor.events.add("onChange.history", (evt: TexditorEvent) => {
+      const domEvent = evt.domEvent || null;
+
+      if (
+        domEvent &&
+        domEvent.type != "keydown" &&
+        domEvent.type != "keyup" &&
+        domEvent.type != "historySave"
+      ) {
         this.save();
       }
     });

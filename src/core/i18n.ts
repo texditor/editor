@@ -1,13 +1,13 @@
-import Texditor from "@/texditor";
+import type { I18NInterface, TexditorInterface } from '@/types'
 import { EnLocale } from "@/locales";
 
-export default class I18N {
-  private editor: Texditor;
+export default class I18N implements I18NInterface {
+  private editor: TexditorInterface;
   private locale: string;
   private defaultLocale: string;
   private translations: Record<string, Record<string, string>> = {};
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.defaultLocale = this.editor.config.get("defaultLocale", "en") as string;
     this.locale = this.editor.config.get("locale", this.defaultLocale) as string;

@@ -1,12 +1,25 @@
-import Texditor from "@/texditor";
-import { addClass, append, css, make, query, queryLength, removeClass } from "@/utils/dom";
+import type {
+  ExtensionModelInstanceInterface,
+  ExtensionModelInterface,
+  ExtensionsInterface,
+  TexditorInterface
+} from "@/types";
+import {
+  addClass,
+  append,
+  css,
+  make,
+  query,
+  queryLength,
+  removeClass
+} from "@/utils/dom";
 import { off, on } from "@/utils/events";
-import { ExtensionModelInstanceInterface, ExtensionModelInterface } from "@/types/core/models";
 
-export default class Extensions {
-  private editor: Texditor;
 
-  constructor(editor: Texditor) {
+export default class Extensions implements ExtensionsInterface {
+  private editor: TexditorInterface;
+
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
   }
 
@@ -29,6 +42,7 @@ export default class Extensions {
       (extensions as unknown as ExtensionModelInstanceInterface[]).forEach(
         (ExtClass: ExtensionModelInstanceInterface) => {
           const extInstance: ExtensionModelInterface = new ExtClass(this.editor);
+
           if (extInstance?.create) {
             const element = extInstance.create(),
               groupName = extInstance.getGroupName ? extInstance.getGroupName() : "";
@@ -58,7 +72,7 @@ export default class Extensions {
       );
     });
 
-    events.trigger("extensions:render.end", extensionsBar);
+    events.trigger("extensions:render.end", { el: extensionsBar });
 
     return extensionsBar;
   }

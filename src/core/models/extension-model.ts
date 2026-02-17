@@ -1,29 +1,32 @@
-import Texditor, { RenderIconContent } from "@/texditor";
-import { ExtensionModelInterface } from "@/types/core/models";
+import type {
+  ExtensionModelInterface,
+  RenderIconContent,
+  TexditorInterface
+} from "@/types";
 import { generateRandomString } from "@/utils/common";
 import { addClass, append, attr, make, removeClass, toggleClass } from "@/utils/dom";
 import { off, on } from "@/utils/events";
-import { renderIcon }  from "@/utils/icon";
+import { renderIcon } from "@/utils/icon";
 
 export default class ExtensionModel implements ExtensionModelInterface {
   name: string = "";
   protected translation: string = "";
-  protected editor: Texditor;
+  protected editor: TexditorInterface;
   protected icon: RenderIconContent = "";
   protected toggleActive: boolean = true;
   private randomId: string = generateRandomString(10);
   protected groupName = "";
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.onLoad();
     this.handleClick = this.handleClick.bind(this);
   }
 
-  onLoad(): void {}
+  onLoad(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event & { el: EventTarget }): void {}
+  onClick(evt: Event & { el: EventTarget }): void { }
 
   handleClick(evt: Event & { el: EventTarget }) {
     const { api } = this.editor,
@@ -61,6 +64,7 @@ export default class ExtensionModel implements ExtensionModelInterface {
           height: 14
         });
       }
+
       const title = i18n.get(this.translation || this.getName(), this.getName());
 
       attr(el, "title", title);

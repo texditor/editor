@@ -1,9 +1,12 @@
-import Texditor from "@/texditor";
+import type {
+  CommandsInterface,
+  SelectionAPIInterface,
+  TexditorInterface
+} from '@/types';
 import { isEmptyString } from "@/utils/string";
-import SelectionAPI from "./selection-api";
 import { closest, mergeAdjacentTextNodes, query } from "@/utils/dom";
-export default class Commands {
-  private editor: Texditor;
+export default class Commands implements CommandsInterface {
+  private editor: TexditorInterface;
   static DIR_LEFT: string = "LEFT"; // ( .|.~ <b>...<-|...</b> )
   static DIR_LEFT_SPACE: string = "LEFT_SPACE"; // ( ...|_<b>...<-|...</b> )
   static DIR_RIGHT: string = "RIGHT"; // ( <b>...|->...</b> ~.|. )
@@ -22,7 +25,7 @@ export default class Commands {
   static DIR_NONE: null = null; // ( |......| )
   static DIR_IGNORE: string = "IGNORE";
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
   }
 
@@ -151,7 +154,7 @@ export default class Commands {
   }
 
   createFormat(tagName: string) {
-    this.selection(({ selectionApi }: { selectionApi: SelectionAPI }) => {
+    this.selection(({ selectionApi }: { selectionApi: SelectionAPIInterface }) => {
       const { element, position } = selectionApi.current();
 
       if (element) {
@@ -161,7 +164,7 @@ export default class Commands {
   }
 
   removeFormat(tagName: string, focus: boolean = false, normalize: boolean = true): void {
-    this.selection(({ selectionApi }: { range: Range; selectionApi: SelectionAPI }) => {
+    this.selection(({ selectionApi }: { range: Range; selectionApi: SelectionAPIInterface }) => {
       const elements = this.findTags(tagName),
         direction = this.getSelectionDirection(tagName),
         isMultiple =
@@ -311,7 +314,7 @@ export default class Commands {
 
     const tagsNotChilds = this.findTags(element.localName, false);
 
-    this.selection(({ range }: { range: Range; selectionApi: SelectionAPI }) => {
+    this.selection(({ range }: { range: Range; selectionApi: SelectionAPIInterface }) => {
       const { startContainer, endContainer } = range;
 
       const isFullSelection = (): boolean => {

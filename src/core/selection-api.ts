@@ -1,7 +1,10 @@
-import Texditor from "@/texditor";
-import { CurrentSelectionData, CursorPosition } from "@/types/core";
+import type {
+  CurrentSelectionData,
+  CursorPosition,
+  TexditorInterface
+} from "@/types";
 export default class SelectionAPI {
-  private editor: Texditor;
+  private editor: TexditorInterface;
   private currentData: CurrentSelectionData = {
     position: {
       start: 0,
@@ -10,7 +13,7 @@ export default class SelectionAPI {
     element: null
   };
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
   }
 

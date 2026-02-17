@@ -1,9 +1,9 @@
+import type { TexditorInterface } from "@/types";
 import { IconBars } from "@/icons";
-import Texditor from "@/texditor";
 import { append, make, html, addClass } from "@/utils/dom";
 import { renderIcon } from "@/utils/icon";
 
-export default function ActionsView(editor: Texditor): HTMLElement {
+export default function ActionsView(editor: TexditorInterface): HTMLElement {
   return make("div", (el: HTMLElement) => {
     const { api } = editor,
       className = api.css("actions", false),

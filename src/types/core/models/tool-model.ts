@@ -1,3 +1,8 @@
+import type { TexditorInterface } from "@/types";
+export interface ToolModelInstanceInterface {
+  new(editor: TexditorInterface): ToolModelInterface;
+}
+
 export interface ToolModelInterface {
   name: string;
   onLoad?(): void;

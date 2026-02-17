@@ -1,7 +1,7 @@
 import "./app.css";
 import "../src/styles/theme.css";
 import jsonPreview from "./utils/json-preview";
-import Texditor from "@/texditor";
+import Texditor, { TexditorEvent } from "@/texditor";
 // import data1 from "./data/dataV2.json";
 // import data3 from "./data/dataV3Tools.json";
 // import { injectedData } from "./data/injectedData";
@@ -98,7 +98,7 @@ const editor = new Texditor({
   onReady: () => {
     document.getElementById("saveButton")?.click();
   },
-  onChange: (editor: Texditor, evt: unknown) => {
+  onChange: (evt: TexditorEvent) => {
     console.log(evt);
     setTimeout(() => {
       document.getElementById("saveButton")?.click();
@@ -107,6 +107,11 @@ const editor = new Texditor({
 });
 
 editor.i18n.setLocale("ru", RuLocale);
+
+
+editor.events.add('focus', (editorEvent: TexditorEvent) => {
+  console.log(editorEvent, 3)
+})
 
 document.getElementById("saveButton")?.addEventListener(
   "click",

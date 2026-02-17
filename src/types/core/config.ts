@@ -1,11 +1,11 @@
-import {
+import type {
   ActionModelInstanceInterface,
   BlockModelInstanceInterface,
   ExtensionModelInterface,
   ToolModelInstanceInterface
-} from "./models";
+} from "@/types";
 
-export interface ConfigStore {
+export interface ConfigStoreInterface {
   handle?: string;
   onReady?: CallableFunction;
   onChange?: CallableFunction;
@@ -25,4 +25,15 @@ export interface ConfigStore {
   extensionsFixedStyle?: false | Record<string, string>;
   extensionVisibleTitle?: boolean;
   autofocus?: boolean;
+}
+
+export type ConfigGetFunction = {
+  (key: "defaultBlock", defaultValue: string): string;
+  <K extends keyof ConfigStoreInterface>(key: K): ConfigStoreInterface[K];
+  <K extends keyof ConfigStoreInterface>(key: K, defaultValue: ConfigStoreInterface[K]): ConfigStoreInterface[K];
+  (key: string, defaultValue: unknown): unknown;
+};
+
+export interface ConfigInterface {
+  get: ConfigGetFunction;
 }

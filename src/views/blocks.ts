@@ -1,5 +1,5 @@
-import Texditor from "@/texditor";
+import type { TexditorInterface } from "@/types";
 
-export default function BlocksView(editor: Texditor): HTMLElement {
+export default function BlocksView(editor: TexditorInterface): HTMLElement {
   return editor.blockManager.render();
 }

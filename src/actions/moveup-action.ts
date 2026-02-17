@@ -1,6 +1,6 @@
+import type { ActionModelInterface, RenderIconContent } from "@/types";
 import { IconArrowUp } from "@/icons";
 import ActionModel from "@/core/models/action-model";
-import { ActionModelInterface, RenderIconContent } from "@/types";
 
 export default class MoveUpAction extends ActionModel implements ActionModelInterface {
   name = "moveUpAction";

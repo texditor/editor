@@ -1,5 +1,14 @@
 import { IconArrowLeft, IconArrowRight } from "@/icons";
-import { addClass, append, html, make, on, query, removeClass, renderIcon } from "@/utils";
+import {
+    addClass,
+    append,
+    html,
+    make,
+    on,
+    query,
+    removeClass,
+    renderIcon
+} from "@/utils";
 
 interface SliderOptions {
     infinite?: boolean;

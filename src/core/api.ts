@@ -1,16 +1,18 @@
-import Texditor from "@/texditor";
-import { HTMLBlockElement } from "@/types/core";
+import type {
+  APIInterface,
+  HTMLBlockElement,
+  TexditorInterface,
+  BlockItemData,
+  OutputBlockItem
+} from "@/types";
 import { queryLength, query, append, findDatasetsWithPrefix } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 import MainView from "@/views/main";
-import { BlockModelStructure } from "@/types/core/models";
-import { BlockItemData, OutputBlockItem } from "@/types/output";
 import { generateRandomString } from "@/utils/common";
 
-export default class API {
-  private editor: Texditor;
+export default class API implements APIInterface {
+  private editor: TexditorInterface;
   private rootElement?: HTMLElement;
-  private blockModels: BlockModelStructure[] = [];
   private uniqueId: string = "";
   private cssNames: { [key: string]: string } = {
     editor: "tex",
@@ -30,7 +32,7 @@ export default class API {
     extension: "tex-extension"
   };
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.uniqueId = generateRandomString(12);
     this.editor = editor;
   }
@@ -132,7 +134,7 @@ export default class API {
     query(
       this.css("block"),
       (el: HTMLBlockElement) => {
-        events.trigger("saveEach", el);
+        events.trigger("saveEach", { block: el });
 
         if (el.dataset?.type) {
           const extOptions = findDatasetsWithPrefix(el, "options");
@@ -167,7 +169,7 @@ export default class API {
           if (block.data.length) data.push(block);
         }
 
-        events.trigger("saveEachEnd", el);
+        events.trigger("saveEachEnd", { block: el });
       },
       root
     );
@@ -180,7 +182,11 @@ export default class API {
   setDisplay(wrap = "", visible: string = "") {
     const root = this.getRoot();
 
-    if (root) query(this.css(wrap), (el: HTMLElement) => (el.style.display = visible), root);
+    if (root) query(
+      this.css(wrap),
+      (el: HTMLElement) => (el.style.display = visible),
+      root
+    );
   }
 
   destroy(): void {

@@ -1,4 +1,10 @@
-import { BlockModelInterface } from "@/types/core/models";
+import type {
+  BlockModelInterface,
+  OutputBlockItem,
+  ListCreateOptions,
+  HTMLBlockElement,
+  TexditorEvent
+} from "@/types";
 import BlockModel from "@/core/models/block-model";
 import {
   queryLength,
@@ -11,12 +17,9 @@ import {
   getChildNodes,
   appendText
 } from "@/utils/dom";
-import { OutputBlockItem } from "@/types/output";
-import { ListCreateOptions } from "@/types/blocks";
 import { generateRandomString } from "@/utils/common";
 import { isEmptyString } from "@/utils/string";
 import "@/styles/blocks/list.css";
-import { HTMLBlockElement } from "@/types/core";
 import { IconList } from "@/icons";
 
 export default class List extends BlockModel implements BlockModelInterface {
@@ -242,9 +245,16 @@ export default class List extends BlockModel implements BlockModelInterface {
       setItemIndex = (el: HTMLElement) => {
         this.setItemIndex(this.getListElementIndex(el));
       },
-      defCallback = (evt: Event) => {
-        if (evt.target instanceof HTMLElement && !hasClass(evt.target, "tex-block") && evt.target?.nodeName == "LI") {
-          setItemIndex(evt.target);
+      defCallback = (evt: TexditorEvent) => {
+        const domEvent = evt?.domEvent;
+
+        if (
+          domEvent &&
+          domEvent.target instanceof HTMLElement &&
+          !hasClass(domEvent.target, "tex-block") &&
+          domEvent.target?.nodeName == "LI"
+        ) {
+          setItemIndex(domEvent.target);
         }
       };
 
@@ -256,18 +266,21 @@ export default class List extends BlockModel implements BlockModelInterface {
       if (el instanceof HTMLElement && el.nodeName === "LI") setItemIndex(el);
     });
 
-    events.add("htmlToDataElementOutput.list", (item: OutputBlockItem) => {
+    events.add("htmlToDataElementOutput.list", (evt: TexditorEvent) => {
+      const item = evt.item as OutputBlockItem;
       if (item && item.type == "li") delete item.attr;
     });
 
-    events.add("keydownBackspaceKey.list", (evt: KeyboardEvent) => {
-      if (this.isTarget(evt)) {
+    events.add("keydownBackspaceKey.list", (evt: TexditorEvent) => {
+      const domEvent = evt?.domEvent as KeyboardEvent;
+
+      if (domEvent && this.isTarget(domEvent)) {
         const currentItem = this.getItem(-1);
         const [cursorStart, cursorEnd] = selectionApi.getOffset(currentItem);
         const currentItemIndex = this.getItemIndex();
 
         if (this.isEmpty()) {
-          evt.preventDefault();
+          domEvent.preventDefault();
           this.removeItem();
 
           const prevIndex = currentItemIndex - 1;
@@ -278,7 +291,7 @@ export default class List extends BlockModel implements BlockModelInterface {
           selectionApi.select(prevTextLength, prevTextLength, prevElem as HTMLElement);
         } else {
           if (cursorStart === 0 && cursorEnd === 0) {
-            evt.preventDefault();
+            domEvent.preventDefault();
 
             if (currentItemIndex > 0) {
               const prevItem = this.getItem(currentItemIndex - 1);
@@ -299,9 +312,11 @@ export default class List extends BlockModel implements BlockModelInterface {
       }
     });
 
-    events.add("keydownEnterKey.list", (evt: KeyboardEvent) => {
-      if (this.isTarget(evt)) {
-        evt.preventDefault();
+    events.add("keydownEnterKey.list", (evt: TexditorEvent) => {
+      const domEvent = evt?.domEvent as KeyboardEvent;
+
+      if (domEvent && this.isTarget(domEvent)) {
+        domEvent.preventDefault();
 
         const currentBlock = blockManager.getCurrentBlock(),
           currentItem = this.getItem(-1),

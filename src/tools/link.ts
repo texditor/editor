@@ -1,10 +1,26 @@
-import { IconArrowRight, IconClearFormatting, IconLink, IconNewTab, IconTrash } from "@/icons";
+import type { ToolModelInterface } from "@/types";
+import {
+  IconArrowRight,
+  IconClearFormatting,
+  IconLink,
+  IconNewTab,
+  IconTrash
+} from "@/icons";
 import ToolModel from "@/core/models/tool-model";
-import { addClass, append, attr, closest, make, query, replaceWithChildren, toggleClass } from "@/utils/dom";
+import {
+  addClass,
+  append,
+  attr,
+  closest,
+  make,
+  query,
+  replaceWithChildren,
+  toggleClass
+} from "@/utils/dom";
 import "@/styles/tools/link.css";
 import { off, on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
-import { ToolModelInterface } from "@/types/core/models";
+
 
 export default class LinkTool extends ToolModel implements ToolModelInterface {
   name: string = "link";

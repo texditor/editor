@@ -1,6 +1,6 @@
+import type { ToolModelInterface } from "@/types";
 import { IconCode } from "@/icons";
 import ToolModel from "@/core/models/tool-model";
-import { ToolModelInterface } from "@/types/core/models";
 import "@/styles/tools/inline-code.css";
 
 export default class InlineCodeTool extends ToolModel implements ToolModelInterface {

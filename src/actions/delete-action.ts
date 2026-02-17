@@ -1,6 +1,6 @@
+import type { ActionModelInterface, RenderIconContent } from "@/types";
 import { IconTrash } from "@/icons";
 import ActionModel from "@/core/models/action-model";
-import { ActionModelInterface, RenderIconContent } from "@/types";
 
 export default class DeleteAction extends ActionModel implements ActionModelInterface {
   name: string = "deleteAction";

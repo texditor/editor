@@ -1,11 +1,14 @@
+import type {
+  HTMLBlockElement,
+  RenderIconContent,
+  TexditorEvent
+} from "@/types";
 import ExtensionModel from "@/core/models/extension-model";
 import { IconCheck, IconTrash } from "@/icons";
 import { addClass, append, attr, css, make, removeClass } from "@/utils/dom";
-import "@/styles/extensions/selection-mode.css";
-import { HTMLBlockElement } from "@/types/core";
 import { renderIcon } from "@/utils/icon";
 import { off, on } from "@/utils/events";
-import { RenderIconContent } from "@/types";
+import "@/styles/extensions/selection-mode.css";
 
 export default class SelectionMode extends ExtensionModel {
   name: string = "selectionMode";
@@ -41,7 +44,8 @@ export default class SelectionMode extends ExtensionModel {
         el,
         make("div", (act: HTMLElement) => {
           addClass(act, cssName + "-actions");
-          this.editor.events.add("selectionChanged.extSelectionMode", (blocks: HTMLBlockElement[]) => {
+          this.editor.events.add("selectionChanged.extSelectionMode", (evt: TexditorEvent) => {
+            const blocks = evt.selectedBlocks as HTMLBlockElement[];
             css(act, "display", blocks.length > 0 ? "flex" : "");
           });
           append(

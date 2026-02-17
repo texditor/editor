@@ -1,5 +1,5 @@
-import { IconDownload } from "@/icons";
 import type { FileActionModelInterface, RenderIconContent } from "@/types";
+import { IconDownload } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
 
 export default class DownloadFileAction extends FileActionModel implements FileActionModelInterface {

@@ -1,7 +1,9 @@
-import { BlockModelInterface } from "@/types/core/models";
+import type {
+  BlockModelInterface,
+  HeaderCreateOptions,
+  HTMLBlockElement
+} from "@/types";
 import BlockModel from "@/core/models/block-model";
-import { HeaderCreateOptions } from "@/types/blocks";
-import { HTMLBlockElement } from "@/types/core";
 import { IconHeader1 } from "@/icons";
 
 export default class Header extends BlockModel implements BlockModelInterface {

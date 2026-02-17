@@ -1,5 +1,11 @@
-import Texditor from "@/texditor";
-import { HTMLBlockElement } from "@/types/core";
+import type {
+  BlockManagerInterface,
+  HTMLBlockElement,
+  TexditorInterface,
+  BlockModelInstanceInterface,
+  BlockModelInterface,
+  BlockModelStructure
+} from "@/types";
 import {
   closest,
   queryLength,
@@ -13,19 +19,17 @@ import {
   css
 } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
-import BlockModel from "./models/block-model";
-import { BlockModelInstanceInterface, BlockModelInterface, BlockModelStructure } from "@/types/core/models";
 import { off, on } from "@/utils/events";
 import { sanitizeJson } from "@/utils/sanitizer";
 import { Paragraph } from "@/blocks";
 
-export default class BlockManager {
-  private editor: Texditor;
+export default class BlockManager implements BlockManagerInterface {
+  private editor: TexditorInterface;
   private blockIndex: number = 0;
   private isSelectionMode: boolean = false;
   private blockModels: BlockModelStructure[] = [];
 
-  constructor(editor: Texditor) {
+  constructor(editor: TexditorInterface) {
     this.editor = editor;
   }
 
@@ -48,10 +52,10 @@ export default class BlockManager {
       addClass(el, api.css("blocks", false));
       let data = [];
       const initalData =
-          (renderData && Array.isArray(renderData) && renderData.length) ||
+        (renderData && Array.isArray(renderData) && renderData.length) ||
           (typeof renderData === "string" && !isEmptyString(renderData))
-            ? renderData
-            : config.get("initalData", []),
+          ? renderData
+          : config.get("initalData", []),
         emptyData = [
           {
             type: config.get("defaultBlock", "p"),
@@ -225,7 +229,7 @@ export default class BlockManager {
     return this.blockIndex;
   }
 
-  getModel(index: number | null = null): BlockModel | null {
+  getModel(index: number | null = null): BlockModelInterface | null {
     const outIndex = index === null ? this.getIndex() : index,
       block = this.getByIndex(outIndex);
 
@@ -352,7 +356,7 @@ export default class BlockManager {
 
     this.editor.events.change({
       type: "removeBlock",
-      index: index,
+      index: index as number,
       element: lastRemovedBlock
     });
 
@@ -481,7 +485,7 @@ export default class BlockManager {
       if (hasClass(block, api.css("block", false) + "-selected")) this.removeBlockSelection(index);
       else this.addBlockSelection(index);
 
-      events.trigger("selectionChanged", this.getSelectedBlocks());
+      events.trigger("selectionChanged", { selectedBlocks: this.getSelectedBlocks() });
     }
   }
 
@@ -516,7 +520,7 @@ export default class BlockManager {
     this.getItems().forEach((block: HTMLBlockElement) => {
       removeClass(block, api.css("block", false) + "-selected");
     });
-    events.trigger("selectionChanged", []);
+    events.trigger("selectionChanged", { selectedBlocks: [] });
   }
 
   public deleteSelectedBlocks(): void {
