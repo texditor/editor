@@ -52,10 +52,10 @@ export default class Parser implements ParserInterface {
     if (nodes.length > 0) {
       if (
         !(
-          (nodes.length === 1 && nodes[0]!.nodeType === Node.TEXT_NODE) ||
-          (nodes[0]!.nodeType === Node.TEXT_NODE &&
+          (nodes.length === 1 && nodes[0].nodeType === Node.TEXT_NODE) ||
+          (nodes[0].nodeType === Node.TEXT_NODE &&
             nodes.length === 2 &&
-            nodes[1]!.nodeName === "BR")
+            nodes[1].nodeName === "BR")
         )
       ) {
         Array.from(nodes).forEach((node) => {
@@ -80,7 +80,7 @@ export default class Parser implements ParserInterface {
               if (
                 !(
                   childNodes.length === 1 &&
-                  childNodes[0]!.nodeType === Node.TEXT_NODE
+                  childNodes[0].nodeType === Node.TEXT_NODE
                 )
               ) {
                 outContent = this.htmlToData(element.innerHTML);
@@ -127,7 +127,7 @@ export default class Parser implements ParserInterface {
 
     const blocks = make("div", (el: HTMLBlockElement) => {
       (data as OutputBlockItem[]).forEach((item: OutputBlockItem) => {
-        (models as BlockModelStructure[]).forEach(
+        (models).forEach(
           (formatedModel: BlockModelStructure) => {
             if (
               formatedModel.types &&
@@ -162,7 +162,7 @@ export default class Parser implements ParserInterface {
       });
 
       if (el.childNodes.length === 0 && createDefault) {
-        (models as BlockModelStructure[]).forEach(
+        (models).forEach(
           (formatedModel: BlockModelStructure) => {
             if (
               formatedModel.types &&

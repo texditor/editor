@@ -899,7 +899,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
             type: "upload",
             success: true,
             response: response,
-            fileAction: true
+            isFileAction: true
           });
         })
         .catch((error) => {
@@ -915,7 +915,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
             type: "upload",
             success: false,
             error: error,
-            fileAction: true
+            isFileAction: true
           });
         });
     }
@@ -927,8 +927,8 @@ export default class Files extends BlockModel implements BlockModelInterface {
     isError: boolean = false
   ): string {
     const messageField = isError
-      ? (this.getConfig("responseMessageErrorField", "message") as string)
-      : (this.getConfig("responseMessageField", "message") as string);
+      ? (this.getConfig("responseMessageErrorField", "message"))
+      : (this.getConfig("responseMessageField", "message"));
 
     if (!response) {
       return defaultMessage || "";

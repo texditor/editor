@@ -45,7 +45,6 @@ export interface BlockModelConfig {
   type: string;
   relatedTypes: string[];
   emptyDetect: boolean;
-  preformatted: boolean;
   customSave: boolean;
   normalize: boolean;
   placeholder?: string;
@@ -94,7 +93,6 @@ export interface BlockModelInterface {
   isEditableChilds(): boolean;
   isRawOutput(): boolean;
   isNormalize(): boolean;
-  isPreformatted(): boolean;
   isConvertible(): boolean;
   isCustomSave(): boolean;
   isToolbar(): boolean;

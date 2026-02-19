@@ -152,7 +152,7 @@ export default class API implements APIInterface {
 
           if (el.blockModel?.isCustomSave()) {
             const savedBlock = el.blockModel.save(block, el);
-            block = savedBlock as OutputBlockItem;
+            block = savedBlock;
           } else {
             for (const itemData in el.dataset) {
               if (

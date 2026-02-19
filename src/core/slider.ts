@@ -31,7 +31,7 @@ export default class Slider {
   constructor(container: HTMLElement, options: SliderOptions = {}) {
     if (!container) throw new Error("Container not found");
 
-    this.container = container as HTMLElement;
+    this.container = container;
     this.options = { ...this.defaultOptions, ...options };
     const slider = this.container.firstChild as HTMLElement;
     addClass(this.container, "tex-slider-container");

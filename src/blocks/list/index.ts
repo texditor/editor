@@ -277,8 +277,7 @@ export default class List extends BlockModel implements BlockModelInterface {
     });
 
     events.add("htmlToDataElementOutput.list", (evt: TexditorEvent) => {
-      const item = evt.item as OutputBlockItem;
-      if (item && item.type == "li") delete item.attr;
+      if (evt && evt.type == "li") delete evt.attr;
     });
 
     events.add("keydownBackspaceKey.list", (evt: TexditorEvent) => {

@@ -243,7 +243,7 @@ export default class Actions implements ActionsInterface {
       cssName = api.css("actions");
 
     if (root) {
-      const actions = this.actions as ActionModelInstanceInterface[];
+      const actions = this.actions;
 
       actions.forEach((actionConstructor: ActionModelInstanceInterface) => {
         const action = new actionConstructor(this.editor);

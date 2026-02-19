@@ -44,7 +44,6 @@ export default class BlockModel implements BlockModelInterface {
     emptyDetect: false,
     customSave: false,
     normalize: false,
-    preformatted: false,
     convertible: false
   };
 
@@ -201,10 +200,6 @@ export default class BlockModel implements BlockModelInterface {
 
   isNormalize(): boolean {
     return this.getConfig("normalize", false);
-  }
-
-  isPreformatted(): boolean {
-    return this.getConfig("preformatted", false);
   }
 
   isConvertible(): boolean {

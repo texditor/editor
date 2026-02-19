@@ -24,7 +24,7 @@ export default class ConvertAction
 
     blockModels.forEach((modelStructure: BlockModelStructure) => {
       const curBlock = blockManager.getCurrentBlock(),
-        model = modelStructure.model as BlockModelInterface;
+        model = modelStructure.model;
 
       if (
         model.isConvertible() &&

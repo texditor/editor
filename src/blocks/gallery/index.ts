@@ -234,7 +234,7 @@ export default class Gallery extends Files {
         block
       );
       events.add("onChange.fileAction", (evt: TexditorEvent) => {
-        if (evt?.fileAction) {
+        if (evt?.isFileAction) {
           const lastIndex = evt.index || 0;
 
           this.destroySlider();
@@ -284,14 +284,14 @@ export default class Gallery extends Files {
       (item: FileItem): HTMLElement => {
         const videoContainer = make("div", (vc: HTMLDivElement) => {
           const video = make("video", (video: HTMLVideoElement) => {
-              append(
-                video,
-                make("source", (source: HTMLSourceElement) => {
-                  source.src = item.url;
-                  attr(source, "type", item.type);
-                })
-              );
-            }),
+            append(
+              video,
+              make("source", (source: HTMLSourceElement) => {
+                source.src = item.url;
+                attr(source, "type", item.type);
+              })
+            );
+          }),
             playIcon = make("div", (div: HTMLDivElement) => {
               addClass(div, "tex-gallery-item-play");
               div.innerHTML = renderIcon(IconPlay, {

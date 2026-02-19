@@ -71,15 +71,10 @@ export default class Events implements EventsInterface {
     if (!this.triggers[name]) return;
 
     const trigger = this.triggers[name];
-    const defaultParams = {
-      type: name
-    };
 
     if (typeof trigger === "object") {
-      const mergedParams = { ...defaultParams, ...params };
-
       for (const eventId in trigger) {
-        trigger[eventId](mergedParams);
+        trigger[eventId](params);
       }
     }
   }

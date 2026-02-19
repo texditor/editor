@@ -401,7 +401,7 @@ export default class BlockManager implements BlockManagerInterface {
       blockModels = blockManager.getBlockModels(),
       element = null;
 
-    (blockModels as BlockModelStructure[]).forEach(
+    (blockModels).forEach(
       (formatedModel: BlockModelStructure) => {
         if (formatedModel.types && formatedModel.types.includes(name)) {
           const blockInstance: BlockModelInterface = new formatedModel.instance(
@@ -654,7 +654,7 @@ export default class BlockManager implements BlockManagerInterface {
       blockModels.push(Paragraph);
     }
 
-    (blockModels as BlockModelInstanceInterface[]).forEach(
+    (blockModels).forEach(
       (model: BlockModelInstanceInterface) => {
         const md = new model(this.editor);
 
@@ -676,7 +676,7 @@ export default class BlockManager implements BlockManagerInterface {
     let type = null;
 
     (
-      this.editor.blockManager.getBlockModels() as BlockModelStructure[]
+      this.editor.blockManager.getBlockModels()
     ).forEach((model: BlockModelStructure) => {
       if (model.types && model.types.includes(relatedName)) {
         type = model.type;
