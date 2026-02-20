@@ -55,21 +55,21 @@ export default class Actions implements ActionsInterface {
     const { api, blockManager, config } = this.editor,
       curBlock = blockManager.getCurrentBlock(),
       root = api.getRoot(),
-      className = api.css("actions", false),
+      className = 'tex-actions',
       windowWidth = window.innerWidth;
 
     if (root && curBlock) {
       query(
-        api.css("actions"),
+        '.' + className,
         (el: HTMLElement) => {
           const rect = curBlock.getBoundingClientRect(),
             windowHeight = window.innerHeight,
             elementHeight = el.offsetHeight;
 
           const leftOffset =
-              windowWidth <= 768
-                ? 0
-                : (config.get("actionsLeftOffset", 24) as number),
+            windowWidth <= 768
+              ? 0
+              : (config.get("actionsLeftOffset", 24) as number),
             offsetTop =
               windowWidth <= 768
                 ? 0
@@ -111,8 +111,8 @@ export default class Actions implements ActionsInterface {
   private handleClose(evt: Event) {
     const { api, events } = this.editor,
       root = api.getRoot(),
-      cssName = api.css("actions"),
-      cssAction = api.css("action");
+      cssName = '.tex-actions',
+      cssAction = '.tex-action';
 
     if (root && evt.target) {
       let status = false;
@@ -192,7 +192,7 @@ export default class Actions implements ActionsInterface {
   private wrap(callback: CallableFunction) {
     const { api, events } = this.editor,
       root = api.getRoot(),
-      cssName = api.css("actions");
+      cssName = ".tex-actions";
 
     if (root) {
       query(
@@ -240,7 +240,7 @@ export default class Actions implements ActionsInterface {
   apply() {
     const { api } = this.editor,
       root = api.getRoot(),
-      cssName = api.css("actions");
+      cssName = ".tex-actions";
 
     if (root) {
       const actions = this.actions;

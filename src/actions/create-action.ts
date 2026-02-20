@@ -11,8 +11,7 @@ import BlockModel from "@/core/models/block-model";
 
 export default class CreateAction
   extends ActionModel
-  implements ActionModelInterface
-{
+  implements ActionModelInterface {
   name: string = "createAction";
   protected translation: string = "createAction";
   protected icon: RenderIconContent = IconPlus;
@@ -40,35 +39,37 @@ export default class CreateAction
             model = modelStructure.model as BlockModel;
 
           if (curBlock) {
-            const block = model.create();
+            const blockElement = model.create();
 
-            if (block) {
-              curBlock?.insertAdjacentElement("afterend", block);
+            if (blockElement) {
+              curBlock?.insertAdjacentElement("afterend", blockElement);
 
-              const blockElement = model.getElement(),
-                isEditableChilds = model?.isEditableChilds();
+              const isEditableChilds = model?.isEditableChilds(),
+                blockContentElement = model.getBlockContentElement();
 
-              if (model?.isEditable() || isEditableChilds) {
-                if (isEditableChilds) {
-                  const editableChild = model.editableChild(block, true);
+              if (blockContentElement) {
+                if (model?.isEditable() || isEditableChilds) {
+                  if (isEditableChilds) {
+                    const editableChild = model.editableChild(blockElement, true);
 
-                  if (editableChild) {
-                    (editableChild as HTMLElement)?.focus();
-                  } else blockElement?.click();
-                } else block.focus();
-              } else {
-                setTimeout(() => {
-                  block.click();
-                }, 10);
+                    if (editableChild) {
+                      (editableChild as HTMLElement)?.focus();
+                    } else blockContentElement?.click();
+                  } else blockContentElement.focus();
+                } else {
+                  setTimeout(() => {
+                    blockContentElement.click();
+                  }, 10);
+                }
+
+                events.change({
+                  type: "createdBlock",
+                  index: curIndex,
+                  blockElement: blockElement
+                });
+
+                events.refresh();
               }
-
-              events.change({
-                type: "createdBlock",
-                index: curIndex,
-                block: block
-              });
-
-              events.refresh();
             }
           }
         });

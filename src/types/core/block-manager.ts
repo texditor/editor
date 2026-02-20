@@ -19,6 +19,7 @@ export interface BlockManagerInterface {
     element: HTMLElement | EventTarget | null,
     findTargetBlock?: boolean
   ): number;
+  getBlockContentElement(block?: HTMLBlockElement | HTMLElement): HTMLElement | null;
 
   // Block counting and state checking methods
   count(): number;

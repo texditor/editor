@@ -55,15 +55,15 @@ export default class List extends BlockModel implements BlockModelInterface {
   }
 
   create(options?: ListCreateOptions): HTMLElement {
-    return this.make(this.getTagName(), (el: HTMLElement) => {
-      el.innerHTML = options?.content ? options.content : "<li></li>";
+    return this.make(this.getTagName(), ({ blockContentElement }: { blockContentElement: HTMLElement }) => {
+      blockContentElement.innerHTML = options?.content ? options.content : "<li></li>";
 
       query(
         "li",
         (liEl: HTMLElement) => {
           liEl.outerHTML = this.createItem(liEl.innerHTML).outerHTML;
         },
-        el
+        blockContentElement
       );
     });
   }
@@ -491,11 +491,11 @@ export default class List extends BlockModel implements BlockModelInterface {
   }
 
   convert(
-    block: HTMLBlockElement,
+    blockElement: HTMLBlockElement,
     newBlock: HTMLBlockElement
   ): HTMLBlockElement {
     if (
-      (block.localName == "ol" || block.localName == "ul") &&
+      (blockElement.localName == "ol" || blockElement.localName == "ul") &&
       (newBlock.localName == "ol" || newBlock.localName == "ul")
     ) {
       newBlock.innerHTML = "";
@@ -504,7 +504,7 @@ export default class List extends BlockModel implements BlockModelInterface {
         (li: HTMLLIElement) => {
           append(newBlock, li);
         },
-        block
+        blockElement
       );
 
       return newBlock;
@@ -512,20 +512,20 @@ export default class List extends BlockModel implements BlockModelInterface {
 
     newBlock.innerHTML = "";
     const item = this.createItem("");
-    append(item, getChildNodes(block));
+    append(item, getChildNodes(blockElement));
     append(newBlock, item);
 
     return newBlock;
   }
 
   toConvert(
-    block: HTMLBlockElement,
-    newBlock: HTMLBlockElement
+    blockElement: HTMLBlockElement,
+    newBlockElement: HTMLBlockElement
   ): [HTMLBlockElement, HTMLBlockElement] {
     if (
       !(
-        (block.localName == "ol" || block.localName == "ul") &&
-        (newBlock.localName == "ol" || newBlock.localName == "ul")
+        (blockElement.localName == "ol" || blockElement.localName == "ul") &&
+        (newBlockElement.localName == "ol" || newBlockElement.localName == "ul")
       )
     ) {
       const tempBlock = make("div");
@@ -535,13 +535,13 @@ export default class List extends BlockModel implements BlockModelInterface {
           append(tempBlock, getChildNodes(li));
           appendText(tempBlock, " ");
         },
-        block
+        blockElement
       );
 
-      block.innerHTML = "";
-      append(block, getChildNodes(tempBlock));
+      blockElement.innerHTML = "";
+      append(blockElement, getChildNodes(tempBlock));
     }
 
-    return [block, newBlock];
+    return [blockElement, newBlockElement];
   }
 }

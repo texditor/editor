@@ -4,8 +4,7 @@ import ActionModel from "@/core/models/action-model";
 
 export default class MoveDownAction
   extends ActionModel
-  implements ActionModelInterface
-{
+  implements ActionModelInterface {
   name = "moveDownAction";
   protected icon: RenderIconContent = IconArrowDown;
 
@@ -24,8 +23,8 @@ export default class MoveDownAction
         events.change({
           type: "moveDown",
           index: curIndex + 1,
-          block: curBlock,
-          targetBlock: nextBlock,
+          blockElement: curBlock,
+          targetBlockElement: nextBlock,
           targetIndex: curIndex
         });
 
@@ -34,9 +33,15 @@ export default class MoveDownAction
         const newBlock = blockManager.getByIndex(curIndex + 1),
           model = newBlock?.blockModel;
 
-        if (model?.isEditable()) newBlock?.focus();
-        else newBlock?.click();
+        if (newBlock) {
+          const blockContentElement = blockManager.getBlockContentElement(newBlock);
+          newBlock?.click();
+
+          if (model?.isEditable())
+            blockContentElement?.focus();
+        }
       }
+
     }
 
     setTimeout(() => actions.show(), 40);

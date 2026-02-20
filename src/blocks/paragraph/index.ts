@@ -1,7 +1,6 @@
 import type {
   BlockModelInterface,
-  ParagraphCreateOptions,
-  HTMLBlockElement
+  ParagraphCreateOptions
 } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/paragraph.css";
@@ -9,8 +8,7 @@ import { IconParagraph } from "@/icons";
 
 export default class Paragraph
   extends BlockModel
-  implements BlockModelInterface
-{
+  implements BlockModelInterface {
   configure() {
     return {
       icon: IconParagraph,
@@ -44,8 +42,11 @@ export default class Paragraph
   }
 
   create(options?: ParagraphCreateOptions): HTMLElement {
-    return this.make("div", (el: HTMLBlockElement) => {
-      if (options?.content) el.innerHTML = options.content;
-    });
+    return this.make(
+      this.getTagName(),
+      ({ blockContentElement }: { blockContentElement: HTMLElement }) => {
+        if (options?.content) blockContentElement.innerHTML = options.content;
+      }
+    );
   }
 }

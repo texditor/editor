@@ -32,8 +32,8 @@ export default class Code extends BlockModel implements BlockModelInterface {
   }
 
   create(options?: CodeCreateOptions): HTMLBlockElement | HTMLElement {
-    return this.make("pre", (el: HTMLBlockElement) => {
-      if (options?.content) appendText(el, options.content);
+    return this.make("pre", ({ blockContentElement }: { blockContentElement: HTMLElement }) => {
+      if (options?.content) appendText(blockContentElement, options.content);
     });
   }
 

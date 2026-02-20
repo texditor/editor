@@ -72,11 +72,11 @@ export default class Toolbar implements ToolbarInterface {
       if (!tools) return;
 
       query(
-        api.css("toolbar"),
+        ".tex-toolbar",
         (el: HTMLElement) => {
           const toggleTool = (display: string = "") => {
             query(
-              api.css("tool"),
+              ".tex-tool",
               (tool: HTMLElement) => (tool.style.display = display),
               el
             );
@@ -96,7 +96,7 @@ export default class Toolbar implements ToolbarInterface {
           }
 
           if (fixed) {
-            addClass(el, api.css("toolbarFixed", false));
+            addClass(el, "tex-toolbar-fixed");
 
             const reposition = () => {
               const rect = selectionApi.getFirstLineBounds(),
@@ -149,13 +149,17 @@ export default class Toolbar implements ToolbarInterface {
 
   highlightActiveTools() {
     const { api, selectionApi } = this.editor,
-      cssName = api.css("tool"),
+      cssName = ".tex-tool",
       curElement = selectionApi.current()?.element,
       root = api.getRoot();
 
     if (!root) return;
 
-    query(cssName, (el: HTMLElement) => removeClass(el, "active"), root);
+    query(
+      cssName,
+      (el: HTMLElement) => removeClass(el, "active"),
+      root
+    );
 
     if (!curElement) return;
 
@@ -179,15 +183,13 @@ export default class Toolbar implements ToolbarInterface {
   }
 
   hide() {
-    const { api } = this.editor,
-      root = api.getRoot(),
-      cssName = api.css("toolbar");
+    const root = this.editor.api.getRoot();
 
     if (root) {
       query(
-        cssName,
+        '.tex-toolbar',
         (el: HTMLElement) => {
-          removeClass(el, api.css("toolbarFixed", false));
+          removeClass(el, "tex-toolbar-fixed");
         },
         root
       );
@@ -199,9 +201,8 @@ export default class Toolbar implements ToolbarInterface {
   }
 
   apply() {
-    const { api } = this.editor,
-      root = api.getRoot(),
-      cssName = api.css("toolbar");
+    const root = this.editor.api.getRoot(),
+      cssName = '.tex-toolbar';
 
     if (root) {
       this.tools.forEach((ToolClass: ToolModelInstanceInterface) => {

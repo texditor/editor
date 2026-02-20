@@ -153,7 +153,7 @@ export default class EditFileAction
 
                 events.change({
                   type: "changeFileItem",
-                  block: this.getElement(),
+                  blockElement: this.getElement(),
                   item: item
                 });
               });

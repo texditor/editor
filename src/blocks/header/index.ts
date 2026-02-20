@@ -42,9 +42,9 @@ export default class Header extends BlockModel implements BlockModelInterface {
   }
 
   create(options?: HeaderCreateOptions): HTMLBlockElement | HTMLElement {
-    const block = this.make(this.getTagName(), (el: HTMLBlockElement) => {
+    const block = this.make(this.getTagName(), ({ blockContentElement }: { blockContentElement: HTMLElement }) => {
       if (options?.content) {
-        el.innerHTML = options.content;
+        blockContentElement.innerHTML = options.content;
       }
     });
 

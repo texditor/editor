@@ -120,7 +120,8 @@ export default class Slider {
   }
 
   private updateSliderPosition(): void {
-    this.slider.style.transform = `translateX(-${this.currentIndex * 100}%)`;
+    if (this.slider)
+      this.slider.style.transform = `translateX(-${this.currentIndex * 100}%)`;
   }
 
   goToSlide(index: number): void {

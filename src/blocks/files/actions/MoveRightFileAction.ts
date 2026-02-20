@@ -35,7 +35,7 @@ export default class MoveRightFileAction
   isVisible(): boolean {
     const { model, currentItem } = this.use();
 
-    if (!model.getItemsLength) return false;
+    if (!model?.getItemsLength) return false;
 
     return (
       (model?.getItem(currentItem || 0) as number) !==

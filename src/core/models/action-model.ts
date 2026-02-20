@@ -30,10 +30,10 @@ export default class ActionModel implements ActionModelInterface {
     });
   }
 
-  onLoad(): void {}
+  onLoad(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) {}
+  onClick(evt: Event) { }
 
   menuConfig(): {
     title: string;
@@ -47,11 +47,11 @@ export default class ActionModel implements ActionModelInterface {
   }
 
   private handleClick(evt: Event) {
-    const { actions, api, i18n, toolbar } = this.editor;
+    const { actions, i18n, toolbar } = this.editor;
 
     if (this.confirm) {
       const element = this.getElement(),
-        cssName = api.css("action", false);
+        cssName = "tex-action";
 
       setTimeout(() => {
         actions.show();
@@ -64,13 +64,13 @@ export default class ActionModel implements ActionModelInterface {
               addClass(
                 cfm,
                 cssName +
-                  " " +
-                  cssName +
-                  "-confirm " +
-                  cssName +
-                  "-" +
-                  this.getName() +
-                  "-confirm"
+                " " +
+                cssName +
+                "-confirm " +
+                cssName +
+                "-" +
+                this.getName() +
+                "-confirm"
               );
 
               if (this.icon) {
@@ -107,13 +107,7 @@ export default class ActionModel implements ActionModelInterface {
   }
 
   getId(): string {
-    return (
-      this.editor.api.css("action", false) +
-      "-" +
-      this.getName() +
-      "-" +
-      this.randomId
-    );
+    return ("tex-action" + "-" + this.getName() + "-" + this.randomId);
   }
 
   getElement(): HTMLElement | null {
@@ -125,8 +119,7 @@ export default class ActionModel implements ActionModelInterface {
   }
 
   create() {
-    const { api, i18n } = this.editor,
-      cssName = api.css("action", false);
+    const cssName = 'tex-action';
 
     return make("div", (el: HTMLElement) => {
       addClass(el, cssName + " " + cssName + "-" + this.getName());
@@ -150,7 +143,7 @@ export default class ActionModel implements ActionModelInterface {
       const buttonItems = [
         make("span", (span: HTMLSpanElement) => {
           addClass(span, cssName + "-title");
-          span.textContent = i18n.get(
+          span.textContent = this.editor.i18n.get(
             this.translation || this.getName(),
             this.getName()
           );

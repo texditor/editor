@@ -51,12 +51,16 @@
 
 .tex-block {
   position: relative;
-  outline: none;
   transition: all 1s;
   word-break: break-all;
 }
 
-.tex-block[data-empty="true"]:before {
+.tex-block-content {
+  outline: none;
+  margin: 0;
+}
+
+.tex-block-content[data-empty="true"]:before {
   content: attr(data-placeholder);
   position: absolute;
   display: flex;
@@ -65,7 +69,7 @@
   opacity: 0.5;
 }
 
-.tex-block:focus,
+.tex-block-content:focus,
 .tex-block-active {
   background-color: var(--tex-background-lite);
 }
@@ -338,6 +342,7 @@
 }
 
 @media (hover: hover) {
+
   .tex-action:hover,
   .tex-actions-menu-item:hover {
     opacity: 0.6;

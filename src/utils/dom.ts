@@ -66,7 +66,7 @@ export function setClass(
   className: string,
   active: boolean | number = true
 ) {
-  let name = el.className;
+  let name = el?.className || '';
 
   if (el) {
     if (active) {

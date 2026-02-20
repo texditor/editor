@@ -125,7 +125,7 @@ export default class Parser implements ParserInterface {
     const { blockManager, config } = this.editor,
       models = blockManager.getBlockModels();
 
-    const blocks = make("div", (el: HTMLBlockElement) => {
+    const blocks = make("div", (blockElement: HTMLBlockElement) => {
       (data as OutputBlockItem[]).forEach((item: OutputBlockItem) => {
         (models).forEach(
           (formatedModel: BlockModelStructure) => {
@@ -139,17 +139,22 @@ export default class Parser implements ParserInterface {
 
               if (blockModel.getConfig("autoParse")) {
                 elBlock = blockModel.create();
-
+                
                 if (elBlock) {
-                  append(elBlock, this.parseChilds(item, false, skipDecode));
-                  append(el, elBlock);
+                  const blockContent = blockManager.getBlockContentElement(elBlock);
+                  const childs = this.parseChilds(item, false, skipDecode);
+
+                  if (blockContent) {
+                    append(blockContent, childs);
+                    append(elBlock, blockContent);
+                    append(blockElement, elBlock);
+                  }
                 }
               } else {
                 if (typeof blockModel?.parse !== "undefined") {
                   elBlock = blockModel?.parse(item);
-
                   if (elBlock && elBlock !== null) {
-                    append(el, elBlock);
+                    append(blockElement, elBlock);
                   }
                 }
               }
@@ -161,7 +166,7 @@ export default class Parser implements ParserInterface {
         );
       });
 
-      if (el.childNodes.length === 0 && createDefault) {
+      if (blockElement.childNodes.length === 0 && createDefault) {
         (models).forEach(
           (formatedModel: BlockModelStructure) => {
             if (
@@ -172,7 +177,7 @@ export default class Parser implements ParserInterface {
 
               if (blockModel) {
                 const elBlock = blockModel.create();
-                if (elBlock) append(el, elBlock);
+                if (elBlock) append(blockElement, elBlock);
               }
 
               if (blockModel.afterCreate) blockModel.afterCreate();

@@ -1,9 +1,10 @@
 import type {
   FileItem,
-  FilesCreateOptions,
   TexditorEvent,
   HTMLBlockElement,
-  OutputBlockItem
+  OutputBlockItem,
+  FilesFormCreateParams,
+  FilesListCreateParams
 } from "@/types";
 import Files from "../files";
 import {
@@ -68,7 +69,9 @@ export default class Gallery extends Files {
   }
 
   private isStyles() {
-    return (this.getConfig("styles", []) as string[]).every((key: string) =>
+    const styles = this.getConfig("styles", []) as string[];
+
+    return (styles).every((key: string) =>
       this.defaultStyles.includes(key)
     );
   }
@@ -81,11 +84,7 @@ export default class Gallery extends Files {
     return defaultStyle;
   }
 
-  protected onFormCreate(
-    el: HTMLElement,
-    block: HTMLBlockElement,
-    options?: FilesCreateOptions
-  ): HTMLElement {
+  protected onFormCreate({ el, blockElement, options }: FilesFormCreateParams): HTMLElement {
     const { events, i18n } = this.editor,
       styles = this.getConfig("styles", []) as string[],
       defaultStyle = this.getDefaultStyle();
@@ -120,11 +119,11 @@ export default class Gallery extends Files {
           off(item, "click.style");
           on(item, "click.style", () => {
             setActveItem(code);
-            block.dataset.optionsStyle = code;
+            blockElement.dataset.optionsStyle = code;
             this.destroySlider();
             events.change({
               type: "galleryStyle",
-              block: block
+              blockElement: blockElement
             });
             this.initSlider(code === "slider");
           });
@@ -219,10 +218,11 @@ export default class Gallery extends Files {
     onChange?: (index: number) => void
   ) {
     const { events } = this.editor;
-    const block = this.getElement();
-    const isSliderBlock = block?.dataset?.optionsStyle === "slider" || isSlider;
+    const blockElement = this.getElement();
 
-    if (block && isSliderBlock) {
+    const isSliderBlock = blockElement?.dataset?.optionsStyle === "slider" || isSlider;
+
+    if (blockElement && isSliderBlock) {
       query(
         ".tex-files-list-container",
         (cnt: HTMLDivElement) => {
@@ -231,7 +231,7 @@ export default class Gallery extends Files {
             onChange: onChange
           });
         },
-        block
+        blockElement
       );
       events.add("onChange.fileAction", (evt: TexditorEvent) => {
         if (evt?.isFileAction) {
@@ -255,18 +255,19 @@ export default class Gallery extends Files {
     this.initSlider();
   }
 
-  protected onListCreate(
-    items: FileItem[],
-    block: HTMLBlockElement | null,
-    options: FilesCreateOptions
-  ) {
+  protected onListCreate({
+    items,
+    blockElement,
+    contentElement,
+    options
+  }: FilesListCreateParams) {
     const styles = this.getConfig("styles", []) as string[];
 
     if (this.isStyles()) {
-      if (options?.style && block) {
+      if (options?.style && blockElement) {
         const style = options.style as string;
 
-        if (styles.includes(style)) block.dataset.optionsStyle = style;
+        if (styles.includes(style)) blockElement.dataset.optionsStyle = style;
       }
     }
 
@@ -309,7 +310,8 @@ export default class Gallery extends Files {
 
     return {
       items: items,
-      block: block,
+      blockElement: blockElement,
+      contentElement: contentElement,
       options: options
     };
   }

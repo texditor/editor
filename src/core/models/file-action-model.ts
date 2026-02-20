@@ -22,18 +22,18 @@ export default class FileActionModel implements FileActionModelInterface {
   private randomId: string = generateRandomString(10);
   private item: HTMLElement;
   private container: HTMLElement;
-  private currentBlock: HTMLBlockElement;
+  private currentBlockElement: HTMLBlockElement;
 
   constructor(
     editor: TexditorInterface,
     item: HTMLElement,
     container: HTMLElement,
-    fileBlock: HTMLBlockElement
+    fileBlockElement: HTMLBlockElement
   ) {
     this.editor = editor;
     this.item = item;
     this.container = container;
-    this.currentBlock = fileBlock;
+    this.currentBlockElement = fileBlockElement;
     this.onLoad();
 
     this.editor.events.add("file:actions:render:end", () => {
@@ -41,10 +41,10 @@ export default class FileActionModel implements FileActionModelInterface {
     });
   }
 
-  onLoad(): void {}
+  onLoad(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) {}
+  onClick(evt: Event) { }
 
   onCreate(el: HTMLElement): HTMLElement {
     return el;
@@ -69,7 +69,7 @@ export default class FileActionModel implements FileActionModelInterface {
       if (eventName) {
         this.editor.events.change({
           type: eventName,
-          block: this.getCurrentBlock(),
+          blockElement: this.getCurrentBlock(),
           item: this.getItem(),
           index: this.getItemIndex(),
           container: this.getContainer(),
@@ -93,8 +93,7 @@ export default class FileActionModel implements FileActionModelInterface {
 
   getId(): string {
     return (
-      this.editor.api.css("editor", false) +
-      "-file-action-" +
+      "tex-file-action-" +
       this.getName() +
       "-" +
       this.randomId
@@ -135,11 +134,11 @@ export default class FileActionModel implements FileActionModelInterface {
   }
 
   getCurrentBlock(): HTMLBlockElement {
-    return this.currentBlock;
+    return this.currentBlockElement;
   }
 
   getCurrentBlockModel(): BlockModelInterface {
-    return this.currentBlock.blockModel;
+    return this.currentBlockElement.blockModel;
   }
 
   create(): HTMLElement {

@@ -19,23 +19,6 @@ export default class API implements APIInterface {
   private editor: TexditorInterface;
   private rootElement?: HTMLElement;
   private uniqueId: string = "";
-  private cssNames: { [key: string]: string } = {
-    editor: "tex",
-    blocks: "tex-blocks",
-    block: "tex-block",
-    actions: "tex-actions",
-    actionsOpen: "tex-actions-open",
-    action: "tex-action",
-    toolbar: "tex-toolbar",
-    toolbarFixed: "tex-toolbar-fixed",
-    toolbarContent: "tex-toolbar-content",
-    toolbarTools: "tex-toolbar-tools",
-    floatingBar: "tex-floating-bar",
-    tool: "tex-tool",
-    animate: "tex-animate",
-    extensions: "tex-extensions",
-    extension: "tex-extension"
-  };
 
   constructor(editor: TexditorInterface) {
     this.uniqueId = generateRandomString(12);
@@ -73,11 +56,11 @@ export default class API implements APIInterface {
 
     if (editorElement) {
       query(
-        this.css("block"),
+        ".tex-block",
         (item: HTMLElement) => {
-          const block = item as HTMLBlockElement;
-          block.blockModel.onRender();
-          block.blockModel.__onRenderComplete__();
+          const blockElement = item as HTMLBlockElement;
+          blockElement.blockModel.onRender();
+          blockElement.blockModel.__onRenderComplete__();
         },
         editorElement
       );
@@ -97,14 +80,6 @@ export default class API implements APIInterface {
       html == "\r\n" ||
       !blocksContainer?.childNodes?.length
     );
-  }
-
-  setCss(object: { [key: string]: string }) {
-    Object.assign(this.cssNames, object);
-  }
-
-  css(key: string, dot = true): string {
-    return this.cssNames[key] ? (dot ? "." : "") + this.cssNames[key] : "";
   }
 
   setContent(content: OutputBlockItem[], index: number | null = null): void {
@@ -130,7 +105,7 @@ export default class API implements APIInterface {
 
   save(): OutputBlockItem[] {
     const data: OutputBlockItem[] = [];
-    const { events, parser, config } = this.editor,
+    const { blockManager, events, parser, config } = this.editor,
       root = this.getRoot();
 
     events.trigger("save");
@@ -138,9 +113,9 @@ export default class API implements APIInterface {
     if (!root) return [];
 
     query(
-      this.css("block"),
+      ".tex-block",
       (el: HTMLBlockElement) => {
-        events.trigger("saveEach", { block: el });
+        events.trigger("saveEach", { blockElement: el });
 
         if (el.dataset?.type) {
           const extOptions = findDatasetsWithPrefix(el, "options");
@@ -150,38 +125,42 @@ export default class API implements APIInterface {
             ...extOptions
           };
 
-          if (el.blockModel?.isCustomSave()) {
-            const savedBlock = el.blockModel.save(block, el);
-            block = savedBlock;
-          } else {
-            for (const itemData in el.dataset) {
-              if (
-                (config.get("blockParseDataset", []) as string[]).includes(
-                  itemData
-                )
-              ) {
-                block[itemData] = el.dataset[itemData];
+          const blockContent = blockManager.getBlockContentElement(el);
+
+          if (blockContent) {
+            if (el.blockModel?.isCustomSave()) {
+              block = el.blockModel.save(block, el);
+            } else {
+              for (const itemData in el.dataset) {
+                if (
+                  (config.get("blockParseDataset", []) as string[]).includes(
+                    itemData
+                  )
+                ) {
+                  block[itemData] = el.dataset[itemData];
+                }
+              }
+              if (el.localName === "textarea") {
+                block.data = [(blockContent as HTMLTextAreaElement).value];
+              } else if (el?.blockModel?.isRawOutput()) {
+                block.data = [blockContent.innerText];
+              } else {
+                const parsedData = parser.htmlToData(blockContent.innerHTML);
+
+                block.data = parsedData.filter(
+                  (item) =>
+                    typeof item === "string" ||
+                    (typeof item === "object" && item !== null)
+                ) as BlockItemData;
               }
             }
-            if (el.localName === "textarea") {
-              block.data = [el.value];
-            } else if (el?.blockModel?.isRawOutput()) {
-              block.data = [el.innerText];
-            } else {
-              const parsedData = parser.htmlToData(el.innerHTML);
-
-              block.data = parsedData.filter(
-                (item) =>
-                  typeof item === "string" ||
-                  (typeof item === "object" && item !== null)
-              ) as BlockItemData;
-            }
           }
+
 
           if (block.data.length) data.push(block);
         }
 
-        events.trigger("saveEachEnd", { block: el });
+        events.trigger("saveEachEnd", { blockElement: el });
       },
       root
     );
@@ -191,12 +170,12 @@ export default class API implements APIInterface {
     return data;
   }
 
-  setDisplay(wrap = "", visible: string = "") {
+  setDisplay(name: string = "", visible: string = "") {
     const root = this.getRoot();
 
     if (root)
       query(
-        this.css(wrap),
+        "." + name,
         (el: HTMLElement) => (el.style.display = visible),
         root
       );

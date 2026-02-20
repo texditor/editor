@@ -12,7 +12,8 @@ import {
   appendText,
   getChildNodes,
   getElementText,
-  make
+  make,
+  query
 } from "@/utils/dom";
 import Sanitizer from "../sanitizer";
 import { renderIcon } from "@/utils/icon";
@@ -71,32 +72,38 @@ export default class BlockModel implements BlockModelInterface {
     tagName: string,
     callback: CallableFunction
   ): HTMLBlockElement | HTMLElement {
-    return make(tagName, (el: HTMLBlockElement) => {
-      const classList = this.getConfig("cssClasses", "");
-      addClass(
-        el,
-        "tex-block" +
-          (classList ? " " + classList : " tex-" + this.getConfig("type"))
-      );
+    const classList = this.getConfig("cssClasses", "");
+    const classes = (classList ? " " + classList : " tex-" + this.getConfig("type"));
 
-      el.id = this.getId();
-      el.dataset.tagName = this.getConfig("tagName");
-      el.dataset.type = this.getConfig("type");
+    const blockElement = make('div', (blockElement: HTMLBlockElement) => {
+      addClass(blockElement, "tex-block " + classes);
 
-      if (this.isEmptyDetect()) el.dataset.empty = "true";
+      blockElement.id = this.getId();
+      blockElement.dataset.tagName = tagName;
+      blockElement.dataset.type = this.getConfig("type");
 
-      if (this.isEditable()) el.contentEditable = "true";
+      const blockContentElement = make(tagName, (content: HTMLElement) => {
+        addClass(content, 'tex-block-content');
+        if (this.isEmptyDetect()) content.dataset.empty = "true";
+        if (this.isEditable()) content.contentEditable = "true";
 
-      if (this.getConfig("placeholder"))
-        el.dataset.placeholder = this.getConfig("placeholder");
+        if (this.getConfig("placeholder"))
+          content.dataset.placeholder = this.getConfig("placeholder");
+      })
 
-      Object.defineProperty(el, "blockModel", {
+      append(blockElement, blockContentElement);
+
+      Object.defineProperty(blockElement, "blockModel", {
         value: this,
         writable: true
       });
 
-      callback(el);
-    });
+      callback({ blockContentElement: blockContentElement, blockElement: blockElement });
+    })
+
+
+
+    return blockElement;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -146,6 +153,18 @@ export default class BlockModel implements BlockModelInterface {
     }
 
     return document.getElementById(this.id);
+  }
+
+  getBlockContentElement(): HTMLElement | null {
+    const block = this.getElement();
+
+    if (!block)
+      return null;
+
+    let elem = null;
+    query(".tex-block-content", (el: HTMLElement) => elem = el, block);
+
+    return elem;
   }
 
   getConfig(key: string, defaultValue: string): string;
@@ -233,22 +252,22 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  merge(index: number): void {}
+  merge(index: number): void { }
 
   focusChild(): HTMLElement | null {
     return null;
   }
 
-  protected onLoad(): void {}
+  protected onLoad(): void { }
 
   sanitize() {
     if (this.getConfig("sanitizer", false)) {
       const container = this.sanitizerContainer();
       if (container || Array.isArray(container)) {
         const sanitizerConfig: SanitizerConfig = this.getConfig(
-            "sanitizerConfig",
-            {}
-          ),
+          "sanitizerConfig",
+          {}
+        ),
           sanitizer = new Sanitizer(sanitizerConfig);
 
         if (Array.isArray(container)) {
@@ -263,11 +282,11 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   sanitizerContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null {
-    return this.getElement();
+    return this.getBlockContentElement();
   }
 
   normalizeContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null {
-    return this.getElement();
+    return this.getBlockContentElement();
   }
 
   editableChild(
@@ -287,17 +306,17 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setItemIndex(index: number): void {}
+  setItemIndex(index: number): void { }
 
   getItemIndex(): number {
     return 0;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onCreate(newBlock?: HTMLBlockElement | null) {}
+  protected onCreate(newBlockElement?: HTMLBlockElement | null) { }
 
-  onRender(): void {}
-  __onRenderComplete__(): void {}
+  onRender(): void { }
+  __onRenderComplete__(): void { }
 
   save(
     block: OutputBlockItem,
@@ -307,8 +326,8 @@ export default class BlockModel implements BlockModelInterface {
     return block;
   }
 
-  afterCreate(newBlock?: HTMLBlockElement | null) {
-    this.onCreate(newBlock);
+  afterCreate(newBlockElement?: HTMLBlockElement | null) {
+    this.onCreate(newBlockElement);
     this.sanitize();
   }
 
@@ -323,30 +342,30 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   convert(
-    block: HTMLBlockElement,
-    newBlock: HTMLBlockElement
+    blockElement: HTMLBlockElement,
+    newBlockElement: HTMLBlockElement
   ): HTMLBlockElement {
     const sanitizerConfig = this.getConfig("sanitizerConfig", {}),
       isSanitize = Object.keys(sanitizerConfig).length,
       isRaw = this.isRawOutput();
 
-    newBlock.innerHTML = "";
+    newBlockElement.innerHTML = "";
 
     if (isRaw || !isSanitize) {
-      appendText(newBlock, getElementText(block));
+      appendText(newBlockElement, getElementText(blockElement));
     } else {
-      append(newBlock, getChildNodes(block));
+      append(newBlockElement, getChildNodes(blockElement));
     }
 
-    return newBlock;
+    return newBlockElement;
   }
 
   toConvert(
-    block: HTMLBlockElement,
-    newBlock: HTMLBlockElement
+    blockElement: HTMLBlockElement,
+    newBlockElement: HTMLBlockElement
   ): [HTMLBlockElement, HTMLBlockElement] {
-    return [block, newBlock];
+    return [blockElement, newBlockElement];
   }
 
-  destroy(): void {}
+  destroy(): void { }
 }

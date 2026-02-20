@@ -30,18 +30,21 @@ export default class ExtensionModel implements ExtensionModelInterface {
     this.handleClick = this.handleClick.bind(this);
   }
 
-  onLoad(): void {}
+  onLoad(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event & { el: EventTarget }): void {}
+  onClick(evt: Event & { el: EventTarget }): void { }
 
   handleClick(evt: Event & { el: EventTarget }) {
-    const { api } = this.editor,
-      cssName = api.css("extension", false);
-
     if (this.toggleActive) {
-      if (evt.el) toggleClass(evt.el as HTMLElement, cssName + "-active");
+      if (evt.el) {
+        toggleClass(
+          evt.el as HTMLElement,
+          "tex-extension-active"
+        );
+      }
     }
+
     this.onClick(evt);
   }
 
@@ -50,8 +53,8 @@ export default class ExtensionModel implements ExtensionModelInterface {
   }
 
   create(): HTMLElement {
-    const { api, events, config, i18n } = this.editor,
-      cssName = api.css("extension", false);
+    const { events, config, i18n } = this.editor,
+      cssName = "tex-extension";
 
     return make("div", (el: HTMLElement) => {
       addClass(el, cssName + " " + cssName + "-" + this.getName());
@@ -88,13 +91,7 @@ export default class ExtensionModel implements ExtensionModelInterface {
   }
 
   getId(): string {
-    return (
-      this.editor.api.css("extension", false) +
-      "-" +
-      this.getName() +
-      "-" +
-      this.randomId
-    );
+    return ("tex-extension" + "-" + this.getName() + "-" + this.randomId);
   }
 
   getElement(): HTMLElement | null {

@@ -34,11 +34,10 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   render(renderData?: object[] | string): HTMLElement {
-    const { api, config, parser } = this.editor;
+    const { config, parser } = this.editor;
 
     setTimeout(() => {
       const blocksElement = this.getContainer();
-
       query(
         "*",
         (el: HTMLElement, i: number) => {
@@ -49,13 +48,13 @@ export default class BlockManager implements BlockManagerInterface {
     }, 10);
 
     return make("div", (el: HTMLElement) => {
-      addClass(el, api.css("blocks", false));
+      addClass(el, 'tex-blocks');
       let data = [];
       const initalData =
-          (renderData && Array.isArray(renderData) && renderData.length) ||
+        (renderData && Array.isArray(renderData) && renderData.length) ||
           (typeof renderData === "string" && !isEmptyString(renderData))
-            ? renderData
-            : config.get("initalData", []),
+          ? renderData
+          : config.get("initalData", []),
         emptyData = [
           {
             type: config.get("defaultBlock", "p"),
@@ -88,14 +87,13 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   getContainer(): HTMLElement | undefined {
-    const { api } = this.editor,
-      root = api.getRoot();
+    const root = this.editor.api.getRoot();
 
     if (!root) return;
 
     let container = null;
 
-    query(api.css("blocks"), (el: HTMLElement) => (container = el), root);
+    query('.tex-blocks', (el: HTMLElement) => (container = el), root);
 
     if (!container) return;
 
@@ -103,18 +101,18 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   getItems(): HTMLBlockElement[] {
-    const blocks: HTMLBlockElement[] = [],
+    const blockElements: HTMLBlockElement[] = [],
       blockContainer = this.getContainer();
 
     if (blockContainer) {
       query(
-        this.editor.api.css("block"),
-        (el: HTMLBlockElement) => blocks.push(el),
+        '.tex-block',
+        (el: HTMLBlockElement) => blockElements.push(el),
         blockContainer
       );
     }
 
-    return blocks;
+    return blockElements;
   }
 
   getByIndex(index: number): HTMLBlockElement | null {
@@ -125,7 +123,7 @@ export default class BlockManager implements BlockManagerInterface {
     let block = null;
 
     query(
-      this.editor.api.css("block"),
+      '.tex-block',
       (el: HTMLElement, i: number) => {
         if (i === index) block = el;
       },
@@ -147,10 +145,10 @@ export default class BlockManager implements BlockManagerInterface {
     return this.getByIndex(currentIndex - 1);
   }
 
-  isTextBlock(block: HTMLBlockElement | null): boolean {
-    if (!block) return false;
+  isTextBlock(blockElement: HTMLBlockElement | null): boolean {
+    if (!blockElement) return false;
 
-    const model = block.blockModel;
+    const model = blockElement.blockModel;
 
     return model?.getConfig("editable") && !model?.getConfig("editableChilds");
   }
@@ -165,19 +163,35 @@ export default class BlockManager implements BlockManagerInterface {
     return this.getByIndex(this.getIndex());
   }
 
+  getBlockContentElement(blockElement?: HTMLBlockElement | HTMLElement): HTMLElement | null {
+    const realBlockEl = blockElement || this.getCurrentBlock();
+
+    if (!realBlockEl)
+      return null;
+
+    let elem = null;
+    query('.tex-block-content', (el: HTMLElement) => elem = el, realBlockEl);
+
+    return elem;
+  }
+
   count(): number {
-    return queryLength(this.editor.api.css("block"), this.getContainer());
+    return queryLength('.tex-block', this.getContainer());
   }
 
   isEmpty(index: number | null = null): boolean {
     const blockElement =
-      index !== null ? this.getByIndex(index) : this.getCurrentBlock();
+      index !== null
+        ? this.getByIndex(index)
+        : this.getCurrentBlock();
 
     if (!blockElement) return false;
 
+    const blockContent = this.getBlockContentElement(blockElement);
+
     return (
-      isEmptyString(blockElement?.innerHTML || "") ||
-      blockElement?.innerHTML == "<br>"
+      isEmptyString(blockContent?.innerHTML || "") ||
+      blockContent?.innerHTML == "<br>"
     );
   }
 
@@ -187,15 +201,19 @@ export default class BlockManager implements BlockManagerInterface {
 
     if (root) {
       query(
-        api.css("block"),
-        (el: HTMLBlockElement) => {
-          if (el.blockModel?.isEmptyDetect()) {
-            const index = this.getElementIndex(el);
-            el.dataset["empty"] = !emptyAttr
-              ? "false"
-              : this.isEmpty(index)
-                ? "true"
-                : "false";
+        '.tex-block',
+        (blockElement: HTMLBlockElement) => {
+          if (blockElement.blockModel?.isEmptyDetect()) {
+            const index = this.getElementIndex(blockElement);
+            const blockContent = this.getBlockContentElement(blockElement);
+
+            if (blockContent) {
+              blockContent.dataset["empty"] = !emptyAttr
+                ? "false"
+                : this.isEmpty(index)
+                  ? "true"
+                  : "false";
+            }
           }
         },
         root
@@ -207,8 +225,8 @@ export default class BlockManager implements BlockManagerInterface {
     const items = this.getItems(),
       { commands } = this.editor;
 
-    items.forEach((item: HTMLBlockElement) => {
-      const model = item.blockModel;
+    items.forEach((blockElement: HTMLBlockElement) => {
+      const model = blockElement.blockModel;
 
       if (
         (model?.isEditable() || model?.isEditableChilds()) &&
@@ -231,7 +249,7 @@ export default class BlockManager implements BlockManagerInterface {
 
   setIndex(index: number) {
     const { api } = this.editor,
-      cssName = api.css("block", false),
+      cssName = 'tex-block',
       root = api.getRoot(),
       block = this.getByIndex(index);
 
@@ -240,7 +258,7 @@ export default class BlockManager implements BlockManagerInterface {
     if (root && block) {
       query(
         "." + cssName,
-        (block: HTMLElement) => removeClass(block, cssName + "-active"),
+        (blockElement: HTMLBlockElement) => removeClass(blockElement, cssName + "-active"),
         root
       );
 
@@ -270,7 +288,7 @@ export default class BlockManager implements BlockManagerInterface {
     let blockElement = null;
 
     query(
-      api.css("block"),
+      '.tex-block',
       (el: HTMLElement) => {
         if (closest(target, el)) blockElement = el;
       },
@@ -292,7 +310,7 @@ export default class BlockManager implements BlockManagerInterface {
         : element;
 
     query(
-      this.editor.api.css("block"),
+      '.tex-block',
       (el: HTMLElement, i: number) => {
         if (realElement === el) index = i;
       },
@@ -429,18 +447,19 @@ export default class BlockManager implements BlockManagerInterface {
               }
             }
 
-            const newBlock = blockInstance.getElement();
+            const newBlockEl = blockInstance.getElement(),
+              blockContent = blockInstance.getBlockContentElement();
 
-            if (newBlock) {
-              this.focus(newBlock);
+            if (blockContent) {
+              this.focus(blockContent);
             }
 
             if (blockInstance.afterCreate)
-              blockInstance.afterCreate(newBlock as HTMLBlockElement);
+              blockInstance.afterCreate(newBlockEl as HTMLBlockElement);
 
             events.refresh();
 
-            return newBlock;
+            return newBlockEl;
           }
         }
       }
@@ -477,8 +496,12 @@ export default class BlockManager implements BlockManagerInterface {
 
     toolbar.hide();
     actions.hideMenu();
-    const actionsOpen = api.css("actionsOpen");
-    query(actionsOpen, (el: HTMLElement) => css(el, "display", "none"), root);
+
+    query(
+      '.tex-actions-open',
+      (el: HTMLElement) => css(el, "display", "none"),
+      root
+    );
 
     this.getItems().forEach((block: Element) => {
       on(block, "click.bc", (evt: MouseEvent) => {
@@ -509,8 +532,12 @@ export default class BlockManager implements BlockManagerInterface {
 
     if (!this.isSelectionMode || !root) return;
 
-    const actionsOpen = api.css("actionsOpen");
-    query(actionsOpen, (el: HTMLElement) => css(el, "display", ""), root);
+    query(
+      '.tex-actions-open',
+      (el: HTMLElement) => css(el, "display", ""),
+      root
+    );
+
     this.isSelectionMode = false;
     this.getItems().forEach((block: Element) => off(block, "click.bc"));
     off(document, "click.bmDoc" + uniqueId);
@@ -524,40 +551,35 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   private toggleBlockSelection(index: number): void {
-    const { api, events } = this.editor;
+    const { events } = this.editor;
     const block = this.getByIndex(index);
 
     if (block) {
-      if (hasClass(block, api.css("block", false) + "-selected"))
+      if (hasClass(block, "tex-block-selected"))
         this.removeBlockSelection(index);
       else this.addBlockSelection(index);
 
       events.trigger("selectionChanged", {
-        selectedBlocks: this.getSelectedBlocks()
+        selectedBlockElements: this.getSelectedBlocks()
       });
     }
   }
 
   private addBlockSelection(index: number): void {
-    const { api } = this.editor;
     const block = this.getByIndex(index),
-      cssName = api.css("block", false) + "-selected";
+      cssName = "tex-block-selected";
 
     if (block && !hasClass(block, cssName)) addClass(block, cssName);
   }
 
   private removeBlockSelection(index: number): void {
-    const { api } = this.editor;
     const block = this.getByIndex(index);
 
-    if (block) removeClass(block, api.css("block", false) + "-selected");
+    if (block) removeClass(block, "tex-block-selected");
   }
 
   public getSelectedBlocks(): HTMLElement[] {
-    const { api } = this.editor,
-      cssName = api.css("block") + "-selected";
-
-    return queryList(cssName);
+    return queryList(".tex-block-selected");
   }
 
   public hasSelectedBlocks(): boolean {
@@ -565,11 +587,13 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   public clearSelection(): void {
-    const { api, events } = this.editor;
-    this.getItems().forEach((block: HTMLBlockElement) => {
-      removeClass(block, api.css("block", false) + "-selected");
+    const { events } = this.editor;
+
+    this.getItems().forEach((blockElement: HTMLBlockElement) => {
+      removeClass(blockElement, "tex-block-selected");
     });
-    events.trigger("selectionChanged", { selectedBlocks: [] });
+
+    events.trigger("selectionChanged", { selectedBlockElements: [] });
   }
 
   public deleteSelectedBlocks(): void {
@@ -585,58 +609,55 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   public disableAllBlocks(): void {
-    const { api } = this.editor;
     const blocks = this.getItems();
-    const cssName = api.css("block", false);
+    const cssName = 'tex-block';
 
-    blocks.forEach((block: HTMLBlockElement) => {
-      if (block.blockModel?.isEditable()) {
-        block.removeAttribute("contenteditable");
-        if (isEmptyString(block.innerHTML)) block.innerHTML = "\u200B";
+    blocks.forEach((blockElement: HTMLBlockElement) => {
+      if (blockElement.blockModel?.isEditable()) {
+        blockElement.removeAttribute("contenteditable");
+        if (isEmptyString(blockElement.innerHTML)) blockElement.innerHTML = "\u200B";
       }
 
-      addClass(block, cssName + "-non-editable");
+      addClass(blockElement, cssName + "-non-editable");
     });
   }
 
   public enableAllBlocks(): void {
-    const { api } = this.editor,
-      blocks = this.getItems(),
-      cssName = api.css("block", false);
+    const blocks = this.getItems();
 
-    blocks.forEach((block: HTMLBlockElement) => {
-      const wasEditable = block.blockModel?.isEditable();
+    blocks.forEach((blockElement: HTMLBlockElement) => {
+      const wasEditable = blockElement.blockModel?.isEditable();
 
-      if (wasEditable) block.setAttribute("contenteditable", "true");
-      else block.removeAttribute("contenteditable");
+      if (wasEditable) blockElement.setAttribute("contenteditable", "true");
+      else blockElement.removeAttribute("contenteditable");
 
-      removeClass(block, cssName + "-non-editable");
+      removeClass(blockElement, "tex-block-non-editable");
     });
   }
 
-  public convert(block: HTMLBlockElement, model: BlockModelInterface) {
+  public convert(blockElement: HTMLBlockElement, model: BlockModelInterface) {
     const { events } = this.editor;
 
-    if (block) {
-      let newBlock = model.create() as HTMLBlockElement;
-      const curIndex = this.getElementIndex(block);
+    if (blockElement) {
+      let newBlockEl = model.create() as HTMLBlockElement;
+      const curIndex = this.getElementIndex(blockElement);
 
-      if (newBlock) {
-        const [cBlock, cNewBlock] = block.blockModel.toConvert(block, newBlock);
+      if (newBlockEl) {
+        const [cBlock, cNewBlock] = blockElement.blockModel.toConvert(blockElement, newBlockEl);
 
-        newBlock = cNewBlock.blockModel.convert(cBlock, cNewBlock);
+        newBlockEl = cNewBlock.blockModel.convert(cBlock, cNewBlock);
 
-        block?.insertAdjacentElement("afterend", newBlock);
+        blockElement?.insertAdjacentElement("afterend", newBlockEl);
 
         if (Object.keys(model.getConfig("sanitizerConfig", {})).length)
-          newBlock.blockModel.sanitize();
+          newBlockEl.blockModel.sanitize();
 
-        block.remove();
+        blockElement.remove();
         this.focusByIndex(curIndex);
         events.change({
           type: "convertBlock",
           index: curIndex,
-          block: newBlock
+          blockElement: newBlockEl
         });
         events.refresh();
       }

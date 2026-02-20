@@ -1,6 +1,5 @@
 import type {
   ActionModelInterface,
-  BlockModelInterface,
   BlockModelStructure,
   RenderIconContent
 } from "@/types";

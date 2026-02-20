@@ -88,7 +88,7 @@ export default class Events implements EventsInterface {
       throw new Error("The root element of the editor was not found.");
 
     query(
-      api.css("block"),
+      '.tex-block',
       (el: HTMLElement) => {
         on(el, "keydown.e", this.onKeyDownHandle);
         on(el, "keyup.e", this.onKeyUpHandle);
@@ -184,7 +184,10 @@ export default class Events implements EventsInterface {
 
     this.trigger("keydown", { domEvent: evt });
 
-    blockManager.setIndex(blockManager.getElementIndex(evt.target, true));
+    blockManager.setIndex(
+      blockManager.getElementIndex(evt.target, true)
+    );
+
 
     const blocksContainer = blockManager.getContainer(),
       defBlock = config.get("defaultBlock", "p"),
@@ -199,7 +202,7 @@ export default class Events implements EventsInterface {
       if (evt.key == "Enter") {
         this.trigger("keydownEnterKey", { domEvent: evt });
 
-        if (hasClass(evt.target, "tex-block")) {
+        if (hasClass(evt.target, 'tex-block-content')) {
           const currentBlock = blockManager.getCurrentBlock(),
             curTextLength = currentBlock?.textContent?.length || 0;
 
@@ -502,15 +505,20 @@ export default class Events implements EventsInterface {
   }
 
   private onSelectionChangeHandle(evt: Event) {
-    const { api, actions, blockManager, selectionApi, toolbar } = this.editor,
-      root = api.getRoot(),
-      cssName = api.css("block");
+    const {
+      api,
+      actions,
+      blockManager,
+      selectionApi,
+      toolbar
+    } = this.editor,
+      root = api.getRoot();
 
     if (root) {
       this.trigger("onSelectionChange", { domEvent: evt });
 
       query(
-        cssName,
+        '.tex-block',
         (el: HTMLElement) => {
           const range = selectionApi.getRange();
 
@@ -573,7 +581,7 @@ export default class Events implements EventsInterface {
     if (!root) return;
 
     query(
-      api.css("block"),
+      '.tex-block',
       (el: HTMLElement) => {
         off(el, "keydown.e");
         off(el, "keyup.e");

@@ -4,7 +4,7 @@ import BlockModel from "@/core/models/block-model";
 import type { TexditorInterface } from "@/types";
 
 export interface BlockModelInstanceInterface {
-  new (editor: TexditorInterface): BlockModelInterface;
+  new(editor: TexditorInterface): BlockModelInterface;
 }
 
 export interface BlockModelStructure {
@@ -68,7 +68,8 @@ export interface BlockModelInterface {
   getTranslation(): string;
   getIcon(width?: number, height?: number): string;
   getTranslationCode(): string;
-  getElement(): HTMLElement | null;
+  getElement(): HTMLBlockElement | HTMLElement | null;
+  getBlockContentElement(): HTMLElement | null;
   getTagName(): string;
   afterCreate(newBlock?: HTMLBlockElement | null): void;
   focusChild(): HTMLElement | null;

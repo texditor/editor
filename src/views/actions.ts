@@ -1,13 +1,10 @@
-import type { TexditorInterface } from "@/types";
 import { IconBars } from "@/icons";
 import { append, make, html, addClass } from "@/utils/dom";
 import { renderIcon } from "@/utils/icon";
 
-export default function ActionsView(editor: TexditorInterface): HTMLElement {
+export default function ActionsView(): HTMLElement {
   return make("div", (el: HTMLElement) => {
-    const { api } = editor,
-      className = api.css("actions", false),
-      animateName = api.css("animate", false);
+    const className = "tex-actions";
 
     addClass(el, className);
     append(
@@ -30,7 +27,7 @@ export default function ActionsView(editor: TexditorInterface): HTMLElement {
         append(
           settings,
           make("div", (wrap: HTMLElement) => {
-            addClass(wrap, className + "-wrap " + animateName + "-fadeIn");
+            addClass(wrap, className + "-wrap " + "tex-animate-fadeIn");
             append(
               wrap,
               make("div", (cnt: HTMLElement) => {

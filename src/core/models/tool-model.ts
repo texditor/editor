@@ -32,7 +32,7 @@ export default class ToolModel implements ToolModelInterface {
     });
   }
 
-  onLoad(): void {}
+  onLoad(): void { }
 
   formatAction(callback: CallableFunction) {
     const tagName = this.getTagName(),
@@ -66,10 +66,10 @@ export default class ToolModel implements ToolModelInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) {}
+  onClick(evt: Event) { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onAfterFormat(tags: HTMLElement[]): void {}
+  onAfterFormat(tags: HTMLElement[]): void { }
 
   handleClick(evt: Event): void {
     const { events } = this.editor;
@@ -86,8 +86,7 @@ export default class ToolModel implements ToolModelInterface {
 
   getId(): string {
     return (
-      this.editor.api.css("tool", false) +
-      "-" +
+      "tex-tool-" +
       this.getName() +
       "-" +
       this.randomId
@@ -107,25 +106,24 @@ export default class ToolModel implements ToolModelInterface {
   }
 
   create() {
-    const { api, i18n } = this.editor,
-      cssName = api.css("tool", false);
+    const cssName = 'tex-tool';
 
     return make("div", (el: HTMLElement) => {
       addClass(
         el,
         cssName +
-          " tool-tag-" +
-          this.getTagName() +
-          " " +
-          "tool-name-" +
-          this.getName() +
-          " " +
-          cssName +
-          "-" +
-          this.getName()
+        " tool-tag-" +
+        this.getTagName() +
+        " " +
+        "tool-name-" +
+        this.getName() +
+        " " +
+        cssName +
+        "-" +
+        this.getName()
       );
 
-      attr(el, "title", i18n.get(this.translation || this.getName()));
+      attr(el, "title", this.editor.i18n.get(this.translation || this.getName()));
 
       el.id = this.getId();
 
@@ -152,5 +150,5 @@ export default class ToolModel implements ToolModelInterface {
     return true;
   }
 
-  destroy(): void {}
+  destroy(): void { }
 }

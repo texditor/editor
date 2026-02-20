@@ -32,9 +32,15 @@ export default class SelectionMode extends ExtensionModel {
   }
 
   create(): HTMLElement {
-    const { api, blockManager, config, i18n } = this.editor;
+    const {
+      blockManager,
+      config,
+      events,
+      i18n
+    } = this.editor;
+    
     const created = super.create(),
-      cssExtName = api.css("extension", false),
+      cssExtName = "tex-extension",
       cssName = cssExtName + "-" + this.getName();
 
     const wrap = make("div", (el: HTMLElement) => {
@@ -47,7 +53,7 @@ export default class SelectionMode extends ExtensionModel {
           this.editor.events.add(
             "selectionChanged.extSelectionMode",
             (evt: TexditorEvent) => {
-              const blocks = evt.selectedBlocks as HTMLBlockElement[];
+              const blocks = evt.selectedBlockElements as HTMLBlockElement[];
               css(act, "display", blocks.length > 0 ? "flex" : "");
             }
           );
@@ -85,7 +91,7 @@ export default class SelectionMode extends ExtensionModel {
       );
     });
 
-    this.editor.events.add("selectionModeDisabled.extSelectionMode", () => {
+    events.add("selectionModeDisabled.extSelectionMode", () => {
       removeClass(created, cssExtName + "-active");
     });
 

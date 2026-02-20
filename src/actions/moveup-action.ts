@@ -4,8 +4,7 @@ import ActionModel from "@/core/models/action-model";
 
 export default class MoveUpAction
   extends ActionModel
-  implements ActionModelInterface
-{
+  implements ActionModelInterface {
   name = "moveUpAction";
   protected icon: RenderIconContent = IconArrowUp;
 
@@ -24,8 +23,8 @@ export default class MoveUpAction
         events.change({
           type: "moveUp",
           index: curIndex - 1,
-          block: curBlock,
-          targetBlock: prevBlock,
+          blockElement: curBlock,
+          targetBlockElement: prevBlock,
           targetIndex: curIndex
         });
 
@@ -34,8 +33,13 @@ export default class MoveUpAction
         const newBlock = blockManager.getByIndex(curIndex - 1),
           model = newBlock?.blockModel;
 
-        if (model?.isEditable()) newBlock?.focus();
-        else newBlock?.click();
+        if (newBlock) {
+          const blockContentElement = blockManager.getBlockContentElement(newBlock);
+          newBlock?.click();
+
+          if (model?.isEditable())
+            blockContentElement?.focus();
+        }
       }
     }
 

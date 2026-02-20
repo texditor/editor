@@ -1,9 +1,7 @@
-import type { TexditorInterface } from "@/types";
 import { addClass, append, make } from "@/utils/dom";
 
-export default function ToolbarView(editor: TexditorInterface): HTMLElement {
-  const { api } = editor,
-    cssName = api.css("toolbar", false);
+export default function ToolbarView(): HTMLElement {
+  const cssName = "tex-toolbar";
 
   return make("div", (el: HTMLDivElement) => {
     addClass(el, cssName);

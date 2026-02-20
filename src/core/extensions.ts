@@ -23,8 +23,8 @@ export default class Extensions implements ExtensionsInterface {
   }
 
   render(): HTMLElement | Node {
-    const { api, config, events } = this.editor,
-      cssName = api.css("extensions", false),
+    const { config, events } = this.editor,
+      cssName = 'tex-extensions',
       extensions = config.get("extensions", []);
 
     events.trigger("extensions:render");
@@ -93,12 +93,12 @@ export default class Extensions implements ExtensionsInterface {
     if (config.get("extensionsFixed", true)) {
       const fixedExtensions = () => {
         const root = api.getRoot(),
-          className = api.css("extensions", false);
+          className = 'tex-extensions';
 
         if (!root) return;
 
         query(
-          api.css("editor"),
+          '.tex',
           (rootEditor: HTMLElement) => {
             const scrollTop =
                 window.pageYOffset || document.documentElement.scrollTop,

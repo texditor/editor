@@ -74,8 +74,8 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
       root = api.getRoot();
 
     if (root) {
-      api.setDisplay("toolbarContent", "none");
-      api.setDisplay("toolbarTools");
+      api.setDisplay("tex-toolbar-content", "none");
+      api.setDisplay("tex-toolbar-tools");
       query(".tex-link-form", (el: HTMLElement) => el.remove(), root);
     }
   }
@@ -182,14 +182,14 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
       );
     });
 
-    const content = "toolbarContent";
+    const content = "tex-toolbar-content";
 
     api.setDisplay(content, "block");
-    api.setDisplay("toolbarTools", "none");
+    api.setDisplay("tex-toolbar-tools", "none");
 
     if (root) {
       query(
-        api.css(content),
+        '.' + content,
         (content: HTMLElement) => {
           append(content, linkForm);
         },

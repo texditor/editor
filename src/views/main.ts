@@ -2,7 +2,7 @@ import type { TexditorInterface } from "@/types";
 import { addClass, append, make } from "@/utils/dom";
 import ToolbarView from "./toolbar";
 import BlocksView from "./blocks";
-import ControlsView from "./actions";
+import ActionsView from "./actions";
 import ExtensionsView from "./extensions";
 
 export default function MainView(editor: TexditorInterface): HTMLElement {
@@ -10,9 +10,9 @@ export default function MainView(editor: TexditorInterface): HTMLElement {
     addClass(el, "tex");
     append(el, [
       ExtensionsView(editor),
-      ToolbarView(editor),
+      ToolbarView(),
       BlocksView(editor),
-      ControlsView(editor)
+      ActionsView()
     ]);
   });
 }
