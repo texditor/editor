@@ -1,22 +1,32 @@
 import type {
+  BlockNode,
   EventsInterface,
   EventTriggerObject,
   TexditorEvent,
   TexditorInterface
 } from "@/types";
 import { encodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
-import { closest } from "@/utils/dom";
+import { addClass, append, appendText, closest, getChildNodes, getLength, queryList, removeClass } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import { hasClass, query } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 
 export default class Events implements EventsInterface {
+  /** Reference to the main editor instance */
   private editor: TexditorInterface;
+
+  /** Storage for registered event callbacks */
   private triggers: EventTriggerObject = {};
+
+  /** Flag to enable/disable undo/redo keyboard shortcuts */
   private isUndoRedoEnabled: boolean = true;
+
+  /** Unique identifier for event listeners to prevent conflicts */
+  private eventId: string = '';
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
+    this.eventId = generateRandomString(16);
     this.onKeyDownHandle = this.onKeyDownHandle.bind(this);
     this.onKeyUpHandle = this.onKeyUpHandle.bind(this);
     this.onPasteHandle = this.onPasteHandle.bind(this);
@@ -27,6 +37,11 @@ export default class Events implements EventsInterface {
     this.handleUndoRedo = this.handleUndoRedo.bind(this);
   }
 
+  /**
+   * Adds an event listener with optional identifier
+   * @param name - Event name (can include .id suffix)
+   * @param callback - Function to call when event triggers
+   */
   add(name: string, callback: CallableFunction) {
     const nameOrId = name.split(".");
     const [eventName, eventId] = nameOrId;
@@ -34,14 +49,16 @@ export default class Events implements EventsInterface {
     if (!this.triggers[eventName]) this.triggers[eventName] = {};
 
     if (typeof callback === "function") {
-      if (eventId) {
-        this.triggers[eventName][eventId] = callback;
-      } else {
-        this.triggers[eventName][generateRandomString(10)] = callback;
-      }
+      const id = eventId ? eventId : generateRandomString(16);
+      this.triggers[eventName][id] = callback;
     }
   }
 
+  /**
+   * Checks if an event listener exists
+   * @param name - Event name (can include .id suffix)
+   * @returns True if event exists
+   */
   exists(name: string) {
     const nameOrId = name.split(".");
     const [eventName, eventId] = nameOrId;
@@ -55,18 +72,33 @@ export default class Events implements EventsInterface {
     return true;
   }
 
+  /**
+   * Removes an event listener
+   * @param name - Event name
+   * @param id - Optional specific event ID to remove
+   * @returns True if removal was successful
+   */
   remove(name: string, id?: string): boolean {
     if (!this.triggers[name]) return false;
 
-    if (id !== undefined && this.triggers[name][id]) {
-      delete this.triggers[name][id];
-      return true;
+    if (id) {
+      if (this.triggers[name][id]) {
+        delete this.triggers[name][id];
+        return true;
+      }
+
+      return false;
     }
 
     delete this.triggers[name];
     return true;
   }
 
+  /**
+   * Triggers all callbacks for an event
+   * @param name - Event name to trigger
+   * @param params - Parameters to pass to callbacks
+   */
   trigger(name: string, params: TexditorEvent = {}) {
     if (!this.triggers[name]) return;
 
@@ -79,16 +111,18 @@ export default class Events implements EventsInterface {
     }
   }
 
+  /**
+   * Refreshes event listeners on all blocks
+   */
   refresh() {
-    const { blockManager, api } = this.editor,
-      blockContainer = blockManager.getContainer(),
-      uniqueId = api.getUniqueId();
+    const { actions, blockManager } = this.editor,
+      blockContainer = blockManager.getBlocksContainer();
 
     if (!blockContainer)
       throw new Error("The root element of the editor was not found.");
 
     query(
-      '.tex-block',
+      '.tex-block-content',
       (el: HTMLElement) => {
         on(el, "keydown.e", this.onKeyDownHandle);
         on(el, "keyup.e", this.onKeyUpHandle);
@@ -106,9 +140,17 @@ export default class Events implements EventsInterface {
       blockContainer
     );
 
-    on(document, "selectionchange.e" + uniqueId, this.onSelectionChangeHandle);
+    on(
+      document,
+      "selectionchange.e" + this.eventId,
+      this.onSelectionChangeHandle
+    );
   }
 
+  /**
+   * Initializes editor when ready
+   * @param callback - Function to call when editor is ready
+   */
   onReady(callback: CallableFunction) {
     const { actions, blockManager } = this.editor;
 
@@ -119,11 +161,20 @@ export default class Events implements EventsInterface {
       blockManager.detectEmpty();
       blockManager.normalize();
       this.refresh();
-    }, 50);
+    }, 10);
   }
 
+  /**
+   * Handles content change events
+   * @param event - Change event data
+   */
   change(event: TexditorEvent) {
-    const { config, actions, blockManager } = this.editor,
+    const {
+      actions,
+      blockManager,
+      config,
+      historyManager
+    } = this.editor,
       changeHandle = config.get("onChange", false);
 
     blockManager.detectEmpty();
@@ -135,48 +186,105 @@ export default class Events implements EventsInterface {
     }
 
     this.trigger("onChange", event);
+
+    if (
+      event.type != "keydown" &&
+      event.type != "keyup" &&
+      event.type != "historySave"
+    ) {
+      historyManager.save();
+    }
+
     actions.render();
   }
 
+  /**
+   * Handles focus events on blocks
+   * @param evt - Focus event
+   */
   private onFocusHandle(evt: FocusEvent) {
     this.trigger("focus", { domEvent: evt });
-    this.setIndex(evt.target);
+    this.setIndexByTarget(evt.target);
     this.trigger("focusEnd", { domEvent: evt });
   }
 
+  /**
+   * Handles click events on blocks
+   * @param evt - Mouse event
+   */
   private onClickHandle(evt: MouseEvent) {
     this.trigger("click", { domEvent: evt });
-    this.setIndex(evt.target);
+    this.setIndexByTarget(evt.target);
     this.trigger("clickEnd", { domEvent: evt });
   }
 
+  /**
+   * Handles blur events on blocks
+   * @param evt - Focus event
+   */
   private onBlurHandle(evt: FocusEvent) {
     evt.preventDefault();
     this.trigger("blur", { domEvent: evt });
   }
 
+  /**
+   * Handles keyup events on blocks
+   * @param evt - Keyboard event
+   */
   private onKeyUpHandle(evt: KeyboardEvent) {
     this.trigger("keyup", { domEvent: evt });
     evt.preventDefault();
-    this.setIndex(evt.target);
+    this.setIndexByTarget(evt.target);
+
     this.change({
       type: "keyup",
-      event: evt
+      domEvent: evt
     });
+
     this.trigger("keyupEnd", { domEvent: evt });
     this.editor.historyManager.scheduleSave();
   }
 
-  private setIndex(target: EventTarget | null, ignoreToolbar = false) {
-    const { blockManager, actions } = this.editor;
+  /**
+   * Sets the current block index based on target
+   * @param target - Event target
+   * @param ignoreToolbar - Whether to skip toolbar rendering
+   */
+  private setIndexByTarget(target?: EventTarget | null) {
+    const { blockManager } = this.editor;
+    const targetIndex = blockManager.getIndex(target || undefined, true);
 
-    blockManager.setIndex(blockManager.getElementIndex(target, true));
-
-    if (!ignoreToolbar) setTimeout(() => actions.render(), 30);
+    this.setIndex(targetIndex);
   }
 
+  private setIndex(index: number) {
+    const { actions, blockManager } = this.editor;
+    const model = blockManager.getModel(index);
+    blockManager.use(index);
+
+    if (model?.isEditableItems()) {
+      const activeItem = model.getItem(-1);
+
+      if (activeItem) {
+        const className = 'tex-item-active',
+          items = model.getItems();
+
+        if (items.length) {
+          items.forEach((item: HTMLElement) => {
+            removeClass(item, className)
+          });
+          addClass(activeItem, className);
+        }
+      }
+    }
+  }
+
+  /**
+   * Handles keydown events with special behavior for Enter, Backspace, etc.
+   * @param evt - Keyboard event
+   */
   private onKeyDownHandle(evt: KeyboardEvent) {
-    const { blockManager, selectionApi, config, api } = this.editor;
+    const { blockManager, historyManager, selectionApi, config, api } = this.editor;
 
     if (this.handleUndoRedo(evt)) {
       return;
@@ -184,128 +292,156 @@ export default class Events implements EventsInterface {
 
     this.trigger("keydown", { domEvent: evt });
 
-    blockManager.setIndex(
-      blockManager.getElementIndex(evt.target, true)
-    );
+    if (evt.target) {
+      blockManager.use(
+        blockManager.getIndex(evt.target, true)
+      );
+    }
 
-
-    const blocksContainer = blockManager.getContainer(),
+    const blocksContainer = blockManager.getBlocksContainer(),
       defBlock = config.get("defaultBlock", "p"),
-      [start, end] = selectionApi.getOffset(),
-      curModel = blockManager.getModel(),
+      model = blockManager.getModel(),
+      contentNode = blockManager.getContentNode();
+
+    const breakEvent = () => {
+      evt.stopPropagation();
+      evt.preventDefault();
+    }
+
+    if (!model) {
+      breakEvent();
+      return;
+    }
+
+    const focusedNode = model.isEditableItems() && model.getItemBody(-1)
+      ? model.getItemBody(-1)
+      : contentNode;
+
+    if (!focusedNode) {
+      breakEvent();
+      return;
+    }
+
+    const [start, end] = selectionApi.getOffset(focusedNode),
+      curTextLength = contentNode?.textContent?.length || 0,
       cursorStart = start < 0 ? 0 : start,
       cursorEnd = end < 0 ? 0 : end;
 
-    if (blocksContainer) {
+    if (blocksContainer && contentNode) {
       if (api.isEmpty()) blockManager.createBlock(defBlock);
 
       if (evt.key == "Enter") {
         this.trigger("keydownEnterKey", { domEvent: evt });
 
-        if (hasClass(evt.target, 'tex-block-content')) {
-          const currentBlock = blockManager.getCurrentBlock(),
-            curTextLength = currentBlock?.textContent?.length || 0;
+        if (closest(evt.target, contentNode)) {
+          if (model.isEditableItems()) {
+            if (model.isEnterCreate()) {
+              breakEvent();
 
-          if (curModel?.getConfig("isEnterCreate")) {
-            evt.preventDefault();
+              const itemIndex = model.getItemIndex(),
+                isEmptyItem = model.isEmptyItem(itemIndex);
 
-            if (cursorStart === cursorEnd && cursorStart === curTextLength) {
-              blockManager.createBlock(defBlock);
-              this.refresh();
-            } else {
-              if (cursorStart === cursorEnd) {
-                blockManager.createBlock(defBlock, null, {
-                  content: selectionApi.splitContent()
-                });
-              } else {
+              if (
+                isEmptyItem &&
+                model.getItemsLength() === itemIndex + 1
+              ) {
+                model.removeItem(itemIndex);
                 blockManager.createBlock(defBlock);
+              } else {
+                if (
+                  !isEmptyItem &&
+                  (!model?.isEmptyItem(itemIndex - 1) && cursorStart != 0 && cursorEnd != 0)
+                ) {
+                  model.createItem(
+                    selectionApi.splitContent(
+                      model.getItemBody(-1)
+                    )
+                  );
+                }
               }
             }
-          } else evt.stopPropagation();
+          } else {
+            if (model.isEnterCreate()) {
+              breakEvent();
+
+              if (
+                (cursorStart === cursorEnd && cursorStart === curTextLength) ||
+                cursorStart !== cursorEnd
+              ) {
+                if (!model.isEmpty())
+                  blockManager.createBlock(defBlock);
+              } else {
+                blockManager.createBlock(defBlock, -1, {
+                  content: selectionApi.splitContent(contentNode)
+                });
+              }
+            }
+          }
         }
 
         this.trigger("keydownEnterKeyEnd", { domEvent: evt });
       } else if (evt.key == "Backspace") {
         this.trigger("keydownBackspaceKey", { domEvent: evt });
-        if (blockManager.isEmpty()) {
-          evt.preventDefault();
-          const curIndex = blockManager.removeBlock();
-          this.refresh();
 
-          if (curIndex !== null) {
-            const prevIndex = curIndex - 1,
-              prevElem = blockManager.getByIndex(prevIndex);
-
-            if (curIndex <= 0) {
-              let defFocus = true;
-
-              if (blockManager.count() > 0 && curIndex + 1 === 1) {
-                const nextModel = blockManager.getModel();
-
-                if (nextModel) {
-                  const childFocus = nextModel?.focusChild();
-                  if (childFocus !== null) {
-                    childFocus.focus();
-                    defFocus = false;
-                  }
-                }
-              }
-
-              if (defFocus) blockManager.focusByIndex(0);
-            } else {
-              if (prevElem) {
-                const len = prevElem?.textContent?.length || 0;
-                prevElem?.focus();
-
-                if (len) selectionApi.select(len, len, prevElem);
-              }
-            }
-          }
-        } else {
-          const index = blockManager.getIndex(),
-            finalBlock = blockManager.getByIndex(index - 1),
-            prevTextLength = finalBlock?.textContent?.length || 0,
-            prevModel = blockManager.getModel(index - 1);
-
-          const reSelect = () => {
-            if (finalBlock) {
-              setTimeout(() => {
-                finalBlock?.focus();
-                selectionApi.select(prevTextLength, prevTextLength, finalBlock);
-              }, 10);
-            }
-          };
-
-          // Merge if not an empty block
+        if (blockManager.count() > 1) {
+          const index = blockManager.getIndex();
           if (
-            cursorStart === 0 &&
-            cursorEnd === 0 &&
-            !curModel?.isEditableChilds()
+            model.isEditableItems() &&
+            model.getItemIndex() > 0 &&
+            cursorStart == 0 &&
+            cursorEnd == 0
           ) {
-            if (curModel?.isBackspaceRemove()) {
+            breakEvent();
+            const itemChilds = getChildNodes(focusedNode),
+              itemIndex = model.getItemIndex();
+
+            const prevItemBody = model.getItemBody(itemIndex - 1);
+
+            if (prevItemBody) {
+              const prevLength = getLength(prevItemBody);
+
+              if (prevLength) {
+                appendText(prevItemBody, ' ');
+                append(prevItemBody, itemChilds);
+                blockManager.focus(
+                  index,
+                  prevLength,
+                  prevLength,
+                  itemIndex - 1
+                );
+              } else {
+                prevItemBody.focus();
+              }
+
+              model.removeItem(itemIndex);
+            }
+          } else {
+            if (blockManager.isEmpty() && model?.isBackspaceRemove()) {
               evt.preventDefault();
+              const curIndex = blockManager.removeBlock(-1, true);
 
-              if (
-                prevModel?.getConfig("autoMerge") &&
-                curModel.getConfig("autoMerge")
-              )
-                blockManager.merge(index - 1);
-              else prevModel?.merge(index);
-              reSelect();
+              if (curIndex != null) {
+                const prevModel = blockManager.getModel(curIndex - 1);
+                const prevLength = (prevModel?.getItemsLength() || 1) - 1;
+
+                blockManager.focus(
+                  curIndex ? curIndex - 1 : 0,
+                  undefined,
+                  undefined,
+                  prevLength
+                );
+              }
             } else {
-              // If the block is a text area
-              if (curModel?.isTextArea()) {
-                const curElement = curModel.getElement() as HTMLTextAreaElement,
-                  { start, end } = selectionApi.getTextareaCursor(curElement);
+              // Merge if not an empty block
+              if (
+                cursorStart === 0 &&
+                cursorEnd === 0 &&
+                model?.isBackspaceRemove()
+              ) {
+                const pervIndex = index - 1;
 
-                if (start === 0 && end === 0) {
-                  if (isEmptyString(curElement.innerText)) {
-                    evt.preventDefault();
-                    blockManager.removeBlock();
-                  }
-
-                  reSelect();
-                }
+                evt.preventDefault();
+                blockManager.merge(index, pervIndex, pervIndex);
               }
             }
           }
@@ -313,11 +449,6 @@ export default class Events implements EventsInterface {
 
         this.trigger("keydownBackspaceKeyEnd", { domEvent: evt });
       }
-
-      // If there are no blocks, we create an empty block by default.
-      setTimeout(() => {
-        if (blockManager.count() === 0) blockManager.createBlock(defBlock, -1);
-      }, 10);
     }
 
     this.trigger("keydownEnd", { domEvent: evt });
@@ -331,12 +462,17 @@ export default class Events implements EventsInterface {
       evt.key === "Backspace" ||
       evt.key === "Delete"
     ) {
-      this.editor.historyManager.save();
+      historyManager.save();
     } else {
-      this.editor.historyManager.scheduleSave();
+      historyManager.scheduleSave();
     }
   }
 
+  /**
+   * Handles undo/redo keyboard shortcuts
+   * @param evt - Keyboard event
+   * @returns True if undo/redo was handled
+   */
   private handleUndoRedo(evt: KeyboardEvent): boolean {
     if (!this.isUndoRedoEnabled) return false;
 
@@ -367,6 +503,9 @@ export default class Events implements EventsInterface {
     return false;
   }
 
+  /**
+   * Performs undo operation
+   */
   private performUndo(): void {
     this.trigger("undo", { type: "undo" });
 
@@ -376,6 +515,9 @@ export default class Events implements EventsInterface {
     }
   }
 
+  /**
+   * Performs redo operation
+   */
   private performRedo(): void {
     this.trigger("redo", { type: "undo" });
 
@@ -385,10 +527,18 @@ export default class Events implements EventsInterface {
     }
   }
 
+  /**
+   * Enables or disables undo/redo keyboard shortcuts
+   * @param enabled - Whether undo/redo should be enabled
+   */
   public setUndoRedoEnabled(enabled: boolean): void {
     this.isUndoRedoEnabled = enabled;
   }
 
+  /**
+   * Handles paste events with smart content parsing
+   * @param evt - Clipboard event
+   */
   private onPasteHandle(evt: ClipboardEvent) {
     const { config, parser, blockManager, selectionApi, historyManager } =
       this.editor;
@@ -439,7 +589,7 @@ export default class Events implements EventsInterface {
           if (isCreateBlocks) {
             if (item.nodeType === Node.TEXT_NODE) {
               if (!isEmptyString(item?.textContent || "")) {
-                blockManager.createBlock(defBlock, null, {
+                blockManager.createBlock(defBlock, -1, {
                   content: item?.textContent || ""
                 });
               }
@@ -453,7 +603,7 @@ export default class Events implements EventsInterface {
               if (realName) {
                 const html = (item as Element)?.innerHTML;
                 if (!isEmptyString(html)) {
-                  blockManager.createBlock(realName, null, {
+                  blockManager.createBlock(realName, -1, {
                     content: html
                   });
                 }
@@ -480,30 +630,59 @@ export default class Events implements EventsInterface {
     historyManager.save();
   }
 
+  /**
+   * Handles drag start events
+   * @param evt - Drag event
+   */
   private onDragStart(evt: DragEvent): void {
     evt.preventDefault();
   }
 
+  /**
+   * Handles drag leave events
+   * @param evt - Drag event
+   */
   private onDragLeave(evt: DragEvent) {
     evt.preventDefault();
   }
 
+  /**
+   * Handles drag over events
+   * @param evt - Drag event
+   */
   private onDragOver(evt: DragEvent) {
     evt.preventDefault();
   }
 
+  /**
+   * Handles drag events
+   * @param evt - Drag event
+   */
   private onDrag(evt: DragEvent) {
     evt.preventDefault();
   }
 
+  /**
+   * Handles drop events
+   * @param evt - Drag event
+   */
   private onDrop(evt: DragEvent) {
     evt.preventDefault();
   }
 
+  /**
+   * Handles drag end events
+   * @param evt - Drag event
+   */
   private onDragEnd(evt: DragEvent): void {
     evt.preventDefault();
   }
 
+  /**
+   * Handles selection change events
+   * Updates toolbar and actions based on current selection
+   * @param evt - Event
+   */
   private onSelectionChangeHandle(evt: Event) {
     const {
       api,
@@ -519,33 +698,33 @@ export default class Events implements EventsInterface {
 
       query(
         '.tex-block',
-        (el: HTMLElement) => {
+        (el: BlockNode) => {
           const range = selectionApi.getRange();
 
           if (range) {
-            const target = range?.commonAncestorContainer || null,
-              focusedBlock = closest(target, el);
+            const focusedBlock = closest(range?.commonAncestorContainer, el);
 
             if (focusedBlock) {
-              const index = blockManager.getElementIndex(focusedBlock),
-                model = blockManager.getModel(index);
+              const index = blockManager.getIndex(focusedBlock),
+                model = blockManager.getModel(index),
+                contentNode = model?.getContentNode(),
+                blockItem = model?.isEditableItems()
+                  ? model.getItemBody(-1)
+                  : null;
 
-              let blockChild = null;
 
-              if (model?.isEditableChilds()) {
-                blockChild = model.editableChild() as HTMLElement;
-              }
-
-              blockManager.setIndex(index);
+              this.setIndex(index);
               actions.render();
 
-              const element = blockChild || focusedBlock,
+              const element = blockItem || contentNode,
                 [start, end] = selectionApi.getOffset(element);
 
-              selectionApi.setCurrent(blockChild ? blockChild : focusedBlock, {
-                start: start,
-                end: end
-              });
+              if (element) {
+                selectionApi.setCurrent(element, {
+                  start: start,
+                  end: end
+                });
+              }
 
               toolbar.highlightActiveTools();
 
@@ -574,6 +753,9 @@ export default class Events implements EventsInterface {
     }
   }
 
+  /**
+   * Destroys the events manager and cleans up all listeners
+   */
   destroy(): void {
     const { api } = this.editor;
     const root = api.getRoot();
@@ -599,9 +781,7 @@ export default class Events implements EventsInterface {
       root
     );
 
-    const uniqueId = api.getUniqueId();
-
-    off(document, "selectionchange.e" + uniqueId);
+    off(document, "selectionchange.e" + this.eventId);
     this.triggers = {};
   }
 }

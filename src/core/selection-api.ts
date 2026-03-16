@@ -61,63 +61,6 @@ export default class SelectionAPI {
     return nodes;
   }
 
-  getTextareaCursor(input: HTMLTextAreaElement): CursorPosition {
-    if ("selectionStart" in input && document.activeElement === input) {
-      return {
-        start: input.selectionStart,
-        end: input.selectionEnd
-      };
-    }
-
-    const ieInput = input as HTMLTextAreaElement & {
-      createTextRange?: () => {
-        moveToBookmark: (bookmark: unknown) => void;
-        compareEndPoints: (how: string, sourceRange: unknown) => number;
-        moveEnd: (unit: string, count: number) => void;
-        setEndPoint: (how: string, sourceRange: unknown) => void;
-      };
-    };
-
-    const ieDocument = document as Document & {
-      selection?: {
-        createRange: () => {
-          parentElement: () => HTMLElement;
-          getBookmark: () => unknown;
-        };
-      };
-    };
-
-    if (ieInput.createTextRange && ieDocument.selection) {
-      const sel = ieDocument.selection.createRange();
-      if (sel.parentElement() === input) {
-        const rng = ieInput.createTextRange();
-        rng.moveToBookmark(sel.getBookmark());
-
-        let len = 0;
-        while (rng.compareEndPoints("EndToStart", rng) > 0) {
-          rng.moveEnd("character", -1);
-          len++;
-        }
-
-        rng.setEndPoint("StartToStart", ieInput.createTextRange());
-        const pos: CursorPosition = { start: 0, end: len };
-
-        while (rng.compareEndPoints("EndToStart", rng) > 0) {
-          rng.moveEnd("character", -1);
-          pos.start++;
-          pos.end++;
-        }
-
-        return pos;
-      }
-    }
-
-    return {
-      start: -1,
-      end: -1
-    };
-  }
-
   select(
     startPos: number,
     endPos: number,
@@ -129,10 +72,12 @@ export default class SelectionAPI {
 
     if (!wrapContainer) return;
 
-    const textContent = wrapContainer.textContent || "",
-      totalLength = textContent.length,
-      range = document.createRange(),
-      selection = this.getSelection();
+    const textContent = wrapContainer.textContent || "";
+    const totalLength = textContent.length;
+    const validStartPos = Math.max(0, Math.min(startPos, totalLength));
+    const validEndPos = Math.max(validStartPos, Math.min(endPos, totalLength));
+    const range = document.createRange();
+    const selection = this.getSelection();
 
     if (!selection) return;
 
@@ -145,52 +90,76 @@ export default class SelectionAPI {
     const walker = document.createTreeWalker(
       wrapContainer,
       NodeFilter.SHOW_TEXT,
-      null
+      {
+        acceptNode: (node) => {
+          return node.textContent?.length
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT;
+        }
+      }
     );
 
     let node: Text | null;
-    while ((node = walker.nextNode() as Text | null)) {
-      const nodeLength = node.nodeValue?.length || 0;
+    const textNodes: Text[] = [];
 
-      if (!startNode && currentPos + nodeLength > startPos) {
-        startNode = node;
-        startOffset = startPos - currentPos;
+    while ((node = walker.nextNode() as Text | null)) {
+      textNodes.push(node);
+    }
+
+    for (const textNode of textNodes) {
+      const nodeLength = textNode.textContent?.length || 0;
+
+      if (!startNode && currentPos + nodeLength > validStartPos) {
+        startNode = textNode;
+        startOffset = validStartPos - currentPos;
       }
 
-      if (!endNode && currentPos + nodeLength >= endPos) {
-        endNode = node;
-        endOffset = endPos - currentPos;
-
-        if (currentPos + nodeLength === endPos) break;
+      if (!endNode && currentPos + nodeLength >= validEndPos) {
+        endNode = textNode;
+        endOffset = validEndPos - currentPos;
+        break;
       }
 
       currentPos += nodeLength;
     }
 
-    if (!endNode && endPos === totalLength && currentPos === totalLength) {
-      endNode = node;
-      endOffset = endPos - (currentPos - (node?.nodeValue?.length || 0));
-    }
-
-    if (startNode && endNode && selection) {
-      range.setStart(startNode, startOffset);
-      range.setEnd(endNode, endOffset);
-    } else {
-      if (endNode && startPos === endPos && endPos === totalLength) {
-        const endNodeLength = endNode?.textContent?.length;
-        range.setStart(endNode, endNodeLength || 0);
-        range.setEnd(endNode, endNodeLength || 0);
+    if (!startNode) {
+      const lastNode = textNodes[textNodes.length - 1];
+      if (lastNode) {
+        startNode = lastNode;
+        startOffset = lastNode.textContent?.length || 0;
       }
     }
 
-    if (container && scrollToContainer)
+    if (!endNode) {
+      const lastNode = textNodes[textNodes.length - 1];
+      if (lastNode) {
+        endNode = lastNode;
+        endOffset = lastNode.textContent?.length || 0;
+      }
+    }
+
+    if (startNode && endNode) {
+      try {
+        range.setStart(startNode, Math.min(startOffset, startNode.textContent?.length || 0));
+        range.setEnd(endNode, Math.min(endOffset, endNode.textContent?.length || 0));
+      } catch (e) {
+        console.warn('Error setting range:', e);
+        return;
+      }
+    } else {
+      return;
+    }
+
+    if (container && scrollToContainer) {
       container.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
 
     selection.removeAllRanges();
     selection.addRange(range);
   }
 
-  insertText(content: string, cleanHtml = true): boolean {
+  insertText(content: string, stripTags = true): boolean {
     const selection = this.getSelection(),
       activeElement = document.activeElement as HTMLElement;
 
@@ -207,7 +176,7 @@ export default class SelectionAPI {
       div.innerHTML = content;
 
       range.insertNode(
-        document.createTextNode(cleanHtml ? div.textContent || "" : content)
+        document.createTextNode(stripTags ? div.textContent || "" : content)
       );
 
       return true;
@@ -224,7 +193,7 @@ export default class SelectionAPI {
     const range = selection.getRangeAt(0);
     const currentParagraph = container
       ? container
-      : this.editor.blockManager.getCurrentBlock();
+      : this.editor.blockManager.getBlockNode();
 
     if (!currentParagraph) return "";
 

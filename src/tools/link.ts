@@ -12,6 +12,7 @@ import {
   append,
   attr,
   closest,
+  css,
   make,
   query,
   replaceWithChildren,
@@ -74,8 +75,8 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
       root = api.getRoot();
 
     if (root) {
-      api.setDisplay("tex-toolbar-content", "none");
-      api.setDisplay("tex-toolbar-tools");
+      query('.tex-toolbar-content', (content: HTMLElement) => css(content, 'display', 'none'), root);
+      query('.tex-toolbar-tools', (tools: HTMLElement) => css(tools, 'display', ''), root);
       query(".tex-link-form", (el: HTMLElement) => el.remove(), root);
     }
   }
@@ -184,10 +185,10 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
 
     const content = "tex-toolbar-content";
 
-    api.setDisplay(content, "block");
-    api.setDisplay("tex-toolbar-tools", "none");
 
     if (root) {
+      query('.' + content, (content: HTMLElement) => css(content, 'display', 'block'), root);
+      query('.tex-toolbar-tools', (tools: HTMLElement) => css(tools, 'display', 'none'), root);
       query(
         '.' + content,
         (content: HTMLElement) => {

@@ -180,6 +180,34 @@ export function prepend(
   return el;
 }
 
+export function before(
+  el: Node | Element | HTMLElement,
+  child: HTMLElement | Node | NodeList | Node[]
+): Element | HTMLElement | Node {
+  if (child instanceof NodeList) {
+    Array.from(child).forEach((item: Node) => before(el, item));
+  } else if (Array.isArray(child)) {
+    Array.from(child).forEach((item: Node) => before(el, item));
+  } else {
+    el.parentNode?.insertBefore(child, el);
+  }
+  return el;
+}
+
+export function after(
+  el: Node | Element | HTMLElement,
+  child: HTMLElement | Node | NodeList | Node[]
+): Element | HTMLElement | Node {
+  if (child instanceof NodeList) {
+    Array.from(child).forEach((item: Node) => after(el, item));
+  } else if (Array.isArray(child)) {
+    Array.from(child).forEach((item: Node) => after(el, item));
+  } else {
+    el.parentNode?.insertBefore(child, el.nextSibling);
+  }
+  return el;
+}
+
 export function attr(el: HTMLElement, key: string, value?: string) {
   if (value !== undefined) el.setAttribute(key, value);
   else return el.getAttribute(key);
@@ -222,7 +250,7 @@ export function mergeAdjacentTextNodes(element: HTMLElement): void {
       nextNode.nodeType === Node.TEXT_NODE
     ) {
       const combinedText =
-          (currentNode.textContent || "") + (nextNode.textContent || ""),
+        (currentNode.textContent || "") + (nextNode.textContent || ""),
         newTextNode = document.createTextNode(combinedText);
 
       element.replaceChild(newTextNode, currentNode);
@@ -280,7 +308,7 @@ export function getChildNodes(element: Node): Node[] {
   return nodes;
 }
 
-export function getElementText(element: HTMLElement): string {
+export function getText(element: HTMLElement): string {
   let result = "";
 
   Array.from(element.childNodes).forEach((node) => {
@@ -290,9 +318,13 @@ export function getElementText(element: HTMLElement): string {
         result += text;
       }
     } else if (node.nodeType === 1) {
-      result += getElementText(node as HTMLElement);
+      result += getText(node as HTMLElement);
     }
   });
 
   return result;
+}
+
+export function getLength(element: HTMLElement): number {
+  return getText(element).length;
 }

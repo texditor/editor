@@ -1,13 +1,31 @@
-.tex-list {
+.tex-list .tex-block-content {
   padding: 0;
   padding-left: 18px;
   margin: 0;
   display: grid;
   grid-template-columns: 1fr;
   gap: 6px;
+  position: relative;
 }
 
-.tex-list-item:focus {
+.tex-list-item-body {
+  padding-right: 24px;
+}
+
+.tex-list-item-body:focus {
   background-color: var(--tex-background-lite);
   outline: none;
+}
+
+.tex-item-dragzone {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 8px;
+  padding: 4px;
+  margin-top: -9px;
+}
+
+.tex-item-active .tex-item-dragzone {
+  display: block;
 }

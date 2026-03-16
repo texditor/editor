@@ -46,5 +46,7 @@ export const EnLocale = {
   marker: "Marker",
   downloadFile: "Download file",
   moveLeft: "Move left",
-  moveRight: "Move right"
+  moveRight: "Move right",
+  notSpecified: "Not specified",
+  search: "Search"
 };

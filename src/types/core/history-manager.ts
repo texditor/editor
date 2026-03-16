@@ -1,4 +1,4 @@
-import type { OutputBlockItem } from "../output";
+import type { BlockOutput } from "./block";
 
 export interface HistoryStateSelectionData {
   start: number;
@@ -8,7 +8,7 @@ export interface HistoryStateSelectionData {
 }
 
 export interface HistoryState {
-  content: OutputBlockItem[];
+  content: BlockOutput[];
   selection: HistoryStateSelectionData;
   timestamp: number;
 }

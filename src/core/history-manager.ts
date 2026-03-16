@@ -18,18 +18,6 @@ export default class HistoryManager implements HistoryManagerInterface {
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
-    this.editor.events.add("onChange.history", (evt: TexditorEvent) => {
-      const domEvent = evt.domEvent || null;
-
-      if (
-        domEvent &&
-        domEvent.type != "keydown" &&
-        domEvent.type != "keyup" &&
-        domEvent.type != "historySave"
-      ) {
-        this.save();
-      }
-    });
   }
 
   /**
@@ -79,7 +67,7 @@ export default class HistoryManager implements HistoryManagerInterface {
         ...selection
       };
 
-      if (model?.isEditableChilds()) {
+      if (model?.isEditableItems()) {
         selectionData.itemIndex = model.getItemIndex();
       }
 
@@ -272,52 +260,50 @@ export default class HistoryManager implements HistoryManagerInterface {
 
     api.setContent(state.content);
 
-    setTimeout(() => {
-      const targetIndex =
-          focusIndex !== undefined ? focusIndex : state.selection.index,
-        currentBlock = blockManager.getByIndex(targetIndex);
+    const targetIndex =
+      focusIndex !== undefined ? focusIndex : state.selection.index,
+      currentBlock = blockManager.getBlockNode(targetIndex);
 
-      if (currentBlock) {
-        const { selectionApi } = this.editor,
-          model = blockManager.getModel(targetIndex),
-          select = (elem: HTMLElement) => {
-            selectionApi.select(
-              state.selection.start,
-              state.selection.end,
-              elem,
-              true
-            );
-          };
+    if (currentBlock) {
+      const { selectionApi } = this.editor,
+        model = blockManager.getModel(targetIndex),
+        select = (elem: HTMLElement) => {
+          selectionApi.select(
+            state.selection.start,
+            state.selection.end,
+            elem,
+            true
+          );
+        };
 
-        if (model?.isEditable() && !model?.isEditableChilds()) {
-          select(currentBlock);
-        } else {
-          if (
-            model?.isEditableChilds() &&
-            state.selection.itemIndex != undefined
-          ) {
-            const item = model.getItem(state.selection.itemIndex, currentBlock);
+      if (model?.isEditable() && !model?.isEditableItems()) {
+        select(currentBlock);
+      } else {
+        if (
+          model?.isEditableItems() &&
+          state.selection.itemIndex != undefined
+        ) {
+          const item = model.getItem(state.selection.itemIndex);
 
-            if (item) {
-              select(item as HTMLElement);
-            }
-          } else {
-            currentBlock.click();
-            currentBlock.scrollIntoView({
-              behavior: "smooth",
-              block: "center"
-            });
+          if (item) {
+            select(item as HTMLElement);
           }
+        } else {
+          currentBlock.click();
+          currentBlock.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
         }
       }
+    }
 
-      if (blockManager.isSelectionModeActive()) {
-        blockManager.disableSelectionMode();
-        blockManager.enableSelectionMode();
-      }
+    if (blockManager.isSelectionModeActive()) {
+      blockManager.disableSelectionMode();
+      blockManager.enableSelectionMode();
+    }
 
-      this.isRestoring = false;
-    }, 100);
+    this.isRestoring = false;
   }
 
   /**

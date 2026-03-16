@@ -12,3 +12,6 @@ export * from "./sanitizer";
 export * from "./selection-api";
 export * from "./toolbar";
 export * from "./models";
+export * from "./ui";
+export * from "./block";
+export * from "./http";

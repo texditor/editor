@@ -1,107 +1,48 @@
 import type {
-  ExtensionModelInstanceInterface,
-  ExtensionModelInterface,
   ExtensionsInterface,
   TexditorInterface
 } from "@/types";
+import { generateRandomString } from "@/utils";
 import {
   addClass,
-  append,
   css,
-  make,
   query,
-  queryLength,
   removeClass
 } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 
 export default class Extensions implements ExtensionsInterface {
+  /** Reference to the main editor instance */
   private editor: TexditorInterface;
+
+  /** Unique identifier for event listeners to prevent conflicts */
+  private eventId: string = '';
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
+    this.eventId = generateRandomString(12);
   }
 
-  render(): HTMLElement | Node {
-    const { config, events } = this.editor,
-      cssName = 'tex-extensions',
-      extensions = config.get("extensions", []);
-
-    events.trigger("extensions:render");
-
-    if (!extensions?.length) return document.createTextNode("");
-
-    this.fixedBar();
-
-    const extensionsBar = make("div", (el: HTMLDivElement) => {
-      const ltr = config.get("extensionsLtr", "left");
-      addClass(el, cssName + " tex-" + ltr);
-
-      // Исправление: приведение типа через unknown
-      (extensions as unknown as ExtensionModelInstanceInterface[]).forEach(
-        (ExtClass: ExtensionModelInstanceInterface) => {
-          const extInstance: ExtensionModelInterface = new ExtClass(
-            this.editor
-          );
-
-          if (extInstance?.create) {
-            const element = extInstance.create(),
-              groupName = extInstance.getGroupName
-                ? extInstance.getGroupName()
-                : "";
-
-            if (groupName) {
-              const isExists = !!queryLength(
-                "." + cssName + "-group-" + groupName,
-                el
-              );
-
-              if (isExists) {
-                query(
-                  "." + cssName + "-group-" + groupName,
-                  (group: HTMLElement) => {
-                    append(group, element);
-                  },
-                  el
-                );
-              } else {
-                const groupElement = make("div", (group: HTMLElement) => {
-                  addClass(
-                    group,
-                    cssName + "-group-" + groupName + " " + cssName + "-group"
-                  );
-                  append(group, element);
-                });
-
-                append(el, groupElement);
-              }
-            } else append(el, element);
-          }
-        }
-      );
-    });
-
-    events.trigger("extensions:render.end", { el: extensionsBar });
-
-    return extensionsBar;
-  }
-
-  fixedBar() {
-    const { api, config } = this.editor,
-      uniqueId = api.getUniqueId();
+  /**
+   * Sets up fixed positioning behavior for extensions bar
+   * Attaches scroll, load, and resize event listeners
+   * Makes extensions bar sticky when scrolling past editor
+   */
+  apply() {
+    const { api, config } = this.editor;
+    const root = api.getRoot(),
+      extCss = 'tex-extension',
+      className = extCss + 's';
 
     if (config.get("extensionsFixed", true)) {
       const fixedExtensions = () => {
-        const root = api.getRoot(),
-          className = 'tex-extensions';
-
         if (!root) return;
 
         query(
           '.tex',
           (rootEditor: HTMLElement) => {
             const scrollTop =
-                window.pageYOffset || document.documentElement.scrollTop,
+              window.pageYOffset || document.documentElement.scrollTop,
               editorRect = rootEditor.getBoundingClientRect(),
               editorLeft = editorRect.left,
               editorWidth = rootEditor.offsetWidth;
@@ -127,24 +68,31 @@ export default class Extensions implements ExtensionsInterface {
         );
       };
 
-      off(window, "scroll.ext" + uniqueId);
-      off(window, "scroll.ext" + uniqueId);
-      off(window, "scroll.ext" + uniqueId);
-      on(window, "scroll.ext" + uniqueId, fixedExtensions);
-      on(window, "load.ext" + uniqueId, fixedExtensions);
-      on(window, "resize.ext" + uniqueId, fixedExtensions);
+      // Remove any existing listeners
+      off(window, "scroll.ext" + this.eventId);
+      off(window, "scroll.ext" + this.eventId);
+      off(window, "scroll.ext" + this.eventId);
+
+      // Add new listeners
+      on(window, "scroll.ext" + this.eventId, fixedExtensions);
+      on(window, "load.ext" + this.eventId, fixedExtensions);
+      on(window, "resize.ext" + this.eventId, fixedExtensions);
     }
   }
 
+  /**
+   * Destroys the extensions manager
+   * Removes all event listeners and cleans up
+   */
   destroy() {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
+    // Remove all scroll listeners
+    off(window, "scroll.ext" + this.eventId);
+    off(window, "scroll.ext" + this.eventId);
+    off(window, "scroll.ext" + this.eventId);
+    off(window, "scroll.ext" + this.eventId);
 
-    off(window, "scroll.ext" + uniqueId);
-    off(window, "scroll.ext" + uniqueId);
-    off(window, "scroll.ext" + uniqueId);
-    off(window, "scroll.ext" + uniqueId);
-    off(window, "load.ext" + uniqueId);
-    off(window, "resize.ext" + uniqueId);
+    // Remove load and resize listeners
+    off(window, "load.ext" + this.eventId);
+    off(window, "resize.ext" + this.eventId);
   }
 }

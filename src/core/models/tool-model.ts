@@ -24,7 +24,7 @@ export default class ToolModel implements ToolModelInterface {
     const { events } = this.editor;
 
     events.add("toolbar:render:end", () => {
-      const element = this.getElement();
+      const element = this.getBlockNode();
 
       if (element) {
         element.style.display = !this.isVisible() ? "none" : "";
@@ -93,7 +93,7 @@ export default class ToolModel implements ToolModelInterface {
     );
   }
 
-  getElement(): HTMLElement | null {
+  getBlockNode(): HTMLElement | null {
     return document.getElementById(this.getId());
   }
 
@@ -139,7 +139,7 @@ export default class ToolModel implements ToolModelInterface {
   }
 
   applyEvents() {
-    const element = this.getElement();
+    const element = this.getBlockNode();
 
     this.handleClick = this.handleClick.bind(this);
 

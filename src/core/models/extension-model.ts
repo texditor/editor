@@ -1,6 +1,9 @@
 import type {
+  CustomEvent,
   ExtensionModelInterface,
+  ExtensionNode,
   RenderIconContent,
+  TexditorEvent,
   TexditorInterface
 } from "@/types";
 import { generateRandomString } from "@/utils/common";
@@ -8,6 +11,7 @@ import {
   addClass,
   append,
   attr,
+  html,
   make,
   removeClass,
   toggleClass
@@ -33,9 +37,9 @@ export default class ExtensionModel implements ExtensionModelInterface {
   onLoad(): void { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event & { el: EventTarget }): void { }
+  onClick(evt: CustomEvent): void { }
 
-  handleClick(evt: Event & { el: EventTarget }) {
+  handleClick(evt: CustomEvent) {
     if (this.toggleActive) {
       if (evt.el) {
         toggleClass(
@@ -56,23 +60,25 @@ export default class ExtensionModel implements ExtensionModelInterface {
     const { events, config, i18n } = this.editor,
       cssName = "tex-extension";
 
-    return make("div", (el: HTMLElement) => {
+    return make("div", (el: ExtensionNode) => {
       addClass(el, cssName + " " + cssName + "-" + this.getName());
+      off(el, "click.ext");
+      on(el, "click.ext", this.handleClick);
+      el.id = this.getId();
 
       events.add("onChange", () => {
         if (!this.isActive()) addClass(el, cssName + "-unactive");
         else removeClass(el, cssName + "-unactive");
       });
 
-      off(el, "click.ext");
-      on(el, "click.ext", this.handleClick);
-      el.id = this.getId();
-
       if (this.icon) {
-        el.innerHTML = renderIcon(this.icon, {
-          width: 14,
-          height: 14
-        });
+        html(
+          el,
+          renderIcon(this.icon, {
+            width: 14,
+            height: 14
+          })
+        )
       }
 
       const title = i18n.get(
@@ -82,11 +88,13 @@ export default class ExtensionModel implements ExtensionModelInterface {
 
       attr(el, "title", title);
 
-      if (config.get("extensionVisibleTitle", false))
+      if (config.get("extensionVisibleTitle", false)) {
         append(
           el,
           make("span", (span: HTMLSpanElement) => (span.textContent = title))
         );
+      }
+      el.extensionModel = this;
     });
   }
 
@@ -94,7 +102,7 @@ export default class ExtensionModel implements ExtensionModelInterface {
     return ("tex-extension" + "-" + this.getName() + "-" + this.randomId);
   }
 
-  getElement(): HTMLElement | null {
+  getBlockNode(): HTMLElement | null {
     return document.getElementById(this.getId());
   }
 

@@ -5,12 +5,13 @@ import type {
 } from "@/types";
 import { IconConvert } from "@/icons";
 import ActionModel from "@/core/models/action-model";
-import { addClass, make } from "@/utils/dom";
+import { addClass, append, html, make } from "@/utils/dom";
 import { off, on } from "@/utils/events";
+
+/** Convert a block */
 export default class ConvertAction
   extends ActionModel
-  implements ActionModelInterface
-{
+  implements ActionModelInterface {
   name: string = "convertAction";
   protected translation: string = "convert";
   protected icon: RenderIconContent = IconConvert;
@@ -22,7 +23,7 @@ export default class ConvertAction
     const blockModels = blockManager.getBlockModels();
 
     blockModels.forEach((modelStructure: BlockModelStructure) => {
-      const curBlock = blockManager.getCurrentBlock(),
+      const curBlock = blockManager.getBlockNode(),
         model = modelStructure.model;
 
       if (
@@ -33,10 +34,22 @@ export default class ConvertAction
           addClass(el, "tex-actions-menu-item");
           const icon = model.getIcon(12, 12);
 
-          if (icon) el.innerHTML = "<span>" + icon + "</span>";
+          if (icon) {
+            append(el, make(
+              'span',
+              (span: HTMLSpanElement) => html(span, icon)
+            ))
+          }
 
-          el.innerHTML +=
-            "<span>" + (modelStructure?.translation || "") + "</span>";
+          append(el, make(
+            'span',
+            (span: HTMLSpanElement) => {
+              html(
+                span,
+                (modelStructure?.translation || "")
+              )
+            }
+          ));
 
           off(el, "click.am");
           on(el, "click.am", () => {
@@ -57,12 +70,12 @@ export default class ConvertAction
   isVisible() {
     const { blockManager } = this.editor,
       blockModels = blockManager.getBlockModels(),
-      curBlock = blockManager.getCurrentBlock();
+      blockNode = blockManager.getBlockNode();
 
     const filtered = blockModels.filter(
       (item) =>
         item.model.isConvertible() &&
-        curBlock?.blockModel.getType() !== item.model.getType()
+        blockNode?.blockModel.getType() !== item.model.getType()
     );
 
     return !!blockManager.getModel()?.isConvertible() && !!filtered.length;

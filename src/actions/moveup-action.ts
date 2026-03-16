@@ -1,7 +1,9 @@
 import type { ActionModelInterface, RenderIconContent } from "@/types";
 import { IconArrowUp } from "@/icons";
 import ActionModel from "@/core/models/action-model";
+import { after } from "@/utils";
 
+/** Move the block up */
 export default class MoveUpAction
   extends ActionModel
   implements ActionModelInterface {
@@ -12,34 +14,23 @@ export default class MoveUpAction
     const { actions, blockManager, events } = this.editor;
 
     const curIndex = blockManager.getIndex(),
-      curBlock = blockManager.getCurrentBlock();
+      curBlock = blockManager.getBlockNode();
 
     if (curIndex > 0 && curBlock) {
-      const prevBlock = blockManager.getByIndex(curIndex - 1);
+      const prevBlock = blockManager.getBlockNode(curIndex - 1);
 
-      if (prevBlock) {
-        curBlock?.insertAdjacentElement("afterend", prevBlock);
+      if (curBlock && prevBlock) {
+        after(curBlock, prevBlock);
 
         events.change({
           type: "moveUp",
           index: curIndex - 1,
-          blockElement: curBlock,
+          blockNode: curBlock,
           targetBlockElement: prevBlock,
           targetIndex: curIndex
         });
 
-        events.refresh();
-
-        const newBlock = blockManager.getByIndex(curIndex - 1),
-          model = newBlock?.blockModel;
-
-        if (newBlock) {
-          const blockContentElement = blockManager.getBlockContentElement(newBlock);
-          newBlock?.click();
-
-          if (model?.isEditable())
-            blockContentElement?.focus();
-        }
+        blockManager.focus(curIndex - 1);
       }
     }
 

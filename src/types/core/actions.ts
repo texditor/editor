@@ -1,9 +1,9 @@
-import type { ActionModelInstanceInterface } from ".";
+import type { ActionModelInstanceInterface, BlockNode } from ".";
 
 export interface ActionsInterface {
   // Action management methods
   register(action: ActionModelInstanceInterface): void;
-  apply(): void;
+  create(blockNode: BlockNode): void;
 
   // Menu methods
   showMenu(items: HTMLElement[], title?: string): void;

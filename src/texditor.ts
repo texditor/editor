@@ -25,7 +25,7 @@ import Actions from "@/core/actions";
 import API from "@/core/api";
 import Commands from "@/core/commands";
 import HistoryManager from "@/core/history-manager";
-import Extensions from "./core/extensions";
+import Extensions from "@/core/extensions";
 import "@/styles/tex.css";
 import "@/styles/animations.css";
 
@@ -61,9 +61,9 @@ export default class Texditor implements TexditorInterface {
     this.extensions = new Extensions(this);
     this.events.onReady(() => {
       this.api.render();
-      this.actions.apply();
       this.toolbar.apply();
       this.historyManager.save();
+      this.extensions.apply();
 
       const readyCallback = this.config.get("onReady", false);
 

@@ -14,6 +14,7 @@ export default class Paragraph
       icon: IconParagraph,
       autoParse: true,
       translationCode: "paragraph",
+      groupCode: "paragraph",
       tagName: "p",
       type: "p",
       placeholder: this.editor.i18n.get(
@@ -28,7 +29,7 @@ export default class Paragraph
       emptyDetect: true,
       convertible: true,
       sanitizerConfig: {
-        elements: ["b", "a", "i", "s", "u", "sup", "sub"],
+        elements: ["b", "a", "i", "s", "u", "sup", "sub", "mark", "code"],
         attributes: {
           a: ["href", "target"]
         },
@@ -44,8 +45,8 @@ export default class Paragraph
   create(options?: ParagraphCreateOptions): HTMLElement {
     return this.make(
       this.getTagName(),
-      ({ blockContentElement }: { blockContentElement: HTMLElement }) => {
-        if (options?.content) blockContentElement.innerHTML = options.content;
+      ({ contentNode }: { contentNode: HTMLElement }) => {
+        if (options?.content) contentNode.innerHTML = options.content;
       }
     );
   }

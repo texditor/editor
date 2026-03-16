@@ -1,31 +1,32 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Texditor app</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-  </head>
 
-  <body>
-    <div class="app-wrap">
-      <div class="app-content">
-        <div style="position: relative">
-          <div id="texditor" class="app-editor"></div>
-        </div>
-        <div id="texditor2"></div>
-        <button id="destroy">Destroy</button>
-        <button id="destroy2">Destroy 2</button>
+<head>
+  <meta charset="UTF-8" />
+  <title>Texditor demo app</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+</head>
+
+<body>
+  <div class="toggle-block" id="toggle-block"></div>
+  <div class="app-wrap">
+    <div class="app-content">
+      <div style="position: relative">
+        <div id="texditor" class="app-editor"></div>
       </div>
-      <div class="app-output">
-        <div class="app-save" id="saveButton">Save to JSON</div>
-        <h3>Output:</h3>
-        <pre id="output"></pre>
-      </div>
-      <!-- <div class="test-block"></div> -->
+      <div id="texditor2"></div>
+      <button id="destroy">Destroy</button>
+      <button id="destroy2">Destroy 2</button>
     </div>
-    <script type="module" src="./demo/app.ts"></script>
-  </body>
+    <div class="app-output">
+      <div class="app-save" id="saveButton">Save to JSON</div>
+      <h3>Output:</h3>
+      <pre id="output"></pre>
+    </div>
+  </div>
+  <script type="module" src="./demo/app.ts"></script>
+</body>
+
 </html>

@@ -74,3 +74,5 @@ export const IconDownload: string =
   '<path d="m1,22h22c.55,0,1,.45,1,1s-.45,1-1,1H1c-.55,0-1-.45-1-1s.45-1,1-1Zm12-7.93l7.38-7.39,1.41,1.41-9.9,9.9L2,8.1l1.41-1.41,7.59,7.59V0h2v14.07h0Z" fill="currentColor"/>';
 export const IconClose: string =
   '<path d="M.4,21.4,9.9,12,.4,2.6A1.4,1.4,0,0,1,.5.5a1.3,1.3,0,0,1,2,0L12,9.9,21.4.5A1.5,1.5,0,0,1,23.5.4a1.5,1.5,0,0,1,.1,2.1h-.1L14.1,12l9.4,9.4a1.5,1.5,0,1,1-2,2.2h-.1L12,14.1,2.5,23.5a1.4,1.4,0,0,1-2.1,0,1.7,1.7,0,0,1,0-2.1Z" fill="currentColor"/>';
+export const IconMove: string = '<path d="M12 2v20" stroke="currentColor"/><path d="m15 19-3 3-3-3" stroke="currentColor"/><path d="m19 9 3 3-3 3" stroke="currentColor"/><path d="M2 12h20" stroke="currentColor"/><path d="m5 9-3 3 3 3" stroke="currentColor"/><path d="m9 5 3-3 3 3" stroke="currentColor"/>'
+export const IconCornerUpRight: string = '<path d="m15 14 5-5-5-5" stroke="currentColor"/><path d="M4 20v-7a4 4 0 0 1 4-4h12" stroke="currentColor"/>'

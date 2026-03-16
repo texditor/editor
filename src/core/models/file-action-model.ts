@@ -1,7 +1,7 @@
 import type {
   BlockModelInterface,
   FileActionModelInterface,
-  HTMLBlockElement,
+  BlockNode,
   RenderIconContent,
   TexditorInterface
 } from "@/types";
@@ -22,13 +22,13 @@ export default class FileActionModel implements FileActionModelInterface {
   private randomId: string = generateRandomString(10);
   private item: HTMLElement;
   private container: HTMLElement;
-  private currentBlockElement: HTMLBlockElement;
+  private currentBlockElement: BlockNode;
 
   constructor(
     editor: TexditorInterface,
     item: HTMLElement,
     container: HTMLElement,
-    fileBlockElement: HTMLBlockElement
+    fileBlockElement: BlockNode
   ) {
     this.editor = editor;
     this.item = item;
@@ -69,7 +69,7 @@ export default class FileActionModel implements FileActionModelInterface {
       if (eventName) {
         this.editor.events.change({
           type: eventName,
-          blockElement: this.getCurrentBlock(),
+          blockElement: this.getBlockNode(),
           item: this.getItem(),
           index: this.getItemIndex(),
           container: this.getContainer(),
@@ -80,7 +80,7 @@ export default class FileActionModel implements FileActionModelInterface {
 
     if (this.prepare) {
       const menu = this.render();
-      if (menu) append(this.getCurrentBlock(), menu);
+      if (menu) append(this.getBlockNode(), menu);
     } else {
       this.refresh();
       eventTriggrer();
@@ -100,7 +100,7 @@ export default class FileActionModel implements FileActionModelInterface {
     );
   }
 
-  getElement(): HTMLElement | null {
+  getNode(): HTMLElement | null {
     return document.getElementById(this.getId());
   }
 
@@ -113,7 +113,7 @@ export default class FileActionModel implements FileActionModelInterface {
   }
 
   getItemIndex(): number {
-    const block = this.getCurrentBlock();
+    const block = this.getBlockNode();
     let realIndex = 0;
 
     query(
@@ -133,11 +133,11 @@ export default class FileActionModel implements FileActionModelInterface {
     return this.container;
   }
 
-  getCurrentBlock(): HTMLBlockElement {
+  getBlockNode(): BlockNode {
     return this.currentBlockElement;
   }
 
-  getCurrentBlockModel(): BlockModelInterface {
+  getBlockModel(): BlockModelInterface {
     return this.currentBlockElement.blockModel;
   }
 
@@ -178,7 +178,7 @@ export default class FileActionModel implements FileActionModelInterface {
   }
 
   refresh(): void {
-    const element = this.getElement();
+    const element = this.getNode();
 
     if (element) element.style.display = !this.isVisible() ? "none" : "";
   }

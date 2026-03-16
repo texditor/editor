@@ -1,7 +1,8 @@
 import type { ActionModelInterface, RenderIconContent } from "@/types";
 import { IconArrowDown } from "@/icons";
 import ActionModel from "@/core/models/action-model";
-
+import { before } from "@/utils";
+/** Move the block down */
 export default class MoveDownAction
   extends ActionModel
   implements ActionModelInterface {
@@ -12,34 +13,23 @@ export default class MoveDownAction
     const { actions, blockManager, events } = this.editor;
 
     const curIndex = blockManager.getIndex(),
-      curBlock = blockManager.getCurrentBlock();
+      curBlock = blockManager.getBlockNode();
 
     if (curBlock) {
-      const nextBlock = blockManager.getByIndex(curIndex + 1);
+      const nextBlock = blockManager.getBlockNode(curIndex + 1);
 
-      if (nextBlock) {
-        curBlock?.insertAdjacentElement("beforebegin", nextBlock);
+      if (curBlock && nextBlock) {
+        before(curBlock, nextBlock);
 
         events.change({
           type: "moveDown",
           index: curIndex + 1,
-          blockElement: curBlock,
+          blockNode: curBlock,
           targetBlockElement: nextBlock,
           targetIndex: curIndex
         });
 
-        events.refresh();
-
-        const newBlock = blockManager.getByIndex(curIndex + 1),
-          model = newBlock?.blockModel;
-
-        if (newBlock) {
-          const blockContentElement = blockManager.getBlockContentElement(newBlock);
-          newBlock?.click();
-
-          if (model?.isEditable())
-            blockContentElement?.focus();
-        }
+        blockManager.focus(curIndex + 1);
       }
 
     }

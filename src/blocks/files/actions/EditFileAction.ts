@@ -53,7 +53,7 @@ export default class EditFileAction
   }
 
   protected render(): HTMLElement | null {
-    const block = this.getCurrentBlock(),
+    const block = this.getBlockNode(),
       uniqueId = this.getId(),
       item = this.getItem();
 
@@ -153,7 +153,7 @@ export default class EditFileAction
 
                 events.change({
                   type: "changeFileItem",
-                  blockElement: this.getElement(),
+                  blockNode: this.getBlockNode(),
                   item: item
                 });
               });

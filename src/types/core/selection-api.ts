@@ -18,9 +18,6 @@ export interface SelectionAPIInterface {
   // Node traversal methods
   childNodes(node: Node): Node[];
 
-  // Textarea cursor methods
-  getTextareaCursor(input: HTMLTextAreaElement): CursorPosition;
-
   // Selection methods
   select(
     startPos: number,

@@ -1,122 +1,160 @@
 import type {
   BlockManagerInterface,
-  HTMLBlockElement,
+  BlockNode,
   TexditorInterface,
   BlockModelInstanceInterface,
   BlockModelInterface,
-  BlockModelStructure
+  BlockModelStructure,
+  BlockCreateOptions
 } from "@/types";
 import {
   closest,
   queryLength,
   query,
   append,
-  make,
   addClass,
   removeClass,
   hasClass,
   queryList,
-  css
+  css,
+  getChildNodes,
+  appendText,
+  getLength,
+  getText,
+  html,
+  after,
+  make,
+  prepend,
+  before
 } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 import { off, on } from "@/utils/events";
-import { sanitizeJson } from "@/utils/sanitizer";
 import { Paragraph } from "@/blocks";
+import ActionsView from "@/views/actions";
 
 export default class BlockManager implements BlockManagerInterface {
+  /** Reference to the main editor instance */
   private editor: TexditorInterface;
+
+  /** Current active block index */
   private blockIndex: number = 0;
+
+  /** Flag indicating if block selection mode is active */
   private isSelectionMode: boolean = false;
+
+  /** Cached block model configurations */
   private blockModels: BlockModelStructure[] = [];
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
   }
 
-  render(renderData?: object[] | string): HTMLElement {
-    const { config, parser } = this.editor;
-
-    setTimeout(() => {
-      const blocksElement = this.getContainer();
-      query(
-        "*",
-        (el: HTMLElement, i: number) => {
-          if (config.get("autofocus", true)) if (i === 0) this.focus(el);
-        },
-        blocksElement
-      );
-    }, 10);
-
-    return make("div", (el: HTMLElement) => {
-      addClass(el, 'tex-blocks');
-      let data = [];
-      const initalData =
-        (renderData && Array.isArray(renderData) && renderData.length) ||
-          (typeof renderData === "string" && !isEmptyString(renderData))
-          ? renderData
-          : config.get("initalData", []),
-        emptyData = [
-          {
-            type: config.get("defaultBlock", "p"),
-            data: [""]
-          }
-        ];
-      try {
-        data =
-          typeof initalData === "string"
-            ? isEmptyString(initalData)
-              ? []
-              : JSON.parse(sanitizeJson(initalData.trim()) || "")
-            : initalData;
-      } catch (e) {
-        console.warn(
-          "The input data is not supported or contains errors when working with JSON",
-          e
-        );
-      }
-
-      data = JSON.parse(sanitizeJson(data) || "");
-
-      let blocks = parser.parseBlocks(data?.length ? data : emptyData);
-
-      if (!blocks.length && data?.length)
-        blocks = parser.parseBlocks(emptyData);
-
-      if (blocks.length) append(el, blocks);
-    });
-  }
-
-  getContainer(): HTMLElement | undefined {
+  /**
+   * Gets the container element that holds all blocks
+   * @returns The blocks container element or null if not found
+   */
+  getBlocksContainer(): HTMLElement | null {
     const root = this.editor.api.getRoot();
 
-    if (!root) return;
+    if (!root)
+      return null;
 
-    let container = null;
+    const [container] = queryList('.tex-blocks', root);
 
-    query('.tex-blocks', (el: HTMLElement) => (container = el), root);
-
-    if (!container) return;
-
-    return container;
+    return container || null;
   }
 
-  getItems(): HTMLBlockElement[] {
-    const blockElements: HTMLBlockElement[] = [],
-      blockContainer = this.getContainer();
+  /**
+   * Sets focus to a specific block by index
+   * @param index - Block index to focus
+   * @param startPos - Starting the selection position
+   * @param endPos - End of selection position
+   * @param itemIndex - Item index
+   * @returns The focused block node or null if focus failed
+   */
+  focus(
+    index: number,
+    startPos?: number,
+    endPos?: number,
+    itemIndex?: number
+  ): BlockNode | null {
+    const blockNode = this.getBlockNode(index),
+      model = blockNode?.blockModel,
+      { selectionApi } = this.editor;
+
+    if (!model)
+      return null;
+
+    if (!blockNode)
+      return null;
+
+    const contentNode = this.getContentNode(blockNode);
+    const selectEnd = (el: HTMLElement) => {
+      const length = getLength(el) || 0
+
+      if (length) {
+        const start = startPos || length || 0,
+          end = endPos || startPos || length || 0;
+
+        blockNode.click();
+        el.focus();
+
+        selectionApi.select(start, end, el);
+      } else {
+        el.focus();
+      }
+    };
+
+    if (contentNode) {
+      contentNode.click();
+
+      if (model?.isEditable() && !model.isEditableItems()) {
+        selectEnd(contentNode);
+      } else if (model?.isEditableItems()) {
+        if (itemIndex !== undefined) {
+
+        }
+        const item = typeof itemIndex === 'number'
+          ? model.getItemBody(itemIndex)
+          : (model.getItem(-1) as HTMLElement | null || model.getItemBody(0));
+
+        if (item)
+          selectEnd(item);
+      } else {
+        contentNode.click();
+      }
+    }
+
+    return blockNode;
+  }
+
+  /**
+   * Gets all block nodes in the editor
+   * @returns Array of block nodes
+   */
+  getBlocks(): BlockNode[] {
+    const nodes: BlockNode[] = [],
+      blockContainer = this.getBlocksContainer();
 
     if (blockContainer) {
       query(
         '.tex-block',
-        (el: HTMLBlockElement) => blockElements.push(el),
+        (el: BlockNode) => nodes.push(el),
         blockContainer
       );
     }
 
-    return blockElements;
+    return nodes;
   }
 
-  getByIndex(index: number): HTMLBlockElement | null {
-    const blockContainer = this.getContainer();
+  /**
+   * Gets a specific block node by index
+   * @param index - Block index (defaults to current index)
+   * @returns Block node or null if not found
+   */
+  getBlockNode(index?: number): BlockNode | null {
+    const realIndex = index !== undefined ? index : this.getIndex(),
+      blockContainer = this.getBlocksContainer();
 
     if (!blockContainer) return null;
 
@@ -125,7 +163,7 @@ export default class BlockManager implements BlockManagerInterface {
     query(
       '.tex-block',
       (el: HTMLElement, i: number) => {
-        if (i === index) block = el;
+        if (i === realIndex) block = el;
       },
       blockContainer
     );
@@ -133,82 +171,184 @@ export default class BlockManager implements BlockManagerInterface {
     return block;
   }
 
-  getNextBlock(): HTMLBlockElement | null {
-    const currentIndex = this.getIndex();
+  /**
+   * Gets the content node within a block
+   * @param blockNode - Block node (defaults to current block)
+   * @returns Content element or null
+   */
+  getContentNode(blockNode?: BlockNode): HTMLElement | null {
+    const realBlockNode = blockNode || this.getBlockNode();
 
-    return this.getByIndex(currentIndex + 1);
-  }
-
-  getPrevBlock(): HTMLBlockElement | null {
-    const currentIndex = this.getIndex();
-
-    return this.getByIndex(currentIndex - 1);
-  }
-
-  isTextBlock(blockElement: HTMLBlockElement | null): boolean {
-    if (!blockElement) return false;
-
-    const model = blockElement.blockModel;
-
-    return model?.getConfig("editable") && !model?.getConfig("editableChilds");
-  }
-
-  createDefaultBlock(): HTMLElement | null {
-    const defaultBlock = this.editor.config.get("defaultBlock", "p");
-
-    return this.createBlock(defaultBlock);
-  }
-
-  getCurrentBlock(): HTMLBlockElement | null {
-    return this.getByIndex(this.getIndex());
-  }
-
-  getBlockContentElement(blockElement?: HTMLBlockElement | HTMLElement): HTMLElement | null {
-    const realBlockEl = blockElement || this.getCurrentBlock();
-
-    if (!realBlockEl)
+    if (!realBlockNode)
       return null;
 
-    let elem = null;
-    query('.tex-block-content', (el: HTMLElement) => elem = el, realBlockEl);
+    const [content] = queryList('.tex-block-content', realBlockNode);
 
-    return elem;
+    return content || null;
   }
 
-  count(): number {
-    return queryLength('.tex-block', this.getContainer());
+  /**
+   * Gets the next block node after current active block
+   * @returns Next block node or null
+   */
+  getNextBlockNode(): BlockNode | null {
+    const currentIndex = this.getIndex();
+
+    return this.getBlockNode(currentIndex + 1);
   }
 
-  isEmpty(index: number | null = null): boolean {
-    const blockElement =
-      index !== null
-        ? this.getByIndex(index)
-        : this.getCurrentBlock();
+  /**
+   * Gets the previous block node before current active block
+   * @returns Previous block node or null
+   */
+  getPrevBlockNode(): BlockNode | null {
+    const currentIndex = this.getIndex();
 
-    if (!blockElement) return false;
-
-    const blockContent = this.getBlockContentElement(blockElement);
-
-    return (
-      isEmptyString(blockContent?.innerHTML || "") ||
-      blockContent?.innerHTML == "<br>"
-    );
+    return this.getBlockNode(currentIndex - 1);
   }
 
-  detectEmpty(emptyAttr: boolean = true) {
-    const { api } = this.editor,
-      root = api.getRoot();
+  /**
+   * Finds parent block of a target element
+   * @param targetNode - Target element or event target
+   * @returns Parent block node or null
+   */
+  findParent(targetNode: EventTarget | HTMLElement): BlockNode | null {
+    let node = null;
+    const container = this.getBlocksContainer();
 
-    if (root) {
+    if (container) {
       query(
         '.tex-block',
-        (blockElement: HTMLBlockElement) => {
-          if (blockElement.blockModel?.isEmptyDetect()) {
-            const index = this.getElementIndex(blockElement);
-            const blockContent = this.getBlockContentElement(blockElement);
+        (el: HTMLElement) => {
+          if (closest(targetNode, el)) node = el;
+        },
+        container
+      );
+    }
 
-            if (blockContent) {
-              blockContent.dataset["empty"] = !emptyAttr
+    return node;
+  }
+
+  /**
+   * Sets the active block index and updates UI
+   * @param index - Block index to set as active
+   */
+  use(index: number) {
+    const { actions, api } = this.editor,
+      cssName = 'tex-block',
+      root = api.getRoot(),
+      blockNode = this.getBlockNode(index);
+
+    this.blockIndex = index;
+
+    if (root && blockNode) {
+      query(
+        "." + cssName,
+        (block: BlockNode) => {
+          removeClass(block, cssName + "-active");
+        },
+        root
+      );
+
+
+      addClass(blockNode, cssName + "-active")
+      actions.create(blockNode);
+      off(document, 'dblclick.unactive');
+      on(document, 'dblclick.unactive', () => {
+        removeClass(blockNode, cssName + "-active");
+      });
+    }
+  }
+
+  /**
+   * Gets the index of a block
+   * @param node - Target node (defaults to current block)
+   * @param findParent - Whether to find parent block of the node
+   * @returns Block index
+   */
+  getIndex(
+    node?: BlockNode | HTMLElement | EventTarget,
+    findParent?: boolean
+  ): number {
+    if (!node)
+      return this.blockIndex;
+
+    let index = 0;
+
+    const container = this.getBlocksContainer();
+
+    if (container) {
+      const realNode = findParent ? this.findParent(node) : node;
+
+      query(
+        '.tex-block',
+        (el: HTMLElement, i: number) => {
+          if (realNode === el) index = i;
+        },
+        container
+      );
+    }
+
+    return index;
+  }
+
+  /**
+   * Checks if a block is a text block (editable but no child blocks)
+   * @param blockNode - Block node to check
+   * @returns True if text block
+   */
+  isTextBlock(blockNode: BlockNode | null): boolean {
+    if (!blockNode) return false;
+
+    const model = blockNode.blockModel;
+
+    return model?.getConfig("editable") && !model?.getConfig("editableItems");
+  }
+
+  /**
+   * Gets the total number of blocks
+   * @returns Block count
+   */
+  count(): number {
+    const blocksContainer = this.getBlocksContainer();
+
+    if (!blocksContainer)
+      return 0;
+
+    return queryLength('.tex-block', blocksContainer);
+  }
+
+  /**
+   * Checks if a block is empty
+   * @param index - Block index (defaults to current block)
+   * @returns True if block is empty
+   */
+  isEmpty(index?: number): boolean {
+    const model = this.getModel(index);
+
+    if (!model)
+      return true;
+
+    return model.isEmpty();
+  }
+
+  /**
+   * Updates empty state data attributes on blocks
+   * @param emptyAttr - Whether to set empty attribute
+   */
+  detectEmpty(emptyAttr: boolean = true) {
+    const container = this.getBlocksContainer();
+
+    if (container) {
+      query(
+        '.tex-block',
+        (blockNode: BlockNode) => {
+          if (blockNode.blockModel?.isEmptyDetect()) {
+            const index = this.getIndex(blockNode);
+            const contentNode = this.getContentNode(blockNode);
+
+            if (contentNode) {
+              contentNode.dataset["empty"] = !emptyAttr
                 ? "false"
                 : this.isEmpty(index)
                   ? "true"
@@ -216,27 +356,30 @@ export default class BlockManager implements BlockManagerInterface {
             }
           }
         },
-        root
+        container
       );
     }
   }
 
+  /**
+   * Normalizes all blocks that require normalization
+   */
   normalize() {
-    const items = this.getItems(),
+    const items = this.getBlocks(),
       { commands } = this.editor;
 
-    items.forEach((blockElement: HTMLBlockElement) => {
-      const model = blockElement.blockModel;
+    items.forEach((blockNode: BlockNode) => {
+      const model = blockNode.blockModel;
 
       if (
-        (model?.isEditable() || model?.isEditableChilds()) &&
+        (model?.isEditable() || model?.isEditableItems()) &&
         model?.isNormalize()
       ) {
         const container = model.normalizeContainer();
 
         if (container) {
           if (Array.isArray(container)) {
-            container.forEach((el: HTMLElement | HTMLBlockElement) => {
+            container.forEach((el: HTMLElement | BlockNode) => {
               commands.normalize(el as HTMLElement);
             });
           } else {
@@ -247,106 +390,30 @@ export default class BlockManager implements BlockManagerInterface {
     });
   }
 
-  setIndex(index: number) {
-    const { api } = this.editor,
-      cssName = 'tex-block',
-      root = api.getRoot(),
-      block = this.getByIndex(index);
-
-    this.blockIndex = index;
-
-    if (root && block) {
-      query(
-        "." + cssName,
-        (blockElement: HTMLBlockElement) => removeClass(blockElement, cssName + "-active"),
-        root
-      );
-
-      addClass(block, cssName + "-active");
-    }
-  }
-
-  getIndex(): number {
-    return this.blockIndex;
-  }
-
-  getModel(index: number | null = null): BlockModelInterface | null {
-    const outIndex = index === null ? this.getIndex() : index,
-      block = this.getByIndex(outIndex);
+  /**
+   * Gets the block model for a specific block
+   * @param index - Block index (defaults to current block)
+   * @returns Block model or null
+   */
+  getModel(index?: number): BlockModelInterface | null {
+    const outIndex = index === undefined ? this.getIndex() : index,
+      block = this.getBlockNode(outIndex);
 
     if (!block) return null;
 
     return block.blockModel;
   }
 
-  getTargetBlock(target: EventTarget): HTMLElement | null {
-    const { api } = this.editor,
-      root = api.getRoot();
+  /**
+   * Removes one or multiple blocks
+   * @param index - Index of the block to delete (-1 to the current block)
+   * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
+   * @returns Index of last removed block or null
+   */
+  removeBlock(index: number = -1, skipEvents: boolean = false): number | null {
+    const { config, events } = this.editor;
 
-    if (!root) return null;
-
-    let blockElement = null;
-
-    query(
-      '.tex-block',
-      (el: HTMLElement) => {
-        if (closest(target, el)) blockElement = el;
-      },
-      root
-    );
-
-    return blockElement;
-  }
-
-  getElementIndex(
-    element: HTMLElement | EventTarget | null,
-    findTargetBlock: boolean = false
-  ): number {
-    let index = 0;
-
-    const realElement =
-      findTargetBlock && element instanceof EventTarget
-        ? this.getTargetBlock(element)
-        : element;
-
-    query(
-      '.tex-block',
-      (el: HTMLElement, i: number) => {
-        if (realElement === el) index = i;
-      },
-      this.getContainer()
-    );
-
-    return index;
-  }
-
-  focus(el?: HTMLElement) {
-    const element = el ? el : this.getContainer();
-
-    if (element) element.focus();
-  }
-
-  focusByIndex(index: number): HTMLElement | null {
-    const blockElement = this.getByIndex(index),
-      model = this.getModel(index);
-
-    if (!blockElement) return null;
-    if (model?.isEditable() && !model.isEditableChilds()) {
-      blockElement.focus();
-    } else if (model?.isEditableChilds()) {
-      const firstItem = model.getItem(0) as HTMLElement;
-      if (firstItem) firstItem?.focus();
-    } else {
-      blockElement.click();
-    }
-
-    return blockElement;
-  }
-
-  removeBlock(index: number | number[] | null = null): number | null {
-    const { config, selectionApi } = this.editor;
-
-    let lastRemovedIndex: number | null = null;
+    let lastRemovedIndex: number = 0;
     let lastRemovedBlock: HTMLElement | null = null;
 
     if (Array.isArray(index)) {
@@ -355,69 +422,80 @@ export default class BlockManager implements BlockManagerInterface {
       const sortedIndices = [...index].sort((a, b) => b - a);
 
       for (const currentIndex of sortedIndices) {
-        const blockElement = this.getByIndex(currentIndex);
-        if (blockElement) {
+        const node = this.getBlockNode(currentIndex);
+        if (node) {
           lastRemovedIndex = currentIndex;
-          lastRemovedBlock = blockElement;
-          blockElement.remove();
+          lastRemovedBlock = node;
+          node.remove();
         }
       }
     } else {
-      let blockElement: HTMLElement | null = null;
+      let blockNode: HTMLElement | null = null;
       let currentIndex: number | null = null;
 
-      if (index !== null) {
-        blockElement = this.getByIndex(index);
+      if (index !== -1) {
+        blockNode = this.getBlockNode(index);
         currentIndex = index;
       } else {
-        blockElement = this.getCurrentBlock();
+        blockNode = this.getBlockNode();
         currentIndex = this.getIndex();
       }
 
-      if (!blockElement || currentIndex === null) return null;
+      if (!blockNode || currentIndex === null) return null;
 
       lastRemovedIndex = currentIndex;
-      lastRemovedBlock = blockElement;
-      blockElement.remove();
+      lastRemovedBlock = blockNode;
+      blockNode.remove();
     }
 
-    if (lastRemovedBlock && lastRemovedIndex !== null) {
-      if (lastRemovedIndex <= 0) {
-        setTimeout(() => this.focusByIndex(0), 100);
-      } else {
-        const prevIndex = lastRemovedIndex - 1;
-        const prevElem = this.getByIndex(prevIndex);
+    if (!skipEvents) {
+      const focusIndex = lastRemovedIndex - 1;
+      setTimeout(() => this.focus(focusIndex <= 0 ? 0 : focusIndex), 100);
 
-        if (prevElem) {
-          const prevTextLength = prevElem?.textContent?.length || 0;
-          prevElem.focus();
-          selectionApi.select(prevTextLength, prevTextLength, prevElem);
-        }
+      const defBlock = config.get("defaultBlock", "p");
+
+      if (this.count() == 0) {
+        this.createBlock(defBlock);
       }
+
+      events.change({
+        type: "removeBlock",
+        index: lastRemovedIndex || 0,
+        blockNode: lastRemovedBlock
+      });
     }
 
-    const defBlock = config.get("defaultBlock", "p");
-    if (this.count() == 0) {
-      this.createBlock(defBlock, -1);
-    }
-
-    this.editor.events.change({
-      type: "removeBlock",
-      index: index as number,
-      element: lastRemovedBlock
-    });
+    events.refresh();
 
     return lastRemovedIndex;
   }
 
+  /**
+   * Creates a default block based on editor configuration
+   * @returns Created block node or null
+   */
+  createDefaultBlock(): BlockNode | null {
+    return this.createBlock(
+      this.editor.config.get("defaultBlock", "p")
+    );
+  }
+
+  /**
+   * Creates a new block of specified type
+   * @param name - Block type name
+   * @param index - Index of the block to create (-1 after the current block)
+   * @param options - Block Options
+   * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
+   * @returns Created block node or null
+   */
   createBlock(
     name: string,
-    index: number | null = null,
-    content?: object
-  ): HTMLElement | null {
-    const { blockManager, events } = this.editor,
-      blockModels = blockManager.getBlockModels(),
-      element = null;
+    index: number = -1,
+    options: BlockCreateOptions = {},
+    skipEvents: boolean = false
+  ): BlockNode | null {
+    const { events } = this.editor,
+      blockModels = this.getBlockModels();
 
     (blockModels).forEach(
       (formatedModel: BlockModelStructure) => {
@@ -426,67 +504,335 @@ export default class BlockManager implements BlockManagerInterface {
             this.editor
           );
 
-          if (blockInstance) {
-            if (index !== null && index === -1) {
-              const blockContainer = this.getContainer();
+          let block = null;
 
-              if (blockContainer) {
-                const block = blockInstance.create(content);
+          const createBlock = (to: string = 'end') => {
+            const blockContainer = this.getBlocksContainer();
 
-                if (block) {
-                  append(blockContainer, block);
-                }
-              }
-            } else {
-              const curIndex = index !== null ? index : this.getIndex(),
-                curBlock = this.getByIndex(curIndex),
-                block = blockInstance.create(content);
+            if (blockContainer) {
+              block = blockInstance.create(options);
 
               if (block) {
-                curBlock?.insertAdjacentElement("afterend", block);
+                if (to == 'start')
+                  prepend(blockContainer, block)
+                else
+                  append(blockContainer, block);
+              }
+
+            }
+          }
+
+          let curIndex = index !== -1 ? index : this.getIndex();
+
+          if (blockInstance) {
+            if (this.count() === 0) {
+              createBlock();
+            } else {
+              if (this.count() <= curIndex + 1) {
+                createBlock();
+                curIndex = this.count() - 1;
+              } else {
+                if (curIndex === 0 && index === 0) {
+                  createBlock('start');
+                  curIndex = 0;
+                } else {
+
+                  const curBlock = this.getBlockNode(curIndex);
+                  block = blockInstance.create(options);
+
+                  if (curBlock && block) {
+                    if (curIndex != index) {
+                      after(curBlock, block);
+                      curIndex++;
+                    } else {
+                      before(curBlock, block);
+                    }
+                  }
+                }
               }
             }
 
-            const newBlockEl = blockInstance.getElement(),
-              blockContent = blockInstance.getBlockContentElement();
+            if (block) {
+              if (!skipEvents)
+                this.focus(curIndex);
 
-            if (blockContent) {
-              this.focus(blockContent);
+              if (blockInstance.afterCreate)
+                blockInstance.afterCreate(block as BlockNode);
+
+              if (!skipEvents) {
+                events.change({
+                  type: "createBlock",
+                  index: curIndex,
+                  blockNode: block
+                });
+              }
+
+              return block;
             }
-
-            if (blockInstance.afterCreate)
-              blockInstance.afterCreate(newBlockEl as HTMLBlockElement);
-
-            events.refresh();
-
-            return newBlockEl;
           }
         }
       }
     );
-    return element;
+
+    events.refresh();
+
+    return null;
   }
 
+  /**
+   * Merges two blocks together
+   * @param index - Block index
+   * @param targetIndex - Target block index
+   * @param focus - The index of the focus block
+   * @param useItems - Use all the contents of the editable child elements
+   */
   merge(
     index: number,
-    currentIndex?: number | null,
-    children?: HTMLElement | null
+    targetIndex: number,
+    focus?: number,
+    useItems?: boolean
   ) {
-    const finalBlock = this.getByIndex(index),
-      currentBlock = currentIndex
-        ? this.getByIndex(currentIndex)
-        : this.getCurrentBlock();
+    let itemIndex = 0;
+    const { events } = this.editor;
+    const blockNode = this.getBlockNode(index),
+      targetBlockNode = this.getBlockNode(targetIndex);
 
-    if (currentBlock && finalBlock) {
-      const element = children ? children : finalBlock;
-      element.innerHTML += currentBlock.innerHTML;
-      this.removeBlock(currentIndex || null);
+    if (blockNode && targetBlockNode) {
+      const model = blockNode.blockModel,
+        targetModel = targetBlockNode.blockModel;
+
+      const contentNode = model.getContentNode(),
+        targetContentNode = targetModel.getContentNode();
+
+      const appendChildNodes = (target: HTMLElement, el: HTMLElement) => {
+        appendText(target, ' ');
+
+        if (targetModel.isRawOutput())
+          appendText(target, getText(el));
+        else
+          append(target, getChildNodes(el));
+      }
+
+      if (contentNode && targetContentNode) {
+        const mergeTextToChild = (node: HTMLElement) => {
+          const itemsLength = targetModel.getItemsLength();
+
+          if (itemsLength) {
+            itemIndex = itemsLength - 1;
+            const itemBodyNode = targetModel.getItemBody(itemsLength - 1);
+
+            if (itemBodyNode) {
+              appendChildNodes(itemBodyNode, node);
+            }
+
+            if (model.isEmpty()) {
+              blockNode.remove();
+            }
+          } else {
+            targetBlockNode.remove();
+          }
+        };
+
+        const mergeChildToText = (node: HTMLElement) => {
+          if (useItems) {
+            const allItems = model.getItems();
+
+            if (allItems.length) {
+              let i = 0;
+              allItems.forEach(() => {
+                const itemBodyNode = model.getItemBody(i);
+
+                if (itemBodyNode)
+                  appendChildNodes(node, itemBodyNode);
+
+                i++;
+              });
+
+              blockNode.remove();
+            }
+          } else {
+            const itemBodyNode = model.getItemBody(0);
+
+            if (itemBodyNode) {
+              appendChildNodes(node, itemBodyNode);
+              model.removeItem(0);
+            }
+          }
+        };
+
+        const mergeChildToChild = () => {
+          if (useItems) {
+            const allItems = model.getItems();
+
+            if (allItems.length) {
+              allItems.forEach((_, i) => {
+                const itemBodyNode = model.getItemBody(i);
+                if (itemBodyNode) {
+                  const itemsLength = targetModel.getItemsLength();
+                  itemIndex = itemsLength - 1;
+                  const targetItemBodyNode = targetModel.getItemBody(itemsLength - 1);
+
+                  if (targetItemBodyNode) {
+                    appendChildNodes(targetItemBodyNode, itemBodyNode);
+                  }
+                }
+              });
+
+              blockNode.remove();
+            }
+          } else {
+            const itemBodyNode = model.getItemBody(0);
+
+            if (itemBodyNode) {
+              const itemsLength = targetModel.getItemsLength();
+              itemIndex = itemsLength - 1;
+              const targetItemBodyNode = targetModel.getItemBody(itemsLength - 1);
+
+              if (targetItemBodyNode) {
+                appendChildNodes(targetItemBodyNode, itemBodyNode);
+                model.removeItem(0);
+              }
+            }
+          }
+        };
+
+        const autoMerge = model.getConfig('autoMerge'),
+          targetAutoMerge = targetModel.getConfig('autoMerge'),
+          targetLength = getLength(targetContentNode);
+
+        const editableChild = model?.isEditableItems(),
+          targetEditableChild = targetModel.isEditableItems();
+
+        // Auto-merge
+        if (autoMerge && targetAutoMerge) {
+          // text -> text
+          if (!editableChild && !targetEditableChild) {
+            appendChildNodes(targetContentNode, contentNode);
+            blockNode.remove();
+          }
+          // list/child -> list/child
+          else if (editableChild && targetEditableChild) {
+            mergeChildToChild();
+          }
+          // list/child -> text
+          else if (editableChild && !targetEditableChild) {
+            mergeChildToText(targetContentNode)
+          }
+          // text -> list/child
+          else if (!editableChild && targetEditableChild) {
+            mergeTextToChild(contentNode);
+          }
+        }
+        // Custom -> target (target has autoMerge)
+        else if (!autoMerge && targetAutoMerge) {
+          const mergeNode = model.merge();
+          if (mergeNode) {
+            // custom -> list/child
+            if (targetEditableChild) {
+              mergeTextToChild(mergeNode)
+            }
+            // custom -> text
+            else {
+              appendChildNodes(targetContentNode, mergeNode);
+            }
+          }
+        }
+        // Source (autoMerge) -> Custom
+        else if (autoMerge && !targetAutoMerge) {
+          const targetMergeNode = targetModel.merge();
+          if (targetMergeNode) {
+            // list/child -> custom
+            if (editableChild && !targetEditableChild) {
+              mergeChildToText(targetMergeNode);
+            }
+            // text -> custom
+            else if (!editableChild && !targetEditableChild) {
+              appendChildNodes(targetMergeNode, contentNode);
+              blockNode.remove();
+            }
+            // list/child -> custom (when target is editableChild)
+            else if (editableChild && targetEditableChild) {
+              // This case might need special handling
+              mergeChildToText(targetMergeNode);
+            }
+          }
+        }
+        // Both custom
+        else if (!autoMerge && !targetAutoMerge) {
+          const mergeNode = model.merge();
+          const targetMergeNode = targetModel.merge();
+
+          if (mergeNode && targetMergeNode) {
+            // Handle all combinations when both are custom
+            if (editableChild && targetEditableChild) {
+              // list/child -> list/child (both custom)
+              const allItems = model.getItems();
+              if (allItems.length) {
+                allItems.forEach((_, i) => {
+                  const itemBodyNode = model.getItemBody(i);
+                  if (itemBodyNode) {
+                    mergeTextToChild(itemBodyNode);
+                  }
+                });
+                blockNode.remove();
+              }
+            }
+            else if (editableChild && !targetEditableChild) {
+              // list/child -> text
+              mergeChildToText(targetMergeNode);
+            }
+            else if (!editableChild && targetEditableChild) {
+              // text -> list/child
+              mergeTextToChild(mergeNode);
+            }
+            else {
+              // text -> text
+              appendChildNodes(targetMergeNode, mergeNode);
+              blockNode.remove();
+            }
+          }
+        }
+
+        if (model.isEmpty()) {
+          blockNode.remove();
+        }
+
+        if (blockNode) {
+          model.sanitize();
+        }
+
+        targetModel.sanitize();
+
+        const focusIndex = focus !== undefined
+          ? focus
+          : this.getIndex(targetBlockNode);
+
+        this.focus(
+          focusIndex,
+          targetLength + 1,
+          undefined,
+          itemIndex
+        );
+
+        events.change({
+          type: 'mergeBlocks',
+          blockNode: targetBlockNode,
+          contentNode: this.getContentNode(targetBlockNode),
+          targetIndex: targetIndex,
+          index: index
+        });
+      }
     }
+
+    events.refresh();
   }
 
-  public enableSelectionMode(): void {
+  /**
+   * Enables multi-block selection mode
+   */
+  enableSelectionMode(): void {
     const { actions, api, events, toolbar } = this.editor,
-      container = this.getContainer(),
+      container = this.getBlocksContainer(),
       uniqueId = api.getUniqueId(),
       root = api.getRoot();
 
@@ -503,15 +849,15 @@ export default class BlockManager implements BlockManagerInterface {
       root
     );
 
-    this.getItems().forEach((block: Element) => {
+    this.getBlocks().forEach((block: Element) => {
       on(block, "click.bc", (evt: MouseEvent) => {
         if (!this.isSelectionMode) return;
 
         evt.preventDefault();
         evt.stopPropagation();
 
-        const index = this.getElementIndex(
-          evt.currentTarget as HTMLBlockElement
+        const index = this.getIndex(
+          evt.currentTarget as BlockNode
         );
         this.toggleBlockSelection(index);
       });
@@ -525,7 +871,10 @@ export default class BlockManager implements BlockManagerInterface {
     events.trigger("selectionModeEnabled");
   }
 
-  public disableSelectionMode(): void {
+  /**
+   * Disables multi-block selection mode
+   */
+  disableSelectionMode(): void {
     const { api, events } = this.editor,
       uniqueId = api.getUniqueId(),
       root = api.getRoot();
@@ -539,20 +888,28 @@ export default class BlockManager implements BlockManagerInterface {
     );
 
     this.isSelectionMode = false;
-    this.getItems().forEach((block: Element) => off(block, "click.bc"));
+    this.getBlocks().forEach((block: Element) => off(block, "click.bc"));
     off(document, "click.bmDoc" + uniqueId);
     this.clearSelection();
     this.enableAllBlocks();
     events.trigger("selectionModeDisabled");
   }
 
-  public isSelectionModeActive(): boolean {
+  /**
+   * Checks if selection mode is active
+   * @returns True if selection mode is active
+   */
+  isSelectionModeActive(): boolean {
     return this.isSelectionMode;
   }
 
+  /**
+   * Toggles selection state of a block
+   * @param index - Block index to toggle
+   */
   private toggleBlockSelection(index: number): void {
     const { events } = this.editor;
-    const block = this.getByIndex(index);
+    const block = this.getBlockNode(index);
 
     if (block) {
       if (hasClass(block, "tex-block-selected"))
@@ -565,105 +922,227 @@ export default class BlockManager implements BlockManagerInterface {
     }
   }
 
+  /**
+   * Adds selection to a block
+   * @param index - Block index to select
+   */
   private addBlockSelection(index: number): void {
-    const block = this.getByIndex(index),
+    const block = this.getBlockNode(index),
       cssName = "tex-block-selected";
 
     if (block && !hasClass(block, cssName)) addClass(block, cssName);
   }
 
+  /**
+   * Removes selection from a block
+   * @param index - Block index to deselect
+   */
   private removeBlockSelection(index: number): void {
-    const block = this.getByIndex(index);
+    const block = this.getBlockNode(index);
 
     if (block) removeClass(block, "tex-block-selected");
   }
 
-  public getSelectedBlocks(): HTMLElement[] {
+  /**
+   * Gets all selected blocks
+   * @returns Array of selected block elements
+   */
+  getSelectedBlocks(): HTMLElement[] {
     return queryList(".tex-block-selected");
   }
 
-  public hasSelectedBlocks(): boolean {
+  /**
+   * Checks if there are any selected blocks
+   * @returns True if blocks are selected
+   */
+  hasSelectedBlocks(): boolean {
     return this.getSelectedBlocks().length > 0;
   }
 
-  public clearSelection(): void {
+  /**
+   * Clears all block selections
+   */
+  clearSelection(): void {
     const { events } = this.editor;
 
-    this.getItems().forEach((blockElement: HTMLBlockElement) => {
-      removeClass(blockElement, "tex-block-selected");
+    this.getBlocks().forEach((blockNode: BlockNode) => {
+      removeClass(blockNode, "tex-block-selected");
     });
 
     events.trigger("selectionChanged", { selectedBlockElements: [] });
   }
 
-  public deleteSelectedBlocks(): void {
+  /**
+   * Deletes all selected blocks
+   */
+  deleteSelectedBlocks(): void {
     const blocks = this.getSelectedBlocks();
     if (blocks.length === 0) return;
-    const indexes: number[] = [];
-    blocks.forEach((element: HTMLElement) =>
-      indexes.push(this.getElementIndex(element))
-    );
-    this.removeBlock(indexes);
+    blocks.forEach((element: HTMLElement) => this.removeBlock(this.getIndex(element)));
     this.clearSelection();
     this.disableSelectionMode();
   }
 
-  public disableAllBlocks(): void {
-    const blocks = this.getItems();
+  /**
+   * Disables editing on all blocks
+   */
+  disableAllBlocks(): void {
+    const blocks = this.getBlocks();
     const cssName = 'tex-block';
 
-    blocks.forEach((blockElement: HTMLBlockElement) => {
-      if (blockElement.blockModel?.isEditable()) {
-        blockElement.removeAttribute("contenteditable");
-        if (isEmptyString(blockElement.innerHTML)) blockElement.innerHTML = "\u200B";
+    blocks.forEach((blockNode: BlockNode) => {
+      if (blockNode.blockModel?.isEditable()) {
+        blockNode.removeAttribute("contenteditable");
+        if (isEmptyString(blockNode.innerHTML)) blockNode.innerHTML = "\u200B";
       }
 
-      addClass(blockElement, cssName + "-non-editable");
+      addClass(blockNode, cssName + "-non-editable");
     });
   }
 
-  public enableAllBlocks(): void {
-    const blocks = this.getItems();
+  /**
+   * Enables editing on all blocks
+   */
+  enableAllBlocks(): void {
+    const blocks = this.getBlocks();
 
-    blocks.forEach((blockElement: HTMLBlockElement) => {
-      const wasEditable = blockElement.blockModel?.isEditable();
+    blocks.forEach((blockNode: BlockNode) => {
+      const wasEditable = blockNode.blockModel?.isEditable();
 
-      if (wasEditable) blockElement.setAttribute("contenteditable", "true");
-      else blockElement.removeAttribute("contenteditable");
+      if (wasEditable) blockNode.setAttribute("contenteditable", "true");
+      else blockNode.removeAttribute("contenteditable");
 
-      removeClass(blockElement, "tex-block-non-editable");
+      removeClass(blockNode, "tex-block-non-editable");
     });
   }
 
-  public convert(blockElement: HTMLBlockElement, model: BlockModelInterface) {
+  /**
+   * Converts a block to a different type
+   * @param blockNode - Block to convert
+   * @param targetModel - Target block model
+   */
+  convert(blockNode: BlockNode, targetModel: BlockModelInterface): boolean {
     const { events } = this.editor;
+    const model = blockNode.blockModel,
+      curIndex = this.getIndex(blockNode);
 
-    if (blockElement) {
-      let newBlockEl = model.create() as HTMLBlockElement;
-      const curIndex = this.getElementIndex(blockElement);
+    const [beforeBlockNode, beforeTargetModel] = model.beforeConvert(blockNode, targetModel);
 
-      if (newBlockEl) {
-        const [cBlock, cNewBlock] = blockElement.blockModel.toConvert(blockElement, newBlockEl);
+    if (model.isConvertible() && beforeTargetModel.isConvertible()) {
+      if (!beforeBlockNode)
+        return false;
 
-        newBlockEl = cNewBlock.blockModel.convert(cBlock, cNewBlock);
+      const targetBlockNode = beforeTargetModel.create() as BlockNode;
 
-        blockElement?.insertAdjacentElement("afterend", newBlockEl);
-
-        if (Object.keys(model.getConfig("sanitizerConfig", {})).length)
-          newBlockEl.blockModel.sanitize();
-
-        blockElement.remove();
-        this.focusByIndex(curIndex);
-        events.change({
-          type: "convertBlock",
-          index: curIndex,
-          blockElement: newBlockEl
-        });
-        events.refresh();
+      const createItem = (target: HTMLElement, content: string) => {
+        const newItem = beforeTargetModel.makeItemNode(content);
+        append(target, newItem);
       }
-    }
-  }
 
+      if (targetBlockNode) {
+        const contentNode = this.getContentNode(beforeBlockNode),
+          targetContentNode = this.getContentNode(targetBlockNode),
+          isEditableItems = model.isEditableItems(),
+          isTargetEditableChilds = beforeTargetModel.isEditableItems(),
+          sanitizerConfig = beforeTargetModel.getConfig("sanitizerConfig", {}),
+          isSanitize = Object.keys(sanitizerConfig).length,
+          isRaw = beforeTargetModel.isRawOutput();
+
+        if (contentNode && targetContentNode) {
+          const appendContent = (target: HTMLElement, source: HTMLElement) => {
+            if (isRaw || !isSanitize) {
+              appendText(target, getText(source));
+            } else {
+              append(target, getChildNodes(source));
+            }
+          };
+
+          // Case 1: text -> text (both not editable child)
+          if (!isEditableItems && !isTargetEditableChilds) {
+            appendContent(targetContentNode, contentNode);
+          }
+
+          // Case 2: list/child -> text
+          else if (isEditableItems && !isTargetEditableChilds) {
+            const items = model.getItems();
+
+            if (items && items.length) {
+              items.forEach((item: HTMLElement, index: number) => {
+                const itemBodyNode = model.getItemBody(index);
+                if (itemBodyNode) {
+                  if (index > 0) appendText(targetContentNode, ' ');
+                  appendContent(targetContentNode, itemBodyNode);
+                }
+              });
+            } else
+              return false;
+          }
+
+          // Case 3: text -> list/child
+          else if (!isEditableItems && isTargetEditableChilds) {
+            html(targetContentNode, '');
+            createItem(targetContentNode, html(contentNode));
+          }
+
+          // Case 4: list/child -> list/child
+          else if (isEditableItems && isTargetEditableChilds) {
+            const items = model.getItems(),
+              isSingleItem = beforeTargetModel.isSingleItem();
+
+            if (items && items.length) {
+              html(targetContentNode, '');
+              const childs: Node[] = [];
+
+              items.forEach((_item: HTMLElement, index: number) => {
+                const itemBodyNode = model.getItemBody(index);
+                if (itemBodyNode) {
+                  if (isSingleItem) {
+                    getChildNodes(itemBodyNode).forEach((child) => {
+                      childs.push(child);
+                    });
+                  } else
+                    createItem(targetContentNode, html(itemBodyNode));
+                }
+              });
+
+              if (isSingleItem && childs.length) {
+                const temp = make(
+                  'div',
+                  (div: HTMLDivElement) => append(div, childs)
+                );
+                createItem(targetContentNode, html(temp));
+              }
+            }
+          }
+        }
+
+        after(beforeBlockNode, targetBlockNode);
+
+        if (isSanitize) {
+          beforeTargetModel.sanitize();
+        }
+
+        beforeBlockNode.remove();
+        this.focus(curIndex);
+      }
+
+      const afterBlockNode = model.afterConvert(targetBlockNode);
+
+      events.change({
+        type: "convertBlock",
+        index: curIndex,
+        blockNode: afterBlockNode
+      });
+
+      events.refresh();
+    }
+
+    return true;
+  }
+  /**
+   * Gets all registered block models
+   * @returns Array of block model structures
+   */
   getBlockModels(): BlockModelStructure[] {
     if (this.blockModels.length > 0) return this.blockModels;
 
@@ -693,11 +1172,16 @@ export default class BlockManager implements BlockManagerInterface {
     return this.blockModels;
   }
 
+  /**
+   * Gets the real block type from a related type name
+   * @param relatedName - Related type name
+   * @returns Real block type or null
+   */
   getRealType(relatedName: string) {
     let type = null;
 
     (
-      this.editor.blockManager.getBlockModels()
+      this.getBlockModels()
     ).forEach((model: BlockModelStructure) => {
       if (model.types && model.types.includes(relatedName)) {
         type = model.type;
@@ -707,9 +1191,11 @@ export default class BlockManager implements BlockManagerInterface {
     return type;
   }
 
+  /**
+   * Cleans up event listeners
+   */
   destroy() {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
+    const uniqueId = this.editor.api.getUniqueId();
 
     off(document, "click.bmDoc" + uniqueId);
   }

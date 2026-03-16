@@ -1,4 +1,4 @@
-import type { OutputBlockItem, HTMLBlockElement } from "@/types";
+import type { BlockOutput, BlockNode } from "@/types";
 import BlockModel from "@/core/models/block-model";
 
 import type { TexditorInterface } from "@/types";
@@ -30,24 +30,31 @@ export interface BlockModelConfig {
   icon: string;
   autoParse: boolean;
   translationCode: string;
+  groupCode?: string;
   backspaceRemove: boolean;
   cssClasses: string;
   toolbar: boolean;
   tools: unknown[];
   editable: boolean;
-  editableChilds: boolean;
-  isEnterCreate: boolean;
+  editableItems: boolean;
+  singleItem: boolean;
+  enterCreate: boolean;
   rawOutput: boolean;
   sanitizer: boolean;
   sanitizerConfig: Record<string, unknown>;
   tagName: string;
-  textArea: boolean;
   type: string;
+  itemTagName: string;
+  itemType: string;
+  itemClassName: string,
+  itemBodyClassName: string,
+  sortableItems: boolean;
   relatedTypes: string[];
   emptyDetect: boolean;
   customSave: boolean;
   normalize: boolean;
   placeholder?: string;
+  convertible: boolean;
   [key: string]: unknown;
 }
 
@@ -60,59 +67,68 @@ export interface BlockModelInterface {
     defaultValue: BlockModelConfig[K]
   ): BlockModelConfig[K];
   getConfig(key: string, defaultValue: unknown): unknown;
-  merge(index: number): void;
+  isEnterCreate(): boolean;
+  isAutoMerge(): boolean;
+  isAutoParse(): boolean;
+  merge(): HTMLElement | null;
   getRelatedTypes(): string[];
-  parse(item: OutputBlockItem): HTMLBlockElement | HTMLElement | null;
+  parse(item: BlockOutput): BlockNode | HTMLElement | null;
   getType(): string;
   getId(): string;
   getTranslation(): string;
+  getGroupCode(): string;
   getIcon(width?: number, height?: number): string;
   getTranslationCode(): string;
-  getElement(): HTMLBlockElement | HTMLElement | null;
-  getBlockContentElement(): HTMLElement | null;
+  getBlockNode(): BlockNode | null;
+  getContentNode(): HTMLElement | null;
   getTagName(): string;
-  afterCreate(newBlock?: HTMLBlockElement | null): void;
-  focusChild(): HTMLElement | null;
+  afterCreate(newBlock: BlockNode): void;
   onRender(): void;
-  __onRenderComplete__(): void;
-  save(block: OutputBlockItem, blockElement?: HTMLElement): OutputBlockItem;
+  save(block: BlockOutput, blockNode?: BlockNode): BlockOutput;
   setStore(key: string, value: unknown): this;
   getStore(key: string | null): unknown;
   onPaste?(evt: Event, input: Element | null): void;
-  getItemIndex(): number;
-  setItemIndex(index: number): void;
-  getItem(
-    index: HTMLElement | number,
-    container?: HTMLElement | null
-  ): HTMLElement | number | null;
+  // Items
+  getItemTagName(): string;
+  getItemBodyClassName(): string;
+  getItemClassName(): string;
+  getItemType(): string;
+  isSortableItems(): boolean;
+  getItemIndex(itemNode?: HTMLElement): number;
+  makeItemNode(content?: string): HTMLElement;
+  createItem(content?: string, index?: number): boolean;
+  removeItem(index?: number): void
+  getItem(index: number): HTMLElement | null;
+  getItems(): HTMLElement[];
+  getItemBody(index: number): HTMLElement | null;
   moveItem?(item: HTMLElement, index: number): void;
-  getItemsLength?(): number;
+  getItemsLength(): number;
+
+  /**
+ * Checks if a block is empty
+ * @returns True if block is empty
+ */
+  isEmpty(): boolean;
+  isEmptyItem(index: number): boolean
   isEmptyDetect(): boolean;
   isBackspaceRemove(): boolean;
-  isTextArea(): boolean;
   isEditable(): boolean;
-  isEditableChilds(): boolean;
+  isEditableItems(): boolean;
   isRawOutput(): boolean;
   isNormalize(): boolean;
+  isSingleItem(): boolean;
   isConvertible(): boolean;
   isCustomSave(): boolean;
   isToolbar(): boolean;
   getTolls(): string[];
-  editableChild(
-    container?: HTMLElement | null,
-    isCreate?: boolean
-  ): HTMLElement | HTMLElement[] | null;
-  convert(
-    block: HTMLBlockElement,
-    newBlock: HTMLBlockElement
-  ): HTMLBlockElement;
-  toConvert(
-    block: HTMLBlockElement,
-    newBlock: HTMLBlockElement
-  ): [HTMLBlockElement, HTMLBlockElement];
+  beforeConvert(
+    blockNode: BlockNode,
+    targetModel: BlockModelInterface
+  ): [BlockNode, BlockModelInterface];
+  afterConvert(newBlockNode: BlockNode): BlockNode;
   sanitize(): void;
-  normalizeContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null;
-  sanitizerContainer(): HTMLBlockElement | HTMLElement | HTMLElement[] | null;
+  normalizeContainer(): BlockNode | HTMLElement | HTMLElement[] | null;
+  sanitizerContainer(): BlockNode | HTMLElement | HTMLElement[] | null;
   setup?(config: Partial<BlockModelConfig>): typeof BlockModel;
   destroy?(): void;
 }

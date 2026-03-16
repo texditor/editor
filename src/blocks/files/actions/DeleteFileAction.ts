@@ -13,11 +13,11 @@ export default class DeleteFileAction
   protected defaultTitle: string = "Delete file";
 
   onClick() {
-    const model = this.getCurrentBlockModel() as Files,
+    const model = this.getBlockModel() as Files,
       currentItem = this.getItem();
 
     currentItem.remove();
 
-    if (model?.removeIsEmpty) model.removeIsEmpty(this.getCurrentBlock());
+    if (model?.removeIsEmpty) model.removeIsEmpty(this.getBlockNode());
   }
 }

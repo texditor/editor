@@ -1,9 +1,9 @@
 import type {
   APIInterface,
-  HTMLBlockElement,
+  BlockNode,
   TexditorInterface,
-  BlockItemData,
-  OutputBlockItem
+  BlockOutputData,
+  BlockOutput
 } from "@/types";
 import {
   queryLength,
@@ -16,8 +16,13 @@ import MainView from "@/views/main";
 import { generateRandomString } from "@/utils/common";
 
 export default class API implements APIInterface {
+  /** Reference to the main editor instance */
   private editor: TexditorInterface;
+
+  /** Root HTML element where the editor is mounted */
   private rootElement?: HTMLElement;
+
+  /** Unique identifier for this editor instance */
   private uniqueId: string = "";
 
   constructor(editor: TexditorInterface) {
@@ -25,14 +30,27 @@ export default class API implements APIInterface {
     this.editor = editor;
   }
 
+  /**
+   * Sets the root element where the editor will be mounted
+   * @param el - HTML element to set as root
+   */
   setRoot(el: HTMLElement): void {
     this.rootElement = el;
   }
 
+  /**
+   * Gets the unique identifier
+   * @returns Unique ID string
+   */
   getUniqueId(): string {
     return this.uniqueId;
   }
 
+  /**
+   * Gets the root element of the editor
+   * @returns Root element or false if not found
+   * @throws Error if root element is not found
+   */
   getRoot(): HTMLElement | false {
     const root = this.rootElement || false;
 
@@ -41,6 +59,10 @@ export default class API implements APIInterface {
     return root;
   }
 
+  /**
+   * Renders the editor in the DOM
+   * @throws Error if editor ID is not found
+   */
   render(): void {
     const editorId = this.editor.config.get("handle", "texditor");
 
@@ -58,33 +80,30 @@ export default class API implements APIInterface {
       query(
         ".tex-block",
         (item: HTMLElement) => {
-          const blockElement = item as HTMLBlockElement;
-          blockElement.blockModel.onRender();
-          blockElement.blockModel.__onRenderComplete__();
+          const blockNode = item as BlockNode;
+          blockNode.blockModel.onRender();
         },
         editorElement
       );
     }
   }
 
+  /**
+   * Checks if the editor is empty (no content)
+   * @returns True if editor is empty
+   */
   isEmpty(): boolean {
-    const blocksContainer = this.editor.blockManager.getContainer(),
-      html = blocksContainer?.innerHTML;
-
-    return (
-      isEmptyString(blocksContainer?.innerHTML || "") ||
-      html == "<br>" ||
-      html == "\n" ||
-      html == "\r" ||
-      html == "\n\n" ||
-      html == "\r\n" ||
-      !blocksContainer?.childNodes?.length
-    );
+    return this.editor.blockManager.count() === 0;
   }
 
-  setContent(content: OutputBlockItem[], index: number | null = null): void {
+  /**
+   * Sets the editor content
+   * @param content - Array of block outputs to set
+   * @param index - Optional block index to set as active
+   */
+  setContent(content: BlockOutput[], index: number | null = null): void {
     const { blockManager, parser } = this.editor;
-    const container = blockManager.getContainer();
+    const container = blockManager.getBlocksContainer();
 
     if (container) {
       container.innerHTML = "";
@@ -92,19 +111,27 @@ export default class API implements APIInterface {
       const blocks = parser.parseBlocks(content, true);
       append(container, blocks);
 
-      if (index !== null) blockManager.setIndex(index);
+      if (index !== null) blockManager.use(index);
 
       blockManager.detectEmpty(false);
       blockManager.normalize();
     }
   }
 
-  getContent(): OutputBlockItem[] {
+  /**
+   * Gets the current editor content
+   * @returns Array of block outputs
+   */
+  getContent(): BlockOutput[] {
     return this.save();
   }
 
-  save(): OutputBlockItem[] {
-    const data: OutputBlockItem[] = [];
+  /**
+   * Saves the current editor state to a serializable format
+   * @returns Array of block outputs representing editor content
+   */
+  save(): BlockOutput[] {
+    const data: BlockOutput[] = [];
     const { blockManager, events, parser, config } = this.editor,
       root = this.getRoot();
 
@@ -114,22 +141,23 @@ export default class API implements APIInterface {
 
     query(
       ".tex-block",
-      (el: HTMLBlockElement) => {
-        events.trigger("saveEach", { blockElement: el });
+      (el: BlockNode) => {
+        events.trigger("saveEach", { blockNode: el });
 
         if (el.dataset?.type) {
           const extOptions = findDatasetsWithPrefix(el, "options");
-          let block: OutputBlockItem = {
+          let block: BlockOutput = {
             type: el.dataset.type,
             data: [],
             ...extOptions
           };
 
-          const blockContent = blockManager.getBlockContentElement(el);
+          const contentNode = blockManager.getContentNode(el),
+            model = el.blockModel;
 
-          if (blockContent) {
-            if (el.blockModel?.isCustomSave()) {
-              block = el.blockModel.save(block, el);
+          if (contentNode) {
+            if (model.isCustomSave()) {
+              block = model.save(block, el);
             } else {
               for (const itemData in el.dataset) {
                 if (
@@ -140,27 +168,47 @@ export default class API implements APIInterface {
                   block[itemData] = el.dataset[itemData];
                 }
               }
-              if (el.localName === "textarea") {
-                block.data = [(blockContent as HTMLTextAreaElement).value];
-              } else if (el?.blockModel?.isRawOutput()) {
-                block.data = [blockContent.innerText];
-              } else {
-                const parsedData = parser.htmlToData(blockContent.innerHTML);
 
-                block.data = parsedData.filter(
-                  (item) =>
-                    typeof item === "string" ||
-                    (typeof item === "object" && item !== null)
-                ) as BlockItemData;
+              if (model.isRawOutput()) {
+                block.data = [contentNode.innerText];
+              } else {
+                const parsedData = parser.htmlToData(contentNode.innerHTML);
+
+                if (model.isEditableItems() && model.getItemsLength()) {
+                  let i = 0;
+                  const items = model.getItems();
+
+                  items.forEach(() => {
+                    const itemBody = model.getItemBody(i);
+                    if (itemBody) {
+                      const parsedData = parser.htmlToData(itemBody.innerHTML);
+
+                      if (parsedData.length) {
+                        const dataObj = {
+                          type: model.getItemType(),
+                          data: parsedData
+                        };
+                        (block.data as object[]).push(dataObj)
+                      }
+                    }
+
+                    i++;
+                  })
+                } else {
+                  block.data = parsedData.filter(
+                    (item) =>
+                      typeof item === "string" ||
+                      (typeof item === "object" && item !== null)
+                  ) as BlockOutputData;
+                }
               }
             }
           }
 
-
           if (block.data.length) data.push(block);
         }
 
-        events.trigger("saveEachEnd", { blockElement: el });
+        events.trigger("saveEachEnd", { blockNode: el });
       },
       root
     );
@@ -170,17 +218,9 @@ export default class API implements APIInterface {
     return data;
   }
 
-  setDisplay(name: string = "", visible: string = "") {
-    const root = this.getRoot();
-
-    if (root)
-      query(
-        "." + name,
-        (el: HTMLElement) => (el.style.display = visible),
-        root
-      );
-  }
-
+  /**
+   * Destroys the editor instance and cleans up resources
+   */
   destroy(): void {
     const {
       actions,

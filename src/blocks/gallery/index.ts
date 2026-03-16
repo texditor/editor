@@ -1,8 +1,8 @@
 import type {
   FileItem,
   TexditorEvent,
-  HTMLBlockElement,
-  OutputBlockItem,
+  BlockNode,
+  BlockOutput,
   FilesFormCreateParams,
   FilesListCreateParams
 } from "@/types";
@@ -11,6 +11,7 @@ import {
   addClass,
   append,
   attr,
+  html,
   make,
   prepend,
   query,
@@ -26,8 +27,8 @@ import {
 import "@/styles/blocks/galllery.css";
 import { renderIcon } from "@/utils/icon";
 import { off, on } from "@/utils/events";
-import "@/styles/slider.css";
-import Slider from "@/core/slider";
+import "@/styles/core/slider.css";
+import Slider from "@/core/ui/slider";
 
 export default class Gallery extends Files {
   private defaultStyles: string[] = ["grid", "slider", "single"];
@@ -39,6 +40,7 @@ export default class Gallery extends Files {
       ...{
         type: "gallery",
         tagName: "div",
+        groupCode: 'gallery',
         listCss: "tex-gallery-list",
         cssClasses: "tex-gallery",
         icon: IconGallery,
@@ -84,8 +86,8 @@ export default class Gallery extends Files {
     return defaultStyle;
   }
 
-  protected onFormCreate({ el, blockElement, options }: FilesFormCreateParams): HTMLElement {
-    const { events, i18n } = this.editor,
+  protected onFormCreate({ el, blockNode, options }: FilesFormCreateParams): HTMLElement {
+    const { blockManager, events, i18n } = this.editor,
       styles = this.getConfig("styles", []) as string[],
       defaultStyle = this.getDefaultStyle();
 
@@ -119,18 +121,23 @@ export default class Gallery extends Files {
           off(item, "click.style");
           on(item, "click.style", () => {
             setActveItem(code);
-            blockElement.dataset.optionsStyle = code;
+            blockNode.dataset.optionsStyle = code;
             this.destroySlider();
             events.change({
               type: "galleryStyle",
-              blockElement: blockElement
+              index: blockManager.getIndex(),
+              blockNode: blockNode,
+              contentNode: this.getContentNode(),
             });
             this.initSlider(code === "slider");
           });
-          item.innerHTML = renderIcon(icon, {
-            width: 16,
-            height: 16
-          });
+          html(
+            item,
+            renderIcon(icon, {
+              width: 16,
+              height: 16
+            })
+          )
           attr(
             item,
             "title",
@@ -188,16 +195,16 @@ export default class Gallery extends Files {
   }
 
   protected onSaveAfter(
-    block: OutputBlockItem,
-    blockElement: HTMLBlockElement
-  ): OutputBlockItem {
+    block: BlockOutput,
+    blockNode: BlockNode
+  ): BlockOutput {
     const defaultStyle = this.getDefaultStyle();
 
     if (this.isStyles()) {
-      if (blockElement.dataset.optionsStyle) {
-        const style = blockElement.dataset.optionsStyle;
+      if (blockNode.dataset.optionsStyle) {
+        const style = blockNode.dataset.optionsStyle;
         if (style == "single") {
-          blockElement.removeAttribute("data-option-style");
+          blockNode.removeAttribute("data-option-style");
 
           if (block?.style) delete block.style;
         } else block.style = style;
@@ -218,11 +225,10 @@ export default class Gallery extends Files {
     onChange?: (index: number) => void
   ) {
     const { events } = this.editor;
-    const blockElement = this.getElement();
+    const node = this.getBlockNode();
+    const isSliderBlock = node?.dataset?.optionsStyle === "slider" || isSlider;
 
-    const isSliderBlock = blockElement?.dataset?.optionsStyle === "slider" || isSlider;
-
-    if (blockElement && isSliderBlock) {
+    if (node && isSliderBlock) {
       query(
         ".tex-files-list-container",
         (cnt: HTMLDivElement) => {
@@ -231,7 +237,7 @@ export default class Gallery extends Files {
             onChange: onChange
           });
         },
-        blockElement
+        node
       );
       events.add("onChange.fileAction", (evt: TexditorEvent) => {
         if (evt?.isFileAction) {
@@ -257,17 +263,17 @@ export default class Gallery extends Files {
 
   protected onListCreate({
     items,
-    blockElement,
+    blockNode,
     contentElement,
     options
   }: FilesListCreateParams) {
     const styles = this.getConfig("styles", []) as string[];
 
     if (this.isStyles()) {
-      if (options?.style && blockElement) {
+      if (options?.style && blockNode) {
         const style = options.style as string;
 
-        if (styles.includes(style)) blockElement.dataset.optionsStyle = style;
+        if (styles.includes(style)) blockNode.dataset.optionsStyle = style;
       }
     }
 
@@ -310,7 +316,7 @@ export default class Gallery extends Files {
 
     return {
       items: items,
-      blockElement: blockElement,
+      blockNode: blockNode,
       contentElement: contentElement,
       options: options
     };

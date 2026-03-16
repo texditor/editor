@@ -5,7 +5,7 @@ import type {
 } from "@/types";
 import { IconArrowRight } from "@/icons";
 import { generateRandomString } from "@/utils/common";
-import { addClass, append, make } from "@/utils/dom";
+import { addClass, append, before, css, html, make } from "@/utils/dom";
 import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
@@ -22,10 +22,14 @@ export default class ActionModel implements ActionModelInterface {
     this.editor = editor;
     this.onLoad();
     this.editor.events.add("actions:render:end", () => {
-      const element = this.getElement();
+      const blockNode = this.getBlockNode();
 
-      if (element) {
-        element.style.display = !this.isVisible() ? "none" : "";
+      if (blockNode) {
+        css(
+          blockNode,
+          'display',
+          !this.isVisible() ? "none" : ""
+        );
       }
     });
   }
@@ -50,16 +54,16 @@ export default class ActionModel implements ActionModelInterface {
     const { actions, i18n, toolbar } = this.editor;
 
     if (this.confirm) {
-      const element = this.getElement(),
+      const element = this.getBlockNode(),
         cssName = "tex-action";
 
       setTimeout(() => {
         actions.show();
 
         if (element) {
-          element.style.display = "none";
-          element?.insertAdjacentElement(
-            "beforebegin",
+          css(element, 'display', 'none');
+          before(
+            element,
             make("div", (cfm: HTMLElement) => {
               addClass(
                 cfm,
@@ -74,10 +78,13 @@ export default class ActionModel implements ActionModelInterface {
               );
 
               if (this.icon) {
-                cfm.innerHTML = renderIcon(this.icon, {
-                  width: 20,
-                  height: 20
-                });
+                html(
+                  cfm,
+                  renderIcon(this.icon, {
+                    width: 20,
+                    height: 20
+                  })
+                );
               }
 
               cfm.innerHTML += i18n.get("confirmAction", "Confirm deletion");
@@ -110,7 +117,7 @@ export default class ActionModel implements ActionModelInterface {
     return ("tex-action" + "-" + this.getName() + "-" + this.randomId);
   }
 
-  getElement(): HTMLElement | null {
+  getBlockNode(): HTMLElement | null {
     return document.getElementById(this.getId());
   }
 
@@ -123,6 +130,9 @@ export default class ActionModel implements ActionModelInterface {
 
     return make("div", (el: HTMLElement) => {
       addClass(el, cssName + " " + cssName + "-" + this.getName());
+
+      if (this.confirm)
+        addClass(el, cssName + '-verifiable');
 
       el.id = this.getId();
 
@@ -157,7 +167,7 @@ export default class ActionModel implements ActionModelInterface {
   }
 
   applyEvents() {
-    const element = this.getElement();
+    const element = this.getBlockNode();
 
     this.handleClick = this.handleClick.bind(this);
 

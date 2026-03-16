@@ -1,6 +1,6 @@
 import type {
   TexditorInterface,
-  HTMLBlockElement,
+  BlockNode,
   BlockModelInterface
 } from "@/types";
 export interface FileActionModelInstanceInterface {
@@ -8,7 +8,7 @@ export interface FileActionModelInstanceInterface {
     editor: TexditorInterface,
     item: HTMLElement,
     container: HTMLElement,
-    fileBlock: HTMLBlockElement
+    fileBlock: BlockNode
   ): FileActionModelInterface;
 }
 
@@ -22,10 +22,10 @@ export interface FileActionModelInterface {
   getName(): string;
   getItem(): HTMLElement;
   getItemIndex(): number;
-  getElement(): HTMLElement | null;
+  getNode(): HTMLElement | null;
   getContainer(): HTMLElement;
-  getCurrentBlock(): HTMLBlockElement;
-  getCurrentBlockModel(): BlockModelInterface;
+  getBlockNode(): BlockNode;
+  getBlockModel(): BlockModelInterface;
   isVisible(): boolean;
   refresh(): void;
   menuConfig(): {

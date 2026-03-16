@@ -1,4 +1,4 @@
-import { HTMLBlockElement } from "../core";
+import { BlockNode } from "../core";
 
 export interface FileItem {
   url: string;
@@ -18,14 +18,14 @@ export interface FilesCreateOptions {
 
 export interface FilesFormCreateParams {
   el: HTMLElement;
-  blockElement: HTMLBlockElement;
-  blockContent?: HTMLElement;
+  blockNode: BlockNode;
+  contentNode?: HTMLElement;
   options?: FilesCreateOptions;
 }
 
 export interface FilesListCreateParams {
   items: FileItem[],
-  blockElement: HTMLBlockElement | null,
+  blockNode: BlockNode | null,
   contentElement: HTMLElement | null,
   options: FilesCreateOptions
 }

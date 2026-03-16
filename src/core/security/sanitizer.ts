@@ -3,6 +3,7 @@ import type {
   TransformerContext,
   TransformerOutput
 } from "@/types";
+import { appendText, make } from "@/utils";
 export default class Sanitizer {
   static REGEX_PROTOCOL = /^([A-Za-z0-9+\-.&;*\s]*?)(?::|&*0*58|&*x0*3a)/i;
   static RELATIVE = "**";
@@ -276,7 +277,7 @@ export default class Sanitizer {
    * @returns The escaped HTML string
    */
   private escapeHtml(text: string): string {
-    const div = document.createElement("div");
+    const div = make("div");
     div.textContent = text;
     return div.innerHTML;
   }
@@ -290,12 +291,15 @@ export default class Sanitizer {
     let container: HTMLElement;
 
     if (typeof input === "string") {
-      container = document.createElement("div");
-      const textNode = document.createTextNode(input);
-      container.appendChild(textNode);
+      container = make(
+        "div",
+        (el: HTMLDivElement) => appendText(el, input)
+      );
     } else {
       container = input;
     }
+
+
 
     const fragment = this.dom.createDocumentFragment();
     this.currentElement = fragment;

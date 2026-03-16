@@ -5,10 +5,11 @@ import type {
 } from "@/types";
 import { IconPlus } from "@/icons";
 import ActionModel from "@/core/models/action-model";
-import { addClass, make } from "@/utils/dom";
+import { addClass, append, html, make } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import BlockModel from "@/core/models/block-model";
 
+/** Create a block */
 export default class CreateAction
   extends ActionModel
   implements ActionModelInterface {
@@ -18,8 +19,9 @@ export default class CreateAction
   protected menu: boolean = true;
 
   menuConfig() {
-    const { blockManager, events, i18n } = this.editor,
+    const { blockManager, i18n } = this.editor,
       items: HTMLElement[] = [];
+
     const blockModels = blockManager.getBlockModels();
 
     blockModels.forEach((modelStructure: BlockModelStructure) => {
@@ -27,51 +29,27 @@ export default class CreateAction
         addClass(el, "tex-actions-menu-item");
         const icon = modelStructure.model.getIcon(12, 12);
 
-        if (icon) el.innerHTML = "<span>" + icon + "</span>";
+        if (icon) {
+          append(el, make(
+            'span',
+            (span: HTMLSpanElement) => html(span, icon)
+          ))
+        }
 
-        el.innerHTML +=
-          "<span>" + (modelStructure?.translation || "") + "</span>";
+        append(el, make(
+          'span',
+          (span: HTMLSpanElement) => {
+            html(
+              span,
+              (modelStructure?.translation || "")
+            )
+          }
+        ));
 
         off(el, "click.am");
         on(el, "click.am", () => {
-          const curBlock = blockManager.getCurrentBlock(),
-            curIndex = blockManager.getIndex(),
-            model = modelStructure.model as BlockModel;
-
-          if (curBlock) {
-            const blockElement = model.create();
-
-            if (blockElement) {
-              curBlock?.insertAdjacentElement("afterend", blockElement);
-
-              const isEditableChilds = model?.isEditableChilds(),
-                blockContentElement = model.getBlockContentElement();
-
-              if (blockContentElement) {
-                if (model?.isEditable() || isEditableChilds) {
-                  if (isEditableChilds) {
-                    const editableChild = model.editableChild(blockElement, true);
-
-                    if (editableChild) {
-                      (editableChild as HTMLElement)?.focus();
-                    } else blockContentElement?.click();
-                  } else blockContentElement.focus();
-                } else {
-                  setTimeout(() => {
-                    blockContentElement.click();
-                  }, 10);
-                }
-
-                events.change({
-                  type: "createdBlock",
-                  index: curIndex,
-                  blockElement: blockElement
-                });
-
-                events.refresh();
-              }
-            }
-          }
+          const model = modelStructure.model as BlockModel;
+          blockManager.createBlock(model.getType());
         });
       });
 

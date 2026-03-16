@@ -1,8 +1,9 @@
 import { IconBars } from "@/icons";
+import { TexditorInterface } from "@/types";
 import { append, make, html, addClass } from "@/utils/dom";
 import { renderIcon } from "@/utils/icon";
 
-export default function ActionsView(): HTMLElement {
+export default function ActionsView(editor: TexditorInterface): HTMLElement {
   return make("div", (el: HTMLElement) => {
     const className = "tex-actions";
 

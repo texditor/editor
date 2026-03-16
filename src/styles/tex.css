@@ -3,6 +3,10 @@
   max-width: 650px;
   margin: 0 auto;
   color: var(--tex-color);
+}
+
+.tex,
+.tex-wrap {
   position: relative;
 }
 
@@ -75,11 +79,10 @@
 }
 
 .tex-actions {
-  display: none;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  z-index: 10;
+  z-index: 100;
   transition: top 0.3s;
 }
 
@@ -385,5 +388,9 @@
 
   .tex-actions-wrap {
     margin-left: 0;
+  }
+
+  .tex-wrap {
+    padding-top: 28px;
   }
 }

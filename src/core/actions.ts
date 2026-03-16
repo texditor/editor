@@ -1,25 +1,30 @@
 import type {
   ActionsInterface,
   ActionModelInstanceInterface,
-  TexditorInterface
+  TexditorInterface,
+  BlockNode
 } from "@/types";
-import { append, closest, css, make, query } from "@/utils/dom";
+import { append, closest, css, make, prepend, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import DeleteAction from "@/actions/delete-action";
 import MoveUpAction from "@/actions/moveup-action";
 import MoveDownAction from "@/actions/movedown-action";
 import CreateAction from "@/actions/create-action";
 import ConvertAction from "@/actions/convert-action";
+import { generateRandomString } from "@/utils";
+import ActionsView from "@/views/actions";
 
 export default class Actions implements ActionsInterface {
   private editor: TexditorInterface;
   private actions: ActionModelInstanceInterface[] = [];
+  /** Unique identifier for event listeners to prevent conflicts */
+  private eventId: string = '';
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.show = this.show.bind(this);
     this.handleClose = this.handleClose.bind(this);
-    this.repositionBar = this.repositionBar.bind(this);
+    this.eventId = generateRandomString(16);
     const actions = this.editor.config.get(
       "actions",
       []
@@ -40,72 +45,11 @@ export default class Actions implements ActionsInterface {
   }
 
   render() {
-    const { api, events } = this.editor,
-      uniqueId = api.getUniqueId();
+    const { events } = this.editor;
 
     events.trigger("actions:render");
     this.hide();
-    this.repositionBar();
-    on(window, "resize.a" + uniqueId, this.repositionBar);
-    on(window, "scroll.a" + uniqueId, this.repositionBar);
     events.trigger("actions:render:end");
-  }
-
-  private repositionBar() {
-    const { api, blockManager, config } = this.editor,
-      curBlock = blockManager.getCurrentBlock(),
-      root = api.getRoot(),
-      className = 'tex-actions',
-      windowWidth = window.innerWidth;
-
-    if (root && curBlock) {
-      query(
-        '.' + className,
-        (el: HTMLElement) => {
-          const rect = curBlock.getBoundingClientRect(),
-            windowHeight = window.innerHeight,
-            elementHeight = el.offsetHeight;
-
-          const leftOffset =
-            windowWidth <= 768
-              ? 0
-              : (config.get("actionsLeftOffset", 24) as number),
-            offsetTop =
-              windowWidth <= 768
-                ? 0
-                : (config.get("actionsTopOffset", 0) as number);
-
-          const setDirecton = (dir: string) => {
-            query(
-              "." + className + "-settings",
-              (settingBlock: HTMLDivElement) => {
-                css(settingBlock, {
-                  display: "flex",
-                  "flex-direction": dir
-                });
-              },
-              el
-            );
-          };
-          let topPosition = rect.top + 1 + offsetTop;
-          setDirecton("column");
-
-          if (topPosition + elementHeight > windowHeight) {
-            topPosition = rect.top - elementHeight - offsetTop + 12;
-
-            setDirecton("column-reverse");
-            if (topPosition < 0) {
-              topPosition = 0;
-            }
-          }
-
-          css(el, "display", "flex");
-          css(el, "left", rect.left - leftOffset);
-          css(el, "top", topPosition);
-        },
-        root
-      );
-    }
   }
 
   private handleClose(evt: Event) {
@@ -136,6 +80,12 @@ export default class Actions implements ActionsInterface {
       query(
         cssName + "-container > " + cssAction + "-confirm",
         (el: HTMLElement) => el.remove(),
+        root
+      );
+
+      query(
+        cssName + "-container > " + cssAction + "-verifiable",
+        (el: HTMLElement) => css(el, 'display', ''),
         root
       );
 
@@ -206,14 +156,10 @@ export default class Actions implements ActionsInterface {
   }
 
   show() {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
-
     this.wrap((el: HTMLElement) => {
       css(el, "display", "block");
-      off(document, "click.actions" + uniqueId);
-      on(document, "click.actions" + uniqueId, this.handleClose);
-      setTimeout(() => this.repositionBar(), 10);
+      off(document, "click.actions" + this.eventId);
+      on(document, "click.actions" + this.eventId, this.handleClose);
     });
   }
 
@@ -237,12 +183,18 @@ export default class Actions implements ActionsInterface {
     this.actions.push(action);
   }
 
-  apply() {
+  create(blockNode: BlockNode) {
     const { api } = this.editor,
       root = api.getRoot(),
       cssName = ".tex-actions";
 
     if (root) {
+      query(cssName, (actions: HTMLElement) => {
+        actions.remove();
+      }, root)
+
+      prepend(blockNode, ActionsView(this.editor));
+
       const actions = this.actions;
 
       actions.forEach((actionConstructor: ActionModelInstanceInterface) => {
@@ -274,10 +226,6 @@ export default class Actions implements ActionsInterface {
   }
 
   destroy() {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
-    off(window, "resize.a" + uniqueId);
-    off(window, "scroll.a" + uniqueId);
-    off(document, "click.actions" + uniqueId);
+    off(document, "click.actions" + this.eventId);
   }
 }

@@ -12,7 +12,7 @@ export default class MoveRightFileAction
   protected defaultTitle: string = "Move right";
 
   private use() {
-    const model = this.getCurrentBlockModel(),
+    const model = this.getBlockModel(),
       currentItem = this.getItem();
 
     return {

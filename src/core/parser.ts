@@ -1,9 +1,9 @@
 import type {
-  HTMLBlockElement,
+  BlockNode,
   ParserInterface,
   BlockModelStructure,
-  BlockItemData,
-  OutputBlockItem,
+  BlockOutputData,
+  BlockOutput,
   TexditorInterface
 } from "@/types";
 import { decodeHtmlSpecialChars } from "@/utils/common";
@@ -35,7 +35,7 @@ export default class Parser implements ParserInterface {
     return doc.querySelector("parser-rawblock");
   }
 
-  htmlToData(html: string): Array<OutputBlockItem | string> {
+  htmlToData(html: string): Array<BlockOutput | string> {
     const { events } = this.editor;
     events.trigger("htmlToData", { html: html });
 
@@ -47,7 +47,7 @@ export default class Parser implements ParserInterface {
     }
 
     const nodes: NodeListOf<ChildNode> = rawblock.childNodes;
-    const result: Array<OutputBlockItem | string> = [];
+    const result: Array<BlockOutput | string> = [];
 
     if (nodes.length > 0) {
       if (
@@ -70,7 +70,7 @@ export default class Parser implements ParserInterface {
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
             const objAttr: Record<string, string> = {};
-            let outContent: Array<OutputBlockItem | string> = [
+            let outContent: Array<BlockOutput | string> = [
               node.textContent || ""
             ];
 
@@ -87,9 +87,9 @@ export default class Parser implements ParserInterface {
               }
             }
 
-            const outData: OutputBlockItem = {
+            const outData: BlockOutput = {
               type: node.nodeName.toLowerCase(),
-              data: outContent as BlockItemData | []
+              data: outContent as BlockOutputData | []
             };
 
             if (element.attributes.length) {
@@ -125,8 +125,8 @@ export default class Parser implements ParserInterface {
     const { blockManager, config } = this.editor,
       models = blockManager.getBlockModels();
 
-    const blocks = make("div", (blockElement: HTMLBlockElement) => {
-      (data as OutputBlockItem[]).forEach((item: OutputBlockItem) => {
+    const blocks = make("div", (node: BlockNode) => {
+      (data as BlockOutput[]).forEach((item: BlockOutput) => {
         (models).forEach(
           (formatedModel: BlockModelStructure) => {
             if (
@@ -138,35 +138,57 @@ export default class Parser implements ParserInterface {
               let elBlock = null;
 
               if (blockModel.getConfig("autoParse")) {
-                elBlock = blockModel.create();
-                
-                if (elBlock) {
-                  const blockContent = blockManager.getBlockContentElement(elBlock);
-                  const childs = this.parseChilds(item, false, skipDecode);
+                const isEditableItems = blockModel.isEditableItems();
 
-                  if (blockContent) {
-                    append(blockContent, childs);
-                    append(elBlock, blockContent);
-                    append(blockElement, elBlock);
+                if (isEditableItems) {
+                  const blockData = (item?.data || []) as BlockOutput[];
+                  const tempBlock = make(blockModel.getTagName());
+
+                  if (blockData.length) {
+                    blockData.forEach(li => {
+                      const nodes = this.parseChilds(li);
+                      const tempItem = make(blockModel.getItemTagName());
+                      append(tempItem, nodes);
+                      append(tempBlock, blockModel.makeItemNode(tempItem.innerHTML));
+                    });
+                  }
+
+                  elBlock = blockModel.create({
+                    content: tempBlock.innerHTML || ''
+                  });
+                } else
+                  elBlock = blockModel.create();
+
+                if (elBlock) {
+                  const contentNode = blockManager.getContentNode(elBlock as BlockNode);
+
+                  if (contentNode) {
+                    if (!isEditableItems) {
+                      const childs = this.parseChilds(item, false, skipDecode);
+                      append(contentNode, childs);
+                    }
+
+                    append(elBlock, contentNode);
+                    append(node, elBlock);
                   }
                 }
               } else {
                 if (typeof blockModel?.parse !== "undefined") {
                   elBlock = blockModel?.parse(item);
                   if (elBlock && elBlock !== null) {
-                    append(blockElement, elBlock);
+                    append(node, elBlock);
                   }
                 }
               }
 
               if (blockModel.afterCreate)
-                blockModel.afterCreate(elBlock as HTMLBlockElement);
+                blockModel.afterCreate(elBlock as BlockNode);
             }
           }
         );
       });
 
-      if (blockElement.childNodes.length === 0 && createDefault) {
+      if (node.childNodes.length === 0 && createDefault) {
         (models).forEach(
           (formatedModel: BlockModelStructure) => {
             if (
@@ -177,10 +199,11 @@ export default class Parser implements ParserInterface {
 
               if (blockModel) {
                 const elBlock = blockModel.create();
-                if (elBlock) append(blockElement, elBlock);
-              }
+                if (elBlock) append(node, elBlock);
 
-              if (blockModel.afterCreate) blockModel.afterCreate();
+                if (blockModel.afterCreate)
+                  blockModel.afterCreate(elBlock as BlockNode);
+              }
             }
           }
         );
@@ -191,7 +214,7 @@ export default class Parser implements ParserInterface {
   }
 
   parseChilds(
-    block: OutputBlockItem,
+    block: BlockOutput,
     childRender: boolean = false,
     skipDecode: boolean = false
   ): Node | Node[] {
@@ -203,8 +226,8 @@ export default class Parser implements ParserInterface {
       const element = make(block.type);
 
       if (Array.isArray(block.data)) {
-        (block.data as (OutputBlockItem | string)[]).forEach(
-          (item: OutputBlockItem | string) => {
+        (block.data as (BlockOutput | string)[]).forEach(
+          (item: BlockOutput | string) => {
             if (typeof item === "string") {
               appendText(
                 element,
@@ -237,9 +260,9 @@ export default class Parser implements ParserInterface {
   }
 
   private emptyFilter(
-    result: Array<OutputBlockItem | string>
-  ): Array<OutputBlockItem | string> {
-    const filtered: Array<OutputBlockItem | string> = [];
+    result: Array<BlockOutput | string>
+  ): Array<BlockOutput | string> {
+    const filtered: Array<BlockOutput | string> = [];
 
     result.forEach((item) => {
       if (typeof item === "string") {

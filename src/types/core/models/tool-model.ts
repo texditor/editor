@@ -9,7 +9,7 @@ export interface ToolModelInterface {
   destroy?(): void;
   create?(): HTMLElement;
   applyEvents?(): void;
-  getElement(): HTMLElement | null;
+  getBlockNode(): HTMLElement | null;
   getId(): string;
   format(onlyRemove?: boolean): void;
   forcedFormat(): void;

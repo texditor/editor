@@ -11,8 +11,10 @@ export default function MainView(editor: TexditorInterface): HTMLElement {
     append(el, [
       ExtensionsView(editor),
       ToolbarView(),
-      BlocksView(editor),
-      ActionsView()
+      make('div', (wrap: HTMLDivElement) => {
+        addClass(wrap, 'tex-wrap');
+        append(wrap, BlocksView(editor))
+      }),
     ]);
   });
 }

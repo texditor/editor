@@ -1,4 +1,4 @@
-import type { EventHandler } from "@/types";
+import type { CustomEvent, EventHandler } from "@/types";
 import { eventStore } from "@/store/eventStore";
 
 export function on<T extends Event>(
@@ -14,7 +14,7 @@ export function on(
   handler: EventHandler,
   options?: AddEventListenerOptions | boolean
 ): void {
-  const wrappedHandler = (event: Event & { el: EventTarget }) => {
+  const wrappedHandler = (event: CustomEvent) => {
     event.el = element;
     handler(event);
   };

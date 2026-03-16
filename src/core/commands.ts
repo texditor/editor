@@ -5,8 +5,17 @@ import type {
 } from "@/types";
 import { isEmptyString } from "@/utils/string";
 import { closest, mergeAdjacentTextNodes, query } from "@/utils/dom";
+
+/**
+ * Commands class handles text formatting operations, selection manipulation,
+ * and DOM normalization for the editor. Provides methods for applying and
+ * removing HTML tags, managing text ranges, and cleaning up the document structure.
+ */
 export default class Commands implements CommandsInterface {
+  /** Reference to the main editor instance */
   private editor: TexditorInterface;
+
+  // Direction constants for selection analysis
   static DIR_LEFT: string = "LEFT"; // ( .|.~ <b>...<-|...</b> )
   static DIR_LEFT_SPACE: string = "LEFT_SPACE"; // ( ...|_<b>...<-|...</b> )
   static DIR_RIGHT: string = "RIGHT"; // ( <b>...|->...</b> ~.|. )
@@ -30,6 +39,13 @@ export default class Commands implements CommandsInterface {
     this.editor = editor;
   }
 
+  /**
+   * Formats a specific text range within a container with the given HTML tag
+   * @param tagName - HTML tag name to apply (e.g., 'strong', 'em')
+   * @param startOffset - Starting character offset in the container
+   * @param endOffset - Ending character offset in the container
+   * @param container - Container element containing the text
+   */
   formatTextRange(
     tagName: string,
     startOffset: number,
@@ -57,8 +73,8 @@ export default class Commands implements CommandsInterface {
     collectNodes(container);
 
     const startNode = nodes.find(
-        (n) => startOffset >= n.start && startOffset < n.end
-      ),
+      (n) => startOffset >= n.start && startOffset < n.end
+    ),
       endNode = nodes.find((n) => endOffset > n.start && endOffset <= n.end);
 
     if (!startNode || !endNode) {
@@ -92,6 +108,11 @@ export default class Commands implements CommandsInterface {
     this.normalize();
   }
 
+  /**
+   * Applies or removes formatting based on current selection context
+   * @param tagName - HTML tag name to format with
+   * @param focus - Whether to restore focus after formatting
+   */
   format(tagName: string, focus: boolean = false) {
     this.selection(() => {
       const dir = this.getSelectionDirection(tagName),
@@ -132,6 +153,10 @@ export default class Commands implements CommandsInterface {
     }, focus);
   }
 
+  /**
+   * Normalizes the DOM structure by removing empty tags and merging adjacent elements
+   * @param container - Optional container to normalize (defaults to current selection element)
+   */
   normalize(container?: HTMLElement) {
     const { selectionApi } = this.editor,
       { element } = selectionApi.current();
@@ -161,11 +186,14 @@ export default class Commands implements CommandsInterface {
     }
   }
 
+  /**
+   * Creates a new format around the current selection
+   * @param tagName - HTML tag name to apply
+   */
   createFormat(tagName: string) {
     this.selection(
       ({ selectionApi }: { selectionApi: SelectionAPIInterface }) => {
         const { element, position } = selectionApi.current();
-
         if (element) {
           this.formatTextRange(tagName, position.start, position.end, element);
         }
@@ -173,6 +201,12 @@ export default class Commands implements CommandsInterface {
     );
   }
 
+  /**
+   * Removes formatting tags from the current selection
+   * @param tagName - HTML tag name to remove
+   * @param focus - Whether to restore focus after removal
+   * @param normalize - Whether to normalize after removal
+   */
   removeFormat(
     tagName: string,
     focus: boolean = false,
@@ -312,6 +346,11 @@ export default class Commands implements CommandsInterface {
     );
   }
 
+  /**
+   * Replaces empty edges with space characters
+   * @param el - Parent element
+   * @param item - Optional item to check edges for
+   */
   replaceEmptyEdges(el: HTMLElement, item?: HTMLElement | Node) {
     const { isEmptyFirstChar, isEmptyLastChar } = this.getEdgeChars(
       (item || el)?.textContent || ""
@@ -326,12 +365,22 @@ export default class Commands implements CommandsInterface {
     }
   }
 
+  /**
+   * Removes all formatting tags from the document
+   * @param normalize - Whether to normalize after clearing
+   */
   public clearAllFormatting(normalize: boolean = true): void {
     this.findTags().forEach((el: HTMLElement) => {
       this.removeFormat(el.localName, true, normalize);
     });
   }
 
+  /**
+   * Finds all tags matching the criteria within the current selection
+   * @param tagName - Tag name to find (false for all tags)
+   * @param childrens - Whether to search in child elements
+   * @returns Array of matching HTML elements
+   */
   findTags(tagName: string | boolean = false, childrens: boolean = true) {
     const { selectionApi } = this.editor,
       curent = selectionApi.current();
@@ -345,6 +394,11 @@ export default class Commands implements CommandsInterface {
     return selectedTags.filter((el: HTMLElement) => el.localName === tagName);
   }
 
+  /**
+   * Determines the direction of selection relative to formatting tags
+   * @param tagName - Tag name or element to check direction for
+   * @returns Direction constant or null
+   */
   getSelectionDirection(tagName: string | HTMLElement): string | null {
     let direction = Commands.DIR_IGNORE,
       element: HTMLElement | null = null,
@@ -445,6 +499,10 @@ export default class Commands implements CommandsInterface {
     return direction;
   }
 
+  /**
+   * Flattens nested tags of the same type (e.g., <strong><strong>text</strong></strong>)
+   * @param parentElement - Element to process
+   */
   flattenNestedSimilarTags(parentElement: HTMLElement): void {
     const parentTag = parentElement.tagName.toLowerCase(),
       processChildren = (element: HTMLElement) => {
@@ -465,6 +523,13 @@ export default class Commands implements CommandsInterface {
     processChildren(parentElement);
   }
 
+  /**
+   * Splits an element at specified text positions
+   * @param element - Element to split
+   * @param startIndex - Start index for split
+   * @param endIndex - End index for split
+   * @returns Tuple of [before element, middle fragment, after element]
+   */
   splitElement(
     element: HTMLElement,
     startIndex: number,
@@ -533,6 +598,12 @@ export default class Commands implements CommandsInterface {
     return [beforeElement, middleFragment, afterElement];
   }
 
+  /**
+   * Splits a node at a specific text position
+   * @param node - Node to split
+   * @param position - Position to split at
+   * @returns Tuple of [before node, after node]
+   */
   private splitNodeAtTextPosition(node: Node, position: number): [Node, Node] {
     if (position <= 0)
       return [document.createDocumentFragment(), node.cloneNode(true)];
@@ -582,6 +653,11 @@ export default class Commands implements CommandsInterface {
     return [node.cloneNode(true), document.createDocumentFragment()];
   }
 
+  /**
+   * Calculates the text length of a node
+   * @param node - Node to calculate length for
+   * @returns Text length
+   */
   private getNodeTextLength(node: Node): number {
     if (node.nodeType === Node.TEXT_NODE) {
       return (node as Text).textContent?.length || 0;
@@ -591,6 +667,10 @@ export default class Commands implements CommandsInterface {
     return 0;
   }
 
+  /**
+   * Merges adjacent tags of the same type
+   * @param root - Root element to process
+   */
   mergeAdjacentTags(root: HTMLElement | Element): void {
     const processNode = (node: HTMLElement | Element) => {
       const children = Array.from(node.childNodes);
@@ -651,6 +731,11 @@ export default class Commands implements CommandsInterface {
     processNode(root);
   }
 
+  /**
+   * Internal method to handle selection operations
+   * @param callback - Function to execute with selection context
+   * @param select - Whether to reselect after operation
+   */
   private selection(callback: CallableFunction, select: boolean = false) {
     const { selectionApi } = this.editor,
       range = selectionApi.getRange(),
@@ -663,6 +748,11 @@ export default class Commands implements CommandsInterface {
     if (select) selectionApi.selectCurrent();
   }
 
+  /**
+   * Removes empty tags of specified type from an element
+   * @param element - Parent element to check
+   * @param tagName - Tag name to remove if empty
+   */
   removeEmptyTags(element: HTMLElement, tagName: string): void {
     const tags = element.getElementsByTagName(tagName);
     const tagsArray = Array.from(tags).reverse();
@@ -674,6 +764,11 @@ export default class Commands implements CommandsInterface {
     });
   }
 
+  /**
+   * Gets the first and last characters of a string with their emptiness status
+   * @param str - Input string
+   * @returns Object containing edge characters and their emptiness status
+   */
   getEdgeChars(str: string): {
     firstChar: string;
     lastChar: string;

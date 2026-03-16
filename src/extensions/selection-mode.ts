@@ -1,5 +1,6 @@
 import type {
-  HTMLBlockElement,
+  BlockNode,
+  CustomEvent,
   RenderIconContent,
   TexditorEvent
 } from "@/types";
@@ -17,7 +18,7 @@ export default class SelectionMode extends ExtensionModel {
   toggleActive: boolean = true;
   protected groupName: string = "selectionMode";
 
-  onClick(evt: Event & { el: EventTarget }): void {
+  onClick(evt: CustomEvent): void {
     const { blockManager } = this.editor;
     evt.preventDefault();
     if (this.isActive()) {
@@ -38,7 +39,7 @@ export default class SelectionMode extends ExtensionModel {
       events,
       i18n
     } = this.editor;
-    
+
     const created = super.create(),
       cssExtName = "tex-extension",
       cssName = cssExtName + "-" + this.getName();
@@ -53,7 +54,7 @@ export default class SelectionMode extends ExtensionModel {
           this.editor.events.add(
             "selectionChanged.extSelectionMode",
             (evt: TexditorEvent) => {
-              const blocks = evt.selectedBlockElements as HTMLBlockElement[];
+              const blocks = evt.selectedBlockElements as BlockNode[];
               css(act, "display", blocks.length > 0 ? "flex" : "");
             }
           );

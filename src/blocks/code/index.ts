@@ -1,22 +1,26 @@
 import type {
   BlockModelInterface,
-  OutputBlockItem,
-  HTMLBlockElement,
-  CodeCreateOptions
+  BlockOutput,
+  BlockNode,
+  CodeCreateOptions,
+  TexditorEvent
 } from "@/types";
 import BlockModel from "@/core/models/block-model";
-import { appendText } from "@/utils/dom";
-import { IconCode } from "@/icons";
-import { decodeHtmlSpecialChars } from "@/utils/common";
+import { addClass, append, appendText, attr, closest, css, html, make, prepend, query } from "@/utils/dom";
+import { IconArrowDown, IconCode, IconCornerUpRight } from "@/icons";
+import Languages, { LanguageNames } from './languages';
 import "@/styles/blocks/code.css";
+import { isEmptyString, off, on, renderIcon } from "@/utils";
 
 export default class Code extends BlockModel implements BlockModelInterface {
   configure() {
     return {
       autoParse: false,
+      autoMerge: true,
       tagName: "code",
       translationCode: "code",
       type: "code",
+      groupCode: 'code',
       icon: IconCode,
       cssClasses: "tex-code",
       placeholder: this.editor.i18n.get("codePlaceholder", "Enter your code"),
@@ -24,24 +28,246 @@ export default class Code extends BlockModel implements BlockModelInterface {
       emptyDetect: true,
       sanitizer: false,
       rawOutput: true,
-      backspaceRemove: false,
-      isEnterCreate: false,
-      preformatted: true,
-      convertible: true
+      enterCreate: false,
+      convertible: true,
+      languages: Languages,
+      showLanguages: true,
+      customSave: true,
+      search: true,
+      lineBreakInfoMessage: "Ctrl + Enter"
     };
   }
 
-  create(options?: CodeCreateOptions): HTMLBlockElement | HTMLElement {
-    return this.make("pre", ({ blockContentElement }: { blockContentElement: HTMLElement }) => {
-      if (options?.content) appendText(blockContentElement, options.content);
+  create(options?: CodeCreateOptions): BlockNode | HTMLElement {
+    return this.make("pre", ({
+      contentNode,
+      blockNode
+    }: {
+      contentNode: HTMLElement,
+      blockNode: BlockNode
+    }) => {
+      if (options?.lang)
+        attr(blockNode, 'data-lang', options.lang);
+
+      this.init(blockNode)
+
+      if (options?.content) appendText(contentNode, options.content);
     });
   }
 
-  parse(item: OutputBlockItem) {
+  private init(blockNode: BlockNode) {
+    const { events, i18n } = this.editor;
+
+    if (this.getConfig('showLanguages', true)) {
+      const cssName = 'tex-code',
+        notSpecified = i18n.get('notSpecified', 'Not specified');
+
+      if (blockNode) {
+        const languages = this.getConfig('languages', {}) as LanguageNames;
+        
+        const getLanguageName = (key: string): string => {
+          return languages[key] || notSpecified;
+        };
+        
+        const updateName = (name: string = notSpecified) => {
+          query('.' + cssName + '-lang-link-name', (lnk: HTMLLinkElement) => {
+            lnk.textContent = name
+          }, blockNode)
+        };
+        
+        const languageWrap = make('div', (wrap: HTMLDivElement) => {
+          addClass(wrap, cssName + '-lang');
+
+          const menu = make('div', (menu: HTMLDivElement) => {
+            addClass(menu, cssName + '-menu tex-animate-fadeIn');
+
+            if (this.getConfig('search', true)) {
+              append(
+                menu,
+                make('div', (search: HTMLDivElement) => {
+                  addClass(search, cssName + "-menu-search")
+                  const searchInput = make('input', (input: HTMLInputElement) => {
+                    addClass(input, 'tex-input');
+                    attr(input, 'type', 'text');
+                    attr(input, 'placeholder', i18n.get('search', 'Search'));
+                    on(input, 'input.codeLang', (inputEvt: KeyboardEvent) => {
+                      inputEvt.preventDefault();
+                      const text = input.value.toLowerCase().trim();
+                      
+                      query("." + cssName + "-menu-item", (searchItem: HTMLDivElement) => {
+                        if (text) {
+                          const itemText = searchItem.textContent?.toLowerCase() || '';
+                          const itemKey = searchItem.dataset.langKey || '';
+                          
+                          if (!itemText.includes(text) && !itemKey.includes(text)) {
+                            css(searchItem, 'display', 'none');
+                          } else {
+                            css(searchItem, 'display', '');
+                          }
+                        } else {
+                          css(searchItem, 'display', '');
+                        }
+                      });
+                    });
+                  });
+                  append(search, searchInput);
+                })
+              );
+            }
+
+            append(
+              menu,
+              make('div', (item: HTMLDivElement) => {
+                addClass(item, cssName + '-menu-item');
+                attr(item, 'data-lang-key', '');
+                html(item, notSpecified);
+                on(item, 'click.rmLang', () => {
+                  blockNode.removeAttribute('data-lang');
+                  updateName();
+                  closeMenu();
+                  events.change({
+                    type: "codeClearLanguage",
+                    blockNode: blockNode
+                  })
+                });
+              })
+            );
+
+            for (const [codeKey, codeName] of Object.entries(languages)) {
+              append(
+                menu,
+                make('div', (item: HTMLDivElement) => {
+                  addClass(item, cssName + '-menu-item');
+                  attr(item, 'data-lang-key', codeKey);
+                  html(item, codeName);
+                  on(item, 'click.chLang', () => {
+                    attr(blockNode, 'data-lang', codeKey);
+                    updateName(codeName);
+                    closeMenu();
+                    events.change({
+                      type: "codeChangeLanguage",
+                      blockNode: blockNode,
+                      lang: codeKey
+                    })
+                  });
+                })
+              );
+            }
+          });
+
+          const closeMenu = () => {
+            off(document, "click.codeMenu");
+            css(menu, 'display', '');
+          }
+
+          const link = make('a', (link: HTMLLinkElement) => {
+            addClass(link, cssName + '-lang-link');
+            append(link, [
+              make('span', (span: HTMLSpanElement) => {
+                addClass(span, cssName + '-lang-link-name');
+                const curLang = blockNode.dataset.lang || '';
+                span.textContent = getLanguageName(curLang);
+              }),
+              make('span', (span: HTMLSpanElement) => {
+                html(span, renderIcon(IconArrowDown, {
+                  width: 12,
+                  height: 12
+                }));
+              })
+            ]);
+
+            on(link, 'click.codeLink', () => {
+              css(menu, 'display', 'block');
+              on(document, "click.codeMenu", (evt: MouseEvent) => {
+                if (!closest(evt.target, menu)) {
+                  closeMenu();
+                }
+              }, true);
+            });
+          });
+
+          append(wrap, [link, menu]);
+        })
+
+        prepend(blockNode, languageWrap)
+      }
+    }
+
+    const lineBreakInfoMessage = this.getConfig('lineBreakInfoMessage', '');
+
+    if (lineBreakInfoMessage) {
+      append(
+        blockNode, make('div', (info: HTMLDivElement) => {
+          addClass(info, 'tex-code-line-break-info');
+          append(
+            info,
+            [
+              make('span', (span: HTMLSpanElement) => {
+                html(span, lineBreakInfoMessage);
+              }),
+              make('span', (span: HTMLSpanElement) => {
+                html(span, renderIcon(IconCornerUpRight, {
+                  width: 12,
+                  height: 12
+                }));
+              })
+            ]
+          )
+        })
+      )
+    }
+  }
+
+  onRender(): void {
+    const { blockManager, events } = this.editor;
+
+    if (!events.exists('keydown.code')) {
+      events.add('keydown.code', (evt: TexditorEvent) => {
+        const domEvent = (evt?.domEvent as KeyboardEvent) || null,
+          curModel = blockManager.getModel();
+
+        if (domEvent && curModel instanceof Code) {
+          if (domEvent.ctrlKey && domEvent.key === 'Enter') {
+            blockManager.createDefaultBlock();
+            domEvent.preventDefault();
+          }
+        }
+      });
+    }
+  }
+
+  onPaste(evt: Event, input: Element | null): void {
+    evt.preventDefault();
+    const { selectionApi } = this.editor;
+    selectionApi.insertText(input?.innerHTML || '', true)
+  }
+
+  save(block: BlockOutput, blockNode?: BlockNode): BlockOutput {
+    const { blockManager } = this.editor;
+    const contnetNode = blockManager.getContentNode(blockNode);
+
+    if (contnetNode?.textContent && !isEmptyString(contnetNode?.textContent)) {
+      block.data = [contnetNode.textContent];
+
+      if (blockNode?.dataset.lang)
+        block.lang = blockNode.dataset.lang;
+    }
+
+    return block;
+  }
+
+  parse(item: BlockOutput) {
+    const languages = this.getConfig('languages', {}) as LanguageNames;
+    let lang = (item?.lang || '') as string;
+
+    if (lang && !languages[lang])
+      lang = '';
+
     return this.create({
+      lang: lang,
       content:
         typeof item.data[0] === "string"
-          ? decodeHtmlSpecialChars(item.data[0])
+          ? item.data[0]
           : ""
     });
   }
