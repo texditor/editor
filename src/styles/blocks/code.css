@@ -5,7 +5,6 @@
 .tex-code pre {
   background-color: var(--tex-background-secondary);
   border: 0;
-  resize: vertical;
   border-radius: 6px;
   white-space: pre-wrap;
 }

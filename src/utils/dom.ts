@@ -150,6 +150,32 @@ export function html(
   return el.innerHTML;
 }
 
+export function toHtml(data: string | Node | Node[] | HTMLElement | HTMLElement[]): string {
+  if (typeof data === 'string') return data;
+
+  if (Array.isArray(data)) {
+    return data.map(item => {
+      if (item instanceof HTMLElement) return item.outerHTML;
+      if (item instanceof Node) {
+        return item.nodeType === Node.TEXT_NODE
+          ? item.textContent || ''
+          : (item as HTMLElement).outerHTML || item.textContent || '';
+      }
+      return '';
+    }).join('');
+  }
+
+  if (data instanceof HTMLElement) return data.outerHTML;
+
+  if (data instanceof Node) {
+    return data.nodeType === Node.TEXT_NODE
+      ? data.textContent || ''
+      : (data as HTMLElement).outerHTML || data.textContent || '';
+  }
+
+  return '';
+}
+
 export function append(
   el: Node | Element | HTMLElement,
   child: HTMLElement | Node | NodeList | Node[]
@@ -308,23 +334,25 @@ export function getChildNodes(element: Node): Node[] {
   return nodes;
 }
 
-export function getText(element: HTMLElement): string {
+export function getText(node: Node | Node[]): string {
   let result = "";
 
-  Array.from(element.childNodes).forEach((node) => {
-    if (node.nodeType === 3) {
-      const text = (node as Text).textContent;
+  const nodes = Array.isArray(node) ? node : getChildNodes(node);
+
+  Array.from(nodes).forEach((nodeItem) => {
+    if (nodeItem.nodeType === 3) {
+      const text = (nodeItem as Text).textContent;
       if (text) {
         result += text;
       }
-    } else if (node.nodeType === 1) {
-      result += getText(node as HTMLElement);
+    } else if (nodeItem.nodeType === 1) {
+      result += getText(nodeItem as HTMLElement);
     }
   });
 
   return result;
 }
 
-export function getLength(element: HTMLElement): number {
-  return getText(element).length;
+export function getLength(node: Node | Node[]): number {
+  return getText(node).length;
 }

@@ -30,7 +30,6 @@ import {
 import { isEmptyString } from "@/utils/string";
 import { off, on } from "@/utils/events";
 import { Paragraph } from "@/blocks";
-import ActionsView from "@/views/actions";
 
 export default class BlockManager implements BlockManagerInterface {
   /** Reference to the main editor instance */
@@ -111,9 +110,6 @@ export default class BlockManager implements BlockManagerInterface {
       if (model?.isEditable() && !model.isEditableItems()) {
         selectEnd(contentNode);
       } else if (model?.isEditableItems()) {
-        if (itemIndex !== undefined) {
-
-        }
         const item = typeof itemIndex === 'number'
           ? model.getItemBody(itemIndex)
           : (model.getItem(-1) as HTMLElement | null || model.getItemBody(0));
@@ -249,7 +245,6 @@ export default class BlockManager implements BlockManagerInterface {
         },
         root
       );
-
 
       addClass(blockNode, cssName + "-active")
       actions.create(blockNode);
@@ -607,7 +602,7 @@ export default class BlockManager implements BlockManagerInterface {
       const appendChildNodes = (target: HTMLElement, el: HTMLElement) => {
         appendText(target, ' ');
 
-        if (targetModel.isRawOutput())
+        if (targetModel.isRaw())
           appendText(target, getText(el));
         else
           append(target, getChildNodes(el));
@@ -841,7 +836,7 @@ export default class BlockManager implements BlockManagerInterface {
     this.isSelectionMode = true;
 
     toolbar.hide();
-    actions.hideMenu();
+    actions.hide();
 
     query(
       '.tex-actions-open',
@@ -1046,7 +1041,7 @@ export default class BlockManager implements BlockManagerInterface {
           isTargetEditableChilds = beforeTargetModel.isEditableItems(),
           sanitizerConfig = beforeTargetModel.getConfig("sanitizerConfig", {}),
           isSanitize = Object.keys(sanitizerConfig).length,
-          isRaw = beforeTargetModel.isRawOutput();
+          isRaw = beforeTargetModel.isRaw();
 
         if (contentNode && targetContentNode) {
           const appendContent = (target: HTMLElement, source: HTMLElement) => {

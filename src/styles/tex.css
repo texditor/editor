@@ -59,6 +59,7 @@
   word-break: break-all;
 }
 
+.tex-block,
 .tex-block-content {
   outline: none;
   margin: 0;
@@ -80,9 +81,9 @@
 
 .tex-actions {
   position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 100;
+  top: var(--tex-actions-top);
+  left: var(--tex-actions-left);
+  z-index: 999;
   transition: top 0.3s;
 }
 
@@ -92,6 +93,7 @@
   cursor: pointer;
   display: inline-flex;
   color: var(--tex-color);
+  user-select: none;
 }
 
 .tex-actions-container,
@@ -344,6 +346,19 @@
   user-select: none !important;
 }
 
+.tex-item-dragzone {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 8px;
+  padding: 4px;
+  margin-top: -9px;
+}
+
+.tex-block-active .tex-item-active .tex-item-dragzone {
+  display: block;
+}
+
 @media (hover: hover) {
 
   .tex-action:hover,
@@ -370,6 +385,11 @@
 }
 
 @media screen and (max-width: 768px) {
+  .tex-actions {
+    top: var(--tex-actions-top-mobile);
+    left: var(--tex-actions-left-mobile);
+  }
+
   .tex-actions-open {
     background-color: var(--tex-background);
     box-shadow: 0 0 8px 0 var(--tex-shadow-color);

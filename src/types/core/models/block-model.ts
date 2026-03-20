@@ -1,4 +1,4 @@
-import type { BlockOutput, BlockNode } from "@/types";
+import type { BlockOutput, BlockNode, BlockCreateOptions } from "@/types";
 import BlockModel from "@/core/models/block-model";
 
 import type { TexditorInterface } from "@/types";
@@ -27,6 +27,7 @@ export interface BlockModelStructure {
 
 export interface BlockModelConfig {
   autoMerge: boolean;
+  autoPaste: boolean;
   icon: string;
   autoParse: boolean;
   translationCode: string;
@@ -39,13 +40,14 @@ export interface BlockModelConfig {
   editableItems: boolean;
   singleItem: boolean;
   enterCreate: boolean;
-  rawOutput: boolean;
+  raw: boolean;
   sanitizer: boolean;
   sanitizerConfig: Record<string, unknown>;
   tagName: string;
   type: string;
   itemTagName: string;
   itemType: string;
+  itemRelatedTypes: string[],
   itemClassName: string,
   itemBodyClassName: string,
   sortableItems: boolean;
@@ -59,7 +61,7 @@ export interface BlockModelConfig {
 }
 
 export interface BlockModelInterface {
-  create(options?: object | null): HTMLElement | null;
+  create(options?: BlockCreateOptions): HTMLElement;
   configure(): Partial<BlockModelConfig>;
   getConfig<K extends keyof BlockModelConfig>(key: K): BlockModelConfig[K];
   getConfig<K extends keyof BlockModelConfig>(
@@ -70,6 +72,7 @@ export interface BlockModelInterface {
   isEnterCreate(): boolean;
   isAutoMerge(): boolean;
   isAutoParse(): boolean;
+  isAutoPaste(): boolean;
   merge(): HTMLElement | null;
   getRelatedTypes(): string[];
   parse(item: BlockOutput): BlockNode | HTMLElement | null;
@@ -87,17 +90,18 @@ export interface BlockModelInterface {
   save(block: BlockOutput, blockNode?: BlockNode): BlockOutput;
   setStore(key: string, value: unknown): this;
   getStore(key: string | null): unknown;
-  onPaste?(evt: Event, input: Element | null): void;
+  onPaste(evt: Event, nodes: Node[], blockNodes: Node[]): void;
   // Items
   getItemTagName(): string;
   getItemBodyClassName(): string;
   getItemClassName(): string;
   getItemType(): string;
+  getItemRelatedTypes(): string[];
   isSortableItems(): boolean;
   getItemIndex(itemNode?: HTMLElement): number;
   makeItemNode(content?: string): HTMLElement;
   createItem(content?: string, index?: number): boolean;
-  removeItem(index?: number): void
+  removeItem(index?: number): boolean
   getItem(index: number): HTMLElement | null;
   getItems(): HTMLElement[];
   getItemBody(index: number): HTMLElement | null;
@@ -114,7 +118,7 @@ export interface BlockModelInterface {
   isBackspaceRemove(): boolean;
   isEditable(): boolean;
   isEditableItems(): boolean;
-  isRawOutput(): boolean;
+  isRaw(): boolean;
   isNormalize(): boolean;
   isSingleItem(): boolean;
   isConvertible(): boolean;

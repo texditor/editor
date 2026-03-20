@@ -1,4 +1,5 @@
 import type {
+  BlockCreateItemsContent,
   BlockNode,
   EventsInterface,
   EventTriggerObject,
@@ -6,9 +7,9 @@ import type {
   TexditorInterface
 } from "@/types";
 import { encodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
-import { addClass, append, appendText, closest, getChildNodes, getLength, queryList, removeClass } from "@/utils/dom";
+import { addClass, append, appendText, closest, getChildNodes, getLength, getText, make, removeClass, toHtml } from "@/utils/dom";
 import { off, on } from "@/utils/events";
-import { hasClass, query } from "@/utils/dom";
+import { query } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 
 export default class Events implements EventsInterface {
@@ -115,7 +116,7 @@ export default class Events implements EventsInterface {
    * Refreshes event listeners on all blocks
    */
   refresh() {
-    const { actions, blockManager } = this.editor,
+    const { blockManager } = this.editor,
       blockContainer = blockManager.getBlocksContainer();
 
     if (!blockContainer)
@@ -152,12 +153,11 @@ export default class Events implements EventsInterface {
    * @param callback - Function to call when editor is ready
    */
   onReady(callback: CallableFunction) {
-    const { actions, blockManager } = this.editor;
+    const { blockManager } = this.editor;
 
     setTimeout(() => {
       if (callback) callback(this);
 
-      actions.render();
       blockManager.detectEmpty();
       blockManager.normalize();
       this.refresh();
@@ -170,7 +170,6 @@ export default class Events implements EventsInterface {
    */
   change(event: TexditorEvent) {
     const {
-      actions,
       blockManager,
       config,
       historyManager
@@ -194,8 +193,6 @@ export default class Events implements EventsInterface {
     ) {
       historyManager.save();
     }
-
-    actions.render();
   }
 
   /**
@@ -258,7 +255,7 @@ export default class Events implements EventsInterface {
   }
 
   private setIndex(index: number) {
-    const { actions, blockManager } = this.editor;
+    const { blockManager } = this.editor;
     const model = blockManager.getModel(index);
     blockManager.use(index);
 
@@ -540,94 +537,156 @@ export default class Events implements EventsInterface {
    * @param evt - Clipboard event
    */
   private onPasteHandle(evt: ClipboardEvent) {
-    const { config, parser, blockManager, selectionApi, historyManager } =
-      this.editor;
+    const {
+      config,
+      parser,
+      blockManager,
+      selectionApi
+    } = this.editor;
 
     this.trigger("onPaste", { domEvent: evt });
 
     if (!evt.clipboardData) return;
 
+    evt.preventDefault();
+
     const defBlock = config.get("defaultBlock", "p"),
-      currentModel = blockManager.getModel();
+      model = blockManager.getModel();
 
-    if (
-      currentModel &&
-      "onPaste" in currentModel &&
-      typeof currentModel.onPaste === "function"
-    ) {
-      const pasteData = evt.clipboardData.getData("text/html") || "";
-      const input = parser.parseHtml(pasteData, true);
-      currentModel?.onPaste(evt, input);
-    } else {
-      evt.preventDefault();
+    if (model) {
+      const isCustomPaste = !model.isAutoPaste(),
+        pasteData = evt.clipboardData.getData("text/html") || "",
+        input = parser.parseHtml(pasteData, true);
 
-      const pasteData = evt.clipboardData.getData("text/html") || "";
-      const input = parser.parseHtml(pasteData, true);
-      const isBlockPaste = !!Array.from(input?.childNodes || []).filter(
-        (item) =>
-          item.nodeType == 1 &&
-          blockManager.getRealType((item as HTMLElement).localName)
-      ).length;
+      if (input) {
+        const childNodes = getChildNodes(input);
 
-      if (input && isBlockPaste) {
-        let reversedNodes: Node[] = [],
-          isCreateBlocks = false;
+        if (childNodes.length) {
+          let blockNodes: Node[] = [],
+            nodes: Node[] = [];
 
-        input?.childNodes.forEach((item: Node) => {
-          reversedNodes.push(item);
+          childNodes.forEach((node) => {
+            const nodeName = node.nodeName.toLowerCase();
 
-          if (item.nodeType === Node.ELEMENT_NODE) {
-            const element = item as Element;
-            if (blockManager.getRealType(element.localName))
-              isCreateBlocks = true;
-          }
-        });
-
-        if (isCreateBlocks) reversedNodes = reversedNodes.reverse();
-
-        reversedNodes.forEach((item: Node) => {
-          if (isCreateBlocks) {
-            if (item.nodeType === Node.TEXT_NODE) {
-              if (!isEmptyString(item?.textContent || "")) {
-                blockManager.createBlock(defBlock, -1, {
-                  content: item?.textContent || ""
-                });
+            if (node.nodeType === Node.TEXT_NODE) {
+              if (!isEmptyString(node?.textContent || '')) {
+                nodes.push(node);
               }
-            } else if (item.nodeType === Node.ELEMENT_NODE) {
-              const tagName = item.nodeName.toLowerCase(),
-                realName =
-                  blockManager.getRealType(tagName) ||
-                  blockManager.getRealType(defBlock) ||
-                  "p";
-
-              if (realName) {
-                const html = (item as Element)?.innerHTML;
-                if (!isEmptyString(html)) {
-                  blockManager.createBlock(realName, -1, {
-                    content: html
-                  });
-                }
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              if (blockManager.getRealType(nodeName)) {
+                blockNodes.push(node)
+              } else {
+                nodes.push(node)
               }
             }
+          });
+
+          if (blockNodes.length === 1 && !nodes.length) {
+            getChildNodes(blockNodes[0]).forEach((node) => {
+              nodes.push(node)
+            })
+
+            blockNodes = [];
           }
-        });
 
-        blockManager.detectEmpty();
-      } else {
-        const plainText = evt.clipboardData.getData("text/plain");
+          if (isCustomPaste) {
+            model.onPaste(evt, nodes, blockNodes);
+          } else {
+            if (blockNodes.length) {
+              if (model.isRaw()) {
+                selectionApi.insertText(
+                  encodeHtmlSpecialChars(
+                    getText(blockNodes)
+                  )
+                );
+                model.sanitize();
+                model.normalizeContainer();
+              } else {
+                const allModels = blockManager.getBlockModels(),
+                  currentIndex = blockManager.getIndex(),
+                  isEmpty = blockManager.isEmpty();
 
-        selectionApi.insertText(encodeHtmlSpecialChars(plainText));
+                let nextIndex = currentIndex === 0 && isEmpty ? 0 : currentIndex + 1;
+
+                allModels.forEach((blockModel) => {
+                  blockNodes.forEach((node: Node) => {
+                    const nodeName = node.nodeName.toLowerCase();
+                    const realName = blockManager.getRealType(nodeName) ||
+                      blockManager.getRealType(defBlock) ||
+                      "p";
+
+                    if (blockModel.types.includes(realName)) {
+                      const curModel = blockModel.model;
+                      let newBlock: BlockNode | null = null;
+
+                      if (curModel.isEditable() && !curModel.isEditableItems()) {
+                        const html = (node as Element)?.innerHTML;
+                        newBlock = blockManager.createBlock(realName, nextIndex, {
+                          content: html
+                        });
+                        nextIndex++;
+                      } else if (!curModel.isEditable() && curModel.isEditableItems()) {
+                        const items: BlockCreateItemsContent[] = [];
+
+                        getChildNodes(node).forEach((child: Node) => {
+                          const childNodeName = child.nodeName.toLowerCase(),
+                            relatedTypes = [
+                              curModel.getItemType(),
+                              ...curModel.getItemRelatedTypes()
+                            ];
+
+                          if (relatedTypes.includes(childNodeName)) {
+                            items.push({
+                              type: curModel.getItemType(),
+                              data: getChildNodes(child)
+                            })
+                          }
+                        });
+
+                        if (items) {
+                          newBlock = blockManager.createBlock(realName, nextIndex, {
+                            content: items
+                          });
+                          nextIndex++;
+                        }
+                      }
+
+                      if (newBlock) {
+                        const newModel = newBlock.blockModel;
+                        newModel.sanitize();
+                        newModel.normalizeContainer();
+                      }
+                    }
+                  })
+                });
+
+                blockManager.focus(nextIndex);
+              }
+            } else if (nodes.length) {
+              if (model.isRaw()) {
+                selectionApi.insertText(
+                  encodeHtmlSpecialChars(getText(nodes))
+                );
+              } else {
+                selectionApi.insert(toHtml(nodes));
+              }
+
+              model.sanitize();
+              model.normalizeContainer();
+            }
+          }
+          const index = blockManager.getIndex()
+          blockManager.focus(index);
+        }
       }
+
+      this.change({
+        type: "paste",
+        event: evt
+      });
+
+      this.trigger("onPasteEnd", { domEvent: evt });
     }
-
-    this.change({
-      type: "paste",
-      event: evt
-    });
-
-    currentModel?.sanitize();
-    this.trigger("onPasteEnd", { domEvent: evt });
-    historyManager.save();
   }
 
   /**
@@ -686,7 +745,6 @@ export default class Events implements EventsInterface {
   private onSelectionChangeHandle(evt: Event) {
     const {
       api,
-      actions,
       blockManager,
       selectionApi,
       toolbar
@@ -712,9 +770,7 @@ export default class Events implements EventsInterface {
                   ? model.getItemBody(-1)
                   : null;
 
-
               this.setIndex(index);
-              actions.render();
 
               const element = blockItem || contentNode,
                 [start, end] = selectionApi.getOffset(element);

@@ -27,7 +27,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
       editable: true,
       emptyDetect: true,
       sanitizer: false,
-      rawOutput: true,
+      raw: true,
       enterCreate: false,
       convertible: true,
       languages: Languages,
@@ -64,17 +64,17 @@ export default class Code extends BlockModel implements BlockModelInterface {
 
       if (blockNode) {
         const languages = this.getConfig('languages', {}) as LanguageNames;
-        
+
         const getLanguageName = (key: string): string => {
           return languages[key] || notSpecified;
         };
-        
+
         const updateName = (name: string = notSpecified) => {
           query('.' + cssName + '-lang-link-name', (lnk: HTMLLinkElement) => {
             lnk.textContent = name
           }, blockNode)
         };
-        
+
         const languageWrap = make('div', (wrap: HTMLDivElement) => {
           addClass(wrap, cssName + '-lang');
 
@@ -93,12 +93,12 @@ export default class Code extends BlockModel implements BlockModelInterface {
                     on(input, 'input.codeLang', (inputEvt: KeyboardEvent) => {
                       inputEvt.preventDefault();
                       const text = input.value.toLowerCase().trim();
-                      
+
                       query("." + cssName + "-menu-item", (searchItem: HTMLDivElement) => {
                         if (text) {
                           const itemText = searchItem.textContent?.toLowerCase() || '';
                           const itemKey = searchItem.dataset.langKey || '';
-                          
+
                           if (!itemText.includes(text) && !itemKey.includes(text)) {
                             css(searchItem, 'display', 'none');
                           } else {
@@ -234,12 +234,6 @@ export default class Code extends BlockModel implements BlockModelInterface {
         }
       });
     }
-  }
-
-  onPaste(evt: Event, input: Element | null): void {
-    evt.preventDefault();
-    const { selectionApi } = this.editor;
-    selectionApi.insertText(input?.innerHTML || '', true)
   }
 
   save(block: BlockOutput, blockNode?: BlockNode): BlockOutput {

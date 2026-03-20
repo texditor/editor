@@ -5,7 +5,9 @@ import type {
   SanitizerConfig,
   BlockModelConfig,
   BlockModelInterface,
-  SortableInerface
+  SortableInerface,
+  BlockCreateOptions,
+  BlockCreateItemsContent
 } from "@/types";
 import {
   addClass,
@@ -15,8 +17,10 @@ import {
   getLength,
   html,
   make,
+  prepend,
   query,
-  queryList
+  queryList,
+  toHtml
 } from "@/utils/dom";
 import Sanitizer from "../security/sanitizer";
 import { renderIcon } from "@/utils/icon";
@@ -33,11 +37,13 @@ export default class BlockModel implements BlockModelInterface {
   private config: Partial<BlockModelConfig> = {
     autoMerge: true,
     autoParse: true,
+    autoPaste: true,
     icon: "",
     translationCode: "",
     groupCode: '',
     itemTagName: 'li',
     itemType: 'li',
+    itemRelatedTypes: [],
     itemClassName: "",
     itemBodyClassName: "",
     backspaceRemove: true,
@@ -48,7 +54,7 @@ export default class BlockModel implements BlockModelInterface {
     editableItems: false,
     singleItem: false,
     enterCreate: true,
-    rawOutput: false,
+    raw: false,
     sanitizer: false,
     sanitizerConfig: {},
     tagName: "div",
@@ -114,10 +120,37 @@ export default class BlockModel implements BlockModelInterface {
     return this.config;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  create(options?: object | null): BlockNode | HTMLElement | null {
-    return null;
+  create(options?: BlockCreateOptions): HTMLElement {
+    if (!this.isEditable() && this.isEditableItems()) {
+      return this.make(
+        this.getTagName(),
+        ({ contentNode }: { contentNode: HTMLElement }) => {
+
+          let content = options?.content || {};
+
+          if (!options?.content) {
+            append(contentNode, this.makeItemNode());
+          } else if (Array.isArray(content) && content.length) {
+            content.forEach((item: BlockCreateItemsContent) => {
+              if (item.data && Array.isArray(item.data)) {
+                const data = toHtml(item.data);
+                append(contentNode, this.makeItemNode(data));
+              }
+            })
+          }
+        }
+      );
+    }
+
+    return this.make(
+      this.getTagName(),
+      ({ contentNode }: { contentNode: HTMLElement }) => {
+        if (options?.content && typeof options.content === 'string')
+          contentNode.innerHTML = options.content;
+      }
+    );
   }
+
 
   protected make(
     tagName: string,
@@ -153,8 +186,7 @@ export default class BlockModel implements BlockModelInterface {
     })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  parse(item: BlockOutput): HTMLElement | BlockNode | null {
+  parse(_item: BlockOutput): HTMLElement | BlockNode | null {
     return null;
   }
 
@@ -252,6 +284,10 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("autoParse", true);
   }
 
+  isAutoPaste(): boolean {
+    return this.getConfig("autoPaste", true);
+  }
+
   isEnterCreate(): boolean {
     return this.getConfig("enterCreate", true);
   }
@@ -311,8 +347,8 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("singleItem", false);
   }
 
-  isRawOutput(): boolean {
-    return this.getConfig("rawOutput");
+  isRaw(): boolean {
+    return this.getConfig("raw");
   }
 
   isNormalize(): boolean {
@@ -416,6 +452,10 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("itemType", "li");
   }
 
+  getItemRelatedTypes(): string[] {
+    return this.getConfig("itemRelatedTypes", []);
+  }
+
   isSortableItems(): boolean {
     return this.getConfig("sortableItems", false);
   }
@@ -447,7 +487,7 @@ export default class BlockModel implements BlockModelInterface {
     });
   }
 
-  makeItemNode(content?: string): HTMLElement {
+  makeItemNode(content: string = ''): HTMLElement {
     const tagName = this.getItemTagName(),
       type = this.getItemType(),
       className = this.getItemClassName(),
@@ -458,8 +498,11 @@ export default class BlockModel implements BlockModelInterface {
       el.id = this.getId() + "-" + type + "-" + generateRandomString(8);
 
       const body = make('div', (div: HTMLDivElement) => {
-        addClass(div, bodyClassName)
-        attr(div, 'contenteditable', 'true');
+        addClass(div, bodyClassName);
+
+        if (this.isEditableItems())
+          attr(div, 'contenteditable', 'true');
+
         html(div, isEmptyString(content ?? "") ? "<br>" : content || "")
       });
 
@@ -474,21 +517,37 @@ export default class BlockModel implements BlockModelInterface {
 
   createItem(
     content?: string,
-    index?: number,
+    index: number = -1,
   ): boolean {
     const contentNode = this.getContentNode();
 
     if (!contentNode)
       return false;
 
-    const item = this.getItem(index === undefined ? -1 : index);
-
     const itemNode = this.makeItemNode(content);
 
-    if (!item)
-      append(contentNode, itemNode);
-    else {
-      after(item, itemNode);
+    if (index === 0) {
+      prepend(contentNode, itemNode)
+    } else if (index === -1) {
+      const item = this.getItem(-1);
+
+      if (item)
+        after(item, itemNode);
+      else
+        append(contentNode, itemNode);
+    } else {
+      const prevIndex = index - 1;
+      if (prevIndex < 0) {
+        prepend(contentNode, itemNode);
+      } else {
+        const item = this.getItem(prevIndex);
+
+        if (item)
+          after(item, itemNode);
+        else {
+          append(contentNode, itemNode);
+        }
+      }
     }
 
     this.refreshSortableItems();
@@ -500,13 +559,21 @@ export default class BlockModel implements BlockModelInterface {
     return true;
   }
 
-  removeItem(index?: number): void {
-    const realIndex = index !== undefined ? index : this.getItemIndex()
-    const item = this.getItem(realIndex) as HTMLElement;
+  removeItem(index: number = -1): boolean {
+    const item = this.getItem(index) as HTMLElement;
 
-    if (item) {
-      item?.remove()
+    if (!item)
+      return false;
+
+    item.remove()
+
+    const length = this.getItemsLength();
+
+    if (!length) {
+      this.getBlockNode()?.remove()
     }
+
+    return true;
   }
 
   getItem(
@@ -573,15 +640,13 @@ export default class BlockModel implements BlockModelInterface {
     return index;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onCreate(newBlockNode?: BlockNode | null) { }
+  protected onCreate(_newBlockNode?: BlockNode | null) { }
 
   onRender(): void { }
 
   save(
     block: BlockOutput,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    node?: BlockNode
+    _blockNode?: BlockNode
   ): BlockOutput {
     return block;
   }
@@ -601,6 +666,8 @@ export default class BlockModel implements BlockModelInterface {
   getStore(key: string | null): unknown {
     return key === null ? this.store : this.store[key] || null;
   }
+
+  onPaste(_evt: Event, _input: Node[]): void { }
 
   beforeConvert(
     blockNode: BlockNode,

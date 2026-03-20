@@ -2,7 +2,6 @@ import type { TexditorInterface } from "@/types";
 import { addClass, append, make } from "@/utils/dom";
 import ToolbarView from "./toolbar";
 import BlocksView from "./blocks";
-import ActionsView from "./actions";
 import ExtensionsView from "./extensions";
 
 export default function MainView(editor: TexditorInterface): HTMLElement {

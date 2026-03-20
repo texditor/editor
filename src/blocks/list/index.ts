@@ -56,19 +56,4 @@ export default class List extends BlockModel implements BlockModelInterface {
       }
     };
   }
-
-  create(options?: ListCreateOptions): HTMLElement {
-    return this.make(
-      this.getTagName(),
-      ({ contentNode }: { contentNode: HTMLElement }) => {
-        let content = options?.content || '';
-
-        if (!content) {
-          content = this.makeItemNode('').outerHTML;
-        }
-
-        contentNode.innerHTML = content;
-      }
-    );
-  }
 }

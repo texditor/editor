@@ -2,7 +2,6 @@ import type {
   HistoryState,
   HistoryStateSelectionData,
   HistoryManagerInterface,
-  TexditorEvent,
   TexditorInterface
 } from "@/types";
 

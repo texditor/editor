@@ -4,10 +4,11 @@ import type {
   BlockModelStructure,
   BlockOutputData,
   BlockOutput,
-  TexditorInterface
+  TexditorInterface,
+  BlockCreateItemsContent
 } from "@/types";
 import { decodeHtmlSpecialChars } from "@/utils/common";
-import { appendText, append, attr, make } from "@/utils/dom";
+import { appendText, append, attr, make, getChildNodes } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 
 export default class Parser implements ParserInterface {
@@ -63,9 +64,6 @@ export default class Parser implements ParserInterface {
 
           if (node.nodeType === Node.TEXT_NODE) {
             const text = node.textContent;
-
-            events.trigger("htmlToDataTextOutput", { text: text });
-
             if (text?.trim()) result.push(text);
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
@@ -102,7 +100,6 @@ export default class Parser implements ParserInterface {
               outData.attr = objAttr;
             }
 
-            events.trigger("htmlToDataElementOutput", outData);
             result.push(outData);
           }
         });
@@ -142,20 +139,31 @@ export default class Parser implements ParserInterface {
 
                 if (isEditableItems) {
                   const blockData = (item?.data || []) as BlockOutput[];
-                  const tempBlock = make(blockModel.getTagName());
 
                   if (blockData.length) {
+                    const items: BlockCreateItemsContent[] = [];
                     blockData.forEach(li => {
-                      const nodes = this.parseChilds(li);
-                      const tempItem = make(blockModel.getItemTagName());
-                      append(tempItem, nodes);
-                      append(tempBlock, blockModel.makeItemNode(tempItem.innerHTML));
-                    });
-                  }
+                      if (li.type && li.data) {
+                        const nodes = this.parseChilds(li),
+                          itemData: BlockCreateItemsContent = {
+                            type: li.type,
+                            data: nodes
+                          };
 
-                  elBlock = blockModel.create({
-                    content: tempBlock.innerHTML || ''
-                  });
+                        if (li.attr && Object.keys(li.attr).length) {
+                          itemData.attr = li.attr;
+                        }
+
+                        items.push(itemData);
+                      }
+                    });
+
+                    if (items) {
+                      elBlock = blockModel.create({
+                        content: items
+                      })
+                    }
+                  }
                 } else
                   elBlock = blockModel.create();
 
@@ -248,14 +256,29 @@ export default class Parser implements ParserInterface {
       if (block?.attr) {
         for (const attrKey in block.attr) {
           if (block.attr[attrKey] !== undefined) {
-            attr(element, attrKey, decodeHtmlSpecialChars(block.attr[attrKey]));
+            const attribute = block.attr[attrKey];
+
+            if (typeof attribute === 'boolean' || typeof attribute === 'number') {
+              attr(
+                element,
+                attrKey,
+                attribute
+              );
+            }
+            else {
+              attr(
+                element,
+                attrKey,
+                decodeHtmlSpecialChars(attribute.toString())
+              );
+            }
           }
         }
       }
 
-      return childRender ? element : Array.from(element.childNodes);
+      return childRender ? element : getChildNodes(element);
     } else {
-      return Array.from(make("div")?.childNodes);
+      return [];
     }
   }
 

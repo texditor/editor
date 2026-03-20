@@ -53,14 +53,6 @@ export default class Toolbar implements ToolbarInterface {
     }
   }
 
-  render() {
-    const { events } = this.editor;
-
-    events.trigger("toolbar:render");
-    this.hide();
-    events.trigger("toolbar:render:end");
-  }
-
   show(fixed: boolean = true) {
     const { api, blockManager, selectionApi } = this.editor,
       root = api.getRoot(),
@@ -77,7 +69,7 @@ export default class Toolbar implements ToolbarInterface {
           const toggleTool = (display: string = "") => {
             query(
               ".tex-tool",
-              (tool: HTMLElement) => (tool.style.display = display),
+              (tool: HTMLElement) => css(tool, 'display', display),
               el
             );
           };
@@ -89,7 +81,7 @@ export default class Toolbar implements ToolbarInterface {
             tools.forEach((name: string) => {
               query(
                 ".tool-name-" + name,
-                (tool: HTMLElement) => (tool.style.display = ""),
+                (tool: HTMLElement) => css(tool, 'display', ''),
                 el
               );
             });
@@ -196,8 +188,8 @@ export default class Toolbar implements ToolbarInterface {
     }
   }
 
-  register(action: ToolModelInstanceInterface) {
-    this.tools.push(action);
+  register(tool: ToolModelInstanceInterface) {
+    this.tools.push(tool);
   }
 
   apply() {
@@ -206,20 +198,20 @@ export default class Toolbar implements ToolbarInterface {
 
     if (root) {
       this.tools.forEach((ToolClass: ToolModelInstanceInterface) => {
-        const action = new ToolClass(this.editor);
+        const tool = new ToolClass(this.editor);
 
-        if (action?.create) {
-          const actionElement = action.create();
+        if (tool?.create) {
+          const toolElement = tool.create();
 
           query(
             cssName + " " + cssName + "-tools",
             (el: HTMLElement) => {
-              append(el, actionElement);
+              append(el, toolElement);
             },
             root
           );
 
-          if (action.applyEvents) action.applyEvents();
+          if (tool.applyEvents) tool.applyEvents();
         }
       });
     }
@@ -228,10 +220,11 @@ export default class Toolbar implements ToolbarInterface {
   destroy() {
     const { api } = this.editor,
       uniqueId = api.getUniqueId();
-    this.tools.forEach((ToolClass: ToolModelInstanceInterface) => {
-      const action = new ToolClass(this.editor);
 
-      if (action.destroy) action.destroy();
+    this.tools.forEach((ToolClass: ToolModelInstanceInterface) => {
+      const tool = new ToolClass(this.editor);
+
+      if (tool.destroy) tool.destroy();
     });
 
     off(window, "resize." + uniqueId);

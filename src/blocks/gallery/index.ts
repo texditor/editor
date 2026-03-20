@@ -186,8 +186,7 @@ export default class Gallery extends Files {
 
   protected onSaveItem(
     item: FileItem,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    el: HTMLElement
+    _el: HTMLElement
   ): FileItem {
     if (item.size) delete item.size;
 

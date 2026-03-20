@@ -65,12 +65,8 @@ export default class ToolModel implements ToolModelInterface {
     this.format(true);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) { }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onAfterFormat(tags: HTMLElement[]): void { }
-
+  onClick(_evt: Event) { }
+  onAfterFormat(_tags: HTMLElement[]): void { }
   handleClick(evt: Event): void {
     const { events } = this.editor;
 

@@ -9,7 +9,7 @@ export interface ActionModelInterface {
   applyEvents?(): void;
   onClick(evt: Event): void;
   getId(): string;
-  getBlockNode(): HTMLElement | null;
+  getNode(): HTMLElement | null;
   getName(): string;
   isVisible(): boolean;
   menuConfig(): {

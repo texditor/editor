@@ -11,9 +11,9 @@ import {
   append,
   findDatasetsWithPrefix
 } from "@/utils/dom";
-import { isEmptyString } from "@/utils/string";
 import MainView from "@/views/main";
 import { generateRandomString } from "@/utils/common";
+import { isEmptyString, sanitizeJson } from "@/utils";
 
 export default class API implements APIInterface {
   /** Reference to the main editor instance */
@@ -64,6 +64,7 @@ export default class API implements APIInterface {
    * @throws Error if editor ID is not found
    */
   render(): void {
+    const { config } = this.editor;
     const editorId = this.editor.config.get("handle", "texditor");
 
     if (!queryLength("#" + editorId))
@@ -77,6 +78,13 @@ export default class API implements APIInterface {
     });
 
     if (editorElement) {
+      const initalData = config.get('initalData', []) as string | BlockOutput[];
+      this.setContent(
+        initalData,
+        config.get("autofocus", true) ? 0 : -1,
+        config.get('autofocusDelay', 10)
+      );
+
       query(
         ".tex-block",
         (item: HTMLElement) => {
@@ -98,23 +106,57 @@ export default class API implements APIInterface {
 
   /**
    * Sets the editor content
-   * @param content - Array of block outputs to set
+   * @param content - A JSON string or an array of block output data
    * @param index - Optional block index to set as active
+   * @param focusDelay - Focus delay
    */
-  setContent(content: BlockOutput[], index: number | null = null): void {
-    const { blockManager, parser } = this.editor;
+  setContent(
+    content: string | BlockOutput[],
+    index: number = 0,
+    focusDelay: number = 0
+  ): void {
+    const { blockManager, config, events, parser } = this.editor;
     const container = blockManager.getBlocksContainer();
+
+    let data = [{
+      type: config.get("defaultBlock", "p"),
+      data: [""]
+    }];;
+
+    try {
+      data = typeof content === "string"
+        ? isEmptyString(content)
+          ? []
+          : JSON.parse(sanitizeJson(content.trim()) || "")
+        : content;
+    } catch (e) {
+      console.warn(
+        "The input data is not supported or contains errors when working with JSON",
+        e
+      );
+    }
 
     if (container) {
       container.innerHTML = "";
+      const blocks = parser.parseBlocks(data, true),
+        realIndex = index ? index : 0;
 
-      const blocks = parser.parseBlocks(content, true);
       append(container, blocks);
-
-      if (index !== null) blockManager.use(index);
-
       blockManager.detectEmpty(false);
       blockManager.normalize();
+      events.refresh();
+      if (index !== -1) {
+        setTimeout(() => {
+          blockManager.use(realIndex);
+          blockManager.focus(realIndex);
+        }, focusDelay || 0)
+      }
+
+      events.change({
+        type: "setContent",
+        container: container,
+        index: realIndex
+      })
     }
   }
 
@@ -169,7 +211,7 @@ export default class API implements APIInterface {
                 }
               }
 
-              if (model.isRawOutput()) {
+              if (model.isRaw()) {
                 block.data = [contentNode.innerText];
               } else {
                 const parsedData = parser.htmlToData(contentNode.innerHTML);

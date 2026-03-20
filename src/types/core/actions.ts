@@ -13,9 +13,6 @@ export interface ActionsInterface {
   show(): void;
   hide(): void;
 
-  // Render and reposition methods
-  render(): void;
-
   // Cleanup method
   destroy(): void;
 }

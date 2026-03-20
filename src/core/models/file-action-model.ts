@@ -42,10 +42,7 @@ export default class FileActionModel implements FileActionModelInterface {
   }
 
   onLoad(): void { }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) { }
-
+  onClick(_evt: Event) { }
   onCreate(el: HTMLElement): HTMLElement {
     return el;
   }

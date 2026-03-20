@@ -351,40 +351,35 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
   protected onSaveBefore(
     block: BlockOutput,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockNode: HTMLElement | BlockNode | null
+    _blockNode: HTMLElement | BlockNode | null
   ): BlockOutput {
     return block;
   }
 
   protected onSaveAfter(
     block: BlockOutput,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockNode: HTMLElement | BlockNode | null
+    _blockNode: HTMLElement | BlockNode | null
   ): BlockOutput {
     return block;
   }
 
   protected onSaveItem(
     item: FileItem,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    el: HTMLElement
+    _el: HTMLElement
   ): FileItem {
     return item;
   }
 
   protected onCreateItemBefore(
     item: FileItem,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    el: HTMLElement
+    _el: HTMLElement
   ) {
     return item;
   }
 
   protected onCreateItemAfter(
     item: FileItem,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    el: HTMLElement
+    _el: HTMLElement
   ) {
     return item;
   }

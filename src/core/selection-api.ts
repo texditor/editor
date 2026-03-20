@@ -1,9 +1,11 @@
 import type {
   CurrentSelectionData,
   CursorPosition,
+  SelectionAPIInterface,
   TexditorInterface
 } from "@/types";
-export default class SelectionAPI {
+import { getChildNodes, make, html } from "@/utils";
+export default class SelectionAPI implements SelectionAPIInterface {
   private editor: TexditorInterface;
   private currentData: CurrentSelectionData = {
     position: {
@@ -159,7 +161,11 @@ export default class SelectionAPI {
     selection.addRange(range);
   }
 
-  insertText(content: string, stripTags = true): boolean {
+  insert(
+    content: string,
+    isHtml = true,
+    strip = true
+  ): boolean {
     const selection = this.getSelection(),
       activeElement = document.activeElement as HTMLElement;
 
@@ -172,17 +178,32 @@ export default class SelectionAPI {
       if (!range) return false;
 
       range.deleteContents();
-      const div = document.createElement("div");
-      div.innerHTML = content;
+      const div = make("div", (div: HTMLDivElement) => {
+        html(div, content);
+      });
 
-      range.insertNode(
-        document.createTextNode(stripTags ? div.textContent || "" : content)
-      );
+      if (isHtml) {
+        getChildNodes(div).reverse().forEach((node) => {
+          range.insertNode(node)
+        })
+      } else {
+        range.insertNode(
+          document.createTextNode(
+            strip
+              ? div.textContent || ""
+              : content
+          )
+        );
+      }
 
       return true;
     }
 
     return false;
+  }
+
+  insertText(content: string, stripTags = true): boolean {
+    return this.insert(content, false, stripTags);
   }
 
   splitContent(container?: HTMLElement | null): string {

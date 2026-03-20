@@ -14,7 +14,14 @@ export interface BlockOutput {
   [key: string]: unknown;
 }
 
+export interface BlockCreateItemsContent {
+  type: string;
+  data: string | Node | Node[],
+  attr?: Record<string, string | undefined>;
+}
+
 export interface BlockCreateOptions {
-  content?: string;
+  content?: string | BlockCreateItemsContent[];
+  lang?: string;
   [key: string]: unknown;
 }

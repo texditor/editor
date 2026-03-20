@@ -41,13 +41,4 @@ export default class Paragraph
       }
     };
   }
-
-  create(options?: ParagraphCreateOptions): HTMLElement {
-    return this.make(
-      this.getTagName(),
-      ({ contentNode }: { contentNode: HTMLElement }) => {
-        if (options?.content) contentNode.innerHTML = options.content;
-      }
-    );
-  }
 }

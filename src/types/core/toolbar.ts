@@ -12,7 +12,5 @@ export interface ToolbarInterface {
   // Tool highlighting
   highlightActiveTools(): void;
 
-  // Render and cleanup methods
-  render(): void;
   destroy(): void;
 }

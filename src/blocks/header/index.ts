@@ -1,7 +1,8 @@
 import type {
   BlockModelInterface,
   HeaderCreateOptions,
-  BlockNode
+  BlockNode,
+  BlockCreateOptions
 } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import { IconHeader1 } from "@/icons";
@@ -40,15 +41,5 @@ export default class Header extends BlockModel implements BlockModelInterface {
         }
       }
     };
-  }
-
-  create(options?: HeaderCreateOptions): BlockNode | HTMLElement {
-    const block = this.make(this.getTagName(), ({ contentNode }: { contentNode: HTMLElement }) => {
-      if (options?.content) {
-        contentNode.innerHTML = options.content;
-      }
-    });
-
-    return block;
   }
 }

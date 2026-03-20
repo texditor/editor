@@ -40,11 +40,12 @@ export interface APIInterface {
   isEmpty(): boolean;
 
   /**
-   * Sets the editor content from serialized block data
-   * @param content - Array of block output objects representing the new content
-   * @param index - Optional block index to set as active after loading
+   * Sets the editor content
+   * @param content - A JSON string or an array of block output data
+   * @param index - Optional block index to set as active
+   * @param focusDelay - Focus delay
    */
-  setContent(content: BlockOutput[], index?: number | null): void;
+  setContent(content: string | BlockOutput[], index?: number, focusDelay?: number): void;
 
   /**
    * Gets the current editor content as serialized block data

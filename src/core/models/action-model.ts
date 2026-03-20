@@ -22,11 +22,11 @@ export default class ActionModel implements ActionModelInterface {
     this.editor = editor;
     this.onLoad();
     this.editor.events.add("actions:render:end", () => {
-      const blockNode = this.getBlockNode();
+      const node = this.getNode();
 
-      if (blockNode) {
+      if (node) {
         css(
-          blockNode,
+          node,
           'display',
           !this.isVisible() ? "none" : ""
         );
@@ -36,8 +36,9 @@ export default class ActionModel implements ActionModelInterface {
 
   onLoad(): void { }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: Event) { }
+  onClick(evt: Event) {
+    evt.preventDefault();
+  }
 
   menuConfig(): {
     title: string;
@@ -54,7 +55,7 @@ export default class ActionModel implements ActionModelInterface {
     const { actions, i18n, toolbar } = this.editor;
 
     if (this.confirm) {
-      const element = this.getBlockNode(),
+      const element = this.getNode(),
         cssName = "tex-action";
 
       setTimeout(() => {
@@ -117,7 +118,7 @@ export default class ActionModel implements ActionModelInterface {
     return ("tex-action" + "-" + this.getName() + "-" + this.randomId);
   }
 
-  getBlockNode(): HTMLElement | null {
+  getNode(): HTMLElement | null {
     return document.getElementById(this.getId());
   }
 
@@ -167,7 +168,7 @@ export default class ActionModel implements ActionModelInterface {
   }
 
   applyEvents() {
-    const element = this.getBlockNode();
+    const element = this.getNode();
 
     this.handleClick = this.handleClick.bind(this);
 

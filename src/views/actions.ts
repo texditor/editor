@@ -1,9 +1,12 @@
 import { IconBars } from "@/icons";
 import { TexditorInterface } from "@/types";
+import { on } from "@/utils";
 import { append, make, html, addClass } from "@/utils/dom";
 import { renderIcon } from "@/utils/icon";
 
 export default function ActionsView(editor: TexditorInterface): HTMLElement {
+  const { actions } = editor;
+
   return make("div", (el: HTMLElement) => {
     const className = "tex-actions";
 
@@ -23,6 +26,7 @@ export default function ActionsView(editor: TexditorInterface): HTMLElement {
                 height: 14
               })
             );
+            on(btn, 'click.open', actions.show)
           })
         );
         append(

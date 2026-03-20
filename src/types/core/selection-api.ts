@@ -25,6 +25,7 @@ export interface SelectionAPIInterface {
     container?: Element,
     scrollToContainer?: boolean
   ): void;
+  insert(content: string, isHtml?: boolean, strip?: boolean): boolean
   insertText(content: string, cleanHtml?: boolean): boolean;
   splitContent(container?: HTMLElement | null): string;
   findTags(

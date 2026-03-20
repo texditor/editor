@@ -4,7 +4,7 @@ import type {
   TexditorInterface,
   BlockNode
 } from "@/types";
-import { append, closest, css, make, prepend, query } from "@/utils/dom";
+import { append, closest, css, html, make, prepend, query } from "@/utils/dom";
 import { off, on } from "@/utils/events";
 import DeleteAction from "@/actions/delete-action";
 import MoveUpAction from "@/actions/moveup-action";
@@ -44,14 +44,6 @@ export default class Actions implements ActionsInterface {
     }
   }
 
-  render() {
-    const { events } = this.editor;
-
-    events.trigger("actions:render");
-    this.hide();
-    events.trigger("actions:render:end");
-  }
-
   private handleClose(evt: Event) {
     const { api, events } = this.editor,
       root = api.getRoot(),
@@ -77,14 +69,12 @@ export default class Actions implements ActionsInterface {
         root
       );
 
-      query(
-        cssName + "-container > " + cssAction + "-confirm",
+      query(cssAction + "-confirm",
         (el: HTMLElement) => el.remove(),
         root
       );
 
-      query(
-        cssName + "-container > " + cssAction + "-verifiable",
+      query(cssAction + "-verifiable",
         (el: HTMLElement) => css(el, 'display', ''),
         root
       );
@@ -101,7 +91,7 @@ export default class Actions implements ActionsInterface {
         query(
           cssName + "-container",
           (div: HTMLElement) => {
-            div.style.display = "none";
+            css(div, 'display', 'none');
           },
           el
         );
@@ -119,7 +109,7 @@ export default class Actions implements ActionsInterface {
             items.forEach((item) => {
               append(div, item);
             });
-            div.style.display = "block";
+            css(div, 'display', 'block');
           },
           el
         );
@@ -132,7 +122,7 @@ export default class Actions implements ActionsInterface {
       query(
         cssName + "-container",
         (div: HTMLElement) => {
-          div.style.display = "";
+          css(div, 'display', '');
         },
         el
       );
@@ -167,12 +157,12 @@ export default class Actions implements ActionsInterface {
     this.hideMenu();
     this.wrap((el: HTMLElement, cssName: string) => {
       css(el, "display", "");
-      off(document, "click.actions");
+      off(document, "click.actions" + this.eventId);
       query(
         cssName + " " + cssName + "-menu",
         (div: HTMLElement) => {
-          div.innerHTML = "";
-          div.style.display = "";
+          html(div, '')
+          css(div, 'display', '');
         },
         el
       );
@@ -188,11 +178,9 @@ export default class Actions implements ActionsInterface {
       root = api.getRoot(),
       cssName = ".tex-actions";
 
-    if (root) {
-      query(cssName, (actions: HTMLElement) => {
-        actions.remove();
-      }, root)
+    this.removeActions();
 
+    if (root) {
       prepend(blockNode, ActionsView(this.editor));
 
       const actions = this.actions;
@@ -211,21 +199,36 @@ export default class Actions implements ActionsInterface {
             root
           );
 
+          const node = action.getNode();
+
+          if (node) {
+            css(
+              node,
+              'display',
+              !action.isVisible() ? "none" : ""
+            );
+          }
+
           if (action?.applyEvents) action.applyEvents();
         }
       });
+    }
+  }
 
-      query(
-        cssName + " " + cssName + "-open",
-        (el: HTMLElement) => {
-          on(el, "click.a", this.show);
-        },
-        root
-      );
+  private removeActions() {
+    const { blockManager } = this.editor,
+      container = blockManager.getBlocksContainer();
+
+    if (container) {
+      query('.tex-actions', (actions: HTMLElement) => {
+        off(actions, "click.open");
+        actions.remove();
+      }, container)
     }
   }
 
   destroy() {
+    this.removeActions();
     off(document, "click.actions" + this.eventId);
   }
 }

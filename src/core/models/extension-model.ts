@@ -3,7 +3,6 @@ import type {
   ExtensionModelInterface,
   ExtensionNode,
   RenderIconContent,
-  TexditorEvent,
   TexditorInterface
 } from "@/types";
 import { generateRandomString } from "@/utils/common";
@@ -36,8 +35,7 @@ export default class ExtensionModel implements ExtensionModelInterface {
 
   onLoad(): void { }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClick(evt: CustomEvent): void { }
+  onClick(_evt: CustomEvent): void { }
 
   handleClick(evt: CustomEvent) {
     if (this.toggleActive) {
