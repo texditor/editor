@@ -22,7 +22,7 @@ export default class HistoryManager implements HistoryManagerInterface {
   /**
    * Schedule state saving with interval-based debouncing
    */
-  public scheduleSave(): void {
+  scheduleSave(): void {
     if (this.isRestoring) return;
 
     if (this.saveTimer) {
@@ -38,7 +38,7 @@ export default class HistoryManager implements HistoryManagerInterface {
   /**
    * Immediately save the current editor state
    */
-  public save(): void {
+  save(): void {
     if (this.isRestoring) return;
 
     if (this.saveTimer) {
@@ -53,7 +53,7 @@ export default class HistoryManager implements HistoryManagerInterface {
    * Perform the actual state saving operation
    */
   private doSave(): void {
-    const { api, blockManager } = this.editor;
+    const { api, blockManager, events } = this.editor;
 
     try {
       const content = api.getContent(),
@@ -88,7 +88,7 @@ export default class HistoryManager implements HistoryManagerInterface {
         this.currentState = state;
         this.future = [];
 
-        this.editor.events.change({
+        events.change({
           type: "historySave",
           state: this.currentState,
           history: this.history,
@@ -157,7 +157,7 @@ export default class HistoryManager implements HistoryManagerInterface {
    * Undo the last operation
    * @returns True if undo was successful, false otherwise
    */
-  public undo(): boolean {
+  undo(): boolean {
     if (this.history.length === 0) {
       return false;
     }
@@ -170,13 +170,7 @@ export default class HistoryManager implements HistoryManagerInterface {
       }
 
       this.currentState = this.history.pop()!;
-      this.restoreState(this.currentState);
-      this.editor.events.change({
-        type: "undo",
-        state: this.currentState,
-        history: this.history,
-        future: this.future
-      });
+      this.restoreState("undo", this.currentState);
 
       return true;
     } catch (error) {
@@ -190,7 +184,7 @@ export default class HistoryManager implements HistoryManagerInterface {
    * Redo the previously undone operation
    * @returns True if redo was successful, false otherwise
    */
-  public redo(): boolean {
+  redo(): boolean {
     if (this.future.length === 0) {
       return false;
     }
@@ -203,13 +197,7 @@ export default class HistoryManager implements HistoryManagerInterface {
       }
 
       this.currentState = this.future.pop()!;
-      this.restoreState(this.currentState);
-      this.editor.events.change({
-        type: "redo",
-        state: this.currentState,
-        history: this.history,
-        future: this.future
-      });
+      this.restoreState("redo", this.currentState);
 
       return true;
     } catch (error) {
@@ -222,7 +210,7 @@ export default class HistoryManager implements HistoryManagerInterface {
   /**
    * Clear all history and future states
    */
-  public clear(): void {
+  clear(): void {
     this.history = [];
     this.future = [];
     this.currentState = null;
@@ -252,64 +240,28 @@ export default class HistoryManager implements HistoryManagerInterface {
 
   /**
    * Restore editor to a specific historical state
-   * @param state - The history state to restore
+   * @param type - Type of action
+   * @param state - Current state of history
    */
-  private restoreState(state: HistoryState, focusIndex?: number): void {
-    const { api, blockManager } = this.editor;
+  private restoreState(type: string, state: HistoryState): void {
+    const { api } = this.editor;
 
-    api.setContent(state.content);
-
-    const targetIndex =
-      focusIndex !== undefined ? focusIndex : state.selection.index,
-      currentBlock = blockManager.getBlockNode(targetIndex);
-
-    if (currentBlock) {
-      const { selectionApi } = this.editor,
-        model = blockManager.getModel(targetIndex),
-        select = (elem: HTMLElement) => {
-          selectionApi.select(
-            state.selection.start,
-            state.selection.end,
-            elem,
-            true
-          );
-        };
-
-      if (model?.isEditable() && !model?.isEditableItems()) {
-        select(currentBlock);
-      } else {
-        if (
-          model?.isEditableItems() &&
-          state.selection.itemIndex != undefined
-        ) {
-          const item = model.getItem(state.selection.itemIndex);
-
-          if (item) {
-            select(item as HTMLElement);
-          }
-        } else {
-          currentBlock.click();
-          currentBlock.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
-        }
-      }
-    }
-
-    if (blockManager.isSelectionModeActive()) {
-      blockManager.disableSelectionMode();
-      blockManager.enableSelectionMode();
-    }
+    api.setContent(state.content, state.selection.index || 0);
 
     this.isRestoring = false;
+    this.editor.events.change({
+      type: type,
+      state: this.currentState,
+      history: this.history,
+      future: this.future
+    });
   }
 
   /**
    * Get history information for debugging purposes
    * @returns Object with history and future state counts
    */
-  public getHistoryInfo(): { history: number; future: number } {
+  getHistoryInfo(): { history: number; future: number } {
     return {
       history: this.history.length,
       future: this.future.length
@@ -320,7 +272,7 @@ export default class HistoryManager implements HistoryManagerInterface {
    * Check if undo operation is available
    * @returns True if undo is possible, false otherwise
    */
-  public canUndo(): boolean {
+  canUndo(): boolean {
     return this.history.length > 0;
   }
 
@@ -328,7 +280,7 @@ export default class HistoryManager implements HistoryManagerInterface {
    * Check if redo operation is available
    * @returns True if redo is possible, false otherwise
    */
-  public canRedo(): boolean {
+  canRedo(): boolean {
     return this.future.length > 0;
   }
 
@@ -336,7 +288,7 @@ export default class HistoryManager implements HistoryManagerInterface {
    * Set the save interval duration
    * @param interval - Interval duration in milliseconds
    */
-  public setSaveInterval(interval: number): void {
+  setSaveInterval(interval: number): void {
     this.saveInterval = interval;
   }
 }

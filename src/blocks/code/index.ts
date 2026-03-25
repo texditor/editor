@@ -8,7 +8,7 @@ import type {
 import BlockModel from "@/core/models/block-model";
 import { addClass, append, appendText, attr, closest, css, html, make, prepend, query } from "@/utils/dom";
 import { IconArrowDown, IconCode, IconCornerUpRight } from "@/icons";
-import Languages, { LanguageNames } from './languages';
+import CodeLanguages, { CodeLanguagesInterface } from './languages';
 import "@/styles/blocks/code.css";
 import { isEmptyString, off, on, renderIcon } from "@/utils";
 
@@ -17,7 +17,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
     return {
       autoParse: false,
       autoMerge: true,
-      tagName: "code",
+      tagName: "pre",
       translationCode: "code",
       type: "code",
       groupCode: 'code',
@@ -30,7 +30,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
       raw: true,
       enterCreate: false,
       convertible: true,
-      languages: Languages,
+      languages: CodeLanguages,
       showLanguages: true,
       customSave: true,
       search: true,
@@ -38,21 +38,34 @@ export default class Code extends BlockModel implements BlockModelInterface {
     };
   }
 
-  create(options?: CodeCreateOptions): BlockNode | HTMLElement {
-    return this.make("pre", ({
-      contentNode,
-      blockNode
-    }: {
-      contentNode: HTMLElement,
-      blockNode: BlockNode
-    }) => {
-      if (options?.lang)
-        attr(blockNode, 'data-lang', options.lang);
+  // create(options?: CodeCreateOptions): BlockNode | HTMLElement {
+  //   console.log(options, 334)
+  //   return this.make("pre", ({
+  //     contentNode,
+  //     blockNode
+  //   }: {
+  //     contentNode: HTMLElement,
+  //     blockNode: BlockNode
+  //   }) => {
+  //     if (options?.lang)
+  //       attr(blockNode, 'data-lang', options.lang);
 
-      this.init(blockNode)
+  //     this.init(blockNode)
 
-      if (options?.content) appendText(contentNode, options.content);
-    });
+  //     if (options?.content) appendText(contentNode, options.content);
+  //   });
+  // }
+
+  protected onCreate(_newBlockNode?: BlockNode | null): void {
+    if (_newBlockNode) {
+      const lang = this.getOption('lang');
+
+      if (lang) {
+        attr(_newBlockNode, 'data-lang', lang);
+      }
+
+      this.init(_newBlockNode);
+    }
   }
 
   private init(blockNode: BlockNode) {
@@ -63,7 +76,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
         notSpecified = i18n.get('notSpecified', 'Not specified');
 
       if (blockNode) {
-        const languages = this.getConfig('languages', {}) as LanguageNames;
+        const languages = this.getConfig('languages', {}) as CodeLanguagesInterface;
 
         const getLanguageName = (key: string): string => {
           return languages[key] || notSpecified;
@@ -251,7 +264,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
   }
 
   parse(item: BlockOutput) {
-    const languages = this.getConfig('languages', {}) as LanguageNames;
+    const languages = this.getConfig('languages', {}) as CodeLanguagesInterface;
     let lang = (item?.lang || '') as string;
 
     if (lang && !languages[lang])

@@ -9,7 +9,7 @@ import {
   query,
   removeClass
 } from "@/utils/dom";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 
 export default class Extensions implements ExtensionsInterface {
   /** Reference to the main editor instance */
@@ -68,15 +68,11 @@ export default class Extensions implements ExtensionsInterface {
         );
       };
 
-      // Remove any existing listeners
-      off(window, "scroll.ext" + this.eventId);
-      off(window, "scroll.ext" + this.eventId);
-      off(window, "scroll.ext" + this.eventId);
+      const eid = '.ext' + this.eventId;
 
-      // Add new listeners
-      on(window, "scroll.ext" + this.eventId, fixedExtensions);
-      on(window, "load.ext" + this.eventId, fixedExtensions);
-      on(window, "resize.ext" + this.eventId, fixedExtensions);
+      rebind(window, "scroll" + eid, fixedExtensions);
+      rebind(window, "load" + eid, fixedExtensions);
+      rebind(window, "resize" + eid, fixedExtensions);
     }
   }
 
@@ -85,14 +81,10 @@ export default class Extensions implements ExtensionsInterface {
    * Removes all event listeners and cleans up
    */
   destroy() {
-    // Remove all scroll listeners
-    off(window, "scroll.ext" + this.eventId);
-    off(window, "scroll.ext" + this.eventId);
-    off(window, "scroll.ext" + this.eventId);
-    off(window, "scroll.ext" + this.eventId);
+    const eid = '.ext' + this.eventId;
 
-    // Remove load and resize listeners
-    off(window, "load.ext" + this.eventId);
-    off(window, "resize.ext" + this.eventId);
+    off(window, "scroll" + eid);
+    off(window, "load" + eid);
+    off(window, "resize" + eid);
   }
 }

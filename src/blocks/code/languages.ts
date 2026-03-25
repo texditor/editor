@@ -1,8 +1,8 @@
-export interface LanguageNames {
+export interface CodeLanguagesInterface {
     [key: string]: string;
 }
 
-const LanguageNames: LanguageNames = {
+const CodeLanguages: CodeLanguagesInterface = {
     "1c": "1C",
     "4d": "4D",
     "abnf": "ABNF",
@@ -236,4 +236,4 @@ const LanguageNames: LanguageNames = {
     "zephir": "Zephir"
 };
 
-export default LanguageNames;
+export default CodeLanguages;

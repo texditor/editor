@@ -1,7 +1,4 @@
-import type {
-  BlockModelInterface,
-  ParagraphCreateOptions
-} from "@/types";
+import type { BlockModelInterface } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/paragraph.css";
 import { IconParagraph } from "@/icons";

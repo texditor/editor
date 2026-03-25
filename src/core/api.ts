@@ -15,6 +15,7 @@ import MainView from "@/views/main";
 import { generateRandomString } from "@/utils/common";
 import { isEmptyString, sanitizeJson } from "@/utils";
 
+
 export default class API implements APIInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
@@ -64,7 +65,7 @@ export default class API implements APIInterface {
    * @throws Error if editor ID is not found
    */
   render(): void {
-    const { config } = this.editor;
+    const { blockManager, config } = this.editor;
     const editorId = this.editor.config.get("handle", "texditor");
 
     if (!queryLength("#" + editorId))
@@ -84,6 +85,8 @@ export default class API implements APIInterface {
         config.get("autofocus", true) ? 0 : -1,
         config.get('autofocusDelay', 10)
       );
+
+      blockManager.refreshVirtualSelection();
 
       query(
         ".tex-block",
@@ -197,7 +200,7 @@ export default class API implements APIInterface {
           const contentNode = blockManager.getContentNode(el),
             model = el.blockModel;
 
-          if (contentNode) {
+          if (contentNode && model) {
             if (model.isCustomSave()) {
               block = model.save(block, el);
             } else {

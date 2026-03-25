@@ -69,6 +69,15 @@ export interface BlockModelInterface {
     defaultValue: BlockModelConfig[K]
   ): BlockModelConfig[K];
   getConfig(key: string, defaultValue: unknown): unknown;
+
+  getOptions(): BlockCreateOptions;
+  getOption<K extends keyof BlockCreateOptions>(key: K): BlockCreateOptions[K];
+  getOption<K extends keyof BlockCreateOptions>(
+    key: K,
+    defaultValue: BlockCreateOptions[K]
+  ): BlockCreateOptions[K];
+  getOption(key: string, defaultValue: unknown): unknown;
+
   isEnterCreate(): boolean;
   isAutoMerge(): boolean;
   isAutoParse(): boolean;
@@ -91,6 +100,7 @@ export interface BlockModelInterface {
   setStore(key: string, value: unknown): this;
   getStore(key: string | null): unknown;
   onPaste(evt: Event, nodes: Node[], blockNodes: Node[]): void;
+
   // Items
   getItemTagName(): string;
   getItemBodyClassName(): string;

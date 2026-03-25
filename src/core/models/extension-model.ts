@@ -15,7 +15,7 @@ import {
   removeClass,
   toggleClass
 } from "@/utils/dom";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
 export default class ExtensionModel implements ExtensionModelInterface {
@@ -60,8 +60,7 @@ export default class ExtensionModel implements ExtensionModelInterface {
 
     return make("div", (el: ExtensionNode) => {
       addClass(el, cssName + " " + cssName + "-" + this.getName());
-      off(el, "click.ext");
-      on(el, "click.ext", this.handleClick);
+      rebind(el, "click.ext", this.handleClick);
       el.id = this.getId();
 
       events.add("onChange", () => {

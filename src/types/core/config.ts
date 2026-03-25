@@ -62,6 +62,12 @@ export interface ConfigStoreInterface {
 
   /** Autofocus delay */
   autofocusDelay?: number;
+
+  /** Virtual block selection zone */
+  selectionZoneElement?: HTMLElement
+
+  /** Use keyboard shortcut history */
+  historyShortcuts?: boolean
 }
 
 /**

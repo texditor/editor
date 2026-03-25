@@ -75,3 +75,20 @@ export function off(
 
   if (handlers.size === 0) eventStore.delete(element);
 }
+
+export function rebind<T extends Event>(
+  element: EventTarget,
+  eventName: string,
+  handler: EventHandler<T>,
+  options?: AddEventListenerOptions | boolean
+): void;
+
+export function rebind(
+  element: EventTarget,
+  eventName: string,
+  handler: EventHandler,
+  options?: AddEventListenerOptions | boolean
+): void {
+  off(element, eventName, options);
+  on(element, eventName, handler, options);
+}

@@ -263,6 +263,12 @@ export function appendText(
   return append(el, document.createTextNode(text));
 }
 
+export function toTextNode(
+  text: string
+): Node {
+  return document.createTextNode(text);
+}
+
 export function mergeAdjacentTextNodes(element: HTMLElement): void {
   let childNodes = Array.from(element.childNodes);
   let i = 0;
@@ -337,16 +343,16 @@ export function getChildNodes(element: Node): Node[] {
 export function getText(node: Node | Node[]): string {
   let result = "";
 
-  const nodes = Array.isArray(node) ? node : getChildNodes(node);
+  const nodes = Array.isArray(node) ? node : [node];
 
-  Array.from(nodes).forEach((nodeItem) => {
-    if (nodeItem.nodeType === 3) {
-      const text = (nodeItem as Text).textContent;
+  nodes.forEach((nodeItem) => {
+    if (nodeItem.nodeType === Node.TEXT_NODE) {
+      const text = nodeItem.textContent;
       if (text) {
         result += text;
       }
-    } else if (nodeItem.nodeType === 1) {
-      result += getText(nodeItem as HTMLElement);
+    } else if (nodeItem.nodeType === Node.ELEMENT_NODE) {
+      result += getText(getChildNodes(nodeItem));
     }
   });
 

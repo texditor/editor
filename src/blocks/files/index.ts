@@ -33,7 +33,7 @@ import {
   formatBytes,
   generateRandomString
 } from "@/utils/common";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 import { IconClose, IconFile, IconPlus } from "@/icons";
 import { renderIcon } from "@/utils/icon";
 import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
@@ -713,9 +713,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
       });
 
       append(div, [actionsWrap, closeIcon]);
-
-      off(document, "click.cab");
-      on(item, "click.cab", () => {
+      rebind(item, "click.cab", () => {
         query(
           ".tex-files-action",
           (actionElement: HTMLElement) => {
@@ -729,8 +727,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
         );
 
         hideActions();
-        off(document, "click.cab" + uniqueId);
-        on(
+        rebind(
           document,
           "click.cab" + uniqueId,
           (evt: MouseEvent) => {
@@ -1008,6 +1005,6 @@ export default class Files extends BlockModel implements BlockModelInterface {
       uniqueId = api.getUniqueId();
 
     off(document, "click.clfp" + uniqueId);
-    off(document, "click.cab" + +uniqueId);
+    off(document, "click.cab" + uniqueId);
   }
 }

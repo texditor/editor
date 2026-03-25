@@ -3,14 +3,27 @@ import type {
   BlockNode,
   EventsInterface,
   EventTriggerObject,
+  SanitizerConfig,
   TexditorEvent,
   TexditorInterface
 } from "@/types";
 import { encodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
-import { addClass, append, appendText, closest, getChildNodes, getLength, getText, make, removeClass, toHtml } from "@/utils/dom";
-import { off, on } from "@/utils/events";
+import {
+  addClass,
+  append,
+  appendText,
+  closest,
+  getChildNodes,
+  getLength,
+  getText,
+  removeClass,
+  toHtml,
+  toTextNode
+} from "@/utils/dom";
+import { off, on, rebind } from "@/utils/events";
 import { query } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
+import { globalStore } from "@/store/globalStore";
 
 export default class Events implements EventsInterface {
   /** Reference to the main editor instance */
@@ -19,15 +32,13 @@ export default class Events implements EventsInterface {
   /** Storage for registered event callbacks */
   private triggers: EventTriggerObject = {};
 
-  /** Flag to enable/disable undo/redo keyboard shortcuts */
-  private isUndoRedoEnabled: boolean = true;
-
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = '';
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.eventId = generateRandomString(16);
+    this.onDocumentKeyDownHandle = this.onDocumentKeyDownHandle.bind(this);
     this.onKeyDownHandle = this.onKeyDownHandle.bind(this);
     this.onKeyUpHandle = this.onKeyUpHandle.bind(this);
     this.onPasteHandle = this.onPasteHandle.bind(this);
@@ -35,7 +46,13 @@ export default class Events implements EventsInterface {
     this.onClickHandle = this.onClickHandle.bind(this);
     this.onBlurHandle = this.onBlurHandle.bind(this);
     this.onSelectionChangeHandle = this.onSelectionChangeHandle.bind(this);
-    this.handleUndoRedo = this.handleUndoRedo.bind(this);
+    this.handleHistoryShortcuts = this.handleHistoryShortcuts.bind(this);
+    this.onDragStart = this.onDragStart.bind(this);
+    this.onDragLeave = this.onDragLeave.bind(this);
+    this.onDragOver = this.onDragOver.bind(this);
+    this.onDrag = this.onDrag.bind(this);
+    this.onDrop = this.onDrop.bind(this);
+    this.onDragEnd = this.onDragEnd.bind(this);
   }
 
   /**
@@ -117,10 +134,16 @@ export default class Events implements EventsInterface {
    */
   refresh() {
     const { blockManager } = this.editor,
+      eid = this.eventId,
       blockContainer = blockManager.getBlocksContainer();
 
     if (!blockContainer)
       throw new Error("The root element of the editor was not found.");
+
+    blockManager.refreshVirtualSelection();
+
+    rebind(document, 'dblclick.docEvt' + eid, () => blockManager.clearVirtualSelection(), true);
+    rebind(document, "keydown.docEvt" + eid, this.onDocumentKeyDownHandle, true);
 
     query(
       '.tex-block-content',
@@ -254,6 +277,10 @@ export default class Events implements EventsInterface {
     this.setIndex(targetIndex);
   }
 
+  /**
+   * Sets the current block index and updates active item styling
+   * @param index - Block index to set as current
+   */
   private setIndex(index: number) {
     const { blockManager } = this.editor;
     const model = blockManager.getModel(index);
@@ -277,15 +304,50 @@ export default class Events implements EventsInterface {
   }
 
   /**
+   * Handles document-level keydown events for global shortcuts
+   * @param evt - Keyboard event
+   */
+  private onDocumentKeyDownHandle(evt: KeyboardEvent): void {
+    const { api, blockManager } = this.editor,
+      root = api.getRoot();
+
+    if (!root)
+      return;
+
+    this.trigger("docuemntKeydown", { domEvent: evt });
+
+    if (globalStore.get('el') === root) {
+      if (this.handleHistoryShortcuts(evt)) {
+        this.trigger("docuemntKeydownEnd", { domEvent: evt });
+        return;
+      }
+    }
+
+    const deleteSelectedBlocks = () => {
+      const virtualSelection = blockManager.getVirtualSelection();
+
+      if (virtualSelection) {
+        const list = virtualSelection.getSelectedIndices();
+        console.log(list)
+        if (list.length)
+          blockManager.removeBlock(list);
+      }
+    }
+
+    if (evt.key == "Backspace" || evt.key == "Delete") {
+      deleteSelectedBlocks();
+      this.trigger("docuemntKeydownBackspace", { domEvent: evt });
+    }
+
+    this.trigger("docuemntKeydownEnd", { domEvent: evt });
+  }
+
+  /**
    * Handles keydown events with special behavior for Enter, Backspace, etc.
    * @param evt - Keyboard event
    */
   private onKeyDownHandle(evt: KeyboardEvent) {
     const { blockManager, historyManager, selectionApi, config, api } = this.editor;
-
-    if (this.handleUndoRedo(evt)) {
-      return;
-    }
 
     this.trigger("keydown", { domEvent: evt });
 
@@ -466,12 +528,14 @@ export default class Events implements EventsInterface {
   }
 
   /**
-   * Handles undo/redo keyboard shortcuts
+   * Handles keyboard shortcuts for undo/redo operations
    * @param evt - Keyboard event
    * @returns True if undo/redo was handled
    */
-  private handleUndoRedo(evt: KeyboardEvent): boolean {
-    if (!this.isUndoRedoEnabled) return false;
+  private handleHistoryShortcuts(evt: KeyboardEvent): boolean {
+    const { historyManager } = this.editor;
+    if (!this.editor.config.get('historyShortcuts', true))
+      return false;
 
     const { ctrlKey, shiftKey, metaKey, code } = evt,
       isCommand = metaKey;
@@ -479,57 +543,22 @@ export default class Events implements EventsInterface {
     // Ctrl+Z | Cmd+Z - Undo
     if ((ctrlKey || isCommand) && !shiftKey && code === "KeyZ") {
       evt.preventDefault();
-      this.performUndo();
+      historyManager.undo();
+      this.trigger("undo", { type: "undo" });
       return true;
     }
 
-    // Ctrl+Shift+Z | Cmd+Shift+Z - Redo
-    if ((ctrlKey || isCommand) && shiftKey && code === "KeyZ") {
-      evt.preventDefault();
-      this.performRedo();
-      return true;
-    }
-
-    // Ctrl+Y - Redo
-    if ((ctrlKey || isCommand) && !shiftKey && code === "KeyY") {
-      evt.preventDefault();
-      this.performRedo();
-      return true;
+    // Ctrl+Shift+Z | Cmd+Shift+Z | Ctrl+Y - Redo 
+    if (
+      ((ctrlKey || isCommand) && shiftKey && code === "KeyZ") ||
+      ((ctrlKey || isCommand) && !shiftKey && code === "KeyY")
+    ) {
+      const { historyManager } = this.editor;
+      historyManager.redo();
+      this.trigger("redo", { type: "undo" });
     }
 
     return false;
-  }
-
-  /**
-   * Performs undo operation
-   */
-  private performUndo(): void {
-    this.trigger("undo", { type: "undo" });
-
-    const { historyManager } = this.editor;
-    if (historyManager && typeof historyManager.undo === "function") {
-      historyManager.undo();
-    }
-  }
-
-  /**
-   * Performs redo operation
-   */
-  private performRedo(): void {
-    this.trigger("redo", { type: "undo" });
-
-    const { historyManager } = this.editor;
-    if (historyManager && typeof historyManager.redo === "function") {
-      historyManager.redo();
-    }
-  }
-
-  /**
-   * Enables or disables undo/redo keyboard shortcuts
-   * @param enabled - Whether undo/redo should be enabled
-   */
-  public setUndoRedoEnabled(enabled: boolean): void {
-    this.isUndoRedoEnabled = enabled;
   }
 
   /**
@@ -562,8 +591,8 @@ export default class Events implements EventsInterface {
         const childNodes = getChildNodes(input);
 
         if (childNodes.length) {
-          let blockNodes: Node[] = [],
-            nodes: Node[] = [];
+          let blockNodes: Node[] = [];
+          const nodes: Node[] = [];
 
           childNodes.forEach((node) => {
             const nodeName = node.nodeName.toLowerCase();
@@ -668,7 +697,28 @@ export default class Events implements EventsInterface {
                   encodeHtmlSpecialChars(getText(nodes))
                 );
               } else {
-                selectionApi.insert(toHtml(nodes));
+                const sanitizerConfig: SanitizerConfig = model.getConfig(
+                  "sanitizerConfig",
+                  {}
+                );
+
+                const safeNodes: Node[] = [];
+
+                nodes.forEach((node: Node) => {
+                  if (sanitizerConfig.elements?.includes(node.nodeName.toLowerCase())) {
+                    safeNodes.push(node)
+                  } else {
+                    const text = getText(node);
+
+                    if (!isEmptyString(text)) {
+                      safeNodes.push(toTextNode(text));
+                    }
+                  }
+                });
+
+                selectionApi.insert(
+                  toHtml(safeNodes)
+                );
               }
 
               model.sanitize();
@@ -690,7 +740,7 @@ export default class Events implements EventsInterface {
   }
 
   /**
-   * Handles drag start events
+   * Prevents default drag start behavior
    * @param evt - Drag event
    */
   private onDragStart(evt: DragEvent): void {
@@ -698,7 +748,7 @@ export default class Events implements EventsInterface {
   }
 
   /**
-   * Handles drag leave events
+   * Prevents default drag leave behavior
    * @param evt - Drag event
    */
   private onDragLeave(evt: DragEvent) {
@@ -706,7 +756,7 @@ export default class Events implements EventsInterface {
   }
 
   /**
-   * Handles drag over events
+   * Prevents default drag over behavior
    * @param evt - Drag event
    */
   private onDragOver(evt: DragEvent) {
@@ -714,7 +764,7 @@ export default class Events implements EventsInterface {
   }
 
   /**
-   * Handles drag events
+   * Prevents default drag behavior
    * @param evt - Drag event
    */
   private onDrag(evt: DragEvent) {
@@ -722,7 +772,7 @@ export default class Events implements EventsInterface {
   }
 
   /**
-   * Handles drop events
+   * Prevents default drop behavior
    * @param evt - Drag event
    */
   private onDrop(evt: DragEvent) {
@@ -730,7 +780,7 @@ export default class Events implements EventsInterface {
   }
 
   /**
-   * Handles drag end events
+   * Prevents default drag end behavior
    * @param evt - Drag event
    */
   private onDragEnd(evt: DragEvent): void {
@@ -814,7 +864,11 @@ export default class Events implements EventsInterface {
    */
   destroy(): void {
     const { api } = this.editor;
-    const root = api.getRoot();
+    const root = api.getRoot(),
+      eid = this.eventId;
+
+    off(document, 'dblclick.docEvt' + eid, true);
+    off(document, "keydown.docEvt" + eid, true);
 
     if (!root) return;
 

@@ -6,7 +6,7 @@ import type {
 import { IconPlus } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 import { addClass, append, html, make } from "@/utils/dom";
-import { off, on } from "@/utils/events";
+import { rebind } from "@/utils/events";
 import BlockModel from "@/core/models/block-model";
 
 /** Create a block */
@@ -46,8 +46,7 @@ export default class CreateAction
           }
         ));
 
-        off(el, "click.am");
-        on(el, "click.am", () => {
+        rebind(el, "click.am", () => {
           const model = modelStructure.model as BlockModel;
           blockManager.createBlock(model.getType());
         });

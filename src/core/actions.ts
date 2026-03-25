@@ -5,7 +5,7 @@ import type {
   BlockNode
 } from "@/types";
 import { append, closest, css, html, make, prepend, query } from "@/utils/dom";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 import DeleteAction from "@/actions/delete-action";
 import MoveUpAction from "@/actions/moveup-action";
 import MoveDownAction from "@/actions/movedown-action";
@@ -148,8 +148,7 @@ export default class Actions implements ActionsInterface {
   show() {
     this.wrap((el: HTMLElement) => {
       css(el, "display", "block");
-      off(document, "click.actions" + this.eventId);
-      on(document, "click.actions" + this.eventId, this.handleClose);
+      rebind(document, "click.actions" + this.eventId, this.handleClose);
     });
   }
 

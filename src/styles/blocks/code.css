@@ -25,6 +25,7 @@
   left: 8px;
   top: 4px;
   z-index: 10;
+  user-select: none;
 }
 
 .tex-code.tex-block-active .tex-code-lang {
@@ -89,6 +90,7 @@
   display: none;
   align-items: center;
   gap: 4px;
+  user-select: none;
 }
 
 @media (hover: hover) {
@@ -99,5 +101,11 @@
   .tex-code-menu-item:hover {
     opacity: 0.6;
     color: var(--tex-color-secondary);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .tex-code-line-break-info {
+    display: none !important;
   }
 }

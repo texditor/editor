@@ -13,6 +13,7 @@ import {
   addClass,
   after,
   append,
+  appendText,
   attr,
   getLength,
   html,
@@ -34,6 +35,7 @@ export default class BlockModel implements BlockModelInterface {
   protected store: Record<string, unknown> = {};
   private static userConfig: Partial<BlockModelConfig> = {};
   private sortableItems: SortableInerface | null = null;
+  private options: BlockCreateOptions = {};
   private config: Partial<BlockModelConfig> = {
     autoMerge: true,
     autoParse: true,
@@ -79,7 +81,7 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   protected refreshSortableItems(): void {
-    const { events, selectionApi } = this.editor;
+    const { blockManager, events, selectionApi } = this.editor;
     if (this.isSortableItems()) {
       setTimeout(() => {
         if (this.sortableItems) {
@@ -92,6 +94,9 @@ export default class BlockModel implements BlockModelInterface {
           this.sortableItems = new Sortable(contentNode, {
             itemSelector: '.tex-item',
             handleSelector: '.tex-item-dragzone',
+            onStart: () => {
+              blockManager.destroyVirtualSelection();
+            },
             onEnd: (item: HTMLElement, oldIndex: number, newIndex: number) => {
               events.change({
                 type: "moveListItem",
@@ -121,12 +126,15 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   create(options?: BlockCreateOptions): HTMLElement {
+    if (typeof options === 'object' && Object.keys(options).length) {
+      this.options = options;
+    }
+
     if (!this.isEditable() && this.isEditableItems()) {
       return this.make(
         this.getTagName(),
         ({ contentNode }: { contentNode: HTMLElement }) => {
-
-          let content = options?.content || {};
+          const content = options?.content || {};
 
           if (!options?.content) {
             append(contentNode, this.makeItemNode());
@@ -146,11 +154,13 @@ export default class BlockModel implements BlockModelInterface {
       this.getTagName(),
       ({ contentNode }: { contentNode: HTMLElement }) => {
         if (options?.content && typeof options.content === 'string')
-          contentNode.innerHTML = options.content;
+          if (this.isRaw()) {
+            appendText(contentNode, options.content);
+          } else
+            contentNode.innerHTML = options.content;
       }
     );
   }
-
 
   protected make(
     tagName: string,
@@ -184,6 +194,30 @@ export default class BlockModel implements BlockModelInterface {
 
       callback({ contentNode: contentNode, blockNode: blockNode });
     })
+  }
+
+  getOptions(): BlockCreateOptions {
+    return this.options;
+  }
+
+  getOption(key: string, defaultValue: string): string;
+  getOption<K extends keyof BlockCreateOptions>(key: K): BlockCreateOptions[K];
+  getOption<K extends keyof BlockCreateOptions>(
+    key: K,
+    defaultValue: BlockCreateOptions[K]
+  ): BlockCreateOptions[K];
+  getOption(key: string, defaultValue: unknown): unknown;
+  getOption(
+    key: keyof BlockCreateOptions | string,
+    defaultValue: unknown = ""
+  ): unknown {
+    const value = (this.options as Record<string, unknown>)[key];
+
+    if (value !== undefined) {
+      return value;
+    }
+
+    return defaultValue !== undefined ? defaultValue : "";
   }
 
   parse(_item: BlockOutput): HTMLElement | BlockNode | null {
@@ -503,7 +537,13 @@ export default class BlockModel implements BlockModelInterface {
         if (this.isEditableItems())
           attr(div, 'contenteditable', 'true');
 
-        html(div, isEmptyString(content ?? "") ? "<br>" : content || "")
+        const textContent = isEmptyString(content || "") ? "" : content || "";
+
+        if (this.isRaw()) {
+          html(div, '');
+          appendText(div, textContent);
+        } else
+          html(div, textContent);
       });
 
       append(el, body);

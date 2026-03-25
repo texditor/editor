@@ -26,8 +26,8 @@ import {
 } from "@/icons";
 import "@/styles/blocks/galllery.css";
 import { renderIcon } from "@/utils/icon";
-import { off, on } from "@/utils/events";
-import "@/styles/core/slider.css";
+import { off, on, rebind } from "@/utils/events";
+import "@/styles/core/ui/slider.css";
 import Slider from "@/core/ui/slider";
 
 export default class Gallery extends Files {
@@ -118,8 +118,7 @@ export default class Gallery extends Files {
             item,
             "tex-gallery-style-item tex-gallery-style-item-" + code
           );
-          off(item, "click.style");
-          on(item, "click.style", () => {
+          rebind(item, "click.style", () => {
             setActveItem(code);
             blockNode.dataset.optionsStyle = code;
             this.destroySlider();

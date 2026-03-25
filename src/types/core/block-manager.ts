@@ -1,6 +1,33 @@
 import type { BlockCreateOptions, BlockModelInterface, BlockModelStructure, BlockNode } from ".";
+import { VirtualSelectionInterface } from "./ui/virtual-selection";
 
 export interface BlockManagerInterface {
+  /**
+   * Creates or recreates the VirtualSelection instance with current options
+   * If an instance already exists, it will be destroyed first
+   * @returns {VirtualSelectionInterface | null}
+   */
+  refreshVirtualSelection(): VirtualSelectionInterface | null;
+
+  /**
+   * Returns the current VirtualSelection instance if it exists
+   * @returns {VirtualSelectionInterface | null} 
+   */
+  getVirtualSelection(): VirtualSelectionInterface | null;
+
+  /**
+  * Clear Selection UI
+   * @returns {void}
+  */
+  clearVirtualSelection(): void
+
+  /**
+   * Destroys the current VirtualSelection instance if it exists
+   * Removes all event listeners and performs cleanup
+   * @returns {void}
+   */
+  destroyVirtualSelection(): void;
+
   /**
    * Gets the container element that holds all blocks
    * @returns The blocks container element or null if not found
@@ -119,7 +146,7 @@ export interface BlockManagerInterface {
    * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
    * @returns Index of last removed block or null
    */
-  removeBlock(index?: number, skipEvents?: boolean): number | null;
+  removeBlock(index?: number | number[], skipEvents?: boolean): number | null;
 
   /**
    * Merges two blocks together
@@ -161,54 +188,6 @@ export interface BlockManagerInterface {
    * @returns Real block type or null
    */
   getRealType(relatedName: string): string | null;
-
-  /**
-   * Enables multi-block selection mode
-   */
-  enableSelectionMode(): void;
-
-  /**
-   * Disables multi-block selection mode
-   */
-  disableSelectionMode(): void;
-
-  /**
-   * Checks if selection mode is active
-   * @returns True if selection mode is active
-   */
-  isSelectionModeActive(): boolean;
-
-  /**
-   * Gets all selected blocks
-   * @returns Array of selected block elements
-   */
-  getSelectedBlocks(): HTMLElement[];
-
-  /**
-   * Checks if there are any selected blocks
-   * @returns True if blocks are selected
-   */
-  hasSelectedBlocks(): boolean;
-
-  /**
-   * Clears all block selections
-   */
-  clearSelection(): void;
-
-  /**
-   * Deletes all selected blocks
-   */
-  deleteSelectedBlocks(): void;
-
-  /**
-   * Disables editing on all blocks
-   */
-  disableAllBlocks(): void;
-
-  /**
-   * Enables editing on all blocks
-   */
-  enableAllBlocks(): void;
 
   /**
    * Cleans up event listeners

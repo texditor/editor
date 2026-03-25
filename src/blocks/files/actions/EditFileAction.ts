@@ -11,21 +11,20 @@ import {
   make,
   query
 } from "@/utils/dom";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
 import { encodeHtmlSpecialChars } from "@/utils";
 
 export default class EditFileAction
   extends FileActionModel
-  implements FileActionModelInterface
-{
+  implements FileActionModelInterface {
   name: string = "edit";
   prepare: boolean = true;
   protected icon: RenderIconContent = IconPencil;
   protected translation: string = "edit";
   protected defaultTitle: string = "Edit";
 
-  onClick() {}
+  onClick() { }
 
   private afterSave(item: HTMLElement) {
     const caption = item?.dataset?.caption || "",
@@ -60,8 +59,7 @@ export default class EditFileAction
     return make("div", (editWrap: HTMLDivElement) => {
       const closePopup = () => block.removeChild(editWrap);
 
-      off(document, "click.clfp" + uniqueId);
-      on(
+      rebind(
         document,
         "click.clfp" + uniqueId,
         (evt) => {
@@ -95,8 +93,7 @@ export default class EditFileAction
               }
             }, 1);
           };
-          off(window, "resize.actEdit" + uniqueId);
-          on(window, "resize.actEdit" + uniqueId, reposition);
+          rebind(window, "resize.actEdit" + uniqueId, reposition);
           reposition();
         })
       );
@@ -110,11 +107,11 @@ export default class EditFileAction
       addClass(el, "tex-file-edit-popup");
 
       const captionImput = make("input", (input: HTMLInputElement) => {
-          input.type = "text";
-          input.value = item.dataset.caption || "";
-          attr(input, "placeholder", i18n.get("caption", "Caption"));
-          addClass(input, "tex-input tex-files-input");
-        }) as HTMLInputElement,
+        input.type = "text";
+        input.value = item.dataset.caption || "";
+        attr(input, "placeholder", i18n.get("caption", "Caption"));
+        addClass(input, "tex-input tex-files-input");
+      }) as HTMLInputElement,
         descInput = make("input", (input: HTMLInputElement) => {
           input.type = "text";
           input.value = item.dataset.desc || "";

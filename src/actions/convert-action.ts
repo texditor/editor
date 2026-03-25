@@ -6,7 +6,7 @@ import type {
 import { IconConvert } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 import { addClass, append, html, make } from "@/utils/dom";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 
 /** Convert a block */
 export default class ConvertAction
@@ -51,8 +51,7 @@ export default class ConvertAction
             }
           ));
 
-          off(el, "click.am");
-          on(el, "click.am", () => {
+          rebind(el, "click.am", () => {
             if (curBlock) blockManager.convert(curBlock, model);
           });
         });

@@ -14,9 +14,7 @@ import {
   append,
   addClass,
   removeClass,
-  hasClass,
   queryList,
-  css,
   getChildNodes,
   appendText,
   getLength,
@@ -27,10 +25,11 @@ import {
   prepend,
   before
 } from "@/utils/dom";
-import { isEmptyString } from "@/utils/string";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 import { Paragraph } from "@/blocks";
-
+import VirtualSelection from "./ui/virtual-selection";
+import { VirtualSelectionInterface } from "@/types/core/ui/virtual-selection";
+import { globalStore } from "@/store/globalStore";
 export default class BlockManager implements BlockManagerInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
@@ -38,14 +37,79 @@ export default class BlockManager implements BlockManagerInterface {
   /** Current active block index */
   private blockIndex: number = 0;
 
-  /** Flag indicating if block selection mode is active */
-  private isSelectionMode: boolean = false;
-
   /** Cached block model configurations */
   private blockModels: BlockModelStructure[] = [];
 
+  /** VirtualSelection */
+  private virtualSelection: VirtualSelectionInterface | null = null;
+
   constructor(editor: TexditorInterface) {
     this.editor = editor;
+  }
+
+  /**
+ * Creates or recreates the VirtualSelection instance with current options
+ * If an instance already exists, it will be destroyed first
+ * @returns {VirtualSelectionInterface | null}
+ */
+  refreshVirtualSelection(): VirtualSelectionInterface | null {
+    this.destroyVirtualSelection();
+
+    const { api, config, toolbar } = this.editor
+    const blocksContainer = this.getBlocksContainer();
+
+    if (blocksContainer) {
+      const selectionZone = config.get(
+        'selectionZoneElement',
+        api.getRoot() || document.body
+      );
+
+      this.virtualSelection = new VirtualSelection({
+        blocksContainer: blocksContainer,
+        blockSelector: '.tex-block',
+        selectionZone: selectionZone,
+        exitTolerance: 8,
+        selectedBlockClass: 'selection-block-selected',
+        onLassoStart: () => {
+          toolbar.hide();
+        },
+        onSelectionChange: (indices, blocks) => {
+          // console.log(indices, 333)
+        }
+      });
+    }
+
+    return this.virtualSelection;
+  }
+
+  /**
+ * Returns the current VirtualSelection instance if it exists
+ * @returns {VirtualSelectionInterface | null} 
+ */
+  getVirtualSelection(): VirtualSelectionInterface | null {
+    return this.virtualSelection || this.refreshVirtualSelection();
+  }
+
+  /**
+  * Clear Selection UI
+  * @returns {void}
+  */
+  clearVirtualSelection(): void {
+    const virtualSelection = this.getVirtualSelection();
+
+    if (virtualSelection && virtualSelection.getSelectedIndices())
+      virtualSelection.clearSelection();
+  }
+
+  /**
+ * Gets the container element that holds all blocks
+ * @returns The blocks container element or null if not found
+ */
+  destroyVirtualSelection(): void {
+    if (this.virtualSelection) {
+      this.virtualSelection.destroy();
+      this.virtualSelection = null;
+    }
   }
 
   /**
@@ -236,8 +300,12 @@ export default class BlockManager implements BlockManagerInterface {
       blockNode = this.getBlockNode(index);
 
     this.blockIndex = index;
+    this.clearVirtualSelection();
 
     if (root && blockNode) {
+      globalStore.set('el', root);
+      globalStore.set('index', index);
+
       query(
         "." + cssName,
         (block: BlockNode) => {
@@ -248,8 +316,7 @@ export default class BlockManager implements BlockManagerInterface {
 
       addClass(blockNode, cssName + "-active")
       actions.create(blockNode);
-      off(document, 'dblclick.unactive');
-      on(document, 'dblclick.unactive', () => {
+      rebind(document, 'dblclick.unactive', () => {
         removeClass(blockNode, cssName + "-active");
       });
     }
@@ -405,7 +472,7 @@ export default class BlockManager implements BlockManagerInterface {
    * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
    * @returns Index of last removed block or null
    */
-  removeBlock(index: number = -1, skipEvents: boolean = false): number | null {
+  removeBlock(index: number | number[] = -1, skipEvents: boolean = false): number | null {
     const { config, events } = this.editor;
 
     let lastRemovedIndex: number = 0;
@@ -513,7 +580,6 @@ export default class BlockManager implements BlockManagerInterface {
                 else
                   append(blockContainer, block);
               }
-
             }
           }
 
@@ -823,195 +889,6 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   /**
-   * Enables multi-block selection mode
-   */
-  enableSelectionMode(): void {
-    const { actions, api, events, toolbar } = this.editor,
-      container = this.getBlocksContainer(),
-      uniqueId = api.getUniqueId(),
-      root = api.getRoot();
-
-    if (this.isSelectionMode || !root) return;
-
-    this.isSelectionMode = true;
-
-    toolbar.hide();
-    actions.hide();
-
-    query(
-      '.tex-actions-open',
-      (el: HTMLElement) => css(el, "display", "none"),
-      root
-    );
-
-    this.getBlocks().forEach((block: Element) => {
-      on(block, "click.bc", (evt: MouseEvent) => {
-        if (!this.isSelectionMode) return;
-
-        evt.preventDefault();
-        evt.stopPropagation();
-
-        const index = this.getIndex(
-          evt.currentTarget as BlockNode
-        );
-        this.toggleBlockSelection(index);
-      });
-    });
-    off(document, "click.bmDoc" + uniqueId);
-    on(document, "click.bmDoc" + uniqueId, (evt) => {
-      if (container && !closest(evt.target, container)) this.clearSelection();
-    });
-
-    this.disableAllBlocks();
-    events.trigger("selectionModeEnabled");
-  }
-
-  /**
-   * Disables multi-block selection mode
-   */
-  disableSelectionMode(): void {
-    const { api, events } = this.editor,
-      uniqueId = api.getUniqueId(),
-      root = api.getRoot();
-
-    if (!this.isSelectionMode || !root) return;
-
-    query(
-      '.tex-actions-open',
-      (el: HTMLElement) => css(el, "display", ""),
-      root
-    );
-
-    this.isSelectionMode = false;
-    this.getBlocks().forEach((block: Element) => off(block, "click.bc"));
-    off(document, "click.bmDoc" + uniqueId);
-    this.clearSelection();
-    this.enableAllBlocks();
-    events.trigger("selectionModeDisabled");
-  }
-
-  /**
-   * Checks if selection mode is active
-   * @returns True if selection mode is active
-   */
-  isSelectionModeActive(): boolean {
-    return this.isSelectionMode;
-  }
-
-  /**
-   * Toggles selection state of a block
-   * @param index - Block index to toggle
-   */
-  private toggleBlockSelection(index: number): void {
-    const { events } = this.editor;
-    const block = this.getBlockNode(index);
-
-    if (block) {
-      if (hasClass(block, "tex-block-selected"))
-        this.removeBlockSelection(index);
-      else this.addBlockSelection(index);
-
-      events.trigger("selectionChanged", {
-        selectedBlockElements: this.getSelectedBlocks()
-      });
-    }
-  }
-
-  /**
-   * Adds selection to a block
-   * @param index - Block index to select
-   */
-  private addBlockSelection(index: number): void {
-    const block = this.getBlockNode(index),
-      cssName = "tex-block-selected";
-
-    if (block && !hasClass(block, cssName)) addClass(block, cssName);
-  }
-
-  /**
-   * Removes selection from a block
-   * @param index - Block index to deselect
-   */
-  private removeBlockSelection(index: number): void {
-    const block = this.getBlockNode(index);
-
-    if (block) removeClass(block, "tex-block-selected");
-  }
-
-  /**
-   * Gets all selected blocks
-   * @returns Array of selected block elements
-   */
-  getSelectedBlocks(): HTMLElement[] {
-    return queryList(".tex-block-selected");
-  }
-
-  /**
-   * Checks if there are any selected blocks
-   * @returns True if blocks are selected
-   */
-  hasSelectedBlocks(): boolean {
-    return this.getSelectedBlocks().length > 0;
-  }
-
-  /**
-   * Clears all block selections
-   */
-  clearSelection(): void {
-    const { events } = this.editor;
-
-    this.getBlocks().forEach((blockNode: BlockNode) => {
-      removeClass(blockNode, "tex-block-selected");
-    });
-
-    events.trigger("selectionChanged", { selectedBlockElements: [] });
-  }
-
-  /**
-   * Deletes all selected blocks
-   */
-  deleteSelectedBlocks(): void {
-    const blocks = this.getSelectedBlocks();
-    if (blocks.length === 0) return;
-    blocks.forEach((element: HTMLElement) => this.removeBlock(this.getIndex(element)));
-    this.clearSelection();
-    this.disableSelectionMode();
-  }
-
-  /**
-   * Disables editing on all blocks
-   */
-  disableAllBlocks(): void {
-    const blocks = this.getBlocks();
-    const cssName = 'tex-block';
-
-    blocks.forEach((blockNode: BlockNode) => {
-      if (blockNode.blockModel?.isEditable()) {
-        blockNode.removeAttribute("contenteditable");
-        if (isEmptyString(blockNode.innerHTML)) blockNode.innerHTML = "\u200B";
-      }
-
-      addClass(blockNode, cssName + "-non-editable");
-    });
-  }
-
-  /**
-   * Enables editing on all blocks
-   */
-  enableAllBlocks(): void {
-    const blocks = this.getBlocks();
-
-    blocks.forEach((blockNode: BlockNode) => {
-      const wasEditable = blockNode.blockModel?.isEditable();
-
-      if (wasEditable) blockNode.setAttribute("contenteditable", "true");
-      else blockNode.removeAttribute("contenteditable");
-
-      removeClass(blockNode, "tex-block-non-editable");
-    });
-  }
-
-  /**
    * Converts a block to a different type
    * @param blockNode - Block to convert
    * @param targetModel - Target block model
@@ -1190,8 +1067,7 @@ export default class BlockManager implements BlockManagerInterface {
    * Cleans up event listeners
    */
   destroy() {
-    const uniqueId = this.editor.api.getUniqueId();
-
-    off(document, "click.bmDoc" + uniqueId);
+    off(document, 'dblclick.unactive');
+    this.destroyVirtualSelection();
   }
 }

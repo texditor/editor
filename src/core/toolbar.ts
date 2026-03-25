@@ -11,9 +11,9 @@ import {
   query,
   removeClass
 } from "@/utils/dom";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
-import { detectMobileOS, getCaretPosition } from "@/utils/common";
+import { detectMobileOS, generateRandomString, getCaretPosition } from "@/utils/common";
 import {
   BoldTool,
   ItalicTool,
@@ -27,9 +27,12 @@ import {
 export default class Toolbar implements ToolbarInterface {
   private editor: TexditorInterface;
   private tools: ToolModelInstanceInterface[] = [];
+  /** Unique identifier for event listeners to prevent conflicts */
+  private eventId: string = '';
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
+    this.eventId = generateRandomString(12);
     this.show = this.show.bind(this);
 
     const tools = this.editor.config.get(
@@ -57,8 +60,7 @@ export default class Toolbar implements ToolbarInterface {
     const { api, blockManager, selectionApi } = this.editor,
       root = api.getRoot(),
       model = blockManager.getModel(),
-      tools = model?.getTolls(),
-      uniqueId = api.getUniqueId();
+      tools = model?.getTolls();
 
     if (root) {
       if (!tools) return;
@@ -130,8 +132,9 @@ export default class Toolbar implements ToolbarInterface {
             };
 
             reposition();
-            on(window, "resize." + uniqueId, () => reposition());
-            on(window, "scroll." + uniqueId, () => reposition());
+            const eid = '.' + this.eventId;
+            rebind(window, "resize" + eid, () => reposition());
+            rebind(window, "scroll" + eid, () => reposition());
           }
         },
         root
@@ -218,16 +221,15 @@ export default class Toolbar implements ToolbarInterface {
   }
 
   destroy() {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
-
     this.tools.forEach((ToolClass: ToolModelInstanceInterface) => {
       const tool = new ToolClass(this.editor);
 
       if (tool.destroy) tool.destroy();
     });
 
-    off(window, "resize." + uniqueId);
-    off(window, "scroll." + uniqueId);
+    const eid = '.' + this.eventId;
+
+    off(window, "resize" + eid);
+    off(window, "scroll" + eid);
   }
 }

@@ -1,4 +1,4 @@
-import '@/styles/core/sortable.css';
+import '@/styles/core/ui/sortable.css';
 import { SortableContainer, SortableInerface, SortableOptions } from '@/types';
 import {
     addClass,
@@ -8,7 +8,8 @@ import {
     on,
     off,
     generateRandomString,
-    removeClass
+    removeClass,
+    rebind
 } from '@/utils';
 
 /**
@@ -142,15 +143,15 @@ export default class Sortable implements SortableInerface {
 
         // Get all children of the container
         const allChildren = Array.from(this.container.children);
-        
+
         // Find position of placeholder among all children
         const placeholderPosition = allChildren.indexOf(this.placeholder);
-        
+
         if (placeholderPosition === -1) return -1;
 
         // Get all visible items (excluding dragged item)
         const visibleItems = this.getVisibleItems();
-        
+
         // Count how many visible items come before the placeholder
         let visibleItemsBeforePlaceholder = 0;
         for (let i = 0; i < placeholderPosition; i++) {
@@ -158,7 +159,7 @@ export default class Sortable implements SortableInerface {
                 visibleItemsBeforePlaceholder++;
             }
         }
-        
+
         return visibleItemsBeforePlaceholder;
     }
 
@@ -183,13 +184,9 @@ export default class Sortable implements SortableInerface {
         const handle = this.getHandleElement(item);
         addClass(handle, 'tex-sortable-handle');
 
-        // Remove existing event listeners to prevent duplicates
-        off(handle, `mousedown.sortable-${this.eid}`);
-        off(handle, `touchstart.sortable-${this.eid}`);
-
         // Add drag start event listeners for mouse and touch
-        on(handle, `mousedown.sortable-${this.eid}`, (e: MouseEvent) => this.onDragStart(e, item));
-        on(handle, `touchstart.sortable-${this.eid}`, (e: TouchEvent) => this.onDragStart(e, item), { passive: false });
+        rebind(handle, `mousedown.sortable-${this.eid}`, (e: MouseEvent) => this.onDragStart(e, item));
+        rebind(handle, `touchstart.sortable-${this.eid}`, (e: TouchEvent) => this.onDragStart(e, item), { passive: false });
     }
 
     /**
@@ -371,7 +368,7 @@ export default class Sortable implements SortableInerface {
     /**
      * Public method to update sortable items (useful when items are dynamically added)
      */
-    public update(): void {
+    update(): void {
         const items = this.getItems();
         items.forEach(item => {
             if (!item.classList.contains('tex-sortable-item')) {
@@ -383,7 +380,7 @@ export default class Sortable implements SortableInerface {
     /**
      * Public method to destroy the sortable instance and clean up all event listeners
      */
-    public destroy(): void {
+    destroy(): void {
         const items = this.getItems();
         items.forEach(item => {
             const handle = this.getHandleElement(item);

@@ -369,7 +369,7 @@ export default class Commands implements CommandsInterface {
    * Removes all formatting tags from the document
    * @param normalize - Whether to normalize after clearing
    */
-  public clearAllFormatting(normalize: boolean = true): void {
+  clearAllFormatting(normalize: boolean = true): void {
     this.findTags().forEach((el: HTMLElement) => {
       this.removeFormat(el.localName, true, normalize);
     });

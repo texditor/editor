@@ -353,10 +353,15 @@
   top: 8px;
   padding: 4px;
   margin-top: -9px;
+  cursor: move;
 }
 
 .tex-block-active .tex-item-active .tex-item-dragzone {
   display: block;
+}
+
+.tex-block-active .tex-item:only-child .tex-item-dragzone {
+  display: none;
 }
 
 @media (hover: hover) {

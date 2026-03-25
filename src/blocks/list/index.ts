@@ -1,7 +1,4 @@
-import type {
-  BlockModelInterface,
-  ListCreateOptions,
-} from "@/types";
+import type { BlockModelInterface } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/list.css";
 import { IconList } from "@/icons";

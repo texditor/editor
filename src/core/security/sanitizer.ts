@@ -287,8 +287,8 @@ export default class Sanitizer {
    * @param input - HTML string or HTMLElement to sanitize
    * @returns The sanitized HTML string
    */
-  sanitize(input: string | HTMLElement): string {
-    let container: HTMLElement;
+  sanitize(input: string | Node): string {
+    let container: Node;
 
     if (typeof input === "string") {
       container = make(
@@ -298,8 +298,6 @@ export default class Sanitizer {
     } else {
       container = input;
     }
-
-
 
     const fragment = this.dom.createDocumentFragment();
     this.currentElement = fragment;

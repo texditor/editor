@@ -1,9 +1,4 @@
-import type {
-  BlockModelInterface,
-  HeaderCreateOptions,
-  BlockNode,
-  BlockCreateOptions
-} from "@/types";
+import type { BlockModelInterface } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import { IconHeader1 } from "@/icons";
 

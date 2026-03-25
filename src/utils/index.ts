@@ -4,3 +4,4 @@ export * from "./events";
 export * from "./icon";
 export * from "./sanitizer";
 export * from "./string";
+export * from "./store";

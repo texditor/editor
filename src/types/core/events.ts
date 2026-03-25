@@ -18,7 +18,7 @@ export interface TexditorEvent {
   type?: string;
   
   /** Block index related to the event */
-  index?: number;
+  index?: number | number[];
   
   /** Block node involved in the event */
   blockNode?: BlockNode | HTMLElement | null;
@@ -85,12 +85,6 @@ export interface EventsInterface {
    * Refreshes event listeners on all blocks
    */
   refresh(): void;
-
-  /**
-   * Enables or disables undo/redo keyboard shortcuts
-   * @param enabled - Whether undo/redo should be enabled
-   */
-  setUndoRedoEnabled(enabled: boolean): void;
 
   // Cleanup method
   /**

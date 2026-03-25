@@ -1,3 +1,8 @@
+:root {
+  --tex-selection-ui-bg: rgba(59, 130, 246, 0.15);
+  --tex-selection-ui-border: 2px dashed #3b82f6;
+}
+
 .tex {
   --tex-fill: rgba(100, 100, 100, 0.7);
   --tex-background: #fff;
