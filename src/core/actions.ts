@@ -5,7 +5,7 @@ import type {
   BlockNode
 } from "@/types";
 import { append, closest, css, html, make, prepend, query } from "@/utils/dom";
-import { off, on, rebind } from "@/utils/events";
+import { off, rebind } from "@/utils/events";
 import DeleteAction from "@/actions/delete-action";
 import MoveUpAction from "@/actions/moveup-action";
 import MoveDownAction from "@/actions/movedown-action";

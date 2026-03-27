@@ -9,7 +9,7 @@ import {
   query,
   removeClass
 } from "@/utils/dom";
-import { off, on, rebind } from "@/utils/events";
+import { off, rebind } from "@/utils/events";
 
 export default class Extensions implements ExtensionsInterface {
   /** Reference to the main editor instance */

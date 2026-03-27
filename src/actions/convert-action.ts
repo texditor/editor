@@ -6,7 +6,7 @@ import type {
 import { IconConvert } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 import { addClass, append, html, make } from "@/utils/dom";
-import { off, on, rebind } from "@/utils/events";
+import { rebind } from "@/utils/events";
 
 /** Convert a block */
 export default class ConvertAction

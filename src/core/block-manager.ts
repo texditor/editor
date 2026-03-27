@@ -25,7 +25,7 @@ import {
   prepend,
   before
 } from "@/utils/dom";
-import { off, on, rebind } from "@/utils/events";
+import { off, rebind } from "@/utils/events";
 import { Paragraph } from "@/blocks";
 import VirtualSelection from "./ui/virtual-selection";
 import { VirtualSelectionInterface } from "@/types/core/ui/virtual-selection";
@@ -73,8 +73,8 @@ export default class BlockManager implements BlockManagerInterface {
         onLassoStart: () => {
           toolbar.hide();
         },
-        onSelectionChange: (indices, blocks) => {
-          // console.log(indices, 333)
+        onSelectionChange: () => {
+          // TODO: refresh exts
         }
       });
     }

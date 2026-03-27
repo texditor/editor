@@ -30,25 +30,15 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
   private tagsInSelection: HTMLLinkElement[] = [];
 
   onClick() {
-    const tags = this.tagsInSelection;
+    const { selectionApi, commands } = this.editor;
+    selectionApi.selectCurrent();
+    const [linkTag] = commands.findTags(this.getTagName());
 
-    if (tags.length) {
-      const isBlank = attr(tags[0], "target") === "_blank";
-      this.createForm(attr(tags[0], "href") || "", isBlank);
+    if (linkTag) {
+      const isBlank = attr(linkTag, "target") === "_blank";
+      this.createForm(attr(linkTag, "href") || "", isBlank);
     } else {
       this.createForm();
-    }
-  }
-
-  onLoad(): void {
-    const { commands, events } = this.editor;
-
-    if (!events.exists("onSelectionChangeToolbarShow.link")) {
-      events.add("onSelectionChangeToolbarShow.link", () => {
-        this.tagsInSelection = commands.findTags(
-          this.getTagName()
-        ) as HTMLLinkElement[];
-      });
     }
   }
 
@@ -82,7 +72,7 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
   }
 
   private createForm(link: string = "", targetBlank: boolean = false) {
-    const { api, i18n } = this.editor,
+    const { api, commands, selectionApi, i18n } = this.editor,
       uniqueId = api.getUniqueId(),
       root = api.getRoot();
 
@@ -125,6 +115,7 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
             if (evt.key == "Enter") {
               evt.preventDefault();
               this.format();
+              document.body?.click();
             }
           });
           setTimeout(() => input.focus(), 10);
@@ -141,8 +132,11 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
           });
           btn.title = i18n.get("delete", "Delete");
           on(btn, "click.link", () => {
-            if (this.tagsInSelection[0])
-              replaceWithChildren(this.tagsInSelection[0]);
+            selectionApi.selectCurrent();
+            const [linkTag] = commands.findTags(this.getTagName());
+
+            if (linkTag)
+              replaceWithChildren(linkTag);
 
             document.body.click();
           });

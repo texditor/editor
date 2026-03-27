@@ -7,7 +7,8 @@ import type {
   BlockModelInterface,
   SortableInerface,
   BlockCreateOptions,
-  BlockCreateItemsContent
+  BlockCreateItemsContent,
+  PasteMap
 } from "@/types";
 import {
   addClass,
@@ -39,7 +40,6 @@ export default class BlockModel implements BlockModelInterface {
   private config: Partial<BlockModelConfig> = {
     autoMerge: true,
     autoParse: true,
-    autoPaste: true,
     icon: "",
     translationCode: "",
     groupCode: '',
@@ -58,7 +58,17 @@ export default class BlockModel implements BlockModelInterface {
     enterCreate: true,
     raw: false,
     sanitizer: false,
-    sanitizerConfig: {},
+    sanitizerConfig: {
+      elements: ["b", "a", "i", "s", "u", "sup", "sub", "mark", "code"],
+      attributes: {
+        a: ["href", "target"]
+      },
+      protocols: {
+        a: {
+          href: ["https", "ftp", "http", "mailto"]
+        }
+      }
+    },
     tagName: "div",
     type: "",
     relatedTypes: [],
@@ -318,10 +328,6 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("autoParse", true);
   }
 
-  isAutoPaste(): boolean {
-    return this.getConfig("autoPaste", true);
-  }
-
   isEnterCreate(): boolean {
     return this.getConfig("enterCreate", true);
   }
@@ -333,14 +339,26 @@ export default class BlockModel implements BlockModelInterface {
       return true;
 
     if (this.isEditableItems()) {
-      return this.getItemsLength() === 0;
+      const length = this.getItemsLength(),
+        itemBody = this.getItemBody(0);
+
+      if (!itemBody)
+        return true;
+
+      return (
+        length === 0 || (
+          length === 1 && isEmptyString(
+            html(itemBody).trim()
+          )
+        )
+      );
     }
 
-    const html = contentNode.innerHTML.trim();
+    const content = html(contentNode).trim();
 
     return (
-      isEmptyString(html) ||
-      html == "<br>"
+      isEmptyString(content) ||
+      content == "<br>"
     );
   }
 
@@ -401,7 +419,7 @@ export default class BlockModel implements BlockModelInterface {
     return this.getConfig("toolbar", false);
   }
 
-  getTolls(): string[] {
+  getTools(): string[] {
     return this.getConfig("tools", []) as string[];
   }
 
@@ -707,7 +725,72 @@ export default class BlockModel implements BlockModelInterface {
     return key === null ? this.store : this.store[key] || null;
   }
 
-  onPaste(_evt: Event, _input: Node[]): void { }
+  onPaste(
+    _evt: Event,
+    _mao: PasteMap,
+  ): boolean {
+    return true;
+  }
+
+  onKeyDown(_evt: KeyboardEvent): boolean {
+    return true;
+  }
+
+  onKeyUp(_evt: KeyboardEvent): boolean {
+    return true;
+  }
+
+  onFocus(_evt: FocusEvent): boolean {
+    return true;
+  }
+
+  onBlur(_evt: FocusEvent): boolean {
+    return true;
+  }
+
+  onClick(_evt: MouseEvent): boolean {
+    return true;
+  }
+
+  onSelectionChange(_evt: Event, _range: Range): boolean {
+    return true;
+  }
+
+  __onSelectionChange(_evt: Event, _range: Range): void {
+    const { toolbar } = this.editor;
+
+    if (this.onSelectionChange(_evt, _range)) {
+      if (_range && !_range.collapsed && this.isToolbar()) {
+        toolbar.show();
+      } else {
+        toolbar.hide();
+      }
+    }
+  }
+
+  onDragStart(_evt: DragEvent): boolean {
+    return true;
+  }
+
+  onDragLeave(_evt: DragEvent): boolean {
+    return true;
+  }
+
+  onDragOver(_evt: DragEvent): boolean {
+    return true;
+  }
+
+  onDrag(_evt: DragEvent): boolean {
+    return true;
+  }
+
+  onDragEnd(_evt: DragEvent): boolean {
+    return true;
+  }
+
+  onDrop(_evt: DragEvent): boolean {
+    return true;
+  }
 
   beforeConvert(
     blockNode: BlockNode,

@@ -26,7 +26,7 @@ import {
 } from "@/icons";
 import "@/styles/blocks/galllery.css";
 import { renderIcon } from "@/utils/icon";
-import { off, on, rebind } from "@/utils/events";
+import { rebind } from "@/utils/events";
 import "@/styles/core/ui/slider.css";
 import Slider from "@/core/ui/slider";
 

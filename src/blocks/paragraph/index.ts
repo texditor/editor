@@ -38,4 +38,9 @@ export default class Paragraph
       }
     };
   }
+
+  onDrop(_evt: DragEvent): boolean {
+    alert(333)
+    return true;
+  }
 }

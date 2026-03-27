@@ -1,5 +1,8 @@
 import type { BlockNode } from "..";
 
+export type PasteMapItem = { type: string; node: Node };
+export type PasteMap = { schema: string; data: PasteMapItem[] };
+
 /**
  * Event trigger storage structure
  * Maps event names to collections of callback functions with unique IDs
@@ -16,22 +19,22 @@ export type EventTriggerObject = {
 export interface TexditorEvent {
   /** Type of event */
   type?: string;
-  
+
   /** Block index related to the event */
   index?: number | number[];
-  
+
   /** Block node involved in the event */
   blockNode?: BlockNode | HTMLElement | null;
-  
+
   /** The content node inside the block */
   contentNode?: HTMLElement | null;
-  
+
   /** Element involved in the event */
   el?: Element;
-  
+
   /** Original DOM event */
   domEvent?: Event;
-  
+
   /** Additional event data */
   [key: string]: unknown;
 }

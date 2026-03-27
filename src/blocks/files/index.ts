@@ -8,7 +8,8 @@ import type {
   BlockNode,
   Response,
   FilesFormCreateParams,
-  FilesListCreateParams
+  FilesListCreateParams,
+  PasteMap
 } from "@/types";
 
 import BlockModel from "@/core/models/block-model";
@@ -19,7 +20,6 @@ import {
   attr,
   closest,
   css,
-  hasClass,
   html,
   make,
   prepend,
@@ -115,9 +115,9 @@ export default class Files extends BlockModel implements BlockModelInterface {
     };
   }
 
-  onPaste(evt: Event, input: Element | null): void {
-    if (input !== null && !hasClass(evt.target, "tex-input"))
-      evt.preventDefault();
+  onPaste(_evt: Event, _mao: PasteMap): boolean {
+    _evt.preventDefault();
+    return false;
   }
 
   create(

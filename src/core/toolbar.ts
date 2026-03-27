@@ -11,7 +11,7 @@ import {
   query,
   removeClass
 } from "@/utils/dom";
-import { off, on, rebind } from "@/utils/events";
+import { off, rebind } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
 import { detectMobileOS, generateRandomString, getCaretPosition } from "@/utils/common";
 import {
@@ -60,7 +60,7 @@ export default class Toolbar implements ToolbarInterface {
     const { api, blockManager, selectionApi } = this.editor,
       root = api.getRoot(),
       model = blockManager.getModel(),
-      tools = model?.getTolls();
+      tools = model?.getTools();
 
     if (root) {
       if (!tools) return;

@@ -1,4 +1,4 @@
-import type { BlockOutput, BlockNode, BlockCreateOptions } from "@/types";
+import type { BlockOutput, BlockNode, BlockCreateOptions, PasteMap } from "@/types";
 import BlockModel from "@/core/models/block-model";
 
 import type { TexditorInterface } from "@/types";
@@ -27,7 +27,6 @@ export interface BlockModelStructure {
 
 export interface BlockModelConfig {
   autoMerge: boolean;
-  autoPaste: boolean;
   icon: string;
   autoParse: boolean;
   translationCode: string;
@@ -81,7 +80,6 @@ export interface BlockModelInterface {
   isEnterCreate(): boolean;
   isAutoMerge(): boolean;
   isAutoParse(): boolean;
-  isAutoPaste(): boolean;
   merge(): HTMLElement | null;
   getRelatedTypes(): string[];
   parse(item: BlockOutput): BlockNode | HTMLElement | null;
@@ -99,7 +97,22 @@ export interface BlockModelInterface {
   save(block: BlockOutput, blockNode?: BlockNode): BlockOutput;
   setStore(key: string, value: unknown): this;
   getStore(key: string | null): unknown;
-  onPaste(evt: Event, nodes: Node[], blockNodes: Node[]): void;
+
+  // Events
+  onPaste(evt: Event, map: PasteMap): boolean;
+  onKeyDown(evt: KeyboardEvent): boolean;
+  onKeyUp(evt: KeyboardEvent): boolean;
+  onFocus(evt: FocusEvent): boolean;
+  onBlur(evt: FocusEvent): boolean
+  onClick(evt: MouseEvent): boolean;
+  onSelectionChange(evt: Event, range: Range): boolean;
+  onDragStart(evt: DragEvent): boolean;
+  onDragLeave(evt: DragEvent): boolean;
+  onDragOver(evt: DragEvent): boolean;
+  onDrag(evt: DragEvent): boolean;
+  onDragEnd(evt: DragEvent): boolean;
+  onDrop(evt: DragEvent): boolean;
+
 
   // Items
   getItemTagName(): string;
@@ -134,7 +147,7 @@ export interface BlockModelInterface {
   isConvertible(): boolean;
   isCustomSave(): boolean;
   isToolbar(): boolean;
-  getTolls(): string[];
+  getTools(): string[];
   beforeConvert(
     blockNode: BlockNode,
     targetModel: BlockModelInterface

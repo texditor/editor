@@ -343,18 +343,13 @@ export function getChildNodes(element: Node): Node[] {
 export function getText(node: Node | Node[]): string {
   let result = "";
 
-  const nodes = Array.isArray(node) ? node : [node];
+  const nodes = Array.isArray(node)
+    ? node
+    : [node];
 
-  nodes.forEach((nodeItem) => {
-    if (nodeItem.nodeType === Node.TEXT_NODE) {
-      const text = nodeItem.textContent;
-      if (text) {
-        result += text;
-      }
-    } else if (nodeItem.nodeType === Node.ELEMENT_NODE) {
-      result += getText(getChildNodes(nodeItem));
-    }
-  });
+  nodes.forEach(
+    (nodeItem) => result += nodeItem.textContent
+  );
 
   return result;
 }

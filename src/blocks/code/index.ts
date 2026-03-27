@@ -2,11 +2,10 @@ import type {
   BlockModelInterface,
   BlockOutput,
   BlockNode,
-  CodeCreateOptions,
   TexditorEvent
 } from "@/types";
 import BlockModel from "@/core/models/block-model";
-import { addClass, append, appendText, attr, closest, css, html, make, prepend, query } from "@/utils/dom";
+import { addClass, append, attr, closest, css, html, make, prepend, query } from "@/utils/dom";
 import { IconArrowDown, IconCode, IconCornerUpRight } from "@/icons";
 import CodeLanguages, { CodeLanguagesInterface } from './languages';
 import "@/styles/blocks/code.css";
@@ -37,24 +36,6 @@ export default class Code extends BlockModel implements BlockModelInterface {
       lineBreakInfoMessage: "Ctrl + Enter"
     };
   }
-
-  // create(options?: CodeCreateOptions): BlockNode | HTMLElement {
-  //   console.log(options, 334)
-  //   return this.make("pre", ({
-  //     contentNode,
-  //     blockNode
-  //   }: {
-  //     contentNode: HTMLElement,
-  //     blockNode: BlockNode
-  //   }) => {
-  //     if (options?.lang)
-  //       attr(blockNode, 'data-lang', options.lang);
-
-  //     this.init(blockNode)
-
-  //     if (options?.content) appendText(contentNode, options.content);
-  //   });
-  // }
 
   protected onCreate(_newBlockNode?: BlockNode | null): void {
     if (_newBlockNode) {

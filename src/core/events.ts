@@ -1,8 +1,11 @@
 import type {
   BlockCreateItemsContent,
+  BlockModelInterface,
   BlockNode,
   EventsInterface,
   EventTriggerObject,
+  PasteMap,
+  PasteMapItem,
   SanitizerConfig,
   TexditorEvent,
   TexditorInterface
@@ -16,8 +19,9 @@ import {
   getChildNodes,
   getLength,
   getText,
+  html,
+  make,
   removeClass,
-  toHtml,
   toTextNode
 } from "@/utils/dom";
 import { off, on, rebind } from "@/utils/events";
@@ -225,6 +229,11 @@ export default class Events implements EventsInterface {
   private onFocusHandle(evt: FocusEvent) {
     this.trigger("focus", { domEvent: evt });
     this.setIndexByTarget(evt.target);
+    const model = this.editor.blockManager.getModel();
+
+    if (model && model.onFocus(evt))
+      evt.preventDefault();
+
     this.trigger("focusEnd", { domEvent: evt });
   }
 
@@ -235,6 +244,12 @@ export default class Events implements EventsInterface {
   private onClickHandle(evt: MouseEvent) {
     this.trigger("click", { domEvent: evt });
     this.setIndexByTarget(evt.target);
+
+    const model = this.editor.blockManager.getModel();
+
+    if (model && model.onClick(evt))
+      evt.preventDefault();
+
     this.trigger("clickEnd", { domEvent: evt });
   }
 
@@ -243,7 +258,11 @@ export default class Events implements EventsInterface {
    * @param evt - Focus event
    */
   private onBlurHandle(evt: FocusEvent) {
-    evt.preventDefault();
+    const model = this.editor.blockManager.getModel();
+
+    if (model && model.onBlur(evt))
+      evt.preventDefault();
+
     this.trigger("blur", { domEvent: evt });
   }
 
@@ -252,9 +271,15 @@ export default class Events implements EventsInterface {
    * @param evt - Keyboard event
    */
   private onKeyUpHandle(evt: KeyboardEvent) {
+    const { blockManager, historyManager } = this.editor;
+
     this.trigger("keyup", { domEvent: evt });
-    evt.preventDefault();
     this.setIndexByTarget(evt.target);
+
+    const model = blockManager.getModel();
+
+    if (model && model.onKeyUp(evt))
+      evt.preventDefault();
 
     this.change({
       type: "keyup",
@@ -262,7 +287,7 @@ export default class Events implements EventsInterface {
     });
 
     this.trigger("keyupEnd", { domEvent: evt });
-    this.editor.historyManager.scheduleSave();
+    historyManager.scheduleSave();
   }
 
   /**
@@ -328,7 +353,7 @@ export default class Events implements EventsInterface {
 
       if (virtualSelection) {
         const list = virtualSelection.getSelectedIndices();
-        console.log(list)
+
         if (list.length)
           blockManager.removeBlock(list);
       }
@@ -371,6 +396,8 @@ export default class Events implements EventsInterface {
       breakEvent();
       return;
     }
+
+    model.onKeyDown(evt);
 
     const focusedNode = model.isEditableItems() && model.getItemBody(-1)
       ? model.getItemBody(-1)
@@ -562,6 +589,118 @@ export default class Events implements EventsInterface {
   }
 
   /**
+   * Preparing a data map for text insertion.
+   * @param childNodes 
+   * @returns {PasteMap}
+   */
+  private createPasteMap(childNodes: Node[]): PasteMap {
+    const { blockManager } = this.editor;
+    const map: PasteMapItem[] = [];
+    const schema = 'block';
+
+    const processTextNode = (node: Node) => {
+      if (!isEmptyString(node?.textContent || '')) {
+        map.push({ type: 'textNode', node });
+      }
+    };
+
+    const processElementNode = (node: Element) => {
+      const nodeName = node.nodeName.toLowerCase();
+
+      if (blockManager.getRealType(nodeName)) {
+        map.push({ type: 'block', node });
+        return true;
+      }
+
+      const childNodes = getChildNodes(node);
+      const childLength = childNodes.length;
+
+      if (!childLength) return false;
+
+      const elementChildren = childNodes.filter(cn => cn.nodeType === Node.ELEMENT_NODE);
+
+      if (elementChildren.length !== childLength) return false;
+
+      let hasBlocks = false;
+      elementChildren.forEach(child => {
+        if (blockManager.getRealType(child.nodeName.toLowerCase())) {
+          map.push({ type: 'block', node: child });
+          hasBlocks = true;
+        }
+      });
+
+      return hasBlocks;
+    };
+
+    childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        processTextNode(node);
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const isBlockProcessed = processElementNode(node as Element);
+        if (!isBlockProcessed) {
+          map.push({
+            type: node.nodeType === Node.ELEMENT_NODE ? 'node' : 'textNode',
+            node
+          });
+        }
+      }
+    });
+
+    const oneBlock = map.filter(item => item.type === 'block'),
+      onlyTextNodes = map.filter(item => item.type === 'textNode');
+
+    if (onlyTextNodes.length === map.length) {
+      return { schema: 'node', data: onlyTextNodes };
+    }
+
+    const mapResult: PasteMapItem[] = [];
+
+    if (oneBlock.length === 0) {
+      map.forEach(item => mapResult.push({ type: 'node', node: item.node }));
+      return { schema: 'node', data: mapResult };
+    }
+
+    if (oneBlock.length === 1) {
+      const blockItem = map.find(item => item.type === 'block');
+      if (blockItem) {
+        getChildNodes(blockItem.node).forEach(node => {
+          mapResult.push({
+            type: node.nodeType === Node.ELEMENT_NODE ? 'node' : 'textNode',
+            node
+          });
+        });
+        return { schema: 'node', data: mapResult };
+      }
+    }
+
+    map.forEach((item, index) => {
+      if (item.type === 'node' || item.type === 'textNode') {
+        const prevItem = map[index - 1];
+        const pushToNode = (targetNode: Node) => {
+          if (item.type === 'textNode') {
+            appendText(targetNode, item.node.textContent || '');
+
+          } else {
+            const childs = getChildNodes(item.node);
+            append(targetNode, childs);
+          }
+        };
+
+        if (prevItem?.type === 'node') {
+          pushToNode(prevItem.node);
+        } else {
+          const newBlock = make('p', (p: HTMLParagraphElement) => pushToNode(p));
+          mapResult.push({ type: 'block', node: newBlock });
+        }
+      } else if (item.type === 'block') {
+        mapResult.push({ type: 'block', node: item.node });
+      }
+    });
+
+    return { schema, data: mapResult };
+  }
+
+  /**
    * Handles paste events with smart content parsing
    * @param evt - Clipboard event
    */
@@ -583,62 +722,53 @@ export default class Events implements EventsInterface {
       model = blockManager.getModel();
 
     if (model) {
-      const isCustomPaste = !model.isAutoPaste(),
-        pasteData = evt.clipboardData.getData("text/html") || "",
-        input = parser.parseHtml(pasteData, true);
+      const pasteData = evt.clipboardData.getData("text/html") || "";
+
+      let input = parser.parseHtml(pasteData, true);
+
+      if (input && isEmptyString(input.innerHTML)) {
+        const inputTextPlain = evt.clipboardData.getData("text/plain");
+
+        if (!isEmptyString(inputTextPlain)) {
+          input = make(
+            'parser-rawblock',
+            (pr: Element) => pr.textContent = inputTextPlain
+          )
+        }
+      }
 
       if (input) {
         const childNodes = getChildNodes(input);
+        const map = this.createPasteMap(childNodes);
+        const onPasteModel = model.onPaste(evt, map),
+          allModels = blockManager.getBlockModels(),
+          currentIndex = blockManager.getIndex(),
+          isEmpty = blockManager.isEmpty();
 
-        if (childNodes.length) {
-          let blockNodes: Node[] = [];
-          const nodes: Node[] = [];
+        if (onPasteModel) {
+          if (map.data.length) {
+            if (map.schema === 'block') {
+              let nextIndex = currentIndex === 0 && isEmpty ? 0 : currentIndex + 1;
+              const nodes: Node[] = [];
+              map.data.forEach((item) => {
+                appendText(item.node, ' ');
+                nodes.push(item.node)
+              });
 
-          childNodes.forEach((node) => {
-            const nodeName = node.nodeName.toLowerCase();
-
-            if (node.nodeType === Node.TEXT_NODE) {
-              if (!isEmptyString(node?.textContent || '')) {
-                nodes.push(node);
-              }
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-              if (blockManager.getRealType(nodeName)) {
-                blockNodes.push(node)
-              } else {
-                nodes.push(node)
-              }
-            }
-          });
-
-          if (blockNodes.length === 1 && !nodes.length) {
-            getChildNodes(blockNodes[0]).forEach((node) => {
-              nodes.push(node)
-            })
-
-            blockNodes = [];
-          }
-
-          if (isCustomPaste) {
-            model.onPaste(evt, nodes, blockNodes);
-          } else {
-            if (blockNodes.length) {
               if (model.isRaw()) {
                 selectionApi.insertText(
                   encodeHtmlSpecialChars(
-                    getText(blockNodes)
+                    getText(nodes) + ' '
                   )
                 );
+
                 model.sanitize();
                 model.normalizeContainer();
               } else {
-                const allModels = blockManager.getBlockModels(),
-                  currentIndex = blockManager.getIndex(),
-                  isEmpty = blockManager.isEmpty();
+                map.data.forEach((item) => {
+                  const node = item.node;
 
-                let nextIndex = currentIndex === 0 && isEmpty ? 0 : currentIndex + 1;
-
-                allModels.forEach((blockModel) => {
-                  blockNodes.forEach((node: Node) => {
+                  allModels.forEach((blockModel) => {
                     const nodeName = node.nodeName.toLowerCase();
                     const realName = blockManager.getRealType(nodeName) ||
                       blockManager.getRealType(defBlock) ||
@@ -687,56 +817,80 @@ export default class Events implements EventsInterface {
                       }
                     }
                   })
-                });
-
-                blockManager.focus(nextIndex);
+                })
               }
-            } else if (nodes.length) {
-              if (model.isRaw()) {
-                selectionApi.insertText(
-                  encodeHtmlSpecialChars(getText(nodes))
-                );
-              } else {
-                const sanitizerConfig: SanitizerConfig = model.getConfig(
-                  "sanitizerConfig",
-                  {}
-                );
 
-                const safeNodes: Node[] = [];
+              blockManager.focus(nextIndex);
+            } else {
+              const nodes: Node[] = [];
+              map.data.forEach((item) => nodes.push(item.node));
 
-                nodes.forEach((node: Node) => {
-                  if (sanitizerConfig.elements?.includes(node.nodeName.toLowerCase())) {
-                    safeNodes.push(node)
-                  } else {
-                    const text = getText(node);
+              if (nodes.length) {
 
-                    if (!isEmptyString(text)) {
-                      safeNodes.push(toTextNode(text));
+                if (model.isRaw()) {
+                  selectionApi.insertText(
+                    encodeHtmlSpecialChars(getText(nodes))
+                  );
+                } else {
+                  const sanitizerConfig: SanitizerConfig = model.getConfig(
+                    "sanitizerConfig",
+                    {}
+                  );
+
+                  const safeNodes: Node[] = [];
+
+                  nodes.forEach((node: Node) => {
+                    if (sanitizerConfig.elements?.includes(node.nodeName.toLowerCase())) {
+                      safeNodes.push(node)
+                    } else {
+                      const text = getText(node);
+
+                      if (!isEmptyString(text)) {
+                        safeNodes.push(toTextNode(text));
+                      }
                     }
-                  }
-                });
+                  });
 
-                selectionApi.insert(
-                  toHtml(safeNodes)
-                );
+                  const div = make(
+                    'div',
+                    (el: HTMLElement) => append(el, safeNodes)
+                  );
+
+                  selectionApi.insert(html(div));
+                }
               }
 
               model.sanitize();
               model.normalizeContainer();
+              blockManager.focus(-1);
             }
           }
-          const index = blockManager.getIndex()
-          blockManager.focus(index);
         }
-      }
 
-      this.change({
-        type: "paste",
-        event: evt
-      });
+        this.change({
+          type: "paste",
+          domEvent: evt,
+          map: map
+        });
+      }
 
       this.trigger("onPasteEnd", { domEvent: evt });
     }
+  }
+
+  private defEvent(name: string, evt: Event) {
+    const { blockManager } = this.editor;
+    const model = blockManager.getModel();
+
+    if (
+      model &&
+      name in model &&
+      (model[name as keyof BlockModelInterface] as (evt: Event) => boolean)(evt)
+    ) {
+      evt.preventDefault();
+    }
+
+    this.trigger(name, { domEvent: evt });
   }
 
   /**
@@ -744,7 +898,7 @@ export default class Events implements EventsInterface {
    * @param evt - Drag event
    */
   private onDragStart(evt: DragEvent): void {
-    evt.preventDefault();
+    this.defEvent('onDragStart', evt);
   }
 
   /**
@@ -752,7 +906,7 @@ export default class Events implements EventsInterface {
    * @param evt - Drag event
    */
   private onDragLeave(evt: DragEvent) {
-    evt.preventDefault();
+    this.defEvent('onDragLeave', evt);
   }
 
   /**
@@ -760,7 +914,7 @@ export default class Events implements EventsInterface {
    * @param evt - Drag event
    */
   private onDragOver(evt: DragEvent) {
-    evt.preventDefault();
+    this.defEvent('onDragOver', evt);
   }
 
   /**
@@ -768,7 +922,16 @@ export default class Events implements EventsInterface {
    * @param evt - Drag event
    */
   private onDrag(evt: DragEvent) {
-    evt.preventDefault();
+    this.defEvent('onDrag', evt);
+  }
+
+
+  /**
+   * Prevents default drag end behavior
+   * @param evt - Drag event
+   */
+  private onDragEnd(evt: DragEvent): void {
+    this.defEvent('onDragEnd', evt);
   }
 
   /**
@@ -776,15 +939,7 @@ export default class Events implements EventsInterface {
    * @param evt - Drag event
    */
   private onDrop(evt: DragEvent) {
-    evt.preventDefault();
-  }
-
-  /**
-   * Prevents default drag end behavior
-   * @param evt - Drag event
-   */
-  private onDragEnd(evt: DragEvent): void {
-    evt.preventDefault();
+    this.defEvent('onDrop', evt);
   }
 
   /**
@@ -814,40 +969,35 @@ export default class Events implements EventsInterface {
 
             if (focusedBlock) {
               const index = blockManager.getIndex(focusedBlock),
-                model = blockManager.getModel(index),
-                contentNode = model?.getContentNode(),
-                blockItem = model?.isEditableItems()
-                  ? model.getItemBody(-1)
-                  : null;
+                model = blockManager.getModel(index);
 
               this.setIndex(index);
 
-              const element = blockItem || contentNode,
-                [start, end] = selectionApi.getOffset(element);
+              if (model) {
+                const contentNode = model.getContentNode(),
+                  blockItem = model.isEditableItems()
+                    ? model.getItemBody(-1)
+                    : null;
 
-              if (element) {
-                selectionApi.setCurrent(element, {
-                  start: start,
-                  end: end
-                });
-              }
+                const element = blockItem || contentNode,
+                  [start, end] = selectionApi.getOffset(element);
 
-              toolbar.highlightActiveTools();
+                if (element) {
+                  selectionApi.setCurrent(element, {
+                    start: start,
+                    end: end
+                  });
+                }
 
-              const range = selectionApi.getRange();
+                const range = selectionApi.getRange();
 
-              if (range && !range.collapsed && model?.isToolbar()) {
-                toolbar.show();
-                this.trigger("onSelectionChangeToolbarShow", {
-                  domEvent: evt,
-                  range: range
-                });
-              } else {
-                this.trigger("onSelectionChangeToolbaHide", {
-                  domEvent: evt,
-                  range: range
-                });
-                toolbar.hide();
+                toolbar.highlightActiveTools();
+
+                if (range && model && '__onSelectionChange' in model) {
+                  (model as {
+                    __onSelectionChange: (evt: Event, range: Range) => unknown
+                  }).__onSelectionChange(evt, range);
+                }
               }
             }
           }

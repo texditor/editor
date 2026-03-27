@@ -15,7 +15,7 @@ import {
   removeClass,
   toggleClass
 } from "@/utils/dom";
-import { off, on, rebind } from "@/utils/events";
+import { rebind } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
 export default class ExtensionModel implements ExtensionModelInterface {
