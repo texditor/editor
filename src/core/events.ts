@@ -146,8 +146,19 @@ export default class Events implements EventsInterface {
 
     blockManager.refreshVirtualSelection();
 
-    rebind(document, 'dblclick.docEvt' + eid, () => blockManager.clearVirtualSelection(), true);
-    rebind(document, "keydown.docEvt" + eid, this.onDocumentKeyDownHandle, true);
+    rebind(
+      document,
+      'dblclick.docEvt' + eid,
+      () => blockManager.clearVirtualSelection(),
+      true
+    );
+
+    rebind(
+      document,
+      "keydown.docEvt" + eid,
+      this.onDocumentKeyDownHandle,
+      true
+    );
 
     query(
       '.tex-block-content',
@@ -722,17 +733,18 @@ export default class Events implements EventsInterface {
       model = blockManager.getModel();
 
     if (model) {
-      const pasteData = evt.clipboardData.getData("text/html") || "";
+      const textInput = evt.clipboardData.getData("text/plain"),
+        htmlInput = evt.clipboardData.getData("text/html");
+
+      const pasteData = model.isRaw() ? textInput : htmlInput;
 
       let input = parser.parseHtml(pasteData, true);
 
       if (input && isEmptyString(input.innerHTML)) {
-        const inputTextPlain = evt.clipboardData.getData("text/plain");
-
-        if (!isEmptyString(inputTextPlain)) {
+        if (!isEmptyString(textInput)) {
           input = make(
             'parser-rawblock',
-            (pr: Element) => pr.textContent = inputTextPlain
+            (pr: Element) => pr.textContent = textInput
           )
         }
       }
@@ -816,17 +828,18 @@ export default class Events implements EventsInterface {
                         newModel.normalizeContainer();
                       }
                     }
-                  })
-                })
+                  });
+                });
               }
 
-              blockManager.focus(nextIndex);
+              blockManager.focus(
+                !model.isEmpty() ? nextIndex - 1 : nextIndex
+              );
             } else {
               const nodes: Node[] = [];
               map.data.forEach((item) => nodes.push(item.node));
 
               if (nodes.length) {
-
                 if (model.isRaw()) {
                   selectionApi.insertText(
                     encodeHtmlSpecialChars(getText(nodes))
