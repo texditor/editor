@@ -68,7 +68,8 @@ export default class BlockManager implements BlockManagerInterface {
         blocksContainer: blocksContainer,
         blockSelector: '.tex-block',
         selectionZone: selectionZone,
-        exitTolerance: 80,
+        exitTolerance: 16,
+        touchActivationDelay: 250,
         selectedBlockClass: 'selection-block-selected',
         onLassoStart: () => {
           toolbar.hide();

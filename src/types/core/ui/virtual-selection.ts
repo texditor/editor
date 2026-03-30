@@ -43,6 +43,12 @@ export interface VirtualSelectionOptions {
     autoScrollEdgeThreshold?: number;
 
     /**
+     * Delayed launch of the touch version.
+     * @default 200
+     */
+    touchActivationDelay: number
+
+    /**
      * Callback invoked when the set of selected blocks changes
      * @param selectedIndices - Array of indices of selected blocks
      * @param selectedElements - Array of DOM elements of selected blocks

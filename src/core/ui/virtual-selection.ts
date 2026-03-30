@@ -31,15 +31,20 @@ export default class VirtualSelection implements VirtualSelectionInterface {
   private eventId = 'slUi_' + generateRandomString(8);
   private autoScrollInterval: number | null = null;
 
+  // Touch delay
+  private touchDelayTimeout: number | null = null;
+  private pendingLassoActivation = false;
+
   constructor(options: VirtualSelectionOptions) {
     this.options = {
       blocksContainer: options.blocksContainer,
       blockSelector: options.blockSelector,
       selectionZone: options.selectionZone || document.body,
       selectedBlockClass: options.selectedBlockClass || 'selection-block-selected',
-      exitTolerance: options.exitTolerance || 8,
+      exitTolerance: options.exitTolerance || 12,
       autoScrollSpeed: options.autoScrollSpeed || 20,
       autoScrollEdgeThreshold: options.autoScrollEdgeThreshold || 60,
+      touchActivationDelay: options.touchActivationDelay || 200,
       onSelectionChange: options.onSelectionChange || (() => { }),
       onLassoStart: options.onLassoStart || (() => { }),
       onLassoEnd: options.onLassoEnd || (() => { }),
@@ -86,6 +91,127 @@ export default class VirtualSelection implements VirtualSelectionInterface {
       current = current.parentElement;
     }
     return false;
+  }
+
+  /**
+   * Gets the full bounding rectangle of a block including its visual boundaries.
+   * @param block - The block element
+   * @returns DOMRect with full block dimensions in document coordinates
+   * @private
+   */
+  private getFullBlockRect(block: HTMLElement): DOMRect {
+    const rect = block.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(block);
+
+    // Get margins
+    const marginTop = parseFloat(computedStyle.marginTop);
+    const marginRight = parseFloat(computedStyle.marginRight);
+    const marginBottom = parseFloat(computedStyle.marginBottom);
+    const marginLeft = parseFloat(computedStyle.marginLeft);
+
+    return new DOMRect(
+      rect.left + window.scrollX - marginLeft,
+      rect.top + window.scrollY - marginTop,
+      rect.width + marginLeft + marginRight,
+      rect.height + marginTop + marginBottom
+    );
+  }
+
+  /**
+   * Gets the contentEditable area rectangle inside a block.
+   * @param block - The block element
+   * @returns DOMRect of contentEditable area or null if not found
+   * @private
+   */
+  private getContentEditableRect(block: HTMLElement): DOMRect | null {
+    let current: HTMLElement | null = block;
+    while (current && current !== this.options.selectionZone) {
+      if (current.contentEditable === 'true') {
+        const rect = current.getBoundingClientRect();
+        return new DOMRect(
+          rect.left + window.scrollX,
+          rect.top + window.scrollY,
+          rect.width,
+          rect.height
+        );
+      }
+      current = current.parentElement;
+    }
+    return null;
+  }
+
+  /**
+   * Checks if a point is outside the full block boundaries (including margins).
+   * @param point - Point coordinates in document
+   * @param block - The block element
+   * @returns True if point is completely outside the block's visual area
+   * @private
+   */
+  private isPointOutsideFullBlock(point: { x: number; y: number }, block: HTMLElement): boolean {
+    const fullRect = this.getFullBlockRect(block);
+
+    return point.x < fullRect.left ||
+      point.x > fullRect.right ||
+      point.y < fullRect.top ||
+      point.y > fullRect.bottom;
+  }
+
+  /**
+   * Checks if the cursor has completely exited the block's visual boundaries.
+   * @param currentPoint - Current cursor point
+   * @param startBlock - The block where selection started
+   * @returns True if cursor is outside block boundaries by at least exitTolerance
+   * @private
+   */
+  private hasExitedBlockBoundaries(currentPoint: { x: number; y: number }, startBlock: HTMLElement): boolean {
+    const fullRect = this.getFullBlockRect(startBlock);
+
+    // Calculate distance to each edge
+    const distances = {
+      left: currentPoint.x - fullRect.left,
+      right: fullRect.right - currentPoint.x,
+      top: currentPoint.y - fullRect.top,
+      bottom: fullRect.bottom - currentPoint.y
+    };
+
+    // Find the minimum distance to any edge
+    const minDistance = Math.min(
+      Math.abs(distances.left),
+      Math.abs(distances.right),
+      Math.abs(distances.top),
+      Math.abs(distances.bottom)
+    );
+
+    // Check if we're outside the block
+    const isOutside = currentPoint.x < fullRect.left ||
+      currentPoint.x > fullRect.right ||
+      currentPoint.y < fullRect.top ||
+      currentPoint.y > fullRect.bottom;
+
+    // If outside and distance exceeds tolerance, we've exited
+    if (isOutside && minDistance >= this.options.exitTolerance) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Determines if lasso should be activated for mouse interactions.
+   * @param currentPoint - Current cursor point
+   * @param target - Target element
+   * @returns True if lasso should be activated
+   * @private
+   */
+  private shouldActivateLassoForMouse(currentPoint: { x: number; y: number }, target: HTMLElement): boolean {
+    if (!this.startedInContentEditable) return false;
+
+    // Find the block that contains the starting point
+    const startBlock = this.getBlockAtPoint(this.contentEditableStartPoint.x, this.contentEditableStartPoint.y);
+    if (!startBlock) return false;
+
+    // Check if we've completely exited the block's visual boundaries
+    return this.hasExitedBlockBoundaries(currentPoint, startBlock);
   }
 
   /**
@@ -165,6 +291,23 @@ export default class VirtualSelection implements VirtualSelectionInterface {
    */
   private documentToViewport(x: number, y: number) {
     return { x: x - window.scrollX, y: y - window.scrollY };
+  }
+
+  /**
+   * Finds the block element at the specified point.
+   * @param x - X coordinate in document
+   * @param y - Y coordinate in document
+   * @returns The block element or null
+   * @private
+   */
+  private getBlockAtPoint(x: number, y: number): HTMLElement | null {
+    for (const block of this.blocks) {
+      const fullRect = this.getFullBlockRect(block);
+      if (x >= fullRect.left && x <= fullRect.right && y >= fullRect.top && y <= fullRect.bottom) {
+        return block;
+      }
+    }
+    return null;
   }
 
   /**
@@ -292,15 +435,10 @@ export default class VirtualSelection implements VirtualSelectionInterface {
     const selected = new Set<number>();
 
     this.blocks.forEach((b, i) => {
-      const vr = b.getBoundingClientRect();
+      const fullRect = this.getFullBlockRect(b);
 
-      const r = {
-        left: vr.left + window.scrollX,
-        right: vr.right + window.scrollX,
-        top: vr.top + window.scrollY,
-        bottom: vr.bottom + window.scrollY
-      };
-      if (!(rect.right < r.left || rect.left > r.right || rect.bottom < r.top || rect.top > r.bottom)) {
+      if (!(rect.right < fullRect.left || rect.left > fullRect.right ||
+        rect.bottom < fullRect.top || rect.top > fullRect.bottom)) {
         selected.add(i);
       }
     });
@@ -368,20 +506,15 @@ export default class VirtualSelection implements VirtualSelectionInterface {
 
     if (Math.abs(dx) > 2 || Math.abs(dy) > 2) this.hasMoved = true;
 
+    // Handle lasso activation from contentEditable with block boundary checking
     if (this.startedInContentEditable && !this.isLassoActive) {
-      const dist = Math.hypot(
-        p.x - this.contentEditableStartPoint.x,
-        p.y - this.contentEditableStartPoint.y
-      );
-
-      if (dist > this.options.exitTolerance) {
-        if (!this.isInsideContentEditable(e.target as HTMLElement)) {
-          this.startLassoMode();
-          e.preventDefault();
-        }
+      if (this.shouldActivateLassoForMouse(p, e.target as HTMLElement)) {
+        this.startLassoMode();
+        e.preventDefault();
       }
     }
 
+    // Handle lasso activation from non-contentEditable areas
     if (!this.isLassoActive && this.hasMoved && !this.startedInContentEditable) {
       this.startLassoMode();
     }
@@ -406,6 +539,12 @@ export default class VirtualSelection implements VirtualSelectionInterface {
 
     this.isDragging = false;
     this.startedInContentEditable = false;
+    this.pendingLassoActivation = false;
+
+    if (this.touchDelayTimeout) {
+      clearTimeout(this.touchDelayTimeout);
+      this.touchDelayTimeout = null;
+    }
   }
 
   /**
@@ -428,6 +567,13 @@ export default class VirtualSelection implements VirtualSelectionInterface {
     this.contentEditableStartPoint = p;
     this.isTouchScrolling = false;
     this.shouldPreventScroll = false;
+    this.pendingLassoActivation = false;
+
+    // Clear any existing timeout
+    if (this.touchDelayTimeout) {
+      clearTimeout(this.touchDelayTimeout);
+      this.touchDelayTimeout = null;
+    }
   }
 
   /**
@@ -450,26 +596,36 @@ export default class VirtualSelection implements VirtualSelectionInterface {
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
+    // Detect vertical scrolling
     if (!this.isLassoActive && absY > absX && absY > 10) {
       this.isTouchScrolling = true;
       return;
     }
 
-    if (this.startedInContentEditable && !this.isLassoActive) {
-      const dist = Math.hypot(
-        p.x - this.contentEditableStartPoint.x,
-        p.y - this.contentEditableStartPoint.y
-      );
+    // Handle lasso activation with delay for all cases (not just contentEditable)
+    if (!this.isLassoActive && !this.isTouchScrolling && (absX > 5 || absY > 5)) {
+      if (!this.pendingLassoActivation && !this.touchDelayTimeout) {
+        this.pendingLassoActivation = true;
 
-      if (dist > this.options.exitTolerance) {
-        if (!this.isInsideContentEditable(touch.target as HTMLElement)) {
-          this.startLassoMode();
-        }
+        // Set delay before activating lasso
+        this.touchDelayTimeout = window.setTimeout(() => {
+          if (this.isDragging && !this.isLassoActive && !this.isTouchScrolling) {
+            this.startLassoMode();
+            e.preventDefault();
+          }
+          this.touchDelayTimeout = null;
+          this.pendingLassoActivation = false;
+        }, this.options.touchActivationDelay);
       }
     }
 
-    if (!this.isLassoActive && (absX > 5 || absY > 5) && !this.isTouchScrolling) {
-      this.startLassoMode();
+    // Cancel pending activation if touch movement is too small
+    if (absX < 3 && absY < 3 && this.pendingLassoActivation) {
+      if (this.touchDelayTimeout) {
+        clearTimeout(this.touchDelayTimeout);
+        this.touchDelayTimeout = null;
+        this.pendingLassoActivation = false;
+      }
     }
 
     if (this.isLassoActive && window.scrollY === 0 && dy > 0) {
@@ -482,6 +638,7 @@ export default class VirtualSelection implements VirtualSelectionInterface {
 
     if (this.isLassoActive) {
       this.updateLassoSelection();
+      e.preventDefault();
     }
   }
 
@@ -490,6 +647,14 @@ export default class VirtualSelection implements VirtualSelectionInterface {
    * @private
    */
   private onTouchEnd() {
+    // Clear pending activation
+    if (this.touchDelayTimeout) {
+      clearTimeout(this.touchDelayTimeout);
+      this.touchDelayTimeout = null;
+    }
+
+    this.pendingLassoActivation = false;
+
     if (!this.isDragging) return;
 
     if (this.isLassoActive) {
@@ -538,6 +703,11 @@ export default class VirtualSelection implements VirtualSelectionInterface {
    */
   destroy(): void {
     this.stopAutoScroll();
+
+    if (this.touchDelayTimeout) {
+      clearTimeout(this.touchDelayTimeout);
+      this.touchDelayTimeout = null;
+    }
 
     const eid = this.eventId;
     const zone = this.options.selectionZone;
