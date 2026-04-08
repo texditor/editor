@@ -43,10 +43,16 @@ export const RuLocale = {
   redo: "Повторить",
   select: "Выбрать",
   convert: "Конвертировать",
-  marker: "Маркер",
   downloadFile: "Cкачать файл",
   moveLeft: "Переместиться влево",
   moveRight: "Переместиться вправо",
   notSpecified: "Не указан",
-  search: "Поиск"
+  search: "Поиск",
+  marker: "Маркер",
+  bold: "Жирный",
+  italic: "Курсив",
+  link: "Ссылка",
+  clearFormatting: "Очистить форматирование",
+  subscript: "Нижний индекс",
+  superscript: "Верхний индекс"
 };

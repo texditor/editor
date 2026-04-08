@@ -1,7 +1,7 @@
 import type {
+  ActionModelConfig,
   ActionModelInterface,
-  BlockModelStructure,
-  RenderIconContent
+  BlockModelStructure
 } from "@/types";
 import { IconConvert } from "@/icons";
 import ActionModel from "@/core/models/action-model";
@@ -12,10 +12,14 @@ import { rebind } from "@/utils/events";
 export default class ConvertAction
   extends ActionModel
   implements ActionModelInterface {
-  name: string = "convertAction";
-  protected translation: string = "convert";
-  protected icon: RenderIconContent = IconConvert;
-  protected menu: boolean = true;
+  protected configure(): Partial<ActionModelConfig> {
+    return {
+      name: 'convertAction',
+      icon: IconConvert,
+      translation: 'convert',
+      menu: true
+    }
+  }
 
   menuConfig() {
     const { blockManager, i18n } = this.editor,
@@ -61,12 +65,12 @@ export default class ConvertAction
     });
 
     return {
-      title: i18n.get(this.translation, this.name),
+      title: i18n.get(this.getTranslation(), this.getName()),
       items: items
     };
   }
 
-  isVisible() {
+  isVisible(): boolean {
     const { blockManager } = this.editor,
       blockModels = blockManager.getBlockModels(),
       blockNode = blockManager.getBlockNode();

@@ -30,6 +30,7 @@ import { Paragraph } from "@/blocks";
 import VirtualSelection from "./ui/virtual-selection";
 import { VirtualSelectionInterface } from "@/types/core/ui/virtual-selection";
 import { globalStore } from "@/store/globalStore";
+import { executeMethodIfExists } from "@/utils";
 export default class BlockManager implements BlockManagerInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
@@ -55,7 +56,7 @@ export default class BlockManager implements BlockManagerInterface {
   refreshVirtualSelection(): VirtualSelectionInterface | null {
     this.destroyVirtualSelection();
 
-    const { api, config, toolbar } = this.editor
+    const { api, config, events, tools } = this.editor
     const blocksContainer = this.getBlocksContainer();
 
     if (blocksContainer) {
@@ -70,12 +71,15 @@ export default class BlockManager implements BlockManagerInterface {
         selectionZone: selectionZone,
         exitTolerance: 16,
         touchActivationDelay: 250,
-        selectedBlockClass: 'selection-block-selected',
+        selectedBlockClass: 'tex-ui-vs-selected',
         onLassoStart: () => {
-          toolbar.hide();
+          tools.hide();
         },
-        onSelectionChange: () => {
-          // TODO: refresh exts
+        onSelectionChange: (indices) => {
+          events.change({
+            type: 'virtualSelectionChange',
+            index: indices
+          });
         }
       });
     }
@@ -356,19 +360,6 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   /**
-   * Checks if a block is a text block (editable but no child blocks)
-   * @param blockNode - Block node to check
-   * @returns True if text block
-   */
-  isTextBlock(blockNode: BlockNode | null): boolean {
-    if (!blockNode) return false;
-
-    const model = blockNode.blockModel;
-
-    return model?.getConfig("editable") && !model?.getConfig("editableItems");
-  }
-
-  /**
    * Gets the total number of blocks
    * @returns Block count
    */
@@ -435,10 +426,11 @@ export default class BlockManager implements BlockManagerInterface {
       const model = blockNode.blockModel;
 
       if (
-        (model?.isEditable() || model?.isEditableItems()) &&
-        model?.isNormalize()
+        model &&
+        (model.isEditable() || model.isEditableItems()) &&
+        model.isNormalize()
       ) {
-        const container = model.normalizeContainer();
+        const container = model.toNormalize();
 
         if (container) {
           if (Array.isArray(container)) {
@@ -573,7 +565,7 @@ export default class BlockManager implements BlockManagerInterface {
             const blockContainer = this.getBlocksContainer();
 
             if (blockContainer) {
-              block = blockInstance.create(options);
+              block = executeMethodIfExists(blockInstance, '__create', [options]) as BlockNode;
 
               if (block) {
                 if (to == 'start')
@@ -600,7 +592,7 @@ export default class BlockManager implements BlockManagerInterface {
                 } else {
 
                   const curBlock = this.getBlockNode(curIndex);
-                  block = blockInstance.create(options);
+                  block = executeMethodIfExists(blockInstance, '__create', [options]) as BlockNode;
 
                   if (curBlock && block) {
                     if (curIndex != index) {
@@ -618,8 +610,7 @@ export default class BlockManager implements BlockManagerInterface {
               if (!skipEvents)
                 this.focus(curIndex);
 
-              if (blockInstance.afterCreate)
-                blockInstance.afterCreate(block as BlockNode);
+              executeMethodIfExists(blockInstance, '__afterCreate')
 
               if (!skipEvents) {
                 events.change({
@@ -787,7 +778,8 @@ export default class BlockManager implements BlockManagerInterface {
         }
         // Custom -> target (target has autoMerge)
         else if (!autoMerge && targetAutoMerge) {
-          const mergeNode = model.merge();
+          const mergeNode = executeMethodIfExists(model, '__merge') as HTMLElement | null;
+
           if (mergeNode) {
             // custom -> list/child
             if (targetEditableChild) {
@@ -801,7 +793,7 @@ export default class BlockManager implements BlockManagerInterface {
         }
         // Source (autoMerge) -> Custom
         else if (autoMerge && !targetAutoMerge) {
-          const targetMergeNode = targetModel.merge();
+          const targetMergeNode = executeMethodIfExists(targetModel, '__merge') as HTMLElement | null;
           if (targetMergeNode) {
             // list/child -> custom
             if (editableChild && !targetEditableChild) {
@@ -821,8 +813,8 @@ export default class BlockManager implements BlockManagerInterface {
         }
         // Both custom
         else if (!autoMerge && !targetAutoMerge) {
-          const mergeNode = model.merge();
-          const targetMergeNode = targetModel.merge();
+          const mergeNode = executeMethodIfExists(model, '__merge') as HTMLElement | null;
+          const targetMergeNode = executeMethodIfExists(targetModel, '__merge') as HTMLElement | null;
 
           if (mergeNode && targetMergeNode) {
             // Handle all combinations when both are custom
@@ -860,7 +852,7 @@ export default class BlockManager implements BlockManagerInterface {
         }
 
         if (blockNode) {
-          model.sanitize();
+          model.sanitize()
         }
 
         targetModel.sanitize();
@@ -899,23 +891,27 @@ export default class BlockManager implements BlockManagerInterface {
     const model = blockNode.blockModel,
       curIndex = this.getIndex(blockNode);
 
-    const [beforeBlockNode, beforeTargetModel] = model.beforeConvert(blockNode, targetModel);
+    const [beforeBlockNode, beforeTargetModel] = executeMethodIfExists(
+      model,
+      '__beforeConvert',
+      [blockNode, targetModel]
+    ) as [BlockNode, BlockModelInterface];
 
     if (model.isConvertible() && beforeTargetModel.isConvertible()) {
       if (!beforeBlockNode)
         return false;
 
-      const targetBlockNode = beforeTargetModel.create() as BlockNode;
+      const targetBlockNode = executeMethodIfExists(beforeTargetModel, '__create') as BlockNode;
 
       const createItem = (target: HTMLElement, content: string) => {
-        const newItem = beforeTargetModel.makeItemNode(content);
+        const newItem = executeMethodIfExists(beforeTargetModel, '__makeItemNode', [content]) as HTMLElement
         append(target, newItem);
       }
 
       if (targetBlockNode) {
         const contentNode = this.getContentNode(beforeBlockNode),
           targetContentNode = this.getContentNode(targetBlockNode),
-          isEditableItems = model.isEditableItems(),
+          editableItems = model.isEditableItems(),
           isTargetEditableChilds = beforeTargetModel.isEditableItems(),
           sanitizerConfig = beforeTargetModel.getConfig("sanitizerConfig", {}),
           isSanitize = Object.keys(sanitizerConfig).length,
@@ -931,12 +927,12 @@ export default class BlockManager implements BlockManagerInterface {
           };
 
           // Case 1: text -> text (both not editable child)
-          if (!isEditableItems && !isTargetEditableChilds) {
+          if (!editableItems && !isTargetEditableChilds) {
             appendContent(targetContentNode, contentNode);
           }
 
           // Case 2: list/child -> text
-          else if (isEditableItems && !isTargetEditableChilds) {
+          else if (editableItems && !isTargetEditableChilds) {
             const items = model.getItems();
 
             if (items && items.length) {
@@ -952,13 +948,13 @@ export default class BlockManager implements BlockManagerInterface {
           }
 
           // Case 3: text -> list/child
-          else if (!isEditableItems && isTargetEditableChilds) {
+          else if (!editableItems && isTargetEditableChilds) {
             html(targetContentNode, '');
             createItem(targetContentNode, html(contentNode));
           }
 
           // Case 4: list/child -> list/child
-          else if (isEditableItems && isTargetEditableChilds) {
+          else if (editableItems && isTargetEditableChilds) {
             const items = model.getItems(),
               isSingleItem = beforeTargetModel.isSingleItem();
 
@@ -999,7 +995,7 @@ export default class BlockManager implements BlockManagerInterface {
         this.focus(curIndex);
       }
 
-      const afterBlockNode = model.afterConvert(targetBlockNode);
+      const afterBlockNode = executeMethodIfExists(targetModel, '__afterConvert', [targetBlockNode]) as BlockNode;
 
       events.change({
         type: "convertBlock",

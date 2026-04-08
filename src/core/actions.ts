@@ -1,8 +1,9 @@
 import type {
   ActionsInterface,
-  ActionModelInstanceInterface,
+  ActionModelConstructor,
   TexditorInterface,
-  BlockNode
+  BlockNode,
+  ActionModelInterface
 } from "@/types";
 import { append, closest, css, html, make, prepend, query } from "@/utils/dom";
 import { off, rebind } from "@/utils/events";
@@ -15,42 +16,61 @@ import { generateRandomString } from "@/utils";
 import ActionsView from "@/views/actions";
 
 export default class Actions implements ActionsInterface {
+  /** Reference to the main editor instance for accessing editor services and state */
   private editor: TexditorInterface;
-  private actions: ActionModelInstanceInterface[] = [];
-  /** Unique identifier for event listeners to prevent conflicts */
-  private eventId: string = '';
 
+  /** Collection of action models that define available operations for blocks */
+  private actions: ActionModelInterface[] = [];
+
+  /** Unique identifier for event listeners to prevent conflicts with other event handlers */
+  private eventId: string = '.actions' + generateRandomString(16);
+
+  /**
+   * Initializes the Actions manager with the editor instance and default actions
+   * @param editor - The Texditor editor instance
+   */
   constructor(editor: TexditorInterface) {
     this.editor = editor;
     this.show = this.show.bind(this);
     this.handleClose = this.handleClose.bind(this);
-    this.eventId = generateRandomString(16);
+
     const actions = this.editor.config.get(
       "actions",
       []
-    ) as ActionModelInstanceInterface[];
+    ) as ActionModelConstructor[];
 
-    if (actions.length) {
-      actions.forEach((toolModel: ActionModelInstanceInterface) => {
-        this.register(toolModel);
-      });
-    } else {
-      // Register default actions
-      this.register(CreateAction);
-      this.register(ConvertAction);
-      this.register(MoveUpAction);
-      this.register(MoveDownAction);
-      this.register(DeleteAction);
-    }
+    const actionModels = actions.length ? actions : [
+      CreateAction,
+      ConvertAction,
+      MoveUpAction,
+      MoveDownAction,
+      DeleteAction
+    ]
+
+    actionModels.forEach((instance: ActionModelConstructor) => {
+      this.actions.push(new instance(this.editor));
+    })
   }
 
-  private handleClose(evt: Event) {
-    const { api, events } = this.editor,
-      root = api.getRoot(),
-      cssName = '.tex-actions',
-      cssAction = '.tex-action';
+  /**
+   * Retrieves all available action models
+   * @returns Array of action model instances
+   */
+  getActions(): ActionModelInterface[] {
+    return this.actions;
+  }
 
-    if (root && evt.target) {
+  /**
+   * Handles closing of the action menu when clicking outside the action area
+   * @param evt - The click event that triggered the close
+   */
+  private handleClose(evt: Event) {
+    const { blockManager, events } = this.editor,
+      blockNode = blockManager.getBlockNode(),
+      cssAction = '.tex-action',
+      cssName = cssAction + "s";
+
+    if (blockNode && evt.target) {
       let status = false;
 
       query(
@@ -58,7 +78,7 @@ export default class Actions implements ActionsInterface {
         (el: HTMLElement) => {
           status = !closest(evt.target, el);
         },
-        root
+        blockNode
       );
 
       query(
@@ -66,17 +86,17 @@ export default class Actions implements ActionsInterface {
         (el: HTMLElement) => {
           status = !closest(evt.target, el);
         },
-        root
+        blockNode
       );
 
       query(cssAction + "-confirm",
         (el: HTMLElement) => el.remove(),
-        root
+        blockNode
       );
 
       query(cssAction + "-verifiable",
         (el: HTMLElement) => css(el, 'display', ''),
-        root
+        blockNode
       );
 
       if (status) this.hide();
@@ -85,6 +105,11 @@ export default class Actions implements ActionsInterface {
     }
   }
 
+  /**
+   * Displays a custom menu with specified items
+   * @param items - Array of HTML elements to display in the menu
+   * @param title - Optional title for the menu
+   */
   showMenu(items: HTMLElement[], title: string = "") {
     this.wrap((el: HTMLElement, cssName: string) => {
       if (items) {
@@ -117,6 +142,9 @@ export default class Actions implements ActionsInterface {
     });
   }
 
+  /**
+   * Hides the currently displayed menu
+   */
   hideMenu() {
     this.wrap((el: HTMLElement, cssName: string) => {
       query(
@@ -129,34 +157,44 @@ export default class Actions implements ActionsInterface {
     });
   }
 
+  /**
+   * Executes a callback function within the context of the current block's action container
+   * @param callback - Function to execute with the action container element and CSS class name
+   */
   private wrap(callback: CallableFunction) {
-    const { api, events } = this.editor,
-      root = api.getRoot(),
+    const { blockManager, events } = this.editor,
+      blockNode = blockManager.getBlockNode(),
       cssName = ".tex-actions";
 
-    if (root) {
+    if (blockNode) {
       query(
         cssName + " " + cssName + "-wrap",
         (el: HTMLElement) => callback(el, cssName),
-        root
+        blockNode
       );
     }
 
     events.refresh();
   }
 
+  /**
+   * Displays the actions panel for the current block
+   */
   show() {
     this.wrap((el: HTMLElement) => {
       css(el, "display", "block");
-      rebind(document, "click.actions" + this.eventId, this.handleClose);
+      rebind(document, "click" + this.eventId, this.handleClose);
     });
   }
 
+  /**
+   * Hides the actions panel and cleans up associated event listeners
+   */
   hide() {
     this.hideMenu();
     this.wrap((el: HTMLElement, cssName: string) => {
       css(el, "display", "");
-      off(document, "click.actions" + this.eventId);
+      off(document, "click" + this.eventId);
       query(
         cssName + " " + cssName + "-menu",
         (div: HTMLElement) => {
@@ -168,66 +206,36 @@ export default class Actions implements ActionsInterface {
     });
   }
 
-  register(action: ActionModelInstanceInterface) {
-    this.actions.push(action);
-  }
-
+  /**
+   * Creates and renders action buttons for a specific block node
+   * @param blockNode - The block node to attach actions to
+   */
   create(blockNode: BlockNode) {
-    const { api } = this.editor,
-      root = api.getRoot(),
-      cssName = ".tex-actions";
-
-    this.removeActions();
-
-    if (root) {
-      prepend(blockNode, ActionsView(this.editor));
-
-      const actions = this.actions;
-
-      actions.forEach((actionConstructor: ActionModelInstanceInterface) => {
-        const action = new actionConstructor(this.editor);
-
-        if (action?.create) {
-          const actionElement = action.create();
-
-          query(
-            cssName + " " + cssName + "-container",
-            (el: HTMLElement) => {
-              append(el, actionElement);
-            },
-            root
-          );
-
-          const node = action.getNode();
-
-          if (node) {
-            css(
-              node,
-              'display',
-              !action.isVisible() ? "none" : ""
-            );
-          }
-
-          if (action?.applyEvents) action.applyEvents();
-        }
-      });
-    }
+    this.removeActionElements();
+    prepend(blockNode, ActionsView(this.editor));
   }
 
-  private removeActions() {
+  /**
+   * Removes all action elements from the current block
+   */
+  removeActionElements() {
     const { blockManager } = this.editor,
       container = blockManager.getBlocksContainer();
 
     if (container) {
-      query('.tex-actions', (actions: HTMLElement) => {
-        off(actions, "click.open");
-        actions.remove();
+      query('.tex-actions', (el: HTMLElement) => {
+        off(el, "click.open");
+        el.remove();
       }, container)
     }
   }
 
+  /**
+   * Cleans up all action elements and event listeners
+   */
   destroy() {
-    this.removeActions();
-    off(document, "click.actions" + this.eventId);
+    this.actions.forEach((action) => action.destroy());
+    this.removeActionElements();
+    off(document, "click" + this.eventId);
   }
 }

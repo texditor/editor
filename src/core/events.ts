@@ -1,6 +1,5 @@
 import type {
   BlockCreateItemsContent,
-  BlockModelInterface,
   BlockNode,
   EventsInterface,
   EventTriggerObject,
@@ -10,7 +9,7 @@ import type {
   TexditorEvent,
   TexditorInterface
 } from "@/types";
-import { encodeHtmlSpecialChars, generateRandomString } from "@/utils/common";
+import { encodeHtmlSpecialChars, executeMethodIfExists, generateRandomString } from "@/utils/common";
 import {
   addClass,
   append,
@@ -188,13 +187,25 @@ export default class Events implements EventsInterface {
 
   /**
    * Initializes editor when ready
-   * @param callback - Function to call when editor is ready
    */
-  onReady(callback: CallableFunction) {
-    const { blockManager } = this.editor;
+  ready() {
+    const {
+      api,
+      blockManager,
+      config,
+      extensions,
+      historyManager
+    } = this.editor;
 
     setTimeout(() => {
-      if (callback) callback(this);
+      api.render();
+      historyManager.save();
+      extensions.apply();
+
+      const readyCallback = config.get("onReady", false);
+
+      if (typeof readyCallback === "function")
+        readyCallback(this);
 
       blockManager.detectEmpty();
       blockManager.normalize();
@@ -210,9 +221,11 @@ export default class Events implements EventsInterface {
     const {
       blockManager,
       config,
+      extensions,
       historyManager
-    } = this.editor,
-      changeHandle = config.get("onChange", false);
+    } = this.editor;
+
+    const changeHandle = config.get("onChange", false);
 
     blockManager.detectEmpty();
     blockManager.normalize();
@@ -221,6 +234,8 @@ export default class Events implements EventsInterface {
       if (!this.exists("onChange.onReady"))
         this.add("onChange.onReady", changeHandle);
     }
+
+    extensions.refresh();
 
     this.trigger("onChange", event);
 
@@ -242,7 +257,7 @@ export default class Events implements EventsInterface {
     this.setIndexByTarget(evt.target);
     const model = this.editor.blockManager.getModel();
 
-    if (model && model.onFocus(evt))
+    if (model && executeMethodIfExists(model, '__onFocus', [evt]))
       evt.preventDefault();
 
     this.trigger("focusEnd", { domEvent: evt });
@@ -258,7 +273,7 @@ export default class Events implements EventsInterface {
 
     const model = this.editor.blockManager.getModel();
 
-    if (model && model.onClick(evt))
+    if (model && executeMethodIfExists(model, '__onClick', [evt]))
       evt.preventDefault();
 
     this.trigger("clickEnd", { domEvent: evt });
@@ -271,7 +286,7 @@ export default class Events implements EventsInterface {
   private onBlurHandle(evt: FocusEvent) {
     const model = this.editor.blockManager.getModel();
 
-    if (model && model.onBlur(evt))
+    if (model && executeMethodIfExists(model, '__onBlur', [evt]))
       evt.preventDefault();
 
     this.trigger("blur", { domEvent: evt });
@@ -289,7 +304,7 @@ export default class Events implements EventsInterface {
 
     const model = blockManager.getModel();
 
-    if (model && model.onKeyUp(evt))
+    if (model && executeMethodIfExists(model, '__onKeyUp', [evt]))
       evt.preventDefault();
 
     this.change({
@@ -304,7 +319,6 @@ export default class Events implements EventsInterface {
   /**
    * Sets the current block index based on target
    * @param target - Event target
-   * @param ignoreToolbar - Whether to skip toolbar rendering
    */
   private setIndexByTarget(target?: EventTarget | null) {
     const { blockManager } = this.editor;
@@ -408,7 +422,7 @@ export default class Events implements EventsInterface {
       return;
     }
 
-    model.onKeyDown(evt);
+    executeMethodIfExists(model, '__onKeyDown', [evt]);
 
     const focusedNode = model.isEditableItems() && model.getItemBody(-1)
       ? model.getItemBody(-1)
@@ -752,7 +766,7 @@ export default class Events implements EventsInterface {
       if (input) {
         const childNodes = getChildNodes(input);
         const map = this.createPasteMap(childNodes);
-        const onPasteModel = model.onPaste(evt, map),
+        const onPasteModel = executeMethodIfExists(model, '__onPaste', [evt, map]),
           allModels = blockManager.getBlockModels(),
           currentIndex = blockManager.getIndex(),
           isEmpty = blockManager.isEmpty();
@@ -775,7 +789,6 @@ export default class Events implements EventsInterface {
                 );
 
                 model.sanitize();
-                model.normalizeContainer();
               } else {
                 map.data.forEach((item) => {
                   const node = item.node;
@@ -825,7 +838,6 @@ export default class Events implements EventsInterface {
                       if (newBlock) {
                         const newModel = newBlock.blockModel;
                         newModel.sanitize();
-                        newModel.normalizeContainer();
                       }
                     }
                   });
@@ -873,8 +885,7 @@ export default class Events implements EventsInterface {
                 }
               }
 
-              model.sanitize();
-              model.normalizeContainer();
+              model.sanitize()
               blockManager.focus(-1);
             }
           }
@@ -893,12 +904,11 @@ export default class Events implements EventsInterface {
 
   private defEvent(name: string, evt: Event) {
     const { blockManager } = this.editor;
-    const model = blockManager.getModel();
+    const model = blockManager.getModel(),
+      __name = '__' + name;
 
     if (
-      model &&
-      name in model &&
-      (model[name as keyof BlockModelInterface] as (evt: Event) => boolean)(evt)
+      model && executeMethodIfExists(model, __name, [evt])
     ) {
       evt.preventDefault();
     }
@@ -957,15 +967,14 @@ export default class Events implements EventsInterface {
 
   /**
    * Handles selection change events
-   * Updates toolbar and actions based on current selection
+   * Updates tools and actions based on current selection
    * @param evt - Event
    */
   private onSelectionChangeHandle(evt: Event) {
     const {
       api,
       blockManager,
-      selectionApi,
-      toolbar
+      selectionApi
     } = this.editor,
       root = api.getRoot();
 
@@ -1004,13 +1013,8 @@ export default class Events implements EventsInterface {
 
                 const range = selectionApi.getRange();
 
-                toolbar.highlightActiveTools();
-
-                if (range && model && '__onSelectionChange' in model) {
-                  (model as {
-                    __onSelectionChange: (evt: Event, range: Range) => unknown
-                  }).__onSelectionChange(evt, range);
-                }
+                if (range && model)
+                  executeMethodIfExists(model, '__onSelectionChange', [evt, range]);
               }
             }
           }

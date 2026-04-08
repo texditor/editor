@@ -9,7 +9,8 @@ import type {
   Response,
   FilesFormCreateParams,
   FilesListCreateParams,
-  PasteMap
+  BlockModelConfig,
+  BlockCreateOptions
 } from "@/types";
 
 import BlockModel from "@/core/models/block-model";
@@ -64,7 +65,7 @@ declare global {
 export default class Files extends BlockModel implements BlockModelInterface {
   private renderCallbacks: Record<string, CallableFunction> = {};
 
-  configure() {
+  protected configure(): Partial<BlockModelConfig> {
     const { i18n } = this.editor;
 
     return {
@@ -87,6 +88,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
       type: "files",
       groupCode: 'files',
       editable: false,
+      editableItems: true,
       sanitizer: false,
       cssClasses: "tex-files",
       customSave: true,
@@ -115,16 +117,15 @@ export default class Files extends BlockModel implements BlockModelInterface {
     };
   }
 
-  onPaste(_evt: Event, _mao: PasteMap): boolean {
-    _evt.preventDefault();
+  protected onPaste(evt: Event): boolean {
+    evt.preventDefault();
     return false;
   }
 
-  create(
-    items: FileItem[],
-    options?: FilesCreateOptions
-  ): BlockNode | HTMLElement {
-    const allItems = items || [];
+  create(options: FilesCreateOptions): HTMLElement {
+    const realOptions = Object.keys(options) && options.content
+      ? options
+      : { content: [] }
 
     return this.make(
       "div",
@@ -133,26 +134,26 @@ export default class Files extends BlockModel implements BlockModelInterface {
         append(
           contentNode,
           this.form(
-            allItems,
+            realOptions,
             blockNode,
             contentNode,
-            options
           )
         );
 
         append(
           contentNode,
           this.createList(
-            allItems,
+            realOptions,
             blockNode,
             contentNode,
-            options || {}
           )
         );
       });
   }
 
   protected onListCreate(data: FilesListCreateParams) {
+
+    console.log(this.getItems(), 332)
     return data;
   }
 
@@ -253,15 +254,27 @@ export default class Files extends BlockModel implements BlockModelInterface {
     });
   }
 
+  // getItems(): HTMLElement[] {
+  //   const contentNode = this.getContentNode();
+
+  //   if (!contentNode) return [];
+
+  //   const [listContainer] = queryList('.tex-files-list-container', contentNode);
+
+  //   if (!listContainer) return [];
+  //   return queryList(':scope > *', listContainer);
+  // }
+
   protected createList(
-    items: FileItem[],
+    options: FilesCreateOptions,
     blockNode: BlockNode,
     contentElement: HTMLElement,
-    options: FilesCreateOptions
   ): HTMLElement {
     this.setRenderCallback("default", (item: FileItem) =>
       this.defaultRenderItem(item)
     );
+
+    const items = options.content as FileItem[];
 
     this.onListCreate({
       items: items,
@@ -310,12 +323,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
     } else this.renderCallbacks[mimeType] = callback;
   }
 
-  parse(item: BlockOutput) {
-    const { data, ...options } = item;
-    return this.create(data as FileItem[], options);
+  protected parse(item: BlockOutput) {
+    return this.create({ content: item.data });
   }
 
-  save(block: BlockOutput, node?: HTMLElement): BlockOutput {
+  protected save(block: BlockOutput, node?: HTMLElement): BlockOutput {
     const root = node || this.getBlockNode();
     block.data = [];
     block = this.onSaveBefore(block, root);
@@ -491,21 +503,21 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   protected form(
-    items: FileItem[],
+    options: BlockCreateOptions,
     blockNode: BlockNode,
     contentNode: HTMLElement,
-    options?: FilesCreateOptions
   ) {
     const mimeTypes = this.getConfig("mimeTypes", []) as string[],
       isMultiple = this.getConfig("multiple", true),
       id = generateRandomString(16),
-      { i18n } = this.editor;
+      { i18n } = this.editor,
+      itemsLength = options?.content?.length || 0
 
     return make("div", (el: HTMLElement) => {
       addClass(el, "tex-files-form");
 
       const form = make("div", (form: HTMLFormElement) => {
-        const labelFile = this.createLabel(items.length || 0, id);
+        const labelFile = this.createLabel(itemsLength, id);
         const inputFile = make("input", (input: HTMLInputElement) => {
           attr(input, "type", "file");
           css(input, "display", "none");
@@ -600,7 +612,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
         append(form, [labelFile, inputFile, this.createLoader(id)]);
       });
 
-      if (!(!isMultiple && items.length > 0)) {
+      if (!(!isMultiple && itemsLength > 0)) {
         append(el, form);
       }
 

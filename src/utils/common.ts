@@ -2,7 +2,7 @@ export function generateRandomString(length: number): string {
   let result = "";
 
   const characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
     charactersLength = characters.length;
 
   for (let i = 0; i < length; i++) {
@@ -91,7 +91,7 @@ export function encodeHtmlSpecialChars(input: string): string {
  * Converts bytes to a human readable string with automatic browser locale detection
  * @param bytes - The number of bytes to format
  * @param decimals - Number of decimal places (default: 2)
- * @returns
+ * @returns - Formatted string
  */
 export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) {
@@ -128,4 +128,32 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
   const localizedUnits = unitTranslations[langCode] || units;
 
   return `${formattedValue} ${localizedUnits[i]}`;
+}
+
+/**
+ * Executes a class method if it exists on the given instance.
+ * 
+ * @param instance - The class instance containing the method to execute
+ * @param methodName - The name of the method to look up and execute
+ * @param args - An array of arguments to pass to the method (default: [])
+ * @returns The return value of the executed method, or null if the method doesn't exist or is not callable
+ */
+export function executeMethodIfExists<
+  T extends object,
+  R = unknown,  // Вместо any, более безопасно
+  Args extends unknown[] = unknown[]  // Типизируем аргументы
+>(
+  instance: T,
+  methodName: string,
+  args: Args = [] as unknown as Args
+): R | null {
+  // Используем keyof T для проверки существования свойства
+  const method = (instance as T)[methodName as keyof T];
+  
+  if (typeof method === 'function') {
+    // Приводим метод к функции с нужной сигнатурой
+    return (method as (...args: Args) => R).apply(instance, args);
+  }
+  
+  return null;
 }

@@ -1,4 +1,4 @@
-import type { ActionModelInterface, RenderIconContent } from "@/types";
+import type { ActionModelConfig, ActionModelInterface } from "@/types";
 import { IconTrash } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 
@@ -6,12 +6,17 @@ import ActionModel from "@/core/models/action-model";
 export default class DeleteAction
   extends ActionModel
   implements ActionModelInterface {
-  name: string = "deleteAction";
-  protected translation: string = "deleteAction";
-  protected confirm: boolean = true;
-  protected icon: RenderIconContent = IconTrash;
 
-  onClick() {
+  protected configure(): Partial<ActionModelConfig> {
+    return {
+      name: 'deleteAction',
+      translation: 'deleteAction',
+      icon: IconTrash,
+      confirm: true
+    };
+  }
+
+  protected onClick(): void {
     const { actions, blockManager } = this.editor;
     blockManager.removeBlock();
     actions.hide();

@@ -1,53 +1,71 @@
 import type {
   CommandsInterface,
-  TexditorInterface,
-  ToolModelInterface
+  BaseEvent,
+  ToolModelInterface,
+  ToolModelConfig,
+  ToolModelConstructor
 } from "@/types";
-import { generateRandomString } from "@/utils/common";
-import { addClass, attr, make } from "@/utils/dom";
-import { on } from "@/utils/events";
-import { renderIcon } from "@/utils/icon";
+import BaseModel from "./base-model";
 
-export default class ToolModel implements ToolModelInterface {
-  name: string = "";
-  protected tagName: string = "";
-  protected translation?: string;
-  protected editor: TexditorInterface;
-  protected icon: string = "";
-  protected detectActive: boolean = true;
-  private randomId: string = generateRandomString(10);
-
-  constructor(editor: TexditorInterface) {
-    this.editor = editor;
-    this.onLoad();
-
-    const { events } = this.editor;
-
-    events.add("toolbar:render:end", () => {
-      const element = this.getBlockNode();
-
-      if (element) {
-        element.style.display = !this.isVisible() ? "none" : "";
-      }
-    });
+export default class ToolModel extends BaseModel implements ToolModelInterface {
+  /**
+  * Set up global configuration
+  * @param config - Partial configuration
+  * @returns Model constructor
+  */
+  public static setup(
+    this: ToolModelConstructor,
+    config: Partial<ToolModelConfig>
+  ): ToolModelConstructor {
+    return super.setup(config) as ToolModelConstructor;
   }
 
-  onLoad(): void { }
+  /**
+   * Parent model configuration
+   * @returns Parent model configuration
+   */
+  protected parentСonfig(): Partial<ToolModelConfig> {
+    return {
+      __modelCode: 'tool'
+    }
+  }
 
-  formatAction(callback: CallableFunction) {
-    const tagName = this.getTagName(),
-      { commands, events, selectionApi } = this.editor;
+  /**
+   * Get tool tag name
+   * @returns Tag name string
+   */
+  getTagName(): string {
+    return this.getConfig('tagName', '');
+  }
+
+  /**
+   * Format action wrapper for tool operations
+   * @param callback - Callback function that performs the formatting
+   * @returns void
+   */
+  private formatAction(callback: CallableFunction) {
+    const tagName = this.getTagName();
+    const { commands, events, selectionApi } = this.editor;
 
     selectionApi.selectCurrent();
     callback(tagName, commands, selectionApi);
     selectionApi.selectCurrent();
-    this.onAfterFormat(commands.findTags(tagName, true));
+
+    const tags = commands.findTags(tagName, true);
+
+    this.onFormat(tags);
+
     events.change({
       type: "format",
       name: this.getName()
     });
   }
 
+  /**
+   * Apply format to selected content
+   * @param onlyRemove - If true, only remove format; if false, toggle format
+   * @returns void
+   */
   format(onlyRemove: boolean = false): void {
     this.formatAction((tagName: string, commands: CommandsInterface) => {
       if (onlyRemove) commands.removeFormat(tagName);
@@ -55,96 +73,74 @@ export default class ToolModel implements ToolModelInterface {
     });
   }
 
+  /**
+   * Force create format on selected content (without toggling)
+   * @returns void
+   */
   forcedFormat(): void {
     this.formatAction((tagName: string, commands: CommandsInterface) => {
       commands.createFormat(tagName);
     });
   }
 
+  /**
+   * Remove format from selected content
+   * @returns void
+   */
   removeFormat(): void {
     this.format(true);
   }
 
-  onClick(_evt: Event) { }
-  onAfterFormat(_tags: HTMLElement[]): void { }
-  handleClick(evt: Event): void {
-    const { events } = this.editor;
-
-    this.onClick(evt);
-
-    events.change({
-      type: "toolClick",
-      name: this.getName()
-    });
-
-    events.refresh();
+  /**
+   * Clear and separate tags outside the formatting area
+     * @returns boolean
+   */
+  isSeparate(): boolean {
+    return this.getConfig('separate', false) as boolean;
   }
 
-  getId(): string {
-    return (
-      "tex-tool-" +
-      this.getName() +
-      "-" +
-      this.randomId
-    );
+  /**
+   * Hook called after format is applied
+   * @param _tags - Array of formatted HTML elements
+   * @returns void
+   */
+  protected onFormat(_tags: HTMLElement[]): void { }
+
+  /**
+   * Handle click event
+   * @param _evt - Custom event with element reference
+   * @returns void
+   */
+  protected onClick(_evt: BaseEvent): void {
+    if (this.isSeparate()) {
+      const { selectionApi, commands } = this.editor;
+
+      selectionApi.selectCurrent();
+
+      const allTags = commands.findTags(),
+        tags = commands.findTags(this.getTagName());
+
+      if (allTags.length > tags.length)
+        commands.clearAllFormatting();
+    }
+
+    this.format();
   }
 
-  getBlockNode(): HTMLElement | null {
-    return document.getElementById(this.getId());
-  }
+  isVisible(): boolean {
+    const { blockManager } = this.editor;
+    const blockModel = blockManager.getModel();
 
-  getName(): string {
-    return this.name;
-  }
+    if (blockModel) {
+      const toolNames = blockModel.getAvailableTools();
 
-  getTagName(): string {
-    return this.tagName;
-  }
+      if (!toolNames.length)
+        return true;
 
-  create() {
-    const cssName = 'tex-tool';
+      return toolNames.includes(this.getName());
 
-    return make("div", (el: HTMLElement) => {
-      addClass(
-        el,
-        cssName +
-        " tool-tag-" +
-        this.getTagName() +
-        " " +
-        "tool-name-" +
-        this.getName() +
-        " " +
-        cssName +
-        "-" +
-        this.getName()
-      );
+    }
 
-      attr(el, "title", this.editor.i18n.get(this.translation || this.getName()));
-
-      el.id = this.getId();
-
-      if (this.icon) {
-        el.innerHTML = renderIcon(this.icon, {
-          width: 16,
-          height: 16
-        });
-      } else {
-        el.innerHTML = this.getName();
-      }
-    });
-  }
-
-  applyEvents() {
-    const element = this.getBlockNode();
-
-    this.handleClick = this.handleClick.bind(this);
-
-    if (element) on(element, "click.tm", this.handleClick);
-  }
-
-  isVisible() {
     return true;
   }
-
-  destroy(): void { }
 }

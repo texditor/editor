@@ -676,61 +676,71 @@ export default class Commands implements CommandsInterface {
       const children = Array.from(node.childNodes);
       let i = 0;
 
-      while (i < children.length) {
+      while (i < children.length - 1) {
         const current = children[i];
+        const next = children[i + 1];
 
-        if (current.nodeType === Node.ELEMENT_NODE) {
-          let j = i + 1;
-          let hasOnlyWhitespace = true;
+        if (current.nodeType === Node.ELEMENT_NODE &&
+          next.nodeType === Node.ELEMENT_NODE) {
 
-          while (j < children.length) {
-            if (children[j].nodeType === Node.ELEMENT_NODE) {
-              if (
-                (current as Element).tagName ===
-                (children[j] as Element).tagName
-              ) {
-                if (hasOnlyWhitespace) {
-                  if (
-                    j > i + 1 ||
-                    (j === i + 1 && children[i + 1].nodeType === Node.TEXT_NODE)
-                  ) {
-                    (current as Element).appendChild(
-                      document.createTextNode(" ")
-                    );
-                  }
+          const currentEl = current as Element;
+          const nextEl = next as Element;
 
-                  while (children[j].firstChild) {
-                    current.appendChild(
-                      children[j].firstChild as ChildNode | Node
-                    );
-                  }
+          if (currentEl.tagName === nextEl.tagName) {
+            const attrs1 = currentEl.attributes;
+            const attrs2 = nextEl.attributes;
+            let attributesMatch = attrs1.length === attrs2.length;
 
-                  for (let k = j; k > i; k--) {
-                    node.removeChild(children[k]);
-                    children.splice(k, 1);
-                  }
-
-                  continue;
+            if (attributesMatch) {
+              for (let a = 0; a < attrs1.length; a++) {
+                const attrName = attrs1[a].name;
+                if (currentEl.getAttribute(attrName) !== nextEl.getAttribute(attrName)) {
+                  attributesMatch = false;
+                  break;
                 }
               }
-              break;
-            } else if (children[j].nodeType === Node.TEXT_NODE) {
-              if (/\S/.test(children[j].textContent || "")) {
-                hasOnlyWhitespace = false;
-              }
             }
-            j++;
+
+            if (attributesMatch) {
+              let hasSignificantTextBetween = false;
+              for (let k = i + 1; k < children.indexOf(next); k++) {
+                const sibling = children[k];
+                if (sibling.nodeType === Node.TEXT_NODE) {
+                  if (sibling.textContent && sibling.textContent.trim() !== '') {
+                    hasSignificantTextBetween = true;
+                    break;
+                  }
+                } else if (sibling.nodeType === Node.ELEMENT_NODE) {
+                  hasSignificantTextBetween = false;
+                  break;
+                }
+              }
+
+              if (hasSignificantTextBetween) {
+                currentEl.appendChild(document.createTextNode(' '));
+              }
+
+              while (nextEl.firstChild) {
+                currentEl.appendChild(nextEl.firstChild);
+              }
+
+              node.removeChild(nextEl);
+              children.splice(i + 1, 1);
+              continue;
+            }
           }
         }
+
         i++;
       }
 
-      Array.from(node.children).forEach(processNode);
+      for (const child of Array.from(node.children)) {
+        processNode(child as HTMLElement | Element);
+      }
     };
 
     processNode(root);
   }
-
   /**
    * Internal method to handle selection operations
    * @param callback - Function to execute with selection context

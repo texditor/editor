@@ -101,13 +101,6 @@ export interface BlockManagerInterface {
   isEmpty(index?: number): boolean;
 
   /**
-   * Checks if a block is a text block (editable but no child blocks)
-   * @param block - Block node to check
-   * @returns True if text block
-   */
-  isTextBlock(block: BlockNode | null): boolean;
-
-  /**
    * Gets the block model for a specific block
    * @param index - Block index (defaults to current block)
    * @returns Block model or null

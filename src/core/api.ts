@@ -12,7 +12,7 @@ import {
   findDatasetsWithPrefix
 } from "@/utils/dom";
 import MainView from "@/views/main";
-import { generateRandomString } from "@/utils/common";
+import { executeMethodIfExists, generateRandomString } from "@/utils/common";
 import { isEmptyString, sanitizeJson } from "@/utils";
 
 
@@ -90,9 +90,8 @@ export default class API implements APIInterface {
 
       query(
         ".tex-block",
-        (item: HTMLElement) => {
-          const blockNode = item as BlockNode;
-          blockNode.blockModel.onRender();
+        (item: BlockNode) => {
+          executeMethodIfExists(item.blockModel, '__onRender');
         },
         editorElement
       );
@@ -202,7 +201,7 @@ export default class API implements APIInterface {
 
           if (contentNode && model) {
             if (model.isCustomSave()) {
-              block = model.save(block, el);
+              block = executeMethodIfExists(model, '__save', [block, el]) as BlockOutput;
             } else {
               for (const itemData in el.dataset) {
                 if (
@@ -273,7 +272,7 @@ export default class API implements APIInterface {
       events,
       extensions,
       historyManager,
-      toolbar
+      tools
     } = this.editor;
     if (this.rootElement) this.rootElement.innerHTML = "";
 
@@ -287,7 +286,7 @@ export default class API implements APIInterface {
     blockManager.destroy();
     events.destroy();
     extensions.destroy();
-    toolbar.destroy();
+    tools.destroy();
     historyManager.clear();
   }
 }

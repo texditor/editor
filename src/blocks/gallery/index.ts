@@ -4,7 +4,8 @@ import type {
   BlockNode,
   BlockOutput,
   FilesFormCreateParams,
-  FilesListCreateParams
+  FilesListCreateParams,
+  BlockModelConfig
 } from "@/types";
 import Files from "../files";
 import {
@@ -34,7 +35,7 @@ export default class Gallery extends Files {
   private defaultStyles: string[] = ["grid", "slider", "single"];
   private slider?: Slider;
 
-  configure() {
+  protected configure(): Partial<BlockModelConfig> {
     return {
       ...super.configure(),
       ...{
@@ -239,7 +240,7 @@ export default class Gallery extends Files {
       );
       events.add("onChange.fileAction", (evt: TexditorEvent) => {
         if (evt?.isFileAction) {
-          const lastIndex = evt.index || 0;
+          const lastIndex = typeof evt.index === 'number' ? evt.index : 0;
 
           this.destroySlider();
           this.initSlider(true, onChange);

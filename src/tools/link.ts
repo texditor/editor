@@ -1,4 +1,4 @@
-import type { ToolModelInterface } from "@/types";
+import type { ToolModelInterface, ToolModelConfig } from "@/types";
 import {
   IconArrowRight,
   IconClearFormatting,
@@ -13,23 +13,37 @@ import {
   attr,
   closest,
   css,
+  html,
   make,
   query,
   replaceWithChildren,
   toggleClass
 } from "@/utils/dom";
 import "@/styles/tools/link.css";
-import { off, on } from "@/utils/events";
+import { off, on, rebind } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
 export default class LinkTool extends ToolModel implements ToolModelInterface {
-  name: string = "link";
-  protected tagName: string = "a";
-  protected tranlation: string = "link";
-  protected icon: string = IconLink;
-  private tagsInSelection: HTMLLinkElement[] = [];
+  /**
+   * Get tool configuration
+   * @returns Partial tool configuration
+   */
+  protected configure(): Partial<ToolModelConfig> {
+    return {
+      name: "link",
+      tagName: 'a',
+      icon: IconLink,
+      iconWidth: 16,
+      iconHeight: 16
+    }
+  }
 
-  onClick() {
+  /**
+   * Handle click event on the link tool
+   * Opens form for creating or editing a link
+   * @returns void
+   */
+  protected onClick(): void {
     const { selectionApi, commands } = this.editor;
     selectionApi.selectCurrent();
     const [linkTag] = commands.findTags(this.getTagName());
@@ -42,7 +56,13 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
     }
   }
 
-  onAfterFormat(tags: HTMLLinkElement[]): void {
+  /**
+   * Hook called after format is applied
+   * Updates link attributes based on form values
+   * @param tags - Array of formatted link elements
+   * @returns void
+   */
+  onFormat(tags: HTMLLinkElement[]): void {
     const { api } = this.editor,
       uniqueId = api.getUniqueId(),
       formElement = document.getElementById("form-link-" + uniqueId),
@@ -60,17 +80,27 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
     }
   }
 
+  /**
+   * Remove link form from the toolbar
+   * @returns void
+   */
   private removeForm() {
     const { api } = this.editor,
       root = api.getRoot();
 
     if (root) {
-      query('.tex-toolbar-content', (content: HTMLElement) => css(content, 'display', 'none'), root);
-      query('.tex-toolbar-tools', (tools: HTMLElement) => css(tools, 'display', ''), root);
+      query('.tex-tools-content', (content: HTMLElement) => css(content, 'display', 'none'), root);
+      query('.tex-tools-list', (tools: HTMLElement) => css(tools, 'display', ''), root);
       query(".tex-link-form", (el: HTMLElement) => el.remove(), root);
     }
   }
 
+  /**
+   * Create link editing form in the toolbar
+   * @param link - Initial link URL value
+   * @param targetBlank - Whether the link should open in a new tab
+   * @returns void
+   */
   private createForm(link: string = "", targetBlank: boolean = false) {
     const { api, commands, selectionApi, i18n } = this.editor,
       uniqueId = api.getUniqueId(),
@@ -80,6 +110,8 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
       el.id = "form-link-" + uniqueId;
       el.dataset.targetBlank = "N";
       addClass(el, "tex-link-form");
+
+      // Create target blank toggle button
       append(
         el,
         make("div", (btn: HTMLInputElement) => {
@@ -95,14 +127,19 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
             el.dataset.targetBlank = isBlank ? "N" : "Y";
             toggleClass(btn, "tex-active");
           });
-          btn.innerHTML = renderIcon(IconNewTab, {
-            width: 14,
-            height: 14
-          });
+          html(
+            btn,
+            renderIcon(IconNewTab, {
+              width: 14,
+              height: 14
+            })
+          )
+
           btn.title = i18n.get("openInNewTab", "Open in a new tab");
         })
       );
 
+      // Create link input field
       append(
         el,
         make("input", (input: HTMLInputElement) => {
@@ -111,7 +148,7 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
           input.value = link;
           input.placeholder = i18n.get("enterLink", "Enter the link");
           addClass(input, "tex-link-input");
-          on(input, "keydown.link", (evt: KeyboardEvent) => {
+          rebind(input, "keydown.link", (evt: KeyboardEvent) => {
             if (evt.key == "Enter") {
               evt.preventDefault();
               this.format();
@@ -122,14 +159,18 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
         })
       );
 
+      // Create delete link button
       append(
         el,
         make("div", (btn: HTMLElement) => {
           addClass(btn, "tex-link-form-btn tex-link-form-del-btn");
-          btn.innerHTML = renderIcon(IconTrash, {
-            width: 18,
-            height: 18
-          });
+          html(
+            btn,
+            renderIcon(IconTrash, {
+              width: 18,
+              height: 18
+            })
+          )
           btn.title = i18n.get("delete", "Delete");
           on(btn, "click.link", () => {
             selectionApi.selectCurrent();
@@ -143,32 +184,41 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
         })
       );
 
+      // Create clear formatting button
       append(
         el,
         make("div", (btn: HTMLElement) => {
           addClass(btn, "tex-link-form-btn tex-link-form-clean-btn");
-          btn.innerHTML = renderIcon(IconClearFormatting, {
-            width: 14,
-            height: 14
-          });
+          html(
+            btn,
+            renderIcon(IconClearFormatting, {
+              width: 14,
+              height: 14
+            })
+          )
+
           btn.title = i18n.get("delete", "Delete");
-          on(btn, "click.link", () => {
+          rebind(btn, "click.link", () => {
             this.removeFormat();
             document.body?.click();
           });
         })
       );
 
+      // Create done/submit button
       append(
         el,
         make("div", (btn: HTMLInputElement) => {
-          btn.innerHTML = renderIcon(IconArrowRight, {
-            width: 18,
-            height: 18
-          });
+          html(
+            btn,
+            renderIcon(IconArrowRight, {
+              width: 18,
+              height: 18
+            })
+          );
           addClass(btn, "tex-link-form-btn");
           btn.title = i18n.get("done", "Done");
-          on(btn, "click.link", () => {
+          rebind(btn, "click.link", () => {
             this.removeFormat();
             this.forcedFormat();
             document.body?.click();
@@ -177,12 +227,11 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
       );
     });
 
-    const content = "tex-toolbar-content";
-
+    const content = "tex-tools-content";
 
     if (root) {
       query('.' + content, (content: HTMLElement) => css(content, 'display', 'block'), root);
-      query('.tex-toolbar-tools', (tools: HTMLElement) => css(tools, 'display', 'none'), root);
+      query('.tex-tools-list', (tools: HTMLElement) => css(tools, 'display', 'none'), root);
       query(
         '.' + content,
         (content: HTMLElement) => {
@@ -192,6 +241,7 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
       );
     }
 
+    // Handle click outside to close form
     setTimeout(() => {
       if (root) {
         on(document, "click.link" + uniqueId, (evt: MouseEvent) => {
@@ -210,7 +260,11 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
     }, 100);
   }
 
-  destroy() {
+  /**
+   * Destroy link tool instance and clean up resources
+   * @returns void
+   */
+  destroy(): void {
     const { api } = this.editor,
       uniqueId = api.getUniqueId();
 

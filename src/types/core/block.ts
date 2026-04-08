@@ -19,9 +19,12 @@ export interface BlockCreateItemsContent {
   data: string | Node | Node[],
   attr?: Record<string, string | undefined>;
 }
+export interface BlockCreateUnknownContent {
+  [key: string]: unknown;
+}
 
 export interface BlockCreateOptions {
-  content?: string | BlockCreateItemsContent[];
+  content?: string | BlockCreateItemsContent[] | unknown[];
   lang?: string;
   [key: string]: unknown;
 }

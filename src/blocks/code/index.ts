@@ -2,7 +2,7 @@ import type {
   BlockModelInterface,
   BlockOutput,
   BlockNode,
-  TexditorEvent
+  BlockModelConfig
 } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import { addClass, append, attr, closest, css, html, make, prepend, query } from "@/utils/dom";
@@ -12,7 +12,7 @@ import "@/styles/blocks/code.css";
 import { isEmptyString, off, on, renderIcon } from "@/utils";
 
 export default class Code extends BlockModel implements BlockModelInterface {
-  configure() {
+  protected configure(): Partial<BlockModelConfig> {
     return {
       autoParse: false,
       autoMerge: true,
@@ -37,16 +37,16 @@ export default class Code extends BlockModel implements BlockModelInterface {
     };
   }
 
-  protected onCreate(_newBlockNode?: BlockNode | null): void {
-    if (_newBlockNode) {
-      const lang = this.getOption('lang');
+  protected onCreate(): void {
+    const blockNode = this.getBlockNode();
 
-      if (lang) {
-        attr(_newBlockNode, 'data-lang', lang);
-      }
+    const lang = this.getOption('lang');
 
-      this.init(_newBlockNode);
+    if (lang) {
+      attr(blockNode, 'data-lang', lang);
     }
+
+    this.init(blockNode);
   }
 
   private init(blockNode: BlockNode) {
@@ -212,25 +212,19 @@ export default class Code extends BlockModel implements BlockModelInterface {
     }
   }
 
-  onRender(): void {
-    const { blockManager, events } = this.editor;
+  onKeyDown(evt: KeyboardEvent): boolean {
+    const { blockManager } = this.editor;
 
-    if (!events.exists('keydown.code')) {
-      events.add('keydown.code', (evt: TexditorEvent) => {
-        const domEvent = (evt?.domEvent as KeyboardEvent) || null,
-          curModel = blockManager.getModel();
-
-        if (domEvent && curModel instanceof Code) {
-          if (domEvent.ctrlKey && domEvent.key === 'Enter') {
-            blockManager.createDefaultBlock();
-            domEvent.preventDefault();
-          }
-        }
-      });
+    if (evt.ctrlKey && evt.key === 'Enter') {
+      blockManager.createDefaultBlock();
+      evt.preventDefault();
+      return false;
     }
+
+    return true;
   }
 
-  save(block: BlockOutput, blockNode?: BlockNode): BlockOutput {
+  protected save(block: BlockOutput, blockNode?: BlockNode): BlockOutput {
     const { blockManager } = this.editor;
     const contnetNode = blockManager.getContentNode(blockNode);
 
@@ -244,7 +238,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
     return block;
   }
 
-  parse(item: BlockOutput) {
+  protected parse(item: BlockOutput) {
     const languages = this.getConfig('languages', {}) as CodeLanguagesInterface;
     let lang = (item?.lang || '') as string;
 
@@ -258,5 +252,11 @@ export default class Code extends BlockModel implements BlockModelInterface {
           ? item.data[0]
           : ""
     });
+  }
+
+  afterConvert(newBlockNode: BlockNode): BlockNode {
+    this.init(newBlockNode);
+
+    return newBlockNode;
   }
 }

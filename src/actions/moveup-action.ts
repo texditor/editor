@@ -1,16 +1,20 @@
-import type { ActionModelInterface, RenderIconContent } from "@/types";
+import type { ActionModelConfig, ActionModelInterface } from "@/types";
 import { IconArrowUp } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 import { after } from "@/utils";
 
 /** Move the block up */
-export default class MoveUpAction
-  extends ActionModel
-  implements ActionModelInterface {
-  name = "moveUpAction";
-  protected icon: RenderIconContent = IconArrowUp;
+export default class MoveUpAction extends ActionModel implements ActionModelInterface {
 
-  onClick() {
+  protected configure(): Partial<ActionModelConfig> {
+    return {
+      name: 'moveUpAction',
+      translation: 'moveUpAction',
+      icon: IconArrowUp,
+    };
+  }
+
+  protected onClick(): void {
     const { actions, blockManager, events } = this.editor;
 
     const curIndex = blockManager.getIndex(),

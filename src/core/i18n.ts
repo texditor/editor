@@ -2,43 +2,58 @@ import type { I18NInterface, TexditorInterface } from "@/types";
 import { EnLocale } from "@/locales";
 
 export default class I18N implements I18NInterface {
+  /** Reference to the editor instance */
   private editor: TexditorInterface;
-  private locale: string;
-  private defaultLocale: string;
+  /** Current active locale code */
+  private locale: string = 'en';
+  /** Default fallback locale code */
+  private defaultLocale: string = 'en';
+  /** Collection of translation dictionaries keyed by locale code */
   private translations: Record<string, Record<string, string>> = {};
 
+  /**
+   * Create a new i18n instance
+   * @param editor - Editor instance reference
+   */
   constructor(editor: TexditorInterface) {
     this.editor = editor;
-    this.defaultLocale = this.editor.config.get(
-      "defaultLocale",
-      "en"
-    ) as string;
-    this.locale = this.editor.config.get(
-      "locale",
-      this.defaultLocale
-    ) as string;
-    this.setLocale("en", EnLocale);
+    const { config } = this.editor;
+    this.defaultLocale = config.get("defaultLocale") || 'en';
+    this.locale = config.get("locale", this.defaultLocale) || 'en';
+    this.translations['en'] = EnLocale;
+
+    const locales = config.get('locales');
+
+    if (Array.isArray(locales)) {
+      locales.forEach((item) => {
+        if (item.code && item.data)
+          this.translations[item.code] = item.data;
+      });
+    }
   }
 
+  /**
+   * Get current active locale
+   * @returns Current locale code string
+   */
   getLocale(): string {
-    return this.locale || "en";
+    return this.locale;
   }
 
+  /**
+   * Get default fallback locale
+   * @returns Default locale code string
+   */
   getDefaultLocale(): string {
-    return this.defaultLocale || "en";
+    return this.defaultLocale;
   }
 
-  setLocale(localeName: string, data: Record<string, string>): void {
-    this.translations[localeName] = data;
-  }
-
-  addTranslations(localeName: string, data: Record<string, string>): void {
-    this.translations[localeName] = Object.assign(
-      this.translations[localeName],
-      data
-    );
-  }
-
+  /**
+   * Get translation for a key
+   * @param key - Translation key to look up
+   * @param def - Default value if translation not found
+   * @returns Translated string or default value
+   */
   get(key: string, def: string = ""): string {
     const locale = this.getLocale(),
       defaultLocale = this.getDefaultLocale();

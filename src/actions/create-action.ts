@@ -1,7 +1,7 @@
 import type {
-  RenderIconContent,
   ActionModelInterface,
-  BlockModelStructure
+  BlockModelStructure,
+  ActionModelConfig
 } from "@/types";
 import { IconPlus } from "@/icons";
 import ActionModel from "@/core/models/action-model";
@@ -13,10 +13,14 @@ import BlockModel from "@/core/models/block-model";
 export default class CreateAction
   extends ActionModel
   implements ActionModelInterface {
-  name: string = "createAction";
-  protected translation: string = "createAction";
-  protected icon: RenderIconContent = IconPlus;
-  protected menu: boolean = true;
+  protected configure(): Partial<ActionModelConfig> {
+    return {
+      name: 'createAction',
+      translation: 'createAction',
+      icon: IconPlus,
+      menu: true
+    }
+  }
 
   menuConfig() {
     const { blockManager, i18n } = this.editor,
@@ -56,7 +60,7 @@ export default class CreateAction
     });
 
     return {
-      title: i18n.get(this.translation, this.name),
+      title: i18n.get(this.getTranslation(), this.getName()),
       items: items
     };
   }

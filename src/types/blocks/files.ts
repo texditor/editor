@@ -16,10 +16,8 @@ export interface FilesCreateOptions {
   [key: string]: unknown;
 }
 
-export interface FilesFormCreateParams {
-  el: HTMLElement;
-  blockNode: BlockNode;
-  contentNode?: HTMLElement;
+export interface FilesOnFormCreateParams {
+  form?: HTMLElement;
   options?: FilesCreateOptions;
 }
 

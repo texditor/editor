@@ -1,8 +1,8 @@
 import type {
-  ActionModelInstanceInterface,
+  ActionModelConstructor,
   BlockModelInstanceInterface,
-  ExtensionModelInterface,
-  ToolModelInstanceInterface
+  ExtensionModelConstructor,
+  ToolModelConstructor
 } from "@/types";
 
 /**
@@ -25,13 +25,16 @@ export interface ConfigStoreInterface {
   blockModels?: BlockModelInstanceInterface[];
 
   /** Array of tool model instances available in the editor */
-  tools?: ToolModelInstanceInterface[];
+  tools?: ToolModelConstructor[];
 
   /** Default block type to insert (e.g., "p", "h1") */
   defaultBlock?: string;
 
   /** Current locale for translations */
   locale?: string;
+
+  /** Localizations */
+  locales?: object;
 
   /** Default locale fallback */
   defaultLocale?: string;
@@ -40,10 +43,10 @@ export interface ConfigStoreInterface {
   blockParseDataset?: string[];
 
   /** Array of action model instances */
-  actions?: ActionModelInstanceInterface[];
+  actions?: ActionModelConstructor[];
 
   /** Array of extension model instances */
-  extensions?: ExtensionModelInterface[];
+  extensions?: ExtensionModelConstructor[];
 
   /** Extension panel alignment (left, right, or center) */
   extensionsLtr?: "left" | "right" | "center";

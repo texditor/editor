@@ -1,10 +1,43 @@
-export interface I18NInterface {
-  // Locale management methods
-  getLocale(): string;
-  getDefaultLocale(): string;
-  setLocale(localeName: string, data: Record<string, string>): void;
-  addTranslations(localeName: string, data: Record<string, string>): void;
+/**
+ * Locale map data structure
+ * Key-value pairs for translation strings
+ */
+export type LocaleMapData = {
+  [key: string]: unknown
+}
 
-  // Translation method
+/**
+ * Locale map interface
+ * @property code - Locale identifier code
+ * @property data - Translation data for the locale
+ */
+export interface LocaleMap {
+  code: string,
+  data: LocaleMapData;
+}
+
+/**
+ * I18N interface for internationalization management
+ * Defines all public methods for translation handling
+ */
+export interface I18NInterface {
+  /**
+   * Get current active locale
+   * @returns Current locale code string
+   */
+  getLocale(): string;
+
+  /**
+   * Get default fallback locale
+   * @returns Default locale code string
+   */
+  getDefaultLocale(): string;
+
+  /**
+   * Get translation for a key
+   * @param key - Translation key to look up
+   * @param def - Default value if translation not found
+   * @returns Translated string or default value
+   */
   get(key: string, def?: string): string;
 }

@@ -1,4 +1,9 @@
+import { ExtensionModelInterface } from "./models";
+
 export interface ExtensionsInterface {
+  getExtensions(): ExtensionModelInterface[];
+  refresh(): void;
+
   /**
    * Sets up fixed positioning behavior for extensions bar
    * Attaches scroll, load, and resize event listeners

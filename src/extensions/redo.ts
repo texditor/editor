@@ -1,18 +1,20 @@
-import type { RenderIconContent, ExtensionModelInterface } from "@/types";
+import type { ExtensionModelInterface, ExtensionModelConfig, BaseEvent } from "@/types";
 import ExtensionModel from "@/core/models/extension-model";
 import { IconRedo } from "@/icons";
 
-export default class Redo
-  extends ExtensionModel
-  implements ExtensionModelInterface
-{
-  name: string = "redo";
-  protected icon: RenderIconContent = IconRedo;
-  protected translation: string = "redo";
-  protected toggleActive: boolean = false;
-  protected groupName: string = "history";
+export default class Redo extends ExtensionModel implements ExtensionModelInterface {
 
-  onClick() {
+  protected configure(): Partial<ExtensionModelConfig> {
+    return {
+      name: 'redo',
+      translation: 'redo',
+      icon: IconRedo,
+      toggleActive: false,
+      groupName: 'history'
+    }
+  }
+
+  protected onClick(_evt: BaseEvent): void {
     this.editor.historyManager.redo();
   }
 

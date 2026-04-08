@@ -74,9 +74,8 @@ export interface EventsInterface {
 
   /**
    * Initializes editor when ready
-   * @param callback - Function to call when editor is ready
    */
-  onReady(callback: CallableFunction): void;
+  ready(): void;
 
   /**
    * Handles content change events

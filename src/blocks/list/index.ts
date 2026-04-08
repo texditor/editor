@@ -1,10 +1,10 @@
-import type { BlockModelInterface } from "@/types";
+import type { BlockModelConfig, BlockModelInterface } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/list.css";
 import { IconList } from "@/icons";
 
 export default class List extends BlockModel implements BlockModelInterface {
-  configure() {
+  protected configure(): Partial<BlockModelConfig> {
     return {
       autoParse: true,
       autoMerge: true,
@@ -19,7 +19,7 @@ export default class List extends BlockModel implements BlockModelInterface {
       icon: IconList,
       editable: false,
       editableItems: true,
-      toolbar: true,
+      visibleTools: true,
       sanitizer: true,
       normalize: true,
       convertible: true,

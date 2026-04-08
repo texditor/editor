@@ -1,44 +1,48 @@
 import type {
-  CustomEvent,
+  BaseEvent,
+  ExtensionModelConfig,
+  ExtensionModelConstructor,
   ExtensionModelInterface,
-  ExtensionNode,
-  RenderIconContent,
-  TexditorInterface
 } from "@/types";
-import { generateRandomString } from "@/utils/common";
-import {
-  addClass,
-  append,
-  attr,
-  html,
-  make,
-  removeClass,
-  toggleClass
-} from "@/utils/dom";
-import { rebind } from "@/utils/events";
-import { renderIcon } from "@/utils/icon";
 
-export default class ExtensionModel implements ExtensionModelInterface {
-  name: string = "";
-  protected translation: string = "";
-  protected editor: TexditorInterface;
-  protected icon: RenderIconContent = "";
-  protected toggleActive: boolean = true;
-  private randomId: string = generateRandomString(10);
-  protected groupName = "";
+import { toggleClass } from "@/utils/dom";
+import BaseModel from "./base-model";
 
-  constructor(editor: TexditorInterface) {
-    this.editor = editor;
-    this.onLoad();
-    this.handleClick = this.handleClick.bind(this);
+export default class ExtensionModel extends BaseModel implements ExtensionModelInterface {
+  /**
+   * Set up global configuration
+   * @param config - Partial configuration
+   * @returns Model constructor
+   */
+  public static setup(
+    this: ExtensionModelConstructor,
+    config: Partial<ExtensionModelConfig>
+  ): ExtensionModelConstructor {
+    return super.setup(config) as ExtensionModelConstructor;
   }
 
-  onLoad(): void { }
+  /**
+   * Parent model configuration
+   * @returns Parent model configuration
+   */
+  protected parentСonfig(): Partial<ExtensionModelConfig> {
+    const { config } = this.editor;
 
-  onClick(_evt: CustomEvent): void { }
+    return {
+      __modelCode: 'extension',
+      visibleTitle: config.get("extensionVisibleTitle", false),
+      menu: false,
+      confirm: false
+    }
+  }
 
-  handleClick(evt: CustomEvent) {
-    if (this.toggleActive) {
+  /**
+   * Handle click with toggle functionality
+   * @param evt - Custom event with element reference
+   * @returns void
+   */
+  protected parentOnClick(evt: BaseEvent): void {
+    if (this.isToggleActive()) {
       if (evt.el) {
         toggleClass(
           evt.el as HTMLElement,
@@ -50,64 +54,19 @@ export default class ExtensionModel implements ExtensionModelInterface {
     this.onClick(evt);
   }
 
-  isActive(): boolean {
-    return true;
+  /**
+   * Check if extension toggles active state on click
+   * @returns True if toggle active is enabled
+   */
+  isToggleActive(): boolean {
+    return this.getConfig('toggleActive', false);
   }
 
-  create(): HTMLElement {
-    const { events, config, i18n } = this.editor,
-      cssName = "tex-extension";
-
-    return make("div", (el: ExtensionNode) => {
-      addClass(el, cssName + " " + cssName + "-" + this.getName());
-      rebind(el, "click.ext", this.handleClick);
-      el.id = this.getId();
-
-      events.add("onChange", () => {
-        if (!this.isActive()) addClass(el, cssName + "-unactive");
-        else removeClass(el, cssName + "-unactive");
-      });
-
-      if (this.icon) {
-        html(
-          el,
-          renderIcon(this.icon, {
-            width: 14,
-            height: 14
-          })
-        )
-      }
-
-      const title = i18n.get(
-        this.translation || this.getName(),
-        this.getName()
-      );
-
-      attr(el, "title", title);
-
-      if (config.get("extensionVisibleTitle", false)) {
-        append(
-          el,
-          make("span", (span: HTMLSpanElement) => (span.textContent = title))
-        );
-      }
-      el.extensionModel = this;
-    });
-  }
-
-  getId(): string {
-    return ("tex-extension" + "-" + this.getName() + "-" + this.randomId);
-  }
-
-  getBlockNode(): HTMLElement | null {
-    return document.getElementById(this.getId());
-  }
-
-  getName(): string {
-    return this.name;
-  }
-
+  /**
+   * Get group name for categorization
+   * @returns Group name string
+   */
   getGroupName(): string {
-    return this.groupName;
+    return this.getConfig('groupName', '');
   }
 }

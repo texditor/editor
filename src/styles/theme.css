@@ -1,6 +1,9 @@
 :root {
-  --tex-selection-ui-bg: rgba(59, 130, 246, 0.15);
-  --tex-selection-ui-border: 2px dashed #3b82f6;
+  --tex-vs-ui-bg: rgba(59, 130, 246, 0.15);
+  --tex-vs-ui-border: 2px dashed #3b82f6;
+  --tex-vs-ui-radius: 40px;
+  --tex-vs-ui-selected-bg: rgba(59, 130, 246, 0.1);
+  --tex-vs-ui-selected-border-color: #3b82f6
 }
 
 .tex {
@@ -22,6 +25,7 @@
   --tex-error: #e6004c;
   --tex-success: #1e764e;
   --tex-message-font-size: 12px;
+  --tex-small-font-size: 10px;
   --tex-button-bg: #42d392;
   --tex-button-border-color: #42d392;
   --tex-button-text-color: #fff;

@@ -1,13 +1,16 @@
-import type { ToolModelInterface } from "@/types";
+import type { ToolModelInterface, ToolModelConfig } from "@/types";
 import { IconSuperscript } from "@/icons";
-import SubscriptTool from "./subscript";
+import { ToolModel } from "@/core/models";
 
-export default class SuperscriptTool
-  extends SubscriptTool
-  implements ToolModelInterface
-{
-  name: string = "superscript";
-  protected tagName: string = "sup";
-  protected tranlation: string = "superscript";
-  protected icon: string = IconSuperscript;
+export default class SuperscriptTool extends ToolModel implements ToolModelInterface {
+  protected configure(): Partial<ToolModelConfig> {
+    return {
+      name: "superscript",
+      tagName: 'sup',
+      icon: IconSuperscript,
+      separate: true,
+      iconWidth: 16,
+      iconHeight: 16
+    }
+  }
 }

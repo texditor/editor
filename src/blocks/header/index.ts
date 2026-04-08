@@ -1,9 +1,9 @@
-import type { BlockModelInterface } from "@/types";
+import type { BlockModelConfig, BlockModelInterface } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import { IconHeader1 } from "@/icons";
 
 export default class Header extends BlockModel implements BlockModelInterface {
-  configure() {
+  protected configure(): Partial<BlockModelConfig> {
     return {
       autoParse: true,
       icon: IconHeader1,
@@ -17,7 +17,7 @@ export default class Header extends BlockModel implements BlockModelInterface {
       ),
       cssClasses: "tex-header",
       editable: true,
-      toolbar: true,
+      visibleTools: true,
       tools: ["link", "subscript", "superscript", "clearFormating"],
       enterCreate: true,
       emptyDetect: true,

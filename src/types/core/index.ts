@@ -10,7 +10,7 @@ export * from "./i18n";
 export * from "./parser";
 export * from "./sanitizer";
 export * from "./selection-api";
-export * from "./toolbar";
+export * from "./tools";
 export * from "./models";
 export * from "./ui";
 export * from "./block";

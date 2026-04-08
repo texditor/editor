@@ -1,4 +1,6 @@
 import type {
+  ExtensionModelConstructor,
+  ExtensionModelInterface,
   ExtensionsInterface,
   TexditorInterface
 } from "@/types";
@@ -15,12 +17,39 @@ export default class Extensions implements ExtensionsInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 
+  /** Collection of extensions models */
+  private extensions: ExtensionModelInterface[] = [];
+
   /** Unique identifier for event listeners to prevent conflicts */
-  private eventId: string = '';
+  private eventId: string = '.ext' + generateRandomString(12);
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
-    this.eventId = generateRandomString(12);
+    const extModels = this.editor.config.get("extensions", []);
+
+    if (extModels && extModels.length) {
+      extModels.forEach((instance: ExtensionModelConstructor) => {
+        this.extensions.push(new instance(this.editor));
+      });
+    }
+  }
+
+  getExtensions(): ExtensionModelInterface[] {
+    return this.extensions;
+  }
+
+  refresh() {
+    const cssName = 'tex-extension';
+    this.getExtensions().forEach((extension) => {
+      const node = extension.getNode();
+      if (node) {
+        if (!extension.isActive()) addClass(node, cssName + "-unactive");
+        else removeClass(node, cssName + "-unactive");
+
+        if (!extension.isVisible()) css(node, 'display', 'none');
+        else css(node, 'display', '')
+      }
+    })
   }
 
   /**
@@ -68,7 +97,7 @@ export default class Extensions implements ExtensionsInterface {
         );
       };
 
-      const eid = '.ext' + this.eventId;
+      const eid = this.eventId;
 
       rebind(window, "scroll" + eid, fixedExtensions);
       rebind(window, "load" + eid, fixedExtensions);
@@ -81,7 +110,8 @@ export default class Extensions implements ExtensionsInterface {
    * Removes all event listeners and cleans up
    */
   destroy() {
-    const eid = '.ext' + this.eventId;
+    this.extensions.forEach((ext) => ext.destroy());
+    const eid = this.eventId;
 
     off(window, "scroll" + eid);
     off(window, "load" + eid);

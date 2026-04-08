@@ -43,10 +43,16 @@ export const EnLocale = {
   redo: "Redo",
   select: "Select",
   convert: "Convert",
-  marker: "Marker",
   downloadFile: "Download file",
   moveLeft: "Move left",
   moveRight: "Move right",
   notSpecified: "Not specified",
-  search: "Search"
+  search: "Search",
+  marker: "Marker",
+  bold: "Bold",
+  italic: "Italic",
+  link: "Link",
+  clearFormatting: "Clear formatting",
+  subscript: "Subscript",
+  superscript: "Superscript"
 };

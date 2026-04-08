@@ -1,11 +1,12 @@
 import { IconBars } from "@/icons";
 import { TexditorInterface } from "@/types";
 import { on } from "@/utils";
-import { append, make, html, addClass } from "@/utils/dom";
+import { append, make, html, addClass, css } from "@/utils/dom";
 import { renderIcon } from "@/utils/icon";
 
 export default function ActionsView(editor: TexditorInterface): HTMLElement {
   const { actions } = editor;
+  const actionList = actions.getActions();
 
   return make("div", (el: HTMLElement) => {
     const className = "tex-actions";
@@ -37,6 +38,11 @@ export default function ActionsView(editor: TexditorInterface): HTMLElement {
               wrap,
               make("div", (cnt: HTMLElement) => {
                 addClass(cnt, className + "-container");
+                actionList.forEach((action) => {
+                  const actionEl = action.getNode();
+                  append(cnt, actionEl);
+                  css(actionEl, 'display', !action.isVisible() ? "none" : "");
+                })
               })
             );
             append(

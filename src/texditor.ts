@@ -7,7 +7,7 @@ import type {
   APIInterface,
   EventsInterface,
   ParserInterface,
-  ToolbarInterface,
+  ToolsInterface,
   ActionsInterface,
   I18NInterface,
   HistoryManagerInterface,
@@ -19,7 +19,7 @@ import BlockManager from "@/core/block-manager";
 import Config from "@/core/config";
 import Parser from "@/core/parser";
 import SelectionAPI from "@/core/selection-api";
-import Toolbar from "@/core/toolbar";
+import Tools from "@/core/tools";
 import I18N from "@/core/i18n";
 import Actions from "@/core/actions";
 import API from "@/core/api";
@@ -39,7 +39,7 @@ export default class Texditor implements TexditorInterface {
   api: APIInterface;
   events: EventsInterface;
   parser: ParserInterface;
-  toolbar: ToolbarInterface;
+  tools: ToolsInterface;
   actions: ActionsInterface;
   i18n: I18NInterface;
   commands: CommandsInterface;
@@ -55,20 +55,11 @@ export default class Texditor implements TexditorInterface {
     this.blockManager = new BlockManager(this);
     this.selectionApi = new SelectionAPI(this);
     this.parser = new Parser(this);
-    this.toolbar = new Toolbar(this);
+    this.tools = new Tools(this);
     this.commands = new Commands(this);
     this.actions = new Actions(this);
     this.extensions = new Extensions(this);
-    this.events.onReady(() => {
-      this.api.render();
-      this.toolbar.apply();
-      this.historyManager.save();
-      this.extensions.apply();
-
-      const readyCallback = this.config.get("onReady", false);
-
-      if (typeof readyCallback === "function") readyCallback(this);
-    });
+    this.events.ready();
   }
 
   save(): object[] | [] {

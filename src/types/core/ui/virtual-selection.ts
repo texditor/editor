@@ -20,7 +20,7 @@ export interface VirtualSelectionOptions {
 
     /**
      * CSS class name applied to selected blocks
-     * @default 'selection-block-selected'
+     * @default 'tex-ui-vs-selected'
      */
     selectedBlockClass?: string;
 

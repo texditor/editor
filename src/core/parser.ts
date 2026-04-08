@@ -7,7 +7,7 @@ import type {
   TexditorInterface,
   BlockCreateItemsContent
 } from "@/types";
-import { decodeHtmlSpecialChars } from "@/utils/common";
+import { decodeHtmlSpecialChars, executeMethodIfExists } from "@/utils/common";
 import { appendText, append, attr, make, getChildNodes } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 
@@ -135,9 +135,9 @@ export default class Parser implements ParserInterface {
               let elBlock = null;
 
               if (blockModel.getConfig("autoParse")) {
-                const isEditableItems = blockModel.isEditableItems();
+                const editableItems = blockModel.isEditableItems();
 
-                if (isEditableItems) {
+                if (editableItems) {
                   const blockData = (item?.data || []) as BlockOutput[];
 
                   if (blockData.length) {
@@ -159,19 +159,21 @@ export default class Parser implements ParserInterface {
                     });
 
                     if (items) {
-                      elBlock = blockModel.create({
-                        content: items
-                      })
+                      elBlock = executeMethodIfExists(
+                        blockModel, '__create', [{
+                          content: items
+                        }]
+                      ) as BlockNode
                     }
                   }
                 } else
-                  elBlock = blockModel.create();
+                  elBlock = executeMethodIfExists(blockModel, '__create') as BlockNode;
 
                 if (elBlock) {
                   const contentNode = blockManager.getContentNode(elBlock as BlockNode);
 
                   if (contentNode) {
-                    if (!isEditableItems) {
+                    if (!editableItems) {
                       const childs = this.parseChilds(item, false, skipDecode);
                       append(contentNode, childs);
                     }
@@ -181,16 +183,20 @@ export default class Parser implements ParserInterface {
                   }
                 }
               } else {
-                if (typeof blockModel?.parse !== "undefined") {
-                  elBlock = blockModel?.parse(item);
+                if ('__parse' in blockModel) {
+                  elBlock = executeMethodIfExists(
+                    blockModel,
+                    '__parse',
+                    [item]
+                  ) as BlockNode | HTMLElement | null;
+
                   if (elBlock && elBlock !== null) {
                     append(node, elBlock);
                   }
                 }
               }
 
-              if (blockModel.afterCreate)
-                blockModel.afterCreate(elBlock as BlockNode);
+              executeMethodIfExists(blockModel, '__afterCreate');
             }
           }
         );
@@ -206,11 +212,9 @@ export default class Parser implements ParserInterface {
               const blockModel = new formatedModel.instance(this.editor);
 
               if (blockModel) {
-                const elBlock = blockModel.create();
+                const elBlock = executeMethodIfExists(blockModel, '__create') as BlockNode;
                 if (elBlock) append(node, elBlock);
-
-                if (blockModel.afterCreate)
-                  blockModel.afterCreate(elBlock as BlockNode);
+                executeMethodIfExists(blockModel, '__afterCreate');
               }
             }
           }

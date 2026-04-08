@@ -1,4 +1,4 @@
-import type { ActionModelInterface, RenderIconContent } from "@/types";
+import type { ActionModelConfig, ActionModelInterface } from "@/types";
 import { IconArrowDown } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 import { before } from "@/utils";
@@ -6,12 +6,17 @@ import { before } from "@/utils";
 export default class MoveDownAction
   extends ActionModel
   implements ActionModelInterface {
-  name = "moveDownAction";
-  protected icon: RenderIconContent = IconArrowDown;
 
-  onClick() {
+  protected configure(): Partial<ActionModelConfig> {
+    return {
+      name: 'moveDownAction',
+      translation: 'moveDownAction',
+      icon: IconArrowDown,
+    };
+  }
+
+  protected onClick(): void {
     const { actions, blockManager, events } = this.editor;
-
     const curIndex = blockManager.getIndex(),
       curBlock = blockManager.getBlockNode();
 
@@ -37,7 +42,7 @@ export default class MoveDownAction
     setTimeout(() => actions.show(), 40);
   }
 
-  isVisible() {
+  isVisible(): boolean {
     const { blockManager } = this.editor;
     return !(blockManager.getIndex() + 1 == blockManager.count());
   }

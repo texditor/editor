@@ -4,7 +4,7 @@ import type {
   EventsInterface,
   ParserInterface,
   SelectionAPIInterface,
-  ToolbarInterface,
+  ToolsInterface,
   APIInterface,
   ActionsInterface,
   I18NInterface,
@@ -20,7 +20,7 @@ export interface TexditorInterface {
   api: APIInterface;
   events: EventsInterface;
   parser: ParserInterface;
-  toolbar: ToolbarInterface;
+  tools: ToolsInterface;
   actions: ActionsInterface;
   i18n: I18NInterface;
   commands: CommandsInterface;

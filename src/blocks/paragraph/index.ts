@@ -1,4 +1,4 @@
-import type { BlockModelInterface } from "@/types";
+import type { BlockModelConfig, BlockModelInterface } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/paragraph.css";
 import { IconParagraph } from "@/icons";
@@ -6,7 +6,7 @@ import { IconParagraph } from "@/icons";
 export default class Paragraph
   extends BlockModel
   implements BlockModelInterface {
-  configure() {
+  protected configure(): Partial<BlockModelConfig> {
     return {
       icon: IconParagraph,
       autoParse: true,
@@ -19,7 +19,7 @@ export default class Paragraph
         "Enter your text"
       ),
       editable: true,
-      toolbar: true,
+      visibleTools: true,
       sanitizer: true,
       normalize: true,
       cssClasses: "tex-paragraph",
@@ -37,10 +37,5 @@ export default class Paragraph
         }
       }
     };
-  }
-
-  onDrop(_evt: DragEvent): boolean {
-    alert(333)
-    return true;
   }
 }

@@ -1,9 +1,9 @@
-import type { BlockModelInterface } from "@/types";
+import type { BlockModelConfig, BlockModelInterface } from "@/types";
 import { IconOrderedList } from "@/icons";
 import List from ".";
 
 export default class OL extends List implements BlockModelInterface {
-  configure() {
+  protected configure(): Partial<BlockModelConfig> {
     return {
       ...super.configure(),
       ...{

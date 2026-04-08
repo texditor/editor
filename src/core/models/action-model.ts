@@ -1,45 +1,70 @@
 import type {
+  ActionModelConfig,
   ActionModelInterface,
-  RenderIconContent,
-  TexditorInterface
+  BaseNode,
+  BaseEvent,
+  ActionModelConstructor
 } from "@/types";
 import { IconArrowRight } from "@/icons";
-import { generateRandomString } from "@/utils/common";
 import { addClass, append, before, css, html, make } from "@/utils/dom";
 import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
+import BaseModel from "./base-model";
 
-export default class ActionModel implements ActionModelInterface {
-  name: string = "";
-  protected translation: string = "";
-  protected editor: TexditorInterface;
-  protected icon: RenderIconContent = "";
-  protected menu: boolean = false;
-  protected confirm: boolean = false;
-  private randomId: string = generateRandomString(10);
+export default class ActionModel extends BaseModel implements ActionModelInterface {
+  /**
+  * Set up global configuration
+  * @param config - Partial configuration
+  * @returns Model constructor
+  */
+  public static setup(
+    this: ActionModelConstructor,
+    config: Partial<ActionModelConfig>
+  ): ActionModelConstructor {
+    return super.setup(config) as ActionModelConstructor;
+  }
 
-  constructor(editor: TexditorInterface) {
-    this.editor = editor;
-    this.onLoad();
-    this.editor.events.add("actions:render:end", () => {
-      const node = this.getNode();
+  /**
+ * Parent model configuration
+ * @returns Parent model configuration
+ */
+  protected parentСonfig(): Partial<ActionModelConfig> {
+    return {
+      __modelCode: 'action',
+      visibleTitle: true,
+      menu: false,
+      confirm: false
+    }
+  }
 
-      if (node) {
-        css(
-          node,
-          'display',
-          !this.isVisible() ? "none" : ""
-        );
-      }
+  /**
+ * Parent hook called after model node creation
+ * @param el - Created model node
+ * @returns void
+ */
+  protected parentOnCreate(el: BaseNode): void {
+    const cssName = 'tex-action';
+
+    if (this.isConfirm())
+      addClass(el, cssName + '-verifiable');
+
+    const moreIcon = make("span", (span: HTMLSpanElement) => {
+      html(
+        span,
+        renderIcon(IconArrowRight, {
+          width: 12,
+          height: 12
+        })
+      );
     });
+
+    if (this.isMenu()) append(el, moreIcon);
   }
 
-  onLoad(): void { }
-
-  onClick(evt: Event) {
-    evt.preventDefault();
-  }
-
+  /**
+   * Menu configuration
+   * @returns Menu configuration object with title and items
+   */
   menuConfig(): {
     title: string;
     items: [] | HTMLElement[];
@@ -51,11 +76,12 @@ export default class ActionModel implements ActionModelInterface {
     };
   }
 
-  private handleClick(evt: Event) {
-    const { actions, i18n, toolbar } = this.editor;
+  protected parentOnClick(evt: BaseEvent): void {
+    const { actions, events, i18n, tools } = this.editor;
 
-    if (this.confirm) {
+    if (this.isConfirm()) {
       const element = this.getNode(),
+        icon = this.getIcon(),
         cssName = "tex-action";
 
       setTimeout(() => {
@@ -78,10 +104,10 @@ export default class ActionModel implements ActionModelInterface {
                 "-confirm"
               );
 
-              if (this.icon) {
+              if (icon) {
                 html(
                   cfm,
-                  renderIcon(this.icon, {
+                  renderIcon(icon, {
                     width: 20,
                     height: 20
                   })
@@ -94,13 +120,13 @@ export default class ActionModel implements ActionModelInterface {
                 this.onClick(evt);
                 cfm.remove();
                 element.style.display = "";
-                this.editor.events.refresh();
+                events.refresh();
               });
             })
           );
         }
       }, 1);
-    } else if (this.menu) {
+    } else if (this.isMenu()) {
       setTimeout(() => {
         const { items, title } = this.menuConfig();
         actions.show();
@@ -108,74 +134,25 @@ export default class ActionModel implements ActionModelInterface {
       }, 1);
     } else {
       this.onClick(evt);
-      this.editor.events.refresh();
+      events.refresh();
     }
 
-    toolbar.hide();
+    tools.hide();
   }
 
-  getId(): string {
-    return ("tex-action" + "-" + this.getName() + "-" + this.randomId);
+  /**
+   * Check if action shows a menu on click
+   * @returns True if action has a menu, false otherwise
+   */
+  isMenu(): boolean {
+    return this.getConfig('menu', false);
   }
 
-  getNode(): HTMLElement | null {
-    return document.getElementById(this.getId());
-  }
-
-  getName() {
-    return this.name;
-  }
-
-  create() {
-    const cssName = 'tex-action';
-
-    return make("div", (el: HTMLElement) => {
-      addClass(el, cssName + " " + cssName + "-" + this.getName());
-
-      if (this.confirm)
-        addClass(el, cssName + '-verifiable');
-
-      el.id = this.getId();
-
-      if (this.icon) {
-        el.innerHTML = renderIcon(this.icon, {
-          width: 14,
-          height: 14
-        });
-      }
-
-      const moreIcon = make("span", (span: HTMLSpanElement) => {
-        span.innerHTML = renderIcon(IconArrowRight, {
-          width: 12,
-          height: 12
-        });
-      });
-
-      const buttonItems = [
-        make("span", (span: HTMLSpanElement) => {
-          addClass(span, cssName + "-title");
-          span.textContent = this.editor.i18n.get(
-            this.translation || this.getName(),
-            this.getName()
-          );
-        })
-      ];
-
-      if (this.menu) buttonItems.push(moreIcon);
-
-      append(el, buttonItems);
-    });
-  }
-
-  applyEvents() {
-    const element = this.getNode();
-
-    this.handleClick = this.handleClick.bind(this);
-
-    if (element) on(element, "click.am", this.handleClick);
-  }
-
-  isVisible() {
-    return true;
+  /**
+   * Check if action requires confirmation before execution
+   * @returns True if confirmation is required, false otherwise
+   */
+  isConfirm(): boolean {
+    return this.getConfig('confirm', false);
   }
 }

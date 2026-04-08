@@ -1,20 +1,50 @@
-import type { CustomEvent, TexditorInterface } from "@/types";
+import type {
+  BaseModelConfig,
+  BaseModelInterface,
+  BaseNode,
+  ModelConstructor
+} from "@/types";
 
-export interface ExtensionNode extends HTMLElement {
-  extensionModel: ExtensionModelInterface;
+/**
+ * Extension model constructor type
+ * Specialized constructor that creates ExtensionModelInterface instances
+ * with ExtensionModelConfig
+ */
+export type ExtensionModelConstructor = ModelConstructor<ExtensionModelInterface, ExtensionModelConfig>;
+
+/**
+ * Extension DOM node interface
+ * Extends HTMLElement with extension model reference
+ */
+export interface ExtensionNode extends BaseNode {
+  /** Reference to the extension model instance */
+  baseModel: ExtensionModelInterface;
 }
 
-export interface ExtensionModelInstanceInterface {
-  new(editor: TexditorInterface): ExtensionModelInterface;
+/**
+ * Extension model configuration interface
+ * @property toggleActive - Whether extension toggles active state on click
+ * @property groupName - Group name for categorization
+ */
+export interface ExtensionModelConfig extends BaseModelConfig {
+  toggleActive: boolean;
+  groupName: string;
 }
-export interface ExtensionModelInterface {
-  onLoad?(): void;
-  create?(): HTMLElement;
-  onClick?(evt: CustomEvent): void;
-  getName?(): string;
-  getId?(): string;
-  getElement?(): HTMLElement | null;
-  getGroupName?(): string;
-  isActive?(): boolean;
-  name: string;
+
+/**
+ * Extension model behavior interface
+ * Defines all public methods for extension manipulation
+ */
+export interface ExtensionModelInterface extends BaseModelInterface {
+  /**
+   * Get group name for categorization
+   * @returns Group name string
+   */
+  getGroupName(): string;
+
+  /**
+   * Check if extension toggles active state on click
+   * @returns True if toggle active is enabled
+   */
+  isToggleActive(): boolean;
 }

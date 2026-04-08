@@ -29,7 +29,7 @@ export interface APIInterface {
   /**
    * Completely destroys the editor instance
    * Cleans up all event listeners, removes DOM elements,
-   * and destroys all sub-components (actions, blocks, toolbar, etc.)
+   * and destroys all sub-components (actions, blocks, tools, etc.)
    */
   destroy(): void;
 
