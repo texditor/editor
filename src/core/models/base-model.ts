@@ -19,7 +19,7 @@ import {
   renderIcon
 } from "@/utils";
 
-export default class BaseModel implements BaseModelInterface {
+export default class BaseModel<TNode extends BaseNode = BaseNode> implements BaseModelInterface<TNode> {
   /** Global user configuration for all model instances */
   private static userConfig: Partial<BaseModelConfig> = {};
 
@@ -27,7 +27,7 @@ export default class BaseModel implements BaseModelInterface {
   protected editor: TexditorInterface;
 
   /** DOM node representing the model button */
-  private node: BaseNode;
+  private node: TNode;
 
   /** Model configuration settings */
   private config: BaseModelConfig;
@@ -46,6 +46,7 @@ export default class BaseModel implements BaseModelInterface {
       name: '',
       translation: '',
       icon: '',
+      visibleIcon: true,
       iconWidth: 16,
       iconHeight: 16,
       className: '',
@@ -64,21 +65,26 @@ export default class BaseModel implements BaseModelInterface {
    * Create model DOM node
    * @returns Created model node
    */
-  protected createNode(): BaseNode {
+  protected createNode(): TNode {
     const name = this.getName(),
       codeName = this.getModelCode(),
       cssName = this.getClassName();
 
-    return make("div", (el: BaseNode) => {
-      el.id = `tex-${codeName}${cssName}-${name}-${generateRandomString(24)}-${generateRandomString(12)}`;
-      const customCss = cssName !== '' ? ' ' + cssName : "";
-      addClass(el, 'tex-' + codeName + ' tex-' + codeName + "-" + name + customCss);
+    return make("div", (el: TNode) => {
+      el.id = `tex-${codeName}-${generateRandomString(12)}-${generateRandomString(12)}`;
+      const customCss = cssName !== '' ? ' ' + cssName : "",
+        namedCss = name.trim() !== '' ? ' tex-' + codeName + "-" + name : '';
+
+      addClass(el, 'tex-' + codeName + namedCss + customCss);
       rebind(el, "click.baseNode", this.handleClick);
 
-      if (this.getIcon()) {
+      const icon = this.getIcon(),
+        visibleIcon = this.isVisibleIcon();
+
+      if (visibleIcon && icon) {
         html(
           el,
-          renderIcon(this.getIcon(), {
+          renderIcon(icon, {
             width: this.getIconWidth(),
             height: this.getIconHeight()
           })
@@ -102,7 +108,7 @@ export default class BaseModel implements BaseModelInterface {
       el.baseModel = this;
       this.parentOnCreate(el);
       this.onCreate(el);
-    }) as BaseNode;
+    }) as TNode;
   }
 
   /**
@@ -110,14 +116,14 @@ export default class BaseModel implements BaseModelInterface {
    * @param _el - Created model node
    * @returns void
    */
-  protected onCreate(_el: BaseNode): void { }
+  protected onCreate(_el: TNode): void { }
 
   /**
    * Parent hook called after model node creation
    * @param _el - Created model node
    * @returns void
    */
-  protected parentOnCreate(_el: BaseNode): void { }
+  protected parentOnCreate(_el: TNode): void { }
 
   /**
    * Get configuration value by key
@@ -262,7 +268,7 @@ export default class BaseModel implements BaseModelInterface {
    * Get model node
    * @returns Model button element
    */
-  getNode(): BaseNode {
+  getNode(): TNode {
     return this.node;
   }
 
@@ -295,7 +301,7 @@ export default class BaseModel implements BaseModelInterface {
       ? name
       : translation;
 
-    return i18n.get(translationCode);
+    return i18n.get(translationCode, name);
   }
 
   /**
@@ -336,6 +342,14 @@ export default class BaseModel implements BaseModelInterface {
    */
   isVisibleTitle(): boolean {
     return this.getConfig('visibleTitle', false);
+  }
+
+  /**
+   * Check if icon is always visible
+   * @returns True if icon should be always visible
+   */
+  isVisibleIcon(): boolean {
+    return this.getConfig('visibleIcon', false);
   }
 
   /**

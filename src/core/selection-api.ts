@@ -214,7 +214,7 @@ export default class SelectionAPI implements SelectionAPIInterface {
     const range = selection.getRangeAt(0);
     const currentParagraph = container
       ? container
-      : this.editor.blockManager.getBlockNode();
+      : this.editor.blockManager.getNode();
 
     if (!currentParagraph) return "";
 

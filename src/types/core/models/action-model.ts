@@ -36,7 +36,7 @@ export interface ActionModelConfig extends BaseModelConfig {
  * Action model behavior interface
  * Defines all public methods for action manipulation
  */
-export interface ActionModelInterface extends BaseModelInterface {
+export interface ActionModelInterface extends BaseModelInterface<ActionNode> {
   /**
    * Check if action shows a menu on click
    * @returns True if action has a menu, false otherwise

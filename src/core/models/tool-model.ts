@@ -3,11 +3,12 @@ import type {
   BaseEvent,
   ToolModelInterface,
   ToolModelConfig,
-  ToolModelConstructor
+  ToolModelConstructor,
+  ToolNode
 } from "@/types";
 import BaseModel from "./base-model";
 
-export default class ToolModel extends BaseModel implements ToolModelInterface {
+export default class ToolModel extends BaseModel<ToolNode> implements ToolModelInterface {
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -138,7 +139,6 @@ export default class ToolModel extends BaseModel implements ToolModelInterface {
         return true;
 
       return toolNames.includes(this.getName());
-
     }
 
     return true;

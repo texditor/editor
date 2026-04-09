@@ -24,7 +24,7 @@ export interface FileActionModelInterface {
   getItemIndex(): number;
   getNode(): HTMLElement | null;
   getContainer(): HTMLElement;
-  getBlockNode(): BlockNode;
+  getNode(): BlockNode;
   getBlockModel(): BlockModelInterface;
   isVisible(): boolean;
   refresh(): void;

@@ -1,9 +1,9 @@
 import type {
   ActionModelConfig,
   ActionModelInterface,
-  BaseNode,
   BaseEvent,
-  ActionModelConstructor
+  ActionModelConstructor,
+  ActionNode
 } from "@/types";
 import { IconArrowRight } from "@/icons";
 import { addClass, append, before, css, html, make } from "@/utils/dom";
@@ -11,7 +11,7 @@ import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 import BaseModel from "./base-model";
 
-export default class ActionModel extends BaseModel implements ActionModelInterface {
+export default class ActionModel extends BaseModel<ActionNode> implements ActionModelInterface {
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -42,7 +42,7 @@ export default class ActionModel extends BaseModel implements ActionModelInterfa
  * @param el - Created model node
  * @returns void
  */
-  protected parentOnCreate(el: BaseNode): void {
+  protected parentOnCreate(el: ActionNode): void {
     const cssName = 'tex-action';
 
     if (this.isConfirm())
@@ -76,6 +76,11 @@ export default class ActionModel extends BaseModel implements ActionModelInterfa
     };
   }
 
+  /**
+  * Parent hook called after model node clicked
+  * @param evt - Custom event with element reference
+  * @returns void
+  */
   protected parentOnClick(evt: BaseEvent): void {
     const { actions, events, i18n, tools } = this.editor;
 

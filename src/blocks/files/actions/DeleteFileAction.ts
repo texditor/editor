@@ -18,6 +18,6 @@ export default class DeleteFileAction
 
     currentItem.remove();
 
-    if (model?.removeIsEmpty) model.removeIsEmpty(this.getBlockNode());
+    if (model?.removeIsEmpty) model.removeIsEmpty(this.getNode());
   }
 }

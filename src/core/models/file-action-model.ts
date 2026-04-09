@@ -66,7 +66,7 @@ export default class FileActionModel implements FileActionModelInterface {
       if (eventName) {
         this.editor.events.change({
           type: eventName,
-          blockElement: this.getBlockNode(),
+          blockElement: this.getNode(),
           item: this.getItem(),
           index: this.getItemIndex(),
           container: this.getContainer(),
@@ -77,7 +77,7 @@ export default class FileActionModel implements FileActionModelInterface {
 
     if (this.prepare) {
       const menu = this.render();
-      if (menu) append(this.getBlockNode(), menu);
+      if (menu) append(this.getNode(), menu);
     } else {
       this.refresh();
       eventTriggrer();
@@ -110,7 +110,7 @@ export default class FileActionModel implements FileActionModelInterface {
   }
 
   getItemIndex(): number {
-    const block = this.getBlockNode();
+    const block = this.getNode();
     let realIndex = 0;
 
     query(
@@ -130,12 +130,12 @@ export default class FileActionModel implements FileActionModelInterface {
     return this.container;
   }
 
-  getBlockNode(): BlockNode {
+  getNode(): BlockNode {
     return this.currentBlockElement;
   }
 
   getBlockModel(): BlockModelInterface {
-    return this.currentBlockElement.blockModel;
+    return this.currentBlockElement.baseModel;
   }
 
   create(): HTMLElement {

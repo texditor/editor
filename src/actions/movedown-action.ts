@@ -18,10 +18,10 @@ export default class MoveDownAction
   protected onClick(): void {
     const { actions, blockManager, events } = this.editor;
     const curIndex = blockManager.getIndex(),
-      curBlock = blockManager.getBlockNode();
+      curBlock = blockManager.getNode();
 
     if (curBlock) {
-      const nextBlock = blockManager.getBlockNode(curIndex + 1);
+      const nextBlock = blockManager.getNode(curIndex + 1);
 
       if (curBlock && nextBlock) {
         before(curBlock, nextBlock);

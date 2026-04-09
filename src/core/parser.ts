@@ -1,7 +1,7 @@
 import type {
   BlockNode,
   ParserInterface,
-  BlockModelStructure,
+  BlockModelSchema,
   BlockOutputData,
   BlockOutput,
   TexditorInterface,
@@ -120,21 +120,19 @@ export default class Parser implements ParserInterface {
     skipDecode: boolean = false
   ): Node[] | [] {
     const { blockManager, config } = this.editor,
-      models = blockManager.getBlockModels();
+      schemas = blockManager.getSchemas();
 
     const blocks = make("div", (node: BlockNode) => {
       (data as BlockOutput[]).forEach((item: BlockOutput) => {
-        (models).forEach(
-          (formatedModel: BlockModelStructure) => {
-            if (
-              formatedModel.types &&
-              formatedModel.types.includes(item.type)
-            ) {
-              const blockModel = new formatedModel.instance(this.editor);
+        (schemas).forEach(
+          (schema: BlockModelSchema) => {
+            const names = schema.model.getSupportedNames();
+            if (names.length && names.includes(item.type)) {
+              const blockModel = new schema.constructor(this.editor);
 
               let elBlock = null;
 
-              if (blockModel.getConfig("autoParse")) {
+              if (blockModel.isAutoParse()) {
                 const editableItems = blockModel.isEditableItems();
 
                 if (editableItems) {
@@ -203,13 +201,11 @@ export default class Parser implements ParserInterface {
       });
 
       if (node.childNodes.length === 0 && createDefault) {
-        (models).forEach(
-          (formatedModel: BlockModelStructure) => {
-            if (
-              formatedModel.types &&
-              formatedModel.types.includes(config.get("defaultBlock", "p"))
-            ) {
-              const blockModel = new formatedModel.instance(this.editor);
+        (schemas).forEach(
+          (schema: BlockModelSchema) => {
+            const names = schema.model.getSupportedNames();
+            if (names.length && names.includes(config.get("defaultBlock", "p"))) {
+              const blockModel = new schema.constructor(this.editor);
 
               if (blockModel) {
                 const elBlock = executeMethodIfExists(blockModel, '__create') as BlockNode;

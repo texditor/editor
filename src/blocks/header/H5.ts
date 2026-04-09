@@ -7,10 +7,10 @@ export default class H5 extends Header implements BlockModelInterface {
     return {
       ...super.configure(),
       ...{
-        type: "h5",
+        name: "h5",
         tagName: "h5",
         icon: IconHeader5,
-        translationCode: "header5"
+        translation: "header5"
       }
     };
   }

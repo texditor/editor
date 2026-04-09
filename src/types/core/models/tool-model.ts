@@ -27,7 +27,7 @@ export interface ToolModelConfig extends BaseModelConfig {
  * Tool model behavior interface
  * Defines all public methods for tool manipulation
  */
-export interface ToolModelInterface extends BaseModelInterface {
+export interface ToolModelInterface extends BaseModelInterface<ToolNode> {
   /**
    * Get tool tag name
    * @returns Tag name string

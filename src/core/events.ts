@@ -273,8 +273,8 @@ export default class Events implements EventsInterface {
 
     const model = this.editor.blockManager.getModel();
 
-    if (model && executeMethodIfExists(model, '__onClick', [evt]))
-      evt.preventDefault();
+    if (model)
+      executeMethodIfExists(model, '__onClick', [evt]);
 
     this.trigger("clickEnd", { domEvent: evt });
   }
@@ -632,7 +632,7 @@ export default class Events implements EventsInterface {
     const processElementNode = (node: Element) => {
       const nodeName = node.nodeName.toLowerCase();
 
-      if (blockManager.getRealType(nodeName)) {
+      if (blockManager.getRealName(nodeName)) {
         map.push({ type: 'block', node });
         return true;
       }
@@ -648,7 +648,7 @@ export default class Events implements EventsInterface {
 
       let hasBlocks = false;
       elementChildren.forEach(child => {
-        if (blockManager.getRealType(child.nodeName.toLowerCase())) {
+        if (blockManager.getRealName(child.nodeName.toLowerCase())) {
           map.push({ type: 'block', node: child });
           hasBlocks = true;
         }
@@ -767,7 +767,7 @@ export default class Events implements EventsInterface {
         const childNodes = getChildNodes(input);
         const map = this.createPasteMap(childNodes);
         const onPasteModel = executeMethodIfExists(model, '__onPaste', [evt, map]),
-          allModels = blockManager.getBlockModels(),
+          schemas = blockManager.getSchemas(),
           currentIndex = blockManager.getIndex(),
           isEmpty = blockManager.isEmpty();
 
@@ -793,35 +793,37 @@ export default class Events implements EventsInterface {
                 map.data.forEach((item) => {
                   const node = item.node;
 
-                  allModels.forEach((blockModel) => {
+                  schemas.forEach((schema) => {
                     const nodeName = node.nodeName.toLowerCase();
-                    const realName = blockManager.getRealType(nodeName) ||
-                      blockManager.getRealType(defBlock) ||
+                    const realName = blockManager.getRealName(nodeName) ||
+                      blockManager.getRealName(defBlock) ||
                       "p";
+                    const schemaModel = schema.model;
+                    const names = schemaModel.getSupportedNames();
 
-                    if (blockModel.types.includes(realName)) {
-                      const curModel = blockModel.model;
+                    if (names.includes(realName)) {
+
                       let newBlock: BlockNode | null = null;
 
-                      if (curModel.isEditable() && !curModel.isEditableItems()) {
+                      if (schemaModel.isEditable() && !schemaModel.isEditableItems()) {
                         const html = (node as Element)?.innerHTML;
                         newBlock = blockManager.createBlock(realName, nextIndex, {
                           content: html
                         });
                         nextIndex++;
-                      } else if (!curModel.isEditable() && curModel.isEditableItems()) {
+                      } else if (!schemaModel.isEditable() && schemaModel.isEditableItems()) {
                         const items: BlockCreateItemsContent[] = [];
 
                         getChildNodes(node).forEach((child: Node) => {
                           const childNodeName = child.nodeName.toLowerCase(),
-                            relatedTypes = [
-                              curModel.getItemType(),
-                              ...curModel.getItemRelatedTypes()
+                            relatedNames = [
+                              schemaModel.getItemName(),
+                              ...schemaModel.getItemRelatedNames()
                             ];
 
-                          if (relatedTypes.includes(childNodeName)) {
+                          if (relatedNames.includes(childNodeName)) {
                             items.push({
-                              type: curModel.getItemType(),
+                              type: schemaModel.getItemName(),
                               data: getChildNodes(child)
                             })
                           }
@@ -836,7 +838,7 @@ export default class Events implements EventsInterface {
                       }
 
                       if (newBlock) {
-                        const newModel = newBlock.blockModel;
+                        const newModel = newBlock.baseModel;
                         newModel.sanitize();
                       }
                     }
@@ -857,12 +859,8 @@ export default class Events implements EventsInterface {
                     encodeHtmlSpecialChars(getText(nodes))
                   );
                 } else {
-                  const sanitizerConfig: SanitizerConfig = model.getConfig(
-                    "sanitizerConfig",
-                    {}
-                  );
-
-                  const safeNodes: Node[] = [];
+                  const sanitizerConfig = model.getSanitizerConfig(),
+                    safeNodes: Node[] = [];
 
                   nodes.forEach((node: Node) => {
                     if (sanitizerConfig.elements?.includes(node.nodeName.toLowerCase())) {

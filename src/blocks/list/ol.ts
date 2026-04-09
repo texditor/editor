@@ -7,10 +7,10 @@ export default class OL extends List implements BlockModelInterface {
     return {
       ...super.configure(),
       ...{
-        type: "ol",
+        name: "ol",
         tagName: "ol",
         icon: IconOrderedList,
-        translationCode: "orderedList"
+        translation: "orderedList"
       }
     };
   }

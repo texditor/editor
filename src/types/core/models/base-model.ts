@@ -45,23 +45,15 @@ export interface BaseNode extends HTMLElement {
  * @property __modelCode - Model code identifier for parent models
  */
 export interface BaseModelConfig {
-    /** Model name identifier */
     name: string;
-    /** Translation key for localization */
     translation: string;
-    /** Icon content for the button */
     icon: RenderIconContent;
-    /** Icon width in pixels */
+    visibleIcon: boolean;
     iconWidth: number;
-    /** Icon height in pixels */
     iconHeight: number;
-    /** CSS class name for styling */
     className: string;
-    /** Whether title is always visible */
     visibleTitle: boolean;
-    /** Model code identifier for parent models */
     __modelCode: string;
-    /** Additional configuration properties */
     [key: string]: unknown;
 }
 
@@ -74,7 +66,7 @@ export type BaseModelConstructor = ModelConstructor<BaseModelInterface, BaseMode
  * Base model behavior interface
  * Defines all public methods for model manipulation
  */
-export interface BaseModelInterface {
+export interface BaseModelInterface<TNode extends BaseNode = BaseNode> {
     /**
      * Get model name
      * @returns Model name string
@@ -91,7 +83,7 @@ export interface BaseModelInterface {
      * Get model DOM node
      * @returns Model button element
      */
-    getNode(): BaseNode;
+    getNode(): TNode;
 
     /**
      * Get CSS class name
@@ -134,6 +126,12 @@ export interface BaseModelInterface {
      * @returns True if title should be always visible
      */
     isVisibleTitle(): boolean;
+
+    /**
+     * Check if icon is always visible
+     * @returns True if icon should be always visible
+     */
+    isVisibleIcon(): boolean;
 
     /**
      * Check if model is active

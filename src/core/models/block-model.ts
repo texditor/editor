@@ -1,6 +1,5 @@
 import type {
   BlockNode,
-  TexditorInterface,
   BlockOutput,
   SanitizerConfig,
   BlockModelConfig,
@@ -9,7 +8,8 @@ import type {
   BlockCreateOptions,
   BlockCreateItemsContent,
   PasteMap,
-  BlockModelInstanceInterface
+  BaseEvent,
+  BlockModelConstructor
 } from "@/types";
 import {
   addClass,
@@ -30,114 +30,100 @@ import { renderIcon } from "@/utils/icon";
 import { generateRandomString, isEmptyString } from "@/utils";
 import { IconMove } from "@/icons";
 import Sortable from "../ui/sortable";
+import BaseModel from "./base-model";
 
 /**
  * Base block model class - manages block behavior, content, and lifecycle
  */
-export default class BlockModel implements BlockModelInterface {
-  /** Reference to the editor instance */
-  protected editor: TexditorInterface;
-  /** Key-value storage for custom block data */
-  protected store: Record<string, unknown> = {};
-  /** Global user configuration for all block instances */
-  private static userConfig: Partial<BlockModelConfig> = {};
+export default class BlockModel extends BaseModel<BlockNode> implements BlockModelInterface {
   /** Sortable items manager instance */
   private sortableItems: SortableInerface | null = null;
-  /** Block creation options */
-  private options: BlockCreateOptions = {};
-  /** DOM node representing the block */
-  private blockNode: BlockNode;
-  /** Block configuration settings */
-  private config: BlockModelConfig = {
-    autoMerge: true,
-    autoParse: true,
-    icon: "",
-    translationCode: "",
-    groupCode: '',
-    itemTagName: 'li',
-    itemType: 'li',
-    itemRelatedTypes: [],
-    itemClassName: "",
-    itemBodyClassName: "",
-    backspaceRemove: true,
-    cssClasses: "",
-    visibleTools: false,
-    tools: [],
-    editable: false,
-    editableItems: false,
-    singleItem: false,
-    enterCreate: true,
-    raw: false,
-    sanitizer: false,
-    sanitizerConfig: {
-      elements: ["b", "a", "i", "s", "u", "sup", "sub", "mark", "code"],
-      attributes: {
-        a: ["href", "target"]
-      },
-      protocols: {
-        a: {
-          href: ["https", "ftp", "http", "mailto"]
-        }
-      }
-    },
-    tagName: "div",
-    type: "",
-    relatedTypes: [],
-    emptyDetect: false,
-    customSave: false,
-    normalize: false,
-    convertible: false,
-    sortableItems: false
-  };
 
   /**
-   * Create a new block model instance
-   * @param editor - Editor instance reference
-   */
-  constructor(editor: TexditorInterface) {
-    this.editor = editor;
-    this.config = {
-      ...this.config,
-      ...this.configure(),
-      ...(this.constructor as typeof BlockModel).userConfig
-    };
-
-    this.blockNode = this.createBlockNode();
-    this.onLoad();
-    this.sanitize();
+  * Set up global configuration
+  * @param config - Partial configuration
+  * @returns Model constructor
+  */
+  public static setup(
+    this: BlockModelConstructor,
+    config: Partial<BlockModelConfig>
+  ): BlockModelConstructor {
+    return super.setup(config) as BlockModelConstructor;
   }
 
   /**
-   * Create and return the block DOM node
-   * @returns Block DOM node
-   */
-  private createBlockNode(): BlockNode {
-    const classList = this.getConfig("cssClasses", "");
-    const classes = (classList ? " " + classList : " tex-" + this.getConfig("type")),
-      tagName = this.getTagName();
+* Parent model configuration
+* @returns Parent model configuration
+*/
+  protected parentСonfig(): Partial<BlockModelConfig> {
+    return {
+      __modelCode: 'block',
+      autoMerge: true,
+      autoParse: true,
+      icon: "",
+      visibleIcon: false,
+      translation: "",
+      groupCode: '',
+      itemTagName: 'li',
+      itemName: 'li',
+      itemRelatedNames: [],
+      itemClassName: "",
+      itemBodyClassName: "",
+      backspaceRemove: true,
+      className: "",
+      visibleTools: false,
+      tools: [],
+      editable: false,
+      editableItems: false,
+      singleItem: false,
+      enterCreate: true,
+      raw: false,
+      sanitizer: false,
+      sanitizerConfig: {
+        elements: ["b", "a", "i", "s", "u", "sup", "sub", "mark", "code"],
+        attributes: {
+          a: ["href", "target"]
+        },
+        protocols: {
+          a: {
+            href: ["https", "ftp", "http", "mailto"]
+          }
+        }
+      },
+      tagName: "div",
+      type: "",
+      relatedNames: [],
+      emptyDetect: false,
+      customSave: false,
+      normalize: false,
+      convertible: false,
+      sortableItems: false
+    }
+  }
 
-    return make('div', (blockNode: BlockNode) => {
-      addClass(blockNode, "tex-block" + classes);
-      blockNode.id = this.createId();
-      blockNode.dataset.tagName = tagName;
-      blockNode.dataset.type = this.getConfig("type");
+  /**
+ * Parent hook called after model node creation
+ * @param el - Created model node
+ * @returns void
+ */
+  protected parentOnCreate(el: BlockNode): void {
+    const tagName = this.getTagName();
 
-      const contentNode = make(tagName, (content: HTMLElement) => {
-        addClass(content, 'tex-block-content');
-        if (this.isEmptyDetect()) content.dataset.empty = "true";
-        if (this.isEditable()) content.contentEditable = "true";
+    el.dataset.tagName = tagName;
+    el.dataset.type = this.getName();
 
-        if (this.getConfig("placeholder"))
-          content.dataset.placeholder = this.getConfig("placeholder");
-      })
+    const contentNode = make(tagName, (content: HTMLElement) => {
+      addClass(content, 'tex-block-content');
+      if (this.isEmptyDetect()) content.dataset.empty = "true";
+      if (this.isEditable()) content.contentEditable = "true";
 
-      append(blockNode, contentNode);
+      const placeholder = this.getPlaceholder()
 
-      Object.defineProperty(blockNode, "blockModel", {
-        value: this,
-        writable: true
-      });
-    }) as BlockNode;
+      if (placeholder && !isEmptyString(placeholder))
+        content.dataset.placeholder = placeholder;
+    });
+
+    append(el, contentNode);
   }
 
   /**
@@ -164,7 +150,7 @@ export default class BlockModel implements BlockModelInterface {
             onEnd: (item: HTMLElement, oldIndex: number, newIndex: number) => {
               events.change({
                 type: "moveListItem",
-                blockNode: this.getBlockNode(),
+                blockNode: this.getNode(),
                 contentNode: contentNode,
                 item: item,
                 index: newIndex,
@@ -186,14 +172,6 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   /**
-   * Get block configuration
-   * @returns Partial block configuration
-   */
-  protected configure(): Partial<BlockModelConfig> {
-    return this.config;
-  }
-
-  /**
    * Create block content based on options
    * @param options - Optional creation parameters
    * @returns Created block node
@@ -202,7 +180,7 @@ export default class BlockModel implements BlockModelInterface {
     const contentNode = this.getContentNode();
 
     if (typeof options === 'object' && Object.keys(options).length) {
-      this.options = options;
+      this.setStore('options', options);
     }
 
     if (!this.isEditable() && this.isEditableItems()) {
@@ -223,10 +201,10 @@ export default class BlockModel implements BlockModelInterface {
         if (this.isRaw()) {
           appendText(contentNode, options.content);
         } else
-          contentNode.innerHTML = options.content;
+          html(contentNode, options.content);
     }
 
-    return this.getBlockNode();
+    return this.getNode();
   }
 
   /**
@@ -236,40 +214,6 @@ export default class BlockModel implements BlockModelInterface {
    */
   __create(options?: BlockCreateOptions): BlockNode {
     return this.create(options);
-  }
-
-  /**
-   * Get all the block creation parameters
-   * @returns Block creation options
-   */
-  getOptions(): BlockCreateOptions {
-    return this.options;
-  }
-
-  /**
-   * Get the option value
-   * @param key - Option key
-   * @param defaultValue - Default value if key not found
-   * @returns Option value
-   */
-  getOption(key: string, defaultValue: string): string;
-  getOption<K extends keyof BlockCreateOptions>(key: K): BlockCreateOptions[K];
-  getOption<K extends keyof BlockCreateOptions>(
-    key: K,
-    defaultValue: BlockCreateOptions[K]
-  ): BlockCreateOptions[K];
-  getOption(key: string, defaultValue: unknown): unknown;
-  getOption(
-    key: keyof BlockCreateOptions | string,
-    defaultValue: unknown = ""
-  ): unknown {
-    const value = (this.options as Record<string, unknown>)[key];
-
-    if (value !== undefined) {
-      return value;
-    }
-
-    return defaultValue !== undefined ? defaultValue : "";
   }
 
   /**
@@ -295,31 +239,15 @@ export default class BlockModel implements BlockModelInterface {
    * @returns Tag name
    */
   getTagName(): string {
-    return this.getConfig("tagName");
+    return this.getConfig("tagName", '');
   }
 
   /**
-   * Get block type
-   * @returns Block type string
+   * Gets the block placeholder text
+   * @returns Placeholder text (empty string if not set)
    */
-  getType(): string {
-    return this.getConfig("type");
-  }
-
-  /**
-   * Get translated block name
-   * @returns Translated string
-   */
-  getTranslation(): string {
-    return this.editor.i18n.get(this.getTranslationCode(), this.getType());
-  }
-
-  /**
-   * Get translation code
-   * @returns Translation code
-   */
-  getTranslationCode(): string {
-    return this.getConfig("translationCode");
+  getPlaceholder(): string {
+    return this.getConfig('placeholder', '');
   }
 
   /**
@@ -331,80 +259,14 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   /**
-   * Render block icon as HTML
-   * @param width - Icon width in pixels
-   * @param height - Icon height in pixels
-   * @returns Icon HTML string
-   */
-  getIcon(width: number = 24, height: number = 24): string {
-    return renderIcon(this.getConfig("icon"), {
-      width: width,
-      height: height
-    });
-  }
-
-  /**
-   * Get block ID, creates if doesn't exist
-   * @returns Block ID
-   */
-  getId(): string {
-    return this.blockNode.id;
-  }
-
-  /**
-   * Get block DOM node
-   * @returns Block node
-   */
-  getBlockNode(): BlockNode {
-    return this.blockNode;
-  }
-
-  /**
    * Get content DOM node inside block
    * @returns Content node
    */
   getContentNode(): HTMLElement {
-    const block = this.getBlockNode();
+    const block = this.getNode();
     const [contentNode] = queryList(".tex-block-content", block);
 
     return contentNode;
-  }
-
-  /**
-   * Get configuration value by key
-   * @param key - Configuration key
-   * @param defaultValue - Default value
-   * @returns Configuration value
-   */
-  getConfig(key: string, defaultValue: string): string;
-  getConfig<K extends keyof BlockModelConfig>(key: K): BlockModelConfig[K];
-  getConfig<K extends keyof BlockModelConfig>(
-    key: K,
-    defaultValue: BlockModelConfig[K]
-  ): BlockModelConfig[K];
-  getConfig(key: string, defaultValue: unknown): unknown;
-  getConfig(
-    key: keyof BlockModelConfig | string,
-    defaultValue: unknown = ""
-  ): unknown {
-    const value = (this.config as Record<string, unknown>)[key];
-
-    if (value !== undefined) {
-      return value;
-    }
-
-    return defaultValue !== undefined ? defaultValue : "";
-  }
-
-  /**
-   * Set up global block configuration
-   * @param config - Configuration object
-   * @returns BlockModel class
-   */
-  public static setup(config: Partial<BlockModelConfig>): BlockModelInstanceInterface {
-    this.userConfig = config;
-
-    return this;
   }
 
   /**
@@ -498,7 +360,7 @@ export default class BlockModel implements BlockModelInterface {
    * @returns True if backspace removes block
    */
   isBackspaceRemove(): boolean {
-    return this.getConfig("backspaceRemove");
+    return this.getConfig("backspaceRemove", true);
   }
 
   /**
@@ -506,7 +368,7 @@ export default class BlockModel implements BlockModelInterface {
    * @returns True if editable
    */
   isEditable(): boolean {
-    return this.getConfig("editable");
+    return this.getConfig("editable", false);
   }
 
   /**
@@ -530,7 +392,7 @@ export default class BlockModel implements BlockModelInterface {
    * @returns True if raw content
    */
   isRaw(): boolean {
-    return this.getConfig("raw");
+    return this.getConfig("raw", false);
   }
 
   /**
@@ -574,19 +436,19 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   /**
-   * Get related block types
-   * @returns Array of related types
+   * Get related block names
+   * @returns Array of related names
    */
-  getRelatedTypes(): string[] {
-    return this.getConfig("relatedTypes", []);
+  getRelatedNames(): string[] {
+    return this.getConfig("relatedNames", []) as string[];
   }
 
   /**
-   * Generate unique ID for block
-   * @returns Unique ID string
+   * Gets an array of all supported type names
+   * @returns Array of supported type names (includes main type and related types)
    */
-  protected createId(): string {
-    return `${this.getType()}-${generateRandomString(24)}-${generateRandomString(12)}`;
+  getSupportedNames(): string[] {
+    return [this.getName(), ...this.getRelatedNames()];
   }
 
   /**
@@ -615,14 +477,11 @@ export default class BlockModel implements BlockModelInterface {
    * Sanitize block content for security
    * @returns void
    */
-  sanitize() {
+  sanitize(): void {
     if (this.getConfig("sanitizer", false)) {
       const container = this.toSanitize();
       if (container || Array.isArray(container)) {
-        const sanitizerConfig: SanitizerConfig = this.getConfig(
-          "sanitizerConfig",
-          {}
-        ),
+        const sanitizerConfig = this.getSanitizerConfig(),
           sanitizer = new Sanitizer(sanitizerConfig);
 
         if (Array.isArray(container)) {
@@ -657,6 +516,17 @@ export default class BlockModel implements BlockModelInterface {
     }
 
     return this.getContentNode();
+  }
+
+  /**
+   * Gets the sanitizer configuration for block content
+   * @returns Sanitizer configuration object, or empty object if not set
+   */
+  getSanitizerConfig(): SanitizerConfig {
+    return this.getConfig(
+      "sanitizerConfig",
+      {}
+    ) as SanitizerConfig
   }
 
   /**
@@ -697,16 +567,24 @@ export default class BlockModel implements BlockModelInterface {
    * Get item type
    * @returns Item type
    */
-  getItemType(): string {
-    return this.getConfig("itemType", "li");
+  getItemName(): string {
+    return this.getConfig("itemName", "li");
   }
 
   /**
-   * Get related item types
-   * @returns Array of related item types
+   * Get related item names
+   * @returns Related item names array
    */
-  getItemRelatedTypes(): string[] {
-    return this.getConfig("itemRelatedTypes", []);
+  getItemRelatedNames(): string[] {
+    return this.getConfig("itemRelatedNames", []) as string[];
+  }
+
+  /**
+   * Gets an array of all supported item type names
+   * @returns Array of supported type names (includes main item type and related types)
+   */
+  getItemSupportedNames(): string[] {
+    return [this.getItemName(), ...this.getItemRelatedNames()];
   }
 
   /**
@@ -763,7 +641,7 @@ export default class BlockModel implements BlockModelInterface {
    */
   protected makeItemNode(content: string | unknown = ''): HTMLElement {
     const tagName = this.getItemTagName(),
-      type = this.getItemType(),
+      type = this.getItemName(),
       className = this.getItemClassName(),
       bodyClassName = this.getItemBodyClassName();
 
@@ -872,7 +750,7 @@ export default class BlockModel implements BlockModelInterface {
     const length = this.getItemsLength();
 
     if (!length) {
-      this.getBlockNode()?.remove()
+      this.getNode()?.remove()
     }
 
     return true;
@@ -957,11 +835,6 @@ export default class BlockModel implements BlockModelInterface {
     return index;
   }
 
-  /**
-   * Hook called after block creation
-   * @returns void
-   */
-  protected onCreate(): void { }
 
   /**
    * Hook called when block renders
@@ -1008,7 +881,6 @@ export default class BlockModel implements BlockModelInterface {
    * @returns void
    */
   protected afterCreate() {
-    this.onCreate();
     this.refreshSortableItems();
     this.sanitize();
   }
@@ -1019,27 +891,6 @@ export default class BlockModel implements BlockModelInterface {
    */
   __afterCreate() {
     this.afterCreate();
-  }
-
-  /**
-   * Store value in block storage
-   * @param key - Storage key
-   * @param value - Value to store
-   * @returns Current instance for chaining
-   */
-  setStore(key: string, value: unknown): this {
-    this.store[key] = value;
-
-    return this;
-  }
-
-  /**
-   * Get value from block storage
-   * @param key - Storage key (null for all)
-   * @returns Stored value or null
-   */
-  getStore(key: string | null): unknown {
-    return key === null ? this.store : this.store[key] || null;
   }
 
   /**
@@ -1138,21 +989,12 @@ export default class BlockModel implements BlockModelInterface {
   }
 
   /**
-   * Handle click event
-   * @param _evt - Mouse event
-   * @returns True to allow default behavior
-   */
-  protected onClick(_evt: MouseEvent): boolean {
-    return true;
-  }
-
-  /**
    * Public wrapper for onClick
    * @param evt - Mouse event
    * @returns True to allow default behavior
    */
-  __onClick(evt: MouseEvent): boolean {
-    return this.onClick(evt);
+  __onClick(evt: BaseEvent): void {
+    this.onClick(evt);
   }
 
   /**
@@ -1344,10 +1186,4 @@ export default class BlockModel implements BlockModelInterface {
   ): BlockNode {
     return this.afterConvert(newBlockNode);
   }
-
-  /**
-   * Clean up block resources
-   * @returns void
-   */
-  destroy(): void { }
 }

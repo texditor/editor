@@ -7,10 +7,10 @@ export default class H2 extends Header implements BlockModelInterface {
     return {
       ...super.configure(),
       ...{
-        type: "h2",
+        name: "h2",
         tagName: "h2",
         icon: IconHeader2,
-        translationCode: "header2"
+        translation: "header2"
       }
     };
   }

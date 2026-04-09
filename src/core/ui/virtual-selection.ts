@@ -202,8 +202,7 @@ export default class VirtualSelection implements VirtualSelectionInterface {
 
     query(
       this.options.blockSelector,
-      (block: HTMLElement, index: number) => {
-        attr(block, 'data-selection-index', String(index));
+      (block: HTMLElement) => {
         this.blocks.push(block);
       },
       this.options.blocksContainer

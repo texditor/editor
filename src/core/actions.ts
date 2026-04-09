@@ -66,7 +66,7 @@ export default class Actions implements ActionsInterface {
    */
   private handleClose(evt: Event) {
     const { blockManager, events } = this.editor,
-      blockNode = blockManager.getBlockNode(),
+      blockNode = blockManager.getNode(),
       cssAction = '.tex-action',
       cssName = cssAction + "s";
 
@@ -163,7 +163,7 @@ export default class Actions implements ActionsInterface {
    */
   private wrap(callback: CallableFunction) {
     const { blockManager, events } = this.editor,
-      blockNode = blockManager.getBlockNode(),
+      blockNode = blockManager.getNode(),
       cssName = ".tex-actions";
 
     if (blockNode) {

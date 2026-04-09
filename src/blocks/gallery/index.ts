@@ -39,13 +39,13 @@ export default class Gallery extends Files {
     return {
       ...super.configure(),
       ...{
-        type: "gallery",
+        name: "gallery",
         tagName: "div",
         groupCode: 'gallery',
         listCss: "tex-gallery-list",
-        cssClasses: "tex-gallery",
+        className: "tex-gallery",
         icon: IconGallery,
-        translationCode: "gallery",
+        translation: "gallery",
         styles: ["grid", "slider", "single"],
         stylesLtr: "right",
         defaultStyle: "single",
@@ -224,7 +224,7 @@ export default class Gallery extends Files {
     onChange?: (index: number) => void
   ) {
     const { events } = this.editor;
-    const node = this.getBlockNode();
+    const node = this.getNode();
     const isSliderBlock = node?.dataset?.optionsStyle === "slider" || isSlider;
 
     if (node && isSliderBlock) {

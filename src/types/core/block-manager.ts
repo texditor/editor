@@ -1,4 +1,4 @@
-import type { BlockCreateOptions, BlockModelInterface, BlockModelStructure, BlockNode } from ".";
+import type { BlockCreateOptions, BlockModelInterface, BlockModelSchema, BlockNode } from ".";
 import { VirtualSelectionInterface } from "./ui/virtual-selection";
 
 export interface BlockManagerInterface {
@@ -38,14 +38,14 @@ export interface BlockManagerInterface {
    * Gets all block nodes in the editor
    * @returns Array of block nodes
    */
-  getBlocks(): BlockNode[];
+  getBlockNodes(): BlockNode[];
 
   /**
    * Gets a specific block node by index
    * @param index - Block index (defaults to current index)
    * @returns Block node or null if not found
    */
-  getBlockNode(index?: number): BlockNode | null;
+  getNode(index?: number): BlockNode | null;
 
   /**
    * Gets the content node within a block
@@ -170,17 +170,23 @@ export interface BlockManagerInterface {
   normalize(): void;
 
   /**
+ * Retrieves a list of block models based on nodes
+ * @returns List of block models
+ */
+  getModels(): BlockModelInterface[];
+
+  /**
    * Gets all registered block models
    * @returns Array of block model structures
    */
-  getBlockModels(): BlockModelStructure[];
+  getSchemas(): BlockModelSchema[];
 
   /**
-   * Gets the real block type from a related type name
-   * @param relatedName - Related type name
-   * @returns Real block type or null
+   * Gets the real block type name from a related type alias
+   * @param relatedName - Related type name or alias
+   * @returns Real block type name, or null if not found
    */
-  getRealType(relatedName: string): string | null;
+  getRealName(relatedName: string): string | null;
 
   /**
    * Cleans up event listeners

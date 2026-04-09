@@ -9,7 +9,8 @@ import {
   queryLength,
   query,
   append,
-  findDatasetsWithPrefix
+  findDatasetsWithPrefix,
+  html
 } from "@/utils/dom";
 import MainView from "@/views/main";
 import { executeMethodIfExists, generateRandomString } from "@/utils/common";
@@ -91,7 +92,7 @@ export default class API implements APIInterface {
       query(
         ".tex-block",
         (item: BlockNode) => {
-          executeMethodIfExists(item.blockModel, '__onRender');
+          executeMethodIfExists(item.baseModel, '__onRender');
         },
         editorElement
       );
@@ -139,7 +140,8 @@ export default class API implements APIInterface {
     }
 
     if (container) {
-      container.innerHTML = "";
+      html(container, '');
+
       const blocks = parser.parseBlocks(data, true),
         realIndex = index ? index : 0;
 
@@ -197,7 +199,7 @@ export default class API implements APIInterface {
           };
 
           const contentNode = blockManager.getContentNode(el),
-            model = el.blockModel;
+            model = el.baseModel;
 
           if (contentNode && model) {
             if (model.isCustomSave()) {
@@ -229,7 +231,7 @@ export default class API implements APIInterface {
 
                       if (parsedData.length) {
                         const dataObj = {
-                          type: model.getItemType(),
+                          type: model.getItemName(),
                           data: parsedData
                         };
                         (block.data as object[]).push(dataObj)
@@ -275,13 +277,6 @@ export default class API implements APIInterface {
       tools
     } = this.editor;
     if (this.rootElement) this.rootElement.innerHTML = "";
-
-    const models = blockManager.getBlockModels();
-
-    models.forEach((modelStruct) => {
-      if (modelStruct.model.destroy) modelStruct.model.destroy();
-    });
-
     actions.destroy();
     blockManager.destroy();
     events.destroy();

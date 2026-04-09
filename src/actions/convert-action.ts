@@ -1,12 +1,13 @@
 import type {
   ActionModelConfig,
   ActionModelInterface,
-  BlockModelStructure
+  BlockModelSchema
 } from "@/types";
 import { IconConvert } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 import { addClass, append, html, make } from "@/utils/dom";
 import { rebind } from "@/utils/events";
+import { renderIcon } from "@/utils";
 
 /** Convert a block */
 export default class ConvertAction
@@ -24,24 +25,30 @@ export default class ConvertAction
   menuConfig() {
     const { blockManager, i18n } = this.editor,
       items: HTMLElement[] = [];
-    const blockModels = blockManager.getBlockModels();
+    const schemas = blockManager.getSchemas();
 
-    blockModels.forEach((modelStructure: BlockModelStructure) => {
-      const curBlock = blockManager.getBlockNode(),
-        model = modelStructure.model;
+    schemas.forEach((schema: BlockModelSchema) => {
+      const curBlock = blockManager.getNode(),
+        model = schema.model;
 
       if (
         model.isConvertible() &&
-        curBlock?.blockModel.getType() !== model.getType()
+        curBlock?.baseModel.getName() !== model.getName()
       ) {
         const modelElement = make("div", (el: HTMLDivElement) => {
           addClass(el, "tex-actions-menu-item");
-          const icon = model.getIcon(12, 12);
+          const iconContent = model.getIcon();
 
-          if (icon) {
+          if (iconContent) {
             append(el, make(
               'span',
-              (span: HTMLSpanElement) => html(span, icon)
+              (span: HTMLSpanElement) => html(
+                span,
+                renderIcon(iconContent, {
+                  width: model.getIconWidth(),
+                  height: model.getIconHeight()
+                })
+              )
             ))
           }
 
@@ -50,7 +57,7 @@ export default class ConvertAction
             (span: HTMLSpanElement) => {
               html(
                 span,
-                (modelStructure?.translation || "")
+                model.getTranslation() || model.getName()
               )
             }
           ));
@@ -72,13 +79,13 @@ export default class ConvertAction
 
   isVisible(): boolean {
     const { blockManager } = this.editor,
-      blockModels = blockManager.getBlockModels(),
-      blockNode = blockManager.getBlockNode();
+      schemas = blockManager.getSchemas(),
+      blockNode = blockManager.getNode();
 
-    const filtered = blockModels.filter(
-      (item) =>
-        item.model.isConvertible() &&
-        blockNode?.blockModel.getType() !== item.model.getType()
+    const filtered = schemas.filter(
+      (schema) =>
+        schema.model.isConvertible() &&
+        blockNode?.baseModel.getName() !== schema.model.getName()
     );
 
     return !!blockManager.getModel()?.isConvertible() && !!filtered.length;

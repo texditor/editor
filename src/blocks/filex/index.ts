@@ -62,6 +62,10 @@ export default class Filex extends BlockModel implements BlockModelInterface {
     const { i18n } = this.editor;
 
     return {
+      name: "files",
+      tagName: "div",
+      translation: "files",
+      groupCode: 'files',
       autoParse: false,
       autoMerge: false,
       actions: [
@@ -76,14 +80,10 @@ export default class Filex extends BlockModel implements BlockModelInterface {
       renderImage: true,
       backspaceRemove: false,
       enterCreate: false,
-      tagName: "div",
-      translationCode: "files",
-      type: "files",
-      groupCode: 'files',
       editable: false,
       editableItems: false,
       sanitizer: false,
-      cssClasses: "tex-files",
+      className: "tex-files",
       customSave: true,
       messageTimeout: 7000,
       mimeTypes: [],
@@ -111,7 +111,7 @@ export default class Filex extends BlockModel implements BlockModelInterface {
   }
 
   protected create(options?: BlockCreateOptions): BlockNode {
-    const blockNode = this.getBlockNode(),
+    const blockNode = this.getNode(),
       contentNode = this.getContentNode(),
       realOptions = options && Object.keys(options) && options.content
         ? options
@@ -289,7 +289,7 @@ export default class Filex extends BlockModel implements BlockModelInterface {
   protected makeItemNode(item: FileItem): HTMLElement {
     const methodName = this.getRenderCallback(item.type),
       fileCss = this.getConfig("fileCss", "tex-file tex-item"),
-      blockNode = this.getBlockNode();
+      blockNode = this.getNode();
 
     if (typeof methodName === "function" && blockNode) {
       return make("div", (el: HTMLElement) => {

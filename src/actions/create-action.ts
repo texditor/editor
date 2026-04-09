@@ -1,13 +1,13 @@
 import type {
   ActionModelInterface,
-  BlockModelStructure,
+  BlockModelSchema,
   ActionModelConfig
 } from "@/types";
 import { IconPlus } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 import { addClass, append, html, make } from "@/utils/dom";
 import { rebind } from "@/utils/events";
-import BlockModel from "@/core/models/block-model";
+import { renderIcon } from "@/utils";
 
 /** Create a block */
 export default class CreateAction
@@ -26,18 +26,27 @@ export default class CreateAction
     const { blockManager, i18n } = this.editor,
       items: HTMLElement[] = [];
 
-    const blockModels = blockManager.getBlockModels();
+    const schemas = blockManager.getSchemas();
 
-    blockModels.forEach((modelStructure: BlockModelStructure) => {
+    schemas.forEach((schema: BlockModelSchema) => {
+      const model = schema.model;
       const modelElement = make("div", (el: HTMLDivElement) => {
         addClass(el, "tex-actions-menu-item");
-        const icon = modelStructure.model.getIcon(12, 12);
+        const iconContent = model.getIcon();
 
-        if (icon) {
-          append(el, make(
-            'span',
-            (span: HTMLSpanElement) => html(span, icon)
-          ))
+        if (iconContent) {
+          append(
+            el, make(
+              'span',
+              (span: HTMLSpanElement) => html(
+                span,
+                renderIcon(iconContent, {
+                  width: model.getIconWidth(),
+                  height: model.getIconHeight()
+                })
+              )
+            )
+          );
         }
 
         append(el, make(
@@ -45,14 +54,15 @@ export default class CreateAction
           (span: HTMLSpanElement) => {
             html(
               span,
-              (modelStructure?.translation || "")
+              model.getTranslation() || model.getName()
             )
           }
         ));
 
         rebind(el, "click.am", () => {
-          const model = modelStructure.model as BlockModel;
-          blockManager.createBlock(model.getType());
+          blockManager.createBlock(
+            model.getName()
+          );
         });
       });
 
@@ -60,7 +70,10 @@ export default class CreateAction
     });
 
     return {
-      title: i18n.get(this.getTranslation(), this.getName()),
+      title: i18n.get(
+        this.getTranslation(),
+        this.getName()
+      ),
       items: items
     };
   }

@@ -6,16 +6,16 @@ import { IconList } from "@/icons";
 export default class List extends BlockModel implements BlockModelInterface {
   protected configure(): Partial<BlockModelConfig> {
     return {
-      autoParse: true,
-      autoMerge: true,
-      translationCode: "list",
+      name: "ul",
+      translation: "list",
       groupCode: "list",
       tagName: "ul",
-      type: "ul",
       itemTagName: 'li',
-      itemType: 'li',
+      itemName: 'li',
       itemClassName: "tex-list-item",
       itemBodyClassName: "tex-list-item-body",
+      autoParse: true,
+      autoMerge: true,
       icon: IconList,
       editable: false,
       editableItems: true,
@@ -23,7 +23,7 @@ export default class List extends BlockModel implements BlockModelInterface {
       sanitizer: true,
       normalize: true,
       convertible: true,
-      cssClasses: "tex-list",
+      className: "tex-list",
       sortableItems: true,
       sanitizerConfig: {
         elements: [

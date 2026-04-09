@@ -2,7 +2,8 @@ import type {
   BlockModelInterface,
   BlockOutput,
   BlockNode,
-  BlockModelConfig
+  BlockModelConfig,
+  CodeCreateOptions
 } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import { addClass, append, attr, closest, css, html, make, prepend, query } from "@/utils/dom";
@@ -14,14 +15,14 @@ import { isEmptyString, off, on, renderIcon } from "@/utils";
 export default class Code extends BlockModel implements BlockModelInterface {
   protected configure(): Partial<BlockModelConfig> {
     return {
+      name: "code",
+      tagName: "pre",
+      translation: "code",
+      groupCode: 'code',
+      className: "tex-code",
       autoParse: false,
       autoMerge: true,
-      tagName: "pre",
-      translationCode: "code",
-      type: "code",
-      groupCode: 'code',
       icon: IconCode,
-      cssClasses: "tex-code",
       placeholder: this.editor.i18n.get("codePlaceholder", "Enter your code"),
       editable: true,
       emptyDetect: true,
@@ -37,19 +38,19 @@ export default class Code extends BlockModel implements BlockModelInterface {
     };
   }
 
-  protected onCreate(): void {
-    const blockNode = this.getBlockNode();
+  protected onCreate(blockNode: BlockNode): void {
+    const options = this.getStore('options') as CodeCreateOptions;
 
-    const lang = this.getOption('lang');
-
-    if (lang) {
-      attr(blockNode, 'data-lang', lang);
-    }
+    if (options && options.lang)
+      attr(blockNode, 'data-lang', options.lang);
 
     this.init(blockNode);
   }
 
-  private init(blockNode: BlockNode) {
+  private init(blockNode: BlockNode): void {
+    if (!blockNode)
+      return;
+
     const { events, i18n } = this.editor;
 
     if (this.getConfig('showLanguages', true)) {

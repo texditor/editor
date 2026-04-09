@@ -84,13 +84,13 @@ export default class Files extends BlockModel implements BlockModelInterface {
       backspaceRemove: false,
       enterCreate: false,
       tagName: "div",
-      translationCode: "files",
+      translation: "files",
       type: "files",
       groupCode: 'files',
       editable: false,
       editableItems: true,
       sanitizer: false,
-      cssClasses: "tex-files",
+      className: "tex-files",
       customSave: true,
       messageTimeout: 7000,
       mimeTypes: [],
@@ -328,7 +328,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   protected save(block: BlockOutput, node?: HTMLElement): BlockOutput {
-    const root = node || this.getBlockNode();
+    const root = node || this.getNode();
     block.data = [];
     block = this.onSaveBefore(block, root);
 
@@ -441,7 +441,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   getListElement(node?: BlockNode): HTMLElement | null {
-    const blockEl = node || this.getBlockNode();
+    const blockEl = node || this.getNode();
 
     if (!node) return null;
 
@@ -544,7 +544,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
           };
 
           on(input, "cancel.file", () => {
-            const element = this.getBlockNode();
+            const element = this.getNode();
 
             if (element) this.removeIsEmpty(element as BlockNode);
           });
@@ -626,7 +626,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   moveItem(item: HTMLElement, index: number): void {
-    const block = this.getBlockNode();
+    const block = this.getNode();
 
     if (block) {
       const moveItem = this.getItem(index) as HTMLElement,
@@ -643,7 +643,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   getItem(item: HTMLElement | number): HTMLElement | number | null {
-    const block = this.getBlockNode();
+    const block = this.getNode();
     let data: HTMLElement | number = 0;
 
     if (block) {
@@ -661,7 +661,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   getItemsLength(): number {
-    const block = this.getBlockNode();
+    const block = this.getNode();
 
     if (!block) return 0;
 
@@ -753,7 +753,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   protected createMessage(message: string, status: string = "error") {
-    const block = this.getBlockNode(),
+    const block = this.getNode(),
       id = "message-" + generateRandomString(10);
 
     const messageBlock = make("div", (msg: HTMLInputElement) => {

@@ -35,7 +35,7 @@ export interface ExtensionModelConfig extends BaseModelConfig {
  * Extension model behavior interface
  * Defines all public methods for extension manipulation
  */
-export interface ExtensionModelInterface extends BaseModelInterface {
+export interface ExtensionModelInterface extends BaseModelInterface<ExtensionNode> {
   /**
    * Get group name for categorization
    * @returns Group name string

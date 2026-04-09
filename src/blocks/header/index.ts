@@ -5,17 +5,17 @@ import { IconHeader1 } from "@/icons";
 export default class Header extends BlockModel implements BlockModelInterface {
   protected configure(): Partial<BlockModelConfig> {
     return {
-      autoParse: true,
-      icon: IconHeader1,
-      translationCode: "header1",
+      name: "h1",
+      translation: "header1",
       groupCode: 'header',
       tagName: "h1",
-      type: "h1",
+      className: "tex-header",
+      autoParse: true,
+      icon: IconHeader1,
       placeholder: this.editor.i18n.get(
         "headerPlaceholder",
         "Enter your title"
       ),
-      cssClasses: "tex-header",
       editable: true,
       visibleTools: true,
       tools: ["link", "subscript", "superscript", "clearFormating"],

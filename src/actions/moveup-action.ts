@@ -18,10 +18,10 @@ export default class MoveUpAction extends ActionModel implements ActionModelInte
     const { actions, blockManager, events } = this.editor;
 
     const curIndex = blockManager.getIndex(),
-      curBlock = blockManager.getBlockNode();
+      curBlock = blockManager.getNode();
 
     if (curIndex > 0 && curBlock) {
-      const prevBlock = blockManager.getBlockNode(curIndex - 1);
+      const prevBlock = blockManager.getNode(curIndex - 1);
 
       if (curBlock && prevBlock) {
         after(curBlock, prevBlock);
@@ -41,7 +41,7 @@ export default class MoveUpAction extends ActionModel implements ActionModelInte
     setTimeout(() => actions.show(), 40);
   }
 
-  isVisible() {
+  isVisible(): boolean {
     const { blockManager } = this.editor;
     return blockManager.getIndex() > 0 && blockManager.count() !== 0;
   }

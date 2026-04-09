@@ -7,10 +7,10 @@ export default class H3 extends Header implements BlockModelInterface {
     return {
       ...super.configure(),
       ...{
-        type: "h3",
+        name: "h3",
         tagName: "h3",
         icon: IconHeader3,
-        translationCode: "header3"
+        translation: "header3"
       }
     };
   }

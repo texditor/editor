@@ -1,34 +1,24 @@
-import type { BlockNode, BlockCreateOptions } from "@/types";
-import type { TexditorInterface } from "@/types";
+import type { ModelConstructor, BaseModelInterface, BaseModelConfig, BaseNode, SanitizerConfig, RenderIconContent } from "@/types";
 
 /**
- * Block model constructor interface
+ * Block model constructor type
+ * Specialized constructor that creates ActionModelInterface instances
+ * with ActionModelConfig
  */
-export interface BlockModelInstanceInterface {
-  /**
-   * Create new block model instance
-   * @param editor - Editor instance
-   * @returns Block model instance
-   */
-  new(editor: TexditorInterface): BlockModelInterface;
+export type BlockModelConstructor = ModelConstructor<BlockModelInterface, BlockModelConfig>;
+
+export interface BlockNode extends BaseNode {
+  baseModel: BlockModelInterface;
 }
 
 /**
- * Block model structure for registration
- * @property instance - Constructor reference
+ * Block model schema for registration
+ * @property constructor - Constructor reference
  * @property model - Model instance
- * @property type - Block type identifier
- * @property types - Array of supported types
- * @property translation - Localized block name
- * @property icon - Block icon identifier
  */
-export interface BlockModelStructure {
-  instance: BlockModelInstanceInterface;
+export interface BlockModelSchema {
+  constructor: BlockModelConstructor;
   model: BlockModelInterface;
-  type: string;
-  types: string[];
-  translation: string;
-  icon: string;
 }
 
 /**
@@ -36,10 +26,8 @@ export interface BlockModelStructure {
  * @property autoMerge - Automatically merge with adjacent blocks
  * @property icon - Block icon
  * @property autoParse - Automatically parse content
- * @property translationCode - Localization key
  * @property groupCode - Block group categorization
  * @property backspaceRemove - Remove block on backspace
- * @property cssClasses - Additional CSS classes
  * @property visibleTools - Show tools for block
  * @property tools - Available tools list
  * @property editable - Content is editable
@@ -50,28 +38,24 @@ export interface BlockModelStructure {
  * @property sanitizer - Enable HTML sanitization
  * @property sanitizerConfig - Sanitizer configuration
  * @property tagName - HTML tag of the block
- * @property type - Unique block type
  * @property itemTagName - HTML tag of the list item
- * @property itemType - Item type
- * @property itemRelatedTypes - Related item types
+ * @property itemName - Item type
+ * @property itemRelatedNames - Related item names
  * @property itemClassName - Item CSS class
  * @property itemBodyClassName - Item body CSS class
  * @property sortableItems - Enable item sorting
- * @property relatedTypes - Related block types
+ * @property relatedNames - Related block names
  * @property emptyDetect - Enable empty detection
  * @property customSave - Use custom save logic
  * @property normalize - Enable content normalization
  * @property placeholder - Placeholder text
  * @property convertible - Block can be converted
  */
-export interface BlockModelConfig {
+export interface BlockModelConfig extends BaseModelConfig {
   autoMerge: boolean;
-  icon: string;
   autoParse: boolean;
-  translationCode: string;
   groupCode?: string;
   backspaceRemove: boolean;
-  cssClasses: string;
   visibleTools: boolean;
   tools: unknown[];
   editable: boolean;
@@ -82,14 +66,13 @@ export interface BlockModelConfig {
   sanitizer: boolean;
   sanitizerConfig: Record<string, unknown>;
   tagName: string;
-  type: string;
   itemTagName: string;
-  itemType: string;
-  itemRelatedTypes: string[],
+  itemName: string;
+  itemRelatedNames: string[],
   itemClassName: string,
   itemBodyClassName: string,
   sortableItems: boolean;
-  relatedTypes: string[];
+  relatedNames: string[];
   emptyDetect: boolean;
   customSave: boolean;
   normalize: boolean;
@@ -102,39 +85,7 @@ export interface BlockModelConfig {
  * Block model behavior interface
  * Defines all public methods for block manipulation
  */
-export interface BlockModelInterface {
-  /**
-   * Get configuration value by key
-   * @param key - Configuration key
-   * @param defaultValue - Default value
-   * @returns Configuration value
-   */
-  getConfig<K extends keyof BlockModelConfig>(key: K): BlockModelConfig[K];
-  getConfig<K extends keyof BlockModelConfig>(
-    key: K,
-    defaultValue: BlockModelConfig[K]
-  ): BlockModelConfig[K];
-  getConfig(key: string, defaultValue: unknown): unknown;
-
-  /**
-   * Get all the block creation parameters
-   * @returns Block creation options
-   */
-  getOptions(): BlockCreateOptions;
-
-  /**
-   * Get the option value
-   * @param key - Option key
-   * @param defaultValue - Default value
-   * @returns Option value
-   */
-  getOption<K extends keyof BlockCreateOptions>(key: K): BlockCreateOptions[K];
-  getOption<K extends keyof BlockCreateOptions>(
-    key: K,
-    defaultValue: BlockCreateOptions[K]
-  ): BlockCreateOptions[K];
-  getOption(key: string, defaultValue: unknown): unknown;
-
+export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   /**
    * Check if Enter creates new block
    * @returns True if Enter creates block
@@ -154,54 +105,28 @@ export interface BlockModelInterface {
   isAutoParse(): boolean;
 
   /**
-   * Get related block types
-   * @returns Array of related types
+   * Get related block names
+   * @returns Array of related names
    */
-  getRelatedTypes(): string[];
+  getRelatedNames(): string[];
 
   /**
-   * Get block type
-   * @returns Block type string
+   * Gets an array of all supported type names
+   * @returns Array of supported type names (includes main type and related types)
    */
-  getType(): string;
+  getSupportedNames(): string[];
 
   /**
-   * Get block ID
-   * @returns Block ID
+   * Gets the block placeholder text
+   * @returns Placeholder text (empty string if not set)
    */
-  getId(): string;
-
-  /**
-   * Get localized block name
-   * @returns Translated block name
-   */
-  getTranslation(): string;
+  getPlaceholder(): string;
 
   /**
    * Get block group code
    * @returns Group code
    */
   getGroupCode(): string;
-
-  /**
-   * Get block icon HTML
-   * @param width - Icon width
-   * @param height - Icon height
-   * @returns Icon HTML
-   */
-  getIcon(width?: number, height?: number): string;
-
-  /**
-   * Get translation code
-   * @returns Translation key
-   */
-  getTranslationCode(): string;
-
-  /**
-   * Get block DOM node
-   * @returns Block node
-   */
-  getBlockNode(): BlockNode;
 
   /**
    * Get content DOM node
@@ -214,23 +139,6 @@ export interface BlockModelInterface {
    * @returns Tag name
    */
   getTagName(): string;
-
-  /**
-   * Store value in block storage
-   * @param key - Storage key
-   * @param value - Value to store
-   * @returns Current instance
-   */
-  setStore(key: string, value: unknown): this;
-
-  /**
-   * Get stored value
-   * @param key - Storage key (null for all)
-   * @returns Stored value
-   */
-  getStore(key: string | null): unknown;
-
-  // Items methods
 
   /**
    * Get item tag name
@@ -254,13 +162,19 @@ export interface BlockModelInterface {
    * Get item type
    * @returns Item type
    */
-  getItemType(): string;
+  getItemName(): string;
 
   /**
-   * Get related item types
-   * @returns Related item types array
+   * Get related item names
+   * @returns Related item names array
    */
-  getItemRelatedTypes(): string[];
+  getItemRelatedNames(): string[];
+
+  /**
+   * Gets an array of all supported item type names
+   * @returns Array of supported type names (includes main item type and related types)
+   */
+  getItemSupportedNames(): string[];
 
   /**
    * Check if items are sortable
@@ -422,18 +336,17 @@ export interface BlockModelInterface {
   toSanitize(): BlockNode | HTMLElement | HTMLElement[] | null;
 
   /**
+   * Gets the sanitizer configuration for block content
+   * @returns Sanitizer configuration object, or empty object if not set
+   */
+  getSanitizerConfig(): SanitizerConfig
+
+  /**
    * Set up global configuration
    * @param config - Configuration object
    * @returns BlockModel class
    */
-  setup?(config: Partial<BlockModelConfig>): BlockModelInstanceInterface
-
-  /**
-   * Destroy block instance
-   * @returns void
-   */
-  destroy?(): void;
-
+  setup?(config: Partial<BlockModelConfig>): BlockModelConstructor
 
   /**
   * Protected methods for understanding the block model structure
@@ -457,7 +370,6 @@ export interface BlockModelInterface {
   * protected onKeyUp(evt: KeyboardEvent): boolean;
   * protected onFocus(evt: FocusEvent): boolean;
   * protected onBlur(evt: FocusEvent): boolean
-  * protected onClick(evt: MouseEvent): boolean;
   * protected onSelectionChange(evt: Event, range: Range): boolean;
   * protected onDragStart(evt: DragEvent): boolean;
   * protected onDragLeave(evt: DragEvent): boolean;
@@ -473,4 +385,28 @@ export interface BlockModelInterface {
   * protected beforeConvert(blockNode: BlockNode, targetModel: BlockModelInterface): [BlockNode, BlockModelInterface];
   * protected afterConvert(newBlockNode: BlockNode): BlockNode;
   */
+}
+
+export type BlockOutputData = string[] | object[];
+
+export interface BlockOutput {
+  data: BlockOutputData | [];
+  type: string;
+  attr?: Record<string, string | undefined>;
+  [key: string]: unknown;
+}
+
+export interface BlockCreateItemsContent {
+  type: string;
+  data: string | Node | Node[],
+  attr?: Record<string, string | undefined>;
+}
+export interface BlockCreateUnknownContent {
+  [key: string]: unknown;
+}
+
+export interface BlockCreateOptions {
+  content?: string | BlockCreateItemsContent[] | unknown[];
+  lang?: string;
+  [key: string]: unknown;
 }

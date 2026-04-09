@@ -6,10 +6,10 @@ export default class H6 extends Header implements BlockModelInterface {
     return {
       ...super.configure(),
       ...{
-        type: "h6",
+        name: "h6",
         tagName: "h6",
         icon: IconHeader6,
-        translationCode: "header6"
+        translation: "header6"
       }
     };
   }

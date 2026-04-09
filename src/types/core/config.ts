@@ -1,6 +1,6 @@
 import type {
   ActionModelConstructor,
-  BlockModelInstanceInterface,
+  BlockModelConstructor,
   ExtensionModelConstructor,
   ToolModelConstructor
 } from "@/types";
@@ -22,7 +22,7 @@ export interface ConfigStoreInterface {
   initalData?: object[] | string;
 
   /** Array of block model instances available in the editor */
-  blockModels?: BlockModelInstanceInterface[];
+  blockModels?: BlockModelConstructor[];
 
   /** Array of tool model instances available in the editor */
   tools?: ToolModelConstructor[];
