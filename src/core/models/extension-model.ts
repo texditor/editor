@@ -39,8 +39,7 @@ export default class ExtensionModel extends BaseModel<ExtensionNode> implements 
 
   /**
    * Handle click with toggle functionality
-   * @param evt - Custom event with element reference
-   * @returns void
+   * @param evt - Custom event with element reference 
    */
   protected parentOnClick(evt: BaseEvent): void {
     if (this.isToggleActive()) {

@@ -12,7 +12,7 @@ export default class DownloadFileAction
   protected translation: string = "downloadFile";
   protected defaultTitle: string = "Download file";
 
-  onCreate(el: HTMLLinkElement): HTMLElement {
+  onCreateNode(el: HTMLLinkElement): HTMLElement {
     const currentItem = this.getItem();
 
     if (currentItem) {

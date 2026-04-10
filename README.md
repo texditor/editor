@@ -67,7 +67,7 @@ const editor = new Texditor({
     LinkTool
     // Add more tools...
   ],
-  blockModels: [
+  blocks: [
     Paragraph, // Default configuration
     H1.setup({
       // Custom configuration

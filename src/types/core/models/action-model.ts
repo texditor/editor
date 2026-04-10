@@ -21,7 +21,6 @@ export interface ActionNode extends BaseNode {
   baseModel: ActionModelInterface;
 }
 
-
 /**
  * Action model configuration interface
  * @property menu - Whether action shows a menu on click

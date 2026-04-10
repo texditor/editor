@@ -4,13 +4,13 @@ import type {
   FileActionModelInterface,
   FilesCreateOptions,
   FileItem,
-  BlockOutput,
+  BlockSchema,
   BlockNode,
   Response,
   FilesFormCreateParams,
   FilesListCreateParams,
   BlockModelConfig,
-  BlockCreateOptions
+  BlockCreateSchema
 } from "@/types";
 
 import BlockModel from "@/core/models/block-model";
@@ -153,7 +153,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
   protected onListCreate(data: FilesListCreateParams) {
 
-    console.log(this.getItems(), 332)
+    // console.log(this.getItems(), 332)
     return data;
   }
 
@@ -323,11 +323,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
     } else this.renderCallbacks[mimeType] = callback;
   }
 
-  protected parse(item: BlockOutput) {
+  protected parse(item: BlockSchema) {
     return this.create({ content: item.data });
   }
 
-  protected save(block: BlockOutput, node?: HTMLElement): BlockOutput {
+  protected save(block: BlockSchema, node?: HTMLElement): BlockSchema {
     const root = node || this.getNode();
     block.data = [];
     block = this.onSaveBefore(block, root);
@@ -362,16 +362,16 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   protected onSaveBefore(
-    block: BlockOutput,
+    block: BlockSchema,
     _blockNode: HTMLElement | BlockNode | null
-  ): BlockOutput {
+  ): BlockSchema {
     return block;
   }
 
   protected onSaveAfter(
-    block: BlockOutput,
+    block: BlockSchema,
     _blockNode: HTMLElement | BlockNode | null
-  ): BlockOutput {
+  ): BlockSchema {
     return block;
   }
 
@@ -503,7 +503,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   protected form(
-    options: BlockCreateOptions,
+    options: BlockCreateSchema,
     blockNode: BlockNode,
     contentNode: HTMLElement,
   ) {
@@ -673,8 +673,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
     container: HTMLElement,
     blockNode: BlockNode
   ): HTMLElement {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
+    const uniqueId = generateRandomString(12);
 
     return make("div", (div: HTMLDivElement) => {
       addClass(div, "tex-files-actions");
@@ -1013,8 +1012,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
   }
 
   destroy() {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
+    const uniqueId = generateRandomString(12);
 
     off(document, "click.clfp" + uniqueId);
     off(document, "click.cab" + uniqueId);

@@ -106,24 +106,22 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
       }
 
       el.baseModel = this;
-      this.parentOnCreate(el);
-      this.onCreate(el);
+      this.parentOnCreateNode(el);
+      this.onCreateNode(el);
     }) as TNode;
   }
 
   /**
    * Hook called after model node creation
-   * @param _el - Created model node
-   * @returns void
+   * @param _el - Created model node 
    */
-  protected onCreate(_el: TNode): void { }
+  protected onCreateNode(_el: TNode): void { }
 
   /**
    * Parent hook called after model node creation
-   * @param _el - Created model node
-   * @returns void
+   * @param _el - Created model node 
    */
-  protected parentOnCreate(_el: TNode): void { }
+  protected parentOnCreateNode(_el: TNode): void { }
 
   /**
    * Get configuration value by key
@@ -203,15 +201,13 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
   }
 
   /**
-   * Hook called when model loads
-   * @returns void
+   * Hook called when model loads 
    */
   protected onLoad(): void { }
 
   /**
    * Handle click event
-   * @param _evt - Custom event with element reference
-   * @returns void
+   * @param _evt - Custom event with element reference 
    */
   protected onClick(_evt: BaseEvent): void { }
 
@@ -226,17 +222,36 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
 
   /**
    * Handle click with event binding
-   * @param evt - Custom event with element reference
-   * @returns void
+   * @param evt - Custom event with element reference 
    */
   private handleClick(evt: BaseEvent): void {
     this.parentOnClick(evt);
   }
 
   /**
+   * Performs initialization of the current class after mounting to the DOM tree
+   * @param node - The DOM node that was mounted
+   */
+  protected onMount(_node: TNode): void { }
+
+  /**
+   * Performs initialization of the parent class after mounting to the DOM tree
+   * @param node - The DOM node that was mounted
+   */
+  protected parentOnMount(_node: TNode): void { }
+
+  /**
+   * Public wrapper that executes both parent and current class initialization
+   * @param node - The DOM node that was mounted
+   */
+  __onMount(node: TNode): void {
+    this.parentOnMount(node);
+    this.onMount(node);
+  }
+
+  /**
    * Hook called during constructor creation
-   * @param editor - Editor instance reference
-   * @returns void
+   * @param editor - Editor instance reference 
    */
   protected onConstruct(_editor: TexditorInterface): void { }
 
@@ -353,8 +368,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
   }
 
   /**
-   * Destroy instance and clean up resources
-   * @returns void
+   * Destroy instance and clean up resources 
    */
   destroy(): void { }
 }

@@ -1,11 +1,10 @@
 import type {
-  BlockCreateItemsContent,
+  BlockCreateItemSchema,
   BlockNode,
   EventsInterface,
   EventTriggerObject,
   PasteMap,
   PasteMapItem,
-  SanitizerConfig,
   TexditorEvent,
   TexditorInterface
 } from "@/types";
@@ -20,6 +19,7 @@ import {
   getText,
   html,
   make,
+  parseHtml,
   removeClass,
   toTextNode
 } from "@/utils/dom";
@@ -198,7 +198,7 @@ export default class Events implements EventsInterface {
     } = this.editor;
 
     setTimeout(() => {
-      api.render();
+      executeMethodIfExists(api, '__mount');
       historyManager.save();
       extensions.apply();
 
@@ -242,7 +242,8 @@ export default class Events implements EventsInterface {
     if (
       event.type != "keydown" &&
       event.type != "keyup" &&
-      event.type != "historySave"
+      event.type != "historySave" &&
+      event.type != "virtualSelectionChange"
     ) {
       historyManager.save();
     }
@@ -483,7 +484,7 @@ export default class Events implements EventsInterface {
                   blockManager.createBlock(defBlock);
               } else {
                 blockManager.createBlock(defBlock, -1, {
-                  content: selectionApi.splitContent(contentNode)
+                  data: selectionApi.splitContent(contentNode)
                 });
               }
             }
@@ -732,7 +733,6 @@ export default class Events implements EventsInterface {
   private onPasteHandle(evt: ClipboardEvent) {
     const {
       config,
-      parser,
       blockManager,
       selectionApi
     } = this.editor;
@@ -752,19 +752,10 @@ export default class Events implements EventsInterface {
 
       const pasteData = model.isRaw() ? textInput : htmlInput;
 
-      let input = parser.parseHtml(pasteData, true);
+      const input = parseHtml(pasteData, true);
 
-      if (input && isEmptyString(input.innerHTML)) {
-        if (!isEmptyString(textInput)) {
-          input = make(
-            'parser-rawblock',
-            (pr: Element) => pr.textContent = textInput
-          )
-        }
-      }
-
-      if (input) {
-        const childNodes = getChildNodes(input);
+      if (input.length) {
+        const childNodes = input;
         const map = this.createPasteMap(childNodes);
         const onPasteModel = executeMethodIfExists(model, '__onPaste', [evt, map]),
           schemas = blockManager.getSchemas(),
@@ -802,17 +793,16 @@ export default class Events implements EventsInterface {
                     const names = schemaModel.getSupportedNames();
 
                     if (names.includes(realName)) {
-
                       let newBlock: BlockNode | null = null;
 
                       if (schemaModel.isEditable() && !schemaModel.isEditableItems()) {
                         const html = (node as Element)?.innerHTML;
                         newBlock = blockManager.createBlock(realName, nextIndex, {
-                          content: html
+                          data: html
                         });
                         nextIndex++;
                       } else if (!schemaModel.isEditable() && schemaModel.isEditableItems()) {
-                        const items: BlockCreateItemsContent[] = [];
+                        const items: BlockCreateItemSchema[] = [];
 
                         getChildNodes(node).forEach((child: Node) => {
                           const childNodeName = child.nodeName.toLowerCase(),
@@ -831,7 +821,7 @@ export default class Events implements EventsInterface {
 
                         if (items) {
                           newBlock = blockManager.createBlock(realName, nextIndex, {
-                            content: items
+                            data: items
                           });
                           nextIndex++;
                         }

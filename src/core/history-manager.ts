@@ -25,6 +25,7 @@ export default class HistoryManager implements HistoryManagerInterface {
   scheduleSave(): void {
     if (this.isRestoring) return;
 
+
     if (this.saveTimer) {
       clearTimeout(this.saveTimer);
       this.saveTimer = null;

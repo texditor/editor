@@ -2,7 +2,7 @@ import type {
   FileItem,
   TexditorEvent,
   BlockNode,
-  BlockOutput,
+  BlockSchema,
   FilesFormCreateParams,
   FilesListCreateParams,
   BlockModelConfig
@@ -194,9 +194,9 @@ export default class Gallery extends Files {
   }
 
   protected onSaveAfter(
-    block: BlockOutput,
+    block: BlockSchema,
     blockNode: BlockNode
-  ): BlockOutput {
+  ): BlockSchema {
     const defaultStyle = this.getDefaultStyle();
 
     if (this.isStyles()) {
@@ -256,7 +256,7 @@ export default class Gallery extends Files {
     events.remove("onChange", "fileActionSlider");
   }
 
-  onRender(): void {
+  onMount(): void {
     this.initSlider();
   }
 

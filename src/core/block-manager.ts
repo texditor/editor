@@ -5,7 +5,11 @@ import type {
   BlockModelConstructor,
   BlockModelInterface,
   BlockModelSchema,
-  BlockCreateOptions
+  BlockCreateSchema,
+  BlockSchema,
+  BlockSchemaData,
+  BlockCreateItemSchema,
+  BlockChildSchema
 } from "@/types";
 import {
   closest,
@@ -23,14 +27,17 @@ import {
   after,
   make,
   prepend,
-  before
+  before,
+  parseHtml,
+  attr,
+  toHtml
 } from "@/utils/dom";
 import { off, rebind } from "@/utils/events";
 import { Paragraph } from "@/blocks";
 import VirtualSelection from "./ui/virtual-selection";
 import { VirtualSelectionInterface } from "@/types/core/ui/virtual-selection";
 import { globalStore } from "@/store/globalStore";
-import { executeMethodIfExists } from "@/utils";
+import { decodeHtmlSpecialChars, executeMethodIfExists, isEmptyString } from "@/utils";
 export default class BlockManager implements BlockManagerInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
@@ -39,7 +46,7 @@ export default class BlockManager implements BlockManagerInterface {
   private blockIndex: number = 0;
 
   /** Cached block model configurations */
-  private blockModels: BlockModelSchema[] = [];
+  private blockSchemas: BlockModelSchema[] = [];
 
   /** VirtualSelection */
   private virtualSelection: VirtualSelectionInterface | null = null;
@@ -527,11 +534,17 @@ export default class BlockManager implements BlockManagerInterface {
 
   /**
    * Creates a default block based on editor configuration
-   * @returns Created block node or null
+    * @param index - Index of the block to create (-1 after the current block)
+    * @param options - Block Options
+    * @returns Created block node or null
    */
-  createDefaultBlock(): BlockNode | null {
+  createDefaultBlock(
+    index: number = -1,
+    options?: BlockCreateSchema): BlockNode | null {
     return this.createBlock(
-      this.editor.config.get("defaultBlock", "p")
+      this.editor.config.get("defaultBlock", "p"),
+      index,
+      options
     );
   }
 
@@ -546,7 +559,7 @@ export default class BlockManager implements BlockManagerInterface {
   createBlock(
     name: string,
     index: number = -1,
-    options: BlockCreateOptions = {},
+    options?: BlockCreateSchema,
     skipEvents: boolean = false
   ): BlockNode | null {
     let block: BlockNode | null = null;
@@ -607,7 +620,7 @@ export default class BlockManager implements BlockManagerInterface {
               if (!skipEvents)
                 this.focus(curIndex);
 
-              executeMethodIfExists(blockInstance, '__afterCreate')
+              executeMethodIfExists(blockInstance, '__onMount')
 
               if (!skipEvents) {
                 events.change({
@@ -1027,9 +1040,9 @@ export default class BlockManager implements BlockManagerInterface {
    * @returns Array of block model schemas
    */
   getSchemas(): BlockModelSchema[] {
-    if (this.blockModels.length > 0) return this.blockModels;
+    if (this.blockSchemas.length > 0) return this.blockSchemas;
 
-    const blockModels = this.editor.config.get("blockModels", []);
+    const blockModels = this.editor.config.get("blocks", []);
 
     if (!blockModels) return [];
 
@@ -1040,34 +1053,48 @@ export default class BlockManager implements BlockManagerInterface {
       (constructor: BlockModelConstructor) => {
         const model = new constructor(this.editor);
 
-        this.blockModels.push({
+        this.blockSchemas.push({
           constructor: constructor,
           model: model
         });
       }
     );
 
-    return this.blockModels;
+    return this.blockSchemas;
+  }
+
+  /**
+   * Gets the block model schema by supported type name
+   * @param name - Supported type name or alias
+   * @returns Block model schema, or null if not found
+   */
+  getSchema(name: string): BlockModelSchema | null {
+    let schema = null;
+
+    (this.getSchemas()).forEach((schemaItem: BlockModelSchema) => {
+      const model = schemaItem.model;
+      const names = model.getSupportedNames();
+
+      if (names.length && names.includes(name)) {
+        schema = schemaItem;
+      }
+    });
+
+    return schema;
   }
 
   /**
    * Gets the real block type name from a related type alias
-   * @param relatedName - Related type name or alias
+   * @param name - Supported type name or alias
    * @returns Real block type name, or null if not found
    */
-  getRealName(relatedName: string) {
-    let type = null;
+  getRealName(name: string): string | null {
+    const schema = this.getSchema(name);
 
-    (this.getSchemas()).forEach((schema: BlockModelSchema) => {
-      const model = schema.model;
-      const names = model.getSupportedNames();
+    if (!schema)
+      return null;
 
-      if (names.length && names.includes(relatedName)) {
-        type = model.getName();
-      }
-    });
-
-    return type;
+    return schema.model.getName();
   }
 
   /**
@@ -1076,6 +1103,10 @@ export default class BlockManager implements BlockManagerInterface {
   destroy() {
     const modelsStructure = this.getSchemas();
 
+    this.getModels().forEach((model) => {
+      if (model.destroy) model.destroy();
+    })
+
     modelsStructure.forEach((modelStruct) => {
       if (modelStruct.model.destroy) modelStruct.model.destroy();
     });
@@ -1083,4 +1114,225 @@ export default class BlockManager implements BlockManagerInterface {
     off(document, 'dblclick.unactive');
     this.destroyVirtualSelection();
   }
+
+  /**
+   * Converts HTML string to an array of BlockSchema objects or text strings.
+   * 
+   * @param html - HTML string to parse
+   * @returns Array of BlockSchema for elements or strings for text nodes
+   */
+  htmlToData(html: string): Array<BlockSchema | string> {
+    const nodes = parseHtml(html);
+
+    if (!nodes.length) return [];
+
+    const result: Array<BlockSchema | string> = [];
+    const isPlainText = nodes.length === 1 && nodes[0].nodeType === Node.TEXT_NODE;
+    const isTextWithBr = nodes[0].nodeType === Node.TEXT_NODE &&
+      nodes.length === 2 &&
+      nodes[1].nodeName === "BR";
+
+    if (!isPlainText && !isTextWithBr) {
+      nodes.forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent;
+          if (text?.trim()) result.push(text);
+        }
+        else if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as Element;
+          const objAttr: Record<string, string> = {};
+
+          let outContent: Array<BlockSchema | string> = [];
+
+          if (element.childNodes.length) {
+            const hasComplexChildren = element.childNodes.length !== 1 ||
+              element.childNodes[0].nodeType !== Node.TEXT_NODE;
+            if (hasComplexChildren) {
+              outContent = this.htmlToData(element.innerHTML);
+            } else {
+              const text = element.childNodes[0].textContent;
+              if (text?.trim()) outContent = [text];
+            }
+          }
+
+          const outData: BlockSchema = {
+            type: node.nodeName.toLowerCase(),
+            data: outContent as BlockSchemaData | []
+          };
+
+          if (element.attributes.length) {
+            Array.from(element.attributes).forEach(({ name, value }) => {
+              objAttr[name] = value;
+            });
+            outData.attr = objAttr;
+          }
+
+          result.push(outData);
+        }
+      });
+    }
+    else {
+      const cleanedHtml = html.replace(/&nbsp;/g, " ");
+      result.push(decodeHtmlSpecialChars(cleanedHtml));
+    }
+
+    return result;
+  }
+
+  /**
+   * Parses a block schema into a BlockNode instance
+   * @param blockSchema - Block schema object containing type and data
+   * @param skipDecode - Whether to skip decoding of child content (default: false)
+   * @returns Parsed BlockNode instance, or null if parsing failed
+   */
+  parseBlock(
+    blockSchema: BlockSchema,
+    skipDecode: boolean = false
+  ): BlockNode | null {
+    const modelSchema = this.getSchema(blockSchema.type);
+
+    if (!modelSchema)
+      return null;
+
+    const blockModel = new modelSchema.constructor(this.editor);
+
+    let blockNode = null;
+
+    const newSchema: BlockCreateSchema = { ...blockSchema };
+    delete newSchema.type;
+
+    if (blockModel.isAutoParse()) {
+      const editableItems = blockModel.isEditableItems();
+
+      if (editableItems) {
+        const blockData = (blockSchema?.data || []) as BlockSchema[];
+
+        if (blockData.length) {
+          const items: BlockCreateItemSchema[] = [],
+            supportedItemNames = blockModel.getItemSupportedNames();
+
+          blockData.forEach(item => {
+            if (
+              item.type &&
+              supportedItemNames.includes(item.type) &&
+              item.data.length
+            ) {
+              const nodes = this.parseChilds(item),
+                itemData: BlockCreateItemSchema = {
+                  type: item.type,
+                  data: nodes
+                };
+
+              if (item.attr && Object.keys(item.attr).length) {
+                itemData.attr = item.attr;
+              }
+
+              items.push(itemData);
+            }
+          });
+
+          if (items.length) {
+            newSchema.data = items;
+            blockNode = executeMethodIfExists(blockModel, '__create', [newSchema]) as BlockNode
+          }
+        }
+      } else {
+        const nodes = this.parseChilds(blockSchema, skipDecode);
+        if (nodes) {
+          newSchema.data = toHtml(nodes);
+
+          blockNode = executeMethodIfExists(blockModel, '__create', [newSchema]) as BlockNode;
+        }
+
+      }
+    } else {
+      if ('__parse' in blockModel) {
+        blockNode = executeMethodIfExists(
+          blockModel,
+          '__parse',
+          [blockSchema]
+        ) as BlockNode;
+      }
+    }
+
+    return blockNode;
+  }
+
+  /**
+   * Converts an array of BlockSchema objects into an array of BlockNode objects.
+   * 
+   * @param data - Array of BlockSchema objects to be parsed
+   * @param skipDecode - If true, skips HTML entity decoding for text content
+   * @returns An array of parsed BlockNode objects
+   */
+  parseBlocks(
+    data: BlockSchema[],
+    skipDecode: boolean = false
+  ): BlockNode[] {
+    const blockNodes: BlockNode[] = [];
+
+    data.forEach((blockSchema) => {
+      const newBlock = this.parseBlock(blockSchema, skipDecode);
+
+      if (newBlock)
+        blockNodes.push(newBlock);
+    });
+
+    return blockNodes;
+  }
+
+  /**
+   * Recursively parses a BlockSchema structure and converts it into an array of DOM Nodes.
+   * For root call returns children nodes, for recursive calls returns the element itself.
+   * 
+   * @param schema - The BlockSchema or BlockChildSchema object containing type, data, and optional attributes
+   * @param skipDecode - If true, skips HTML entity decoding for text content
+   * @param returnElement - Internal parameter to track if this is a recursive call
+   * @returns An array of DOM Nodes
+   */
+  parseChilds(
+    schema: BlockSchema | BlockChildSchema,
+    skipDecode: boolean = false,
+    returnElement: boolean = false
+  ): Node[] {
+    if (!schema?.type || schema.data === null || schema.data === undefined) {
+      return [];
+    }
+
+    const element = make(schema.type);
+
+    if (Array.isArray(schema.data)) {
+      (schema.data as (BlockSchema | string)[]).forEach((item) => {
+        if (typeof item === "string") {
+          const text = skipDecode ? item : decodeHtmlSpecialChars(item);
+          appendText(element, text);
+        } else {
+          const childElements = this.parseChilds(item, skipDecode, true);
+          childElements.forEach((childNode) => {
+            append(element, childNode as HTMLElement);
+          });
+        }
+      });
+    } else if (typeof schema.data === "string") {
+      const text = skipDecode ? schema.data : decodeHtmlSpecialChars(schema.data);
+      appendText(element, text);
+    }
+
+    if (schema.attr) {
+      for (const attrKey in schema.attr) {
+        if (schema.attr[attrKey] !== undefined) {
+          const attribute = schema.attr[attrKey];
+
+          if (typeof attribute === 'boolean' || typeof attribute === 'number') {
+            attr(element, attrKey, attribute);
+          } else {
+            attr(element, attrKey, decodeHtmlSpecialChars(attribute.toString()));
+          }
+        }
+      }
+    }
+
+    return returnElement ? [element] : getChildNodes(element);
+  }
+
 }

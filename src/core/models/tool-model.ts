@@ -41,8 +41,7 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
 
   /**
    * Format action wrapper for tool operations
-   * @param callback - Callback function that performs the formatting
-   * @returns void
+   * @param callback - Callback function that performs the formatting 
    */
   private formatAction(callback: CallableFunction) {
     const tagName = this.getTagName();
@@ -64,8 +63,7 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
 
   /**
    * Apply format to selected content
-   * @param onlyRemove - If true, only remove format; if false, toggle format
-   * @returns void
+   * @param onlyRemove - If true, only remove format; if false, toggle format 
    */
   format(onlyRemove: boolean = false): void {
     this.formatAction((tagName: string, commands: CommandsInterface) => {
@@ -75,8 +73,7 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
   }
 
   /**
-   * Force create format on selected content (without toggling)
-   * @returns void
+   * Force create format on selected content (without toggling) 
    */
   forcedFormat(): void {
     this.formatAction((tagName: string, commands: CommandsInterface) => {
@@ -85,8 +82,7 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
   }
 
   /**
-   * Remove format from selected content
-   * @returns void
+   * Remove format from selected content 
    */
   removeFormat(): void {
     this.format(true);
@@ -102,15 +98,13 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
 
   /**
    * Hook called after format is applied
-   * @param _tags - Array of formatted HTML elements
-   * @returns void
+   * @param _tags - Array of formatted HTML elements 
    */
   protected onFormat(_tags: HTMLElement[]): void { }
 
   /**
    * Handle click event
-   * @param _evt - Custom event with element reference
-   * @returns void
+   * @param _evt - Custom event with element reference 
    */
   protected onClick(_evt: BaseEvent): void {
     if (this.isSeparate()) {

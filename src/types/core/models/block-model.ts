@@ -1,4 +1,10 @@
-import type { ModelConstructor, BaseModelInterface, BaseModelConfig, BaseNode, SanitizerConfig, RenderIconContent } from "@/types";
+import type {
+  ModelConstructor,
+  BaseModelInterface,
+  BaseModelConfig,
+  BaseNode,
+  SanitizerConfig
+} from "@/types";
 
 /**
  * Block model constructor type
@@ -227,8 +233,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   /**
    * Move item to new position
    * @param item - Item to move
-   * @param index - Target index
-   * @returns void
+   * @param index - Target index 
    */
   moveItem?(item: HTMLElement, index: number): void;
 
@@ -318,8 +323,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   getAvailableTools(): string[];
 
   /**
-   * Sanitize block content
-   * @returns void
+   * Sanitize block content 
    */
   sanitize(): void;
 
@@ -352,17 +356,17 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * Protected methods for understanding the block model structure
   * 
   * Create
-  * protected create(options?: BlockCreateOptions): HTMLElement;
+  * protected create(options?: BlockCreateSchema): HTMLElement;
   * protected makeItemNode(content?: string | unknown): HTMLElement;
   * 
   * Parse
-  * protected parse(item: BlockOutput): BlockNode | HTMLElement | null;
+  * protected parse(item: BlockSchema): BlockNode | HTMLElement | null;
   * 
   * Merge
   * protected merge(): HTMLElement | null;
   * 
   * Save
-  * protected save(block: BlockOutput, blockNode?: BlockNode): BlockOutput;
+  * protected save(block: BlockSchema, blockNode?: BlockNode): BlockSchema;
   * 
   * Events
   * protected onPaste(evt: Event, map: PasteMap): boolean;
@@ -377,9 +381,6 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * protected onDrag(evt: DragEvent): boolean;
   * protected onDragEnd(evt: DragEvent): boolean;
   * protected onDrop(evt: DragEvent): boolean;
-  * protected onCreate(): void
-  * protected onRender(): void;
-  * protected afterCreate(): void;
   * 
   * Convert
   * protected beforeConvert(blockNode: BlockNode, targetModel: BlockModelInterface): [BlockNode, BlockModelInterface];
@@ -387,26 +388,38 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   */
 }
 
-export type BlockOutputData = string[] | object[];
+export type BlockSchemaData = string[] | BlockChildSchema[];
+export type BlockSchemaAttr = Record<string, string>;
 
-export interface BlockOutput {
-  data: BlockOutputData | [];
+
+export interface BlockSchema {
   type: string;
-  attr?: Record<string, string | undefined>;
+  data: BlockSchemaData;
+  attr?: BlockSchemaAttr;
+  lang?: string;
+  caption?: string;
+  layout?: string;
+  style?: string;
   [key: string]: unknown;
 }
 
-export interface BlockCreateItemsContent {
+export interface BlockChildSchema {
+  type: string;
+  data: BlockSchemaData | [];
+  attr?: BlockSchemaAttr;
+  url?: string;
+  desc?: string;
+  caption?: string;
+  size?: number;
+  [key: string]: unknown;
+}
+
+// Create
+export interface BlockCreateSchema extends Omit<BlockSchema, "type"> {
+  data: string | BlockCreateItemSchema[] | unknown[]
+}
+
+export interface BlockCreateItemSchema extends Omit<BlockChildSchema, 'data'> {
   type: string;
   data: string | Node | Node[],
-  attr?: Record<string, string | undefined>;
-}
-export interface BlockCreateUnknownContent {
-  [key: string]: unknown;
-}
-
-export interface BlockCreateOptions {
-  content?: string | BlockCreateItemsContent[] | unknown[];
-  lang?: string;
-  [key: string]: unknown;
 }

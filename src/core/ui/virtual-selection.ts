@@ -3,7 +3,6 @@ import { VirtualSelectionInterface, VirtualSelectionOptions } from '@/types/core
 import {
   addClass,
   append,
-  attr,
   css,
   generateRandomString,
   make,

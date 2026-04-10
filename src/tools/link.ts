@@ -22,6 +22,7 @@ import {
 import "@/styles/tools/link.css";
 import { off, on, rebind } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
+import { generateRandomString } from "@/utils";
 
 export default class LinkTool extends ToolModel implements ToolModelInterface {
   /**
@@ -40,8 +41,7 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
 
   /**
    * Handle click event on the link tool
-   * Opens form for creating or editing a link
-   * @returns void
+   * Opens form for creating or editing a link 
    */
   protected onClick(): void {
     const { selectionApi, commands } = this.editor;
@@ -59,12 +59,10 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
   /**
    * Hook called after format is applied
    * Updates link attributes based on form values
-   * @param tags - Array of formatted link elements
-   * @returns void
+   * @param tags - Array of formatted link elements 
    */
   onFormat(tags: HTMLLinkElement[]): void {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId(),
+    const uniqueId = generateRandomString(12),
       formElement = document.getElementById("form-link-" + uniqueId),
       valElement = document.getElementById(
         "input-link-" + uniqueId
@@ -81,8 +79,7 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
   }
 
   /**
-   * Remove link form from the toolbar
-   * @returns void
+   * Remove link form from the toolbar 
    */
   private removeForm() {
     const { api } = this.editor,
@@ -98,12 +95,11 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
   /**
    * Create link editing form in the toolbar
    * @param link - Initial link URL value
-   * @param targetBlank - Whether the link should open in a new tab
-   * @returns void
+   * @param targetBlank - Whether the link should open in a new tab 
    */
   private createForm(link: string = "", targetBlank: boolean = false) {
     const { api, commands, selectionApi, i18n } = this.editor,
-      uniqueId = api.getUniqueId(),
+      uniqueId = generateRandomString(12),
       root = api.getRoot();
 
     const linkForm = make("div", (el: HTMLElement) => {
@@ -261,12 +257,10 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
   }
 
   /**
-   * Destroy link tool instance and clean up resources
-   * @returns void
+   * Destroy link tool instance and clean up resources 
    */
   destroy(): void {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
+    const uniqueId = generateRandomString(12);
 
     off(document, "click.link" + uniqueId);
   }

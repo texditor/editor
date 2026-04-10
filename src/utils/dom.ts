@@ -357,3 +357,38 @@ export function getText(node: Node | Node[]): string {
 export function getLength(node: Node | Node[]): number {
   return getText(node).length;
 }
+
+/**
+ * Removes HTML fragment wrapper tags (<!--StartFragment--> and <!--EndFragment-->)
+ * @param html - Raw HTML string that may contain fragment tags
+ * @returns Cleaned HTML string without fragment tags
+ */
+export function stripFragmentTags(html: string): string {
+  return html.replace(
+    /<!--StartFragment-->([^<]*(?:<(?!!--(?:Start|End)Fragment-->)[^<]*)*)<!--EndFragment-->/g,
+    "$1"
+  );
+}
+
+/**
+ * Parses an HTML string into DOM nodes
+ * @param html - HTML string to parse
+ * @param stripFragment - Whether the HTML contains fragment tags that need stripping (default: false)
+ * @returns Array of child nodes, or empty array if parsing failed
+ */
+export function parseHtml(html: string, stripFragment: boolean = false): Node[] {
+  const parser = new DOMParser(),
+    input = stripFragment ? stripFragmentTags(html) : html;
+
+  const doc = parser.parseFromString(
+    `<parser-rawblock>${input}</parser-rawblock>`,
+    "text/html"
+  );
+
+  const node = doc.querySelector("parser-rawblock");
+
+  if (!node)
+    return [];
+
+  return getChildNodes(node);
+}

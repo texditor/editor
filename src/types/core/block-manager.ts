@@ -1,4 +1,4 @@
-import type { BlockCreateOptions, BlockModelInterface, BlockModelSchema, BlockNode } from ".";
+import type { BlockChildSchema, BlockCreateSchema, BlockModelInterface, BlockModelSchema, BlockNode, BlockSchema } from ".";
 import { VirtualSelectionInterface } from "./ui/virtual-selection";
 
 export interface BlockManagerInterface {
@@ -119,9 +119,11 @@ export interface BlockManagerInterface {
 
   /**
    * Creates a default block based on editor configuration
-   * @returns Created block node or null
+    * @param index - Index of the block to create (-1 after the current block)
+    * @param options - Block Options
+    * @returns Created block node or null
    */
-  createDefaultBlock(): BlockNode | null;
+  createDefaultBlock(index?: number, options?: BlockCreateSchema): BlockNode | null;
 
   /**
    * Creates a new block of specified type
@@ -131,7 +133,7 @@ export interface BlockManagerInterface {
    * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
    * @returns Created block node or null
    */
-  createBlock(name: string, index?: number, options?: BlockCreateOptions, skipEvents?: boolean): BlockNode | null;
+  createBlock(name: string, index?: number, options?: BlockCreateSchema, skipEvents?: boolean): BlockNode | null;
 
   /**
    * Removes one or multiple blocks
@@ -182,11 +184,54 @@ export interface BlockManagerInterface {
   getSchemas(): BlockModelSchema[];
 
   /**
+ * Gets the block model schema by supported type name
+ * @param name - Supported type name or alias
+ * @returns Block model schema, or null if not found
+ */
+  getSchema(name: string): BlockModelSchema | null
+
+  /**
    * Gets the real block type name from a related type alias
-   * @param relatedName - Related type name or alias
+   * @param name - Supported type name or alias
    * @returns Real block type name, or null if not found
    */
-  getRealName(relatedName: string): string | null;
+  getRealName(name: string): string | null;
+
+  /**
+   * Converts HTML string to an array of BlockSchema objects or text strings.
+   * 
+   * @param html - HTML string to parse
+   * @returns Array of BlockSchema for elements or strings for text nodes
+   */
+  htmlToData(html: string): Array<BlockSchema | string>;
+
+  /**
+   * Parses a block schema into a BlockNode instance
+   * @param blockSchema - Block schema object containing type and data
+   * @param skipDecode - Whether to skip decoding of child content (default: false)
+   * @returns Parsed BlockNode instance, or null if parsing failed
+   */
+  parseBlock(blockSchema: BlockSchema, skipDecode?: boolean): BlockNode | null
+
+  /**
+  * Converts an array of BlockSchema objects into an array of BlockNode objects.
+  * 
+  * @param data - Array of BlockSchema objects to be parsed
+  * @param skipDecode - If true, skips HTML entity decoding for text content
+  * @returns An array of parsed BlockNode objects
+  */
+  parseBlocks(data: BlockSchema[], skipDecode?: boolean): BlockNode[];
+
+  /**
+   * Recursively parses a BlockSchema structure and converts it into an array of DOM Nodes.
+   * For root call returns children nodes, for recursive calls returns the element itself.
+   * 
+   * @param schema - The BlockSchema or BlockChildSchema object containing type, data, and optional attributes
+   * @param skipDecode - If true, skips HTML entity decoding for text content
+   * @param returnElement - Internal parameter to track if this is a recursive call
+   * @returns An array of DOM Nodes
+   */
+  parseChilds(schema: BlockSchema | BlockChildSchema, skipDecode?: boolean, returnElement?: boolean): Node[];
 
   /**
    * Cleans up event listeners

@@ -67,7 +67,6 @@ export default class Tools implements ToolsInterface {
 
   /**
    * Show the toolbar at the current selection position
-   * @returns void
    */
   show(): void {
     const { api, selectionApi } = this.editor;
@@ -138,8 +137,7 @@ export default class Tools implements ToolsInterface {
   }
 
   /**
-   * Synchronize active state highlighting for tools based on current selection
-   * @returns void
+   * Synchronize active state highlighting for tools based on current selection 
    */
   syncHighlight() {
     const { api, selectionApi } = this.editor,
@@ -179,8 +177,7 @@ export default class Tools implements ToolsInterface {
   }
 
   /**
-   * Hide the toolbar
-   * @returns void
+   * Hide the toolbar 
    */
   hide() {
     const root = this.editor.api.getRoot();
@@ -205,8 +202,7 @@ export default class Tools implements ToolsInterface {
   }
 
   /**
-   * Destroy tools manager and clean up resources
-   * @returns void
+   * Destroy tools manager and clean up resources 
    */
   destroy() {
     this.tools.forEach((tool) => tool.destroy());

@@ -1,6 +1,6 @@
 import type {
   BlockModelInterface,
-  BlockOutput,
+  BlockSchema,
   BlockNode,
   BlockModelConfig,
   CodeCreateOptions
@@ -38,7 +38,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
     };
   }
 
-  protected onCreate(blockNode: BlockNode): void {
+  protected onCreateNode(blockNode: BlockNode): void {
     const options = this.getStore('options') as CodeCreateOptions;
 
     if (options && options.lang)
@@ -213,7 +213,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
     }
   }
 
-  onKeyDown(evt: KeyboardEvent): boolean {
+  protected onKeyDown(evt: KeyboardEvent): boolean {
     const { blockManager } = this.editor;
 
     if (evt.ctrlKey && evt.key === 'Enter') {
@@ -225,7 +225,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
     return true;
   }
 
-  protected save(block: BlockOutput, blockNode?: BlockNode): BlockOutput {
+  protected save(block: BlockSchema, blockNode?: BlockNode): BlockSchema {
     const { blockManager } = this.editor;
     const contnetNode = blockManager.getContentNode(blockNode);
 
@@ -239,7 +239,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
     return block;
   }
 
-  protected parse(item: BlockOutput) {
+  protected parse(item: BlockSchema): BlockNode {
     const languages = this.getConfig('languages', {}) as CodeLanguagesInterface;
     let lang = (item?.lang || '') as string;
 
@@ -248,7 +248,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
 
     return this.create({
       lang: lang,
-      content:
+      data:
         typeof item.data[0] === "string"
           ? item.data[0]
           : ""

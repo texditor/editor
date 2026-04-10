@@ -1,10 +1,10 @@
 import type {
   BlockModelInterface,
   BlockModelConfig,
-  BlockCreateOptions,
+  BlockCreateSchema,
   BlockNode,
   FilesOnFormCreateParams,
-  BlockOutput,
+  BlockSchema,
   FileItem,
   FileActionModelInterface,
   FileActionModelInstanceInterface,
@@ -110,12 +110,12 @@ export default class Filex extends BlockModel implements BlockModelInterface {
     };
   }
 
-  protected create(options?: BlockCreateOptions): BlockNode {
+  protected create(options?: BlockCreateSchema): BlockNode {
     const blockNode = this.getNode(),
       contentNode = this.getContentNode(),
-      realOptions = options && Object.keys(options) && options.content
+      realOptions = options && Object.keys(options) && options.data
         ? options
-        : { content: [] }
+        : { data: [] }
 
     css(contentNode, 'display', 'none');
     this.formNode = this.createForm(realOptions);
@@ -134,7 +134,7 @@ export default class Filex extends BlockModel implements BlockModelInterface {
   }
 
   protected createForm(
-    options: BlockCreateOptions
+    options: BlockCreateSchema
   ): HTMLElement {
     const isMultiple = this.getConfig("multiple", true),
       id = generateRandomString(16),
@@ -254,10 +254,10 @@ export default class Filex extends BlockModel implements BlockModelInterface {
   // List
 
   protected createList(
-    options: BlockCreateOptions,
+    options: BlockCreateSchema,
   ): HTMLElement {
     const contentNode = this.getContentNode(),
-      items = options.content as FileItem[];
+      items = options.data as FileItem[];
 
     addClass(contentNode, "tex-files-list " + this.getConfig("listCss"));
 
@@ -332,8 +332,7 @@ export default class Filex extends BlockModel implements BlockModelInterface {
     container: HTMLElement,
     blockNode: BlockNode
   ): HTMLElement {
-    const { api } = this.editor,
-      uniqueId = api.getUniqueId();
+    const uniqueId = generateRandomString(12);
 
     return make("div", (div: HTMLDivElement) => {
       addClass(div, "tex-files-actions");
@@ -452,7 +451,7 @@ export default class Filex extends BlockModel implements BlockModelInterface {
     }
   }
 
-  protected parse(item: BlockOutput) {
+  protected parse(item: BlockSchema) {
     return this.create({ content: item.data });
   }
 

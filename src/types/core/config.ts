@@ -22,7 +22,7 @@ export interface ConfigStoreInterface {
   initalData?: object[] | string;
 
   /** Array of block model instances available in the editor */
-  blockModels?: BlockModelConstructor[];
+  blocks?: BlockModelConstructor[];
 
   /** Array of tool model instances available in the editor */
   tools?: ToolModelConstructor[];

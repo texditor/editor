@@ -7,7 +7,6 @@ export * from "./events";
 export * from "./extensions";
 export * from "./history-manager";
 export * from "./i18n";
-export * from "./parser";
 export * from "./sanitizer";
 export * from "./selection-api";
 export * from "./tools";

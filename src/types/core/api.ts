@@ -1,30 +1,11 @@
-import type { BlockOutput } from "..";
+import type { BlockSchema } from "..";
 export interface APIInterface {
   /**
-   * Sets the root HTML element where the editor will be mounted
-   * @param el - HTML element to use as the editor container
-   */
-  setRoot(el: HTMLElement): void;
-
-  /**
    * Retrieves the root element of the editor
-   * @returns The root HTMLElement or false if not set
+   * @returns The root HTMLElement or null if not set
    * @throws Error if root element is not found
    */
-  getRoot(): HTMLElement | false;
-
-  /**
-   * Gets the unique identifier
-   * @returns Unique ID string used for event namespacing
-   */
-  getUniqueId(): string;
-
-  /**
-   * Renders the editor interface in the DOM
-   * Initializes all blocks and sets up the editor structure
-   * @throws Error if the editor container element is not found
-   */
-  render(): void;
+  getRoot(): HTMLElement | null;
 
   /**
    * Completely destroys the editor instance
@@ -41,22 +22,22 @@ export interface APIInterface {
 
   /**
    * Sets the editor content
-   * @param content - A JSON string or an array of block output data
+   * @param content - JSON string or array of block schemas
    * @param index - Optional block index to set as active
    * @param focusDelay - Focus delay
    */
-  setContent(content: string | BlockOutput[], index?: number, focusDelay?: number): void;
+  setContent(content: string | BlockSchema[], index?: number, focusDelay?: number): void;
 
   /**
    * Gets the current editor content as serialized block data
    * @returns Array of block output objects representing current content
    */
-  getContent(): BlockOutput[];
+  getContent(): BlockSchema[];
 
   /**
    * Saves the current editor state to a serializable format
    * Triggers 'save', 'saveEach', 'saveEachEnd', and 'saveEnd' events
    * @returns Array of block output objects ready for storage or transmission
    */
-  save(): BlockOutput[];
+  save(): BlockSchema[];
 }

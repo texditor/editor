@@ -1,15 +1,15 @@
 import type {
   BlockNode,
-  BlockOutput,
+  BlockSchema,
   SanitizerConfig,
   BlockModelConfig,
   BlockModelInterface,
   SortableInerface,
-  BlockCreateOptions,
-  BlockCreateItemsContent,
+  BlockCreateSchema,
+  BlockCreateItemSchema,
   PasteMap,
   BaseEvent,
-  BlockModelConstructor
+  BlockModelConstructor,
 } from "@/types";
 import {
   addClass,
@@ -106,7 +106,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
  * @param el - Created model node
  * @returns void
  */
-  protected parentOnCreate(el: BlockNode): void {
+  protected parentOnCreateNode(el: BlockNode): void {
     const tagName = this.getTagName();
 
     el.dataset.tagName = tagName;
@@ -127,8 +127,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   }
 
   /**
-   * Refresh sortable items functionality
-   * @returns void
+   * Refresh sortable items functionality 
    */
   protected refreshSortableItems(): void {
     const { blockManager, events, selectionApi } = this.editor;
@@ -171,37 +170,45 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     }
   }
 
+
   /**
-   * Create block content based on options
-   * @param options - Optional creation parameters
+   * Creating block content based on a schema
+   * @param createSchema - Block creation scheme
    * @returns Created block node
    */
-  protected create(options?: BlockCreateOptions): BlockNode {
+  protected create(createSchema?: BlockCreateSchema): BlockNode {
     const contentNode = this.getContentNode();
 
-    if (typeof options === 'object' && Object.keys(options).length) {
-      this.setStore('options', options);
+    if (typeof createSchema === 'object' && Object.keys(createSchema).length) {
+      this.setStore('options', createSchema);
     }
 
     if (!this.isEditable() && this.isEditableItems()) {
-      const content = options?.content || {};
+      const content = createSchema?.data || {};
 
-      if (!options?.content) {
+      if (!Object.keys(content).length) {
         append(contentNode, this.__makeItemNode());
       } else if (Array.isArray(content) && content.length) {
-        content.forEach((item: BlockCreateItemsContent) => {
+        content.forEach((item: BlockCreateItemSchema) => {
           if (item.data && Array.isArray(item.data)) {
             const data = toHtml(item.data);
-            append(contentNode, this.__makeItemNode(data));
+            append(contentNode, [this.__makeItemNode(data)]);
+
           }
         })
       }
     } else {
-      if (options?.content && typeof options.content === 'string')
+      const content = createSchema?.data || '';
+
+      if (content && typeof content === 'string') {
         if (this.isRaw()) {
-          appendText(contentNode, options.content);
-        } else
-          html(contentNode, options.content);
+          appendText(contentNode, content);
+        } else {
+          html(contentNode, content);
+        }
+
+
+      }
     }
 
     return this.getNode();
@@ -212,7 +219,8 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @param options - Optional creation parameters
    * @returns Created block node
    */
-  __create(options?: BlockCreateOptions): BlockNode {
+  __create(options?: BlockCreateSchema): BlockNode {
+    this.sanitize();
     return this.create(options);
   }
 
@@ -221,7 +229,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @param _item - Block output data
    * @returns DOM element or null
    */
-  protected parse(_item: BlockOutput): HTMLElement | BlockNode | null {
+  protected parse(_item: BlockSchema): HTMLElement | BlockNode | null {
     return null;
   }
 
@@ -230,7 +238,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @param item - Block output data
    * @returns DOM element or null
    */
-  __parse(item: BlockOutput): HTMLElement | BlockNode | null {
+  __parse(item: BlockSchema): HTMLElement | BlockNode | null {
     return this.parse(item)
   }
 
@@ -468,18 +476,17 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   }
 
   /**
-   * Hook called when block loads
-   * @returns void
+   * Hook called when block loads 
    */
   protected onLoad(): void { }
 
   /**
-   * Sanitize block content for security
-   * @returns void
+   * Sanitize block content for security 
    */
   sanitize(): void {
     if (this.getConfig("sanitizer", false)) {
       const container = this.toSanitize();
+
       if (container || Array.isArray(container)) {
         const sanitizerConfig = this.getSanitizerConfig(),
           sanitizer = new Sanitizer(sanitizerConfig);
@@ -503,6 +510,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     if (this.isEditableItems()) {
       const bodyNodes: HTMLElement[] = [];
       let i = 0;
+
       this.getItems().forEach(() => {
         const itemBody = this.getItemBody(i);
 
@@ -835,21 +843,6 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return index;
   }
 
-
-  /**
-   * Hook called when block renders
-   * @returns void
-   */
-  protected onRender(): void { }
-
-  /**
-   * Public wrapper for onRender
-   * @returns void
-   */
-  __onRender(): void {
-    this.onRender();
-  }
-
   /**
    * Save block data to output format
    * @param block - Block output object
@@ -857,9 +850,9 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns Modified block output
    */
   protected save(
-    block: BlockOutput,
+    block: BlockSchema,
     _blockNode?: BlockNode
-  ): BlockOutput {
+  ): BlockSchema {
     return block;
   }
 
@@ -870,27 +863,17 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns Modified block output
    */
   __save(
-    block: BlockOutput,
+    block: BlockSchema,
     blockNode?: BlockNode
-  ): BlockOutput {
+  ): BlockSchema {
     return this.save(block, blockNode);
   }
 
   /**
-   * Post-creation initialization
-   * @returns void
+   * Performs post-creation initialization
    */
-  protected afterCreate() {
+  protected parentOnMount(): void {
     this.refreshSortableItems();
-    this.sanitize();
-  }
-
-  /**
-   * Public wrapper for afterCreate
-   * @returns void
-   */
-  __afterCreate() {
-    this.afterCreate();
   }
 
   /**
