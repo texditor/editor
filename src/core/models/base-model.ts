@@ -35,6 +35,12 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
   /** Key-value storage for custom block data */
   protected store: Record<string, unknown> = {};
 
+  /** Unique identifier for event listeners to prevent conflicts with other event handlers */
+  private eventId: string = '.actions' + generateRandomString(16);
+
+  /** Modifiable model options */
+  private options: Record<string, unknown> = {};
+
   /**
    * Create a new base model instance
    * @param editor - Editor instance reference
@@ -112,6 +118,15 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
   }
 
   /**
+ * Returns the unique identifier for this event listener instance
+ * @returns The unique event ID string used to identify and manage event listeners
+ */
+  getEventId(): string {
+    return this.eventId;
+  }
+
+
+  /**
    * Hook called after model node creation
    * @param _el - Created model node 
    */
@@ -150,6 +165,69 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
     }
 
     return defaultValue !== undefined ? defaultValue : "";
+  }
+
+  /**
+   * Get option value by key
+   * @param key - Configuration key
+   * @param defaultValue - Default value (optional)
+   * @returns Configuration value or null if not found
+   */
+  getOption<T = unknown>(key: string, defaultValue?: T): T | null {
+    const value = this.options[key];
+
+    if (key in this.options) {
+      return value as T;
+    }
+
+    return defaultValue ?? null;
+  }
+
+  /**
+   * Set single option value
+   * @param key - Configuration key
+   * @param value - Value to set
+   */
+  setOption(key: string, value: unknown): void {
+    this.options[key] = value;
+  }
+
+  /**
+   * Set multiple options (merges with existing options)
+   * @param options - Object with options to merge
+   */
+  setOptions(options: Record<string, unknown>): void {
+    this.options = { ...this.options, ...options };
+  }
+
+  /**
+   * Get all options
+   * @returns Copy of all options
+   */
+  getOptions(): Record<string, unknown> {
+    return { ...this.options };
+  }
+
+  /**
+ * Remove single option by key
+ * @param key - Configuration key to remove
+ * @returns True if option existed and was deleted, false otherwise
+ */
+  removeOption(key: string): boolean {
+    const existed = key in this.options;
+
+    if (existed) {
+      delete this.options[key];
+    }
+
+    return existed;
+  }
+
+  /**
+   * Clear all options (resets to empty object)
+   */
+  clearOptions(): void {
+    this.options = {};
   }
 
   /**

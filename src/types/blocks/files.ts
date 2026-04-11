@@ -18,12 +18,12 @@ export interface FilesCreateOptions {
 
 export interface FilesOnFormCreateParams {
   form?: HTMLElement;
-  options?: FilesCreateOptions;
+  createSchema?: FilesCreateOptions;
 }
 
 export interface FilesListCreateParams {
   items: FileItem[],
   blockNode: BlockNode | null,
   contentElement: HTMLElement | null,
-  options: FilesCreateOptions
+  createSchema: FilesCreateOptions
 }

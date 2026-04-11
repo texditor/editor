@@ -1,3 +1,8 @@
+/**
+ * Generates a random string of specified length
+ * @param length - Length of the random string to generate
+ * @returns Random alphanumeric string
+ */
 export function generateRandomString(length: number): string {
   let result = "";
 
@@ -12,6 +17,10 @@ export function generateRandomString(length: number): string {
   return result;
 }
 
+/**
+ * Detects the mobile operating system from user agent
+ * @returns Detected OS: 'android', 'ios', 'windows_phone', or 'other'
+ */
 export function detectMobileOS():
   | "android"
   | "ios"
@@ -21,7 +30,6 @@ export function detectMobileOS():
 
   if (/android/.test(ua) && !/chrome os|cros/.test(ua)) return "android";
 
-  // Обновленная проверка для iOS
   if (
     /ipad|iphone|ipod/.test(ua) ||
     (/mac/.test(ua) && navigator.maxTouchPoints > 1)
@@ -33,6 +41,11 @@ export function detectMobileOS():
   return "other";
 }
 
+/**
+ * Gets the cursor or touch position coordinates
+ * @param event - Pointer or Touch event (optional)
+ * @returns Coordinates object with x and y, or null if not available
+ */
 export function getCaretPosition(
   event?: PointerEvent | TouchEvent
 ): { x: number; y: number } | null {
@@ -52,6 +65,10 @@ export function getCaretPosition(
   return null;
 }
 
+/**
+ * Gets the bounding rectangle of the current text selection
+ * @returns DOMRect of the selection, or null if no selection exists
+ */
 export function getSelectionRect() {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) return null;
@@ -60,6 +77,11 @@ export function getSelectionRect() {
   return range.getBoundingClientRect();
 }
 
+/**
+ * Decodes HTML special entities to their character equivalents
+ * @param input - String containing HTML entities
+ * @returns Decoded string
+ */
 export function decodeHtmlSpecialChars(input: string): string {
   const entities: { [key: string]: string } = {
     "&amp;": "&",
@@ -75,6 +97,11 @@ export function decodeHtmlSpecialChars(input: string): string {
   );
 }
 
+/**
+ * Encodes special characters to HTML entities
+ * @param input - String containing special characters
+ * @returns String with HTML entities
+ */
 export function encodeHtmlSpecialChars(input: string): string {
   const charToEntity: { [key: string]: string } = {
     "&": "&amp;",
@@ -91,7 +118,7 @@ export function encodeHtmlSpecialChars(input: string): string {
  * Converts bytes to a human readable string with automatic browser locale detection
  * @param bytes - The number of bytes to format
  * @param decimals - Number of decimal places (default: 2)
- * @returns - Formatted string
+ * @returns Formatted string with appropriate unit
  */
 export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) {
@@ -131,8 +158,7 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 }
 
 /**
- * Executes a class method if it exists on the given instance.
- * 
+ * Executes a class method if it exists on the given instance
  * @param instance - The class instance containing the method to execute
  * @param methodName - The name of the method to look up and execute
  * @param args - An array of arguments to pass to the method (default: [])
@@ -140,20 +166,18 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
  */
 export function executeMethodIfExists<
   T extends object,
-  R = unknown,  // Вместо any, более безопасно
-  Args extends unknown[] = unknown[]  // Типизируем аргументы
+  R = unknown,
+  Args extends unknown[] = unknown[]
 >(
   instance: T,
   methodName: string,
   args: Args = [] as unknown as Args
 ): R | null {
-  // Используем keyof T для проверки существования свойства
   const method = (instance as T)[methodName as keyof T];
-  
+
   if (typeof method === 'function') {
-    // Приводим метод к функции с нужной сигнатурой
     return (method as (...args: Args) => R).apply(instance, args);
   }
-  
+
   return null;
 }

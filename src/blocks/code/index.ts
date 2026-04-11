@@ -3,14 +3,33 @@ import type {
   BlockSchema,
   BlockNode,
   BlockModelConfig,
-  CodeCreateOptions
+  BlockCreateSchema
 } from "@/types";
+import {
+  addClass,
+  append,
+  attr,
+  closest,
+  css,
+  html,
+  make,
+  prepend,
+  query
+} from "@/utils/dom";
+import {
+  IconArrowDown,
+  IconCode,
+  IconCornerUpRight
+} from "@/icons";
+import {
+  isEmptyString,
+  off,
+  on,
+  renderIcon
+} from "@/utils";
 import BlockModel from "@/core/models/block-model";
-import { addClass, append, attr, closest, css, html, make, prepend, query } from "@/utils/dom";
-import { IconArrowDown, IconCode, IconCornerUpRight } from "@/icons";
 import CodeLanguages, { CodeLanguagesInterface } from './languages';
 import "@/styles/blocks/code.css";
-import { isEmptyString, off, on, renderIcon } from "@/utils";
 
 export default class Code extends BlockModel implements BlockModelInterface {
   protected configure(): Partial<BlockModelConfig> {
@@ -38,12 +57,8 @@ export default class Code extends BlockModel implements BlockModelInterface {
     };
   }
 
-  protected onCreateNode(blockNode: BlockNode): void {
-    const options = this.getStore('options') as CodeCreateOptions;
-
-    if (options && options.lang)
-      attr(blockNode, 'data-lang', options.lang);
-
+  protected onCompose(): void {
+    const blockNode = this.getNode();
     this.init(blockNode);
   }
 
@@ -117,7 +132,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                 attr(item, 'data-lang-key', '');
                 html(item, notSpecified);
                 on(item, 'click.rmLang', () => {
-                  blockNode.removeAttribute('data-lang');
+                  this.removeOption('lang')
                   updateName();
                   closeMenu();
                   events.change({
@@ -136,7 +151,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                   attr(item, 'data-lang-key', codeKey);
                   html(item, codeName);
                   on(item, 'click.chLang', () => {
-                    attr(blockNode, 'data-lang', codeKey);
+                    this.setOption('lang', codeKey);
                     updateName(codeName);
                     closeMenu();
                     events.change({
@@ -160,7 +175,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
             append(link, [
               make('span', (span: HTMLSpanElement) => {
                 addClass(span, cssName + '-lang-link-name');
-                const curLang = blockNode.dataset.lang || '';
+                const curLang = this.getOption('lang', '') || '';
                 span.textContent = getLanguageName(curLang);
               }),
               make('span', (span: HTMLSpanElement) => {
@@ -232,27 +247,29 @@ export default class Code extends BlockModel implements BlockModelInterface {
     if (contnetNode?.textContent && !isEmptyString(contnetNode?.textContent)) {
       block.data = [contnetNode.textContent];
 
-      if (blockNode?.dataset.lang)
-        block.lang = blockNode.dataset.lang;
+      const lang = this.getOption('lang', '');
+
+      if (lang)
+        block.lang = lang;
     }
 
     return block;
   }
 
-  protected parse(item: BlockSchema): BlockNode {
+  protected parse(item: BlockSchema): BlockCreateSchema {
     const languages = this.getConfig('languages', {}) as CodeLanguagesInterface;
     let lang = (item?.lang || '') as string;
 
     if (lang && !languages[lang])
       lang = '';
 
-    return this.create({
+    return {
       lang: lang,
       data:
         typeof item.data[0] === "string"
           ? item.data[0]
           : ""
-    });
+    }
   }
 
   afterConvert(newBlockNode: BlockNode): BlockNode {

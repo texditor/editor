@@ -108,10 +108,6 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
  */
   protected parentOnCreateNode(el: BlockNode): void {
     const tagName = this.getTagName();
-
-    el.dataset.tagName = tagName;
-    el.dataset.type = this.getName();
-
     const contentNode = make(tagName, (content: HTMLElement) => {
       addClass(content, 'tex-block-content');
       if (this.isEmptyDetect()) content.dataset.empty = "true";
@@ -170,18 +166,13 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     }
   }
 
-
   /**
-   * Creating block content based on a schema
-   * @param createSchema - Block creation scheme
-   * @returns Created block node
+   * Composes content from schema before mounting
+   * @param composeSchema - Composition schema
+   * @returns Composed block node
    */
-  protected create(createSchema?: BlockCreateSchema): BlockNode {
+  protected compose(createSchema?: BlockCreateSchema): BlockNode {
     const contentNode = this.getContentNode();
-
-    if (typeof createSchema === 'object' && Object.keys(createSchema).length) {
-      this.setStore('options', createSchema);
-    }
 
     if (!this.isEditable() && this.isEditableItems()) {
       const content = createSchema?.data || {};
@@ -190,10 +181,8 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         append(contentNode, this.__makeItemNode());
       } else if (Array.isArray(content) && content.length) {
         content.forEach((item: BlockCreateItemSchema) => {
-          if (item.data && Array.isArray(item.data)) {
-            const data = toHtml(item.data);
-            append(contentNode, [this.__makeItemNode(data)]);
-
+          if (!isEmptyString(item.data)) {
+            append(contentNode, [this.__makeItemNode(item.data)]);
           }
         })
       }
@@ -215,31 +204,49 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   }
 
   /**
-   * Public wrapper for create method
-   * @param options - Optional creation parameters
-   * @returns Created block node
+   * Hook triggered after composition is complete
+   * @param _createSchema - Composition schema used for composition
    */
-  __create(options?: BlockCreateSchema): BlockNode {
+  protected onCompose(_createSchema?: BlockCreateSchema): void { }
+
+  /**
+   * Prepares and composes block content with sanitization and option merging
+   * @param composeSchema - Composition schema (options will be merged with existing)
+   * @returns Composed block node
+   */
+  __compose(createSchema?: BlockCreateSchema): BlockNode {
     this.sanitize();
-    return this.create(options);
+
+    if (
+      typeof createSchema === 'object' &&
+      Object.keys(createSchema).length
+    ) {
+      this.setOptions(createSchema)
+    }
+
+    const blockNode = this.compose(createSchema);
+
+    this.onCompose(createSchema);
+
+    return blockNode;
   }
 
   /**
-   * Parse block output into DOM element
-   * @param _item - Block output data
-   * @returns DOM element or null
+   * Parses block creation schema preparing it for composition
+   * @param item - Block creation schema
+   * @returns Composition schema
    */
-  protected parse(_item: BlockSchema): HTMLElement | BlockNode | null {
-    return null;
+  protected parse(item: BlockCreateSchema): BlockCreateSchema {
+    return item;
   }
 
   /**
    * Public wrapper for parse method
-   * @param item - Block output data
-   * @returns DOM element or null
+   * @param item - Block creation schema
+   * @returns Composition schema
    */
-  __parse(item: BlockSchema): HTMLElement | BlockNode | null {
-    return this.parse(item)
+  __parse(item: BlockCreateSchema): BlockCreateSchema {
+    return this.parse(item);
   }
 
   /**

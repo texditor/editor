@@ -1,5 +1,14 @@
 import type { RenderIconContent, RenderIconOptions } from "@/types";
 
+/**
+ * Renders an SVG icon as an HTML string
+ * @param content - SVG path content as string or object with raw SVG string
+ * @param options - Optional configuration for icon rendering
+ * @param options.classes - Additional CSS classes to apply to the SVG element
+ * @param options.width - Width of the icon in pixels (default: 24)
+ * @param options.height - Height of the icon in pixels (default: 24)
+ * @returns Complete SVG element HTML string or empty string if content is invalid
+ */
 export function renderIcon(
   content: RenderIconContent,
   options?: RenderIconOptions

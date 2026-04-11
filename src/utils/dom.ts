@@ -1,5 +1,12 @@
 import { replacement } from "./string";
 
+/**
+ * Gets or sets CSS styles on an element
+ * @param element - Target DOM element
+ * @param prop - CSS property name or object with multiple properties
+ * @param value - CSS value (required if prop is string)
+ * @returns Computed style value when getting, empty string when setting
+ */
 export function css(
   element: HTMLElement,
   prop: string | Record<string, string | number | null>,
@@ -48,6 +55,12 @@ export function css(
   return result;
 }
 
+/**
+ * Checks if an element has a specific CSS class
+ * @param element - Target DOM element
+ * @param className - CSS class name to check
+ * @returns True if element has the class, false otherwise
+ */
 export function hasClass(
   element: HTMLElement | EventTarget | null,
   className: string
@@ -61,6 +74,12 @@ export function hasClass(
   );
 }
 
+/**
+ * Sets or removes a CSS class on an element
+ * @param el - Target DOM element
+ * @param className - CSS class name
+ * @param active - True to add, false to remove (default: true)
+ */
 export function setClass(
   el: HTMLElement,
   className: string,
@@ -77,18 +96,39 @@ export function setClass(
   }
 }
 
+/**
+ * Adds a CSS class to an element
+ * @param el - Target DOM element
+ * @param className - CSS class name
+ */
 export function addClass(el: HTMLElement, className: string) {
   setClass(el, className);
 }
 
+/**
+ * Removes a CSS class from an element
+ * @param el - Target DOM element
+ * @param className - CSS class name
+ */
 export function removeClass(el: HTMLElement, className: string) {
   setClass(el, className, 0);
 }
 
+/**
+ * Toggles a CSS class on an element
+ * @param el - Target DOM element
+ * @param className - CSS class name
+ */
 export function toggleClass(el: HTMLElement, className: string) {
   setClass(el, className, !hasClass(el, className));
 }
 
+/**
+ * Creates a new HTML element
+ * @param name - HTML tag name
+ * @param callback - Optional callback function called with the created element
+ * @returns The created element
+ */
 export function make(name: string, callback?: CallableFunction): HTMLElement {
   const el: HTMLElement = document.createElement(name);
 
@@ -97,6 +137,13 @@ export function make(name: string, callback?: CallableFunction): HTMLElement {
   return el;
 }
 
+/**
+ * Queries DOM elements matching a selector and executes a callback for each
+ * @param selector - CSS selector
+ * @param callback - Function called for each matching element
+ * @param context - DOM context to query within (default: document)
+ * @returns False if no elements found, otherwise number of elements
+ */
 export function query(
   selector: string,
   callback: CallableFunction,
@@ -114,6 +161,12 @@ export function query(
   return elements.length;
 }
 
+/**
+ * Returns an array of elements matching a selector
+ * @param selector - CSS selector
+ * @param context - DOM context to query within (default: document)
+ * @returns Array of matching elements
+ */
 export function queryList(
   selector: string,
   context: HTMLElement | Document | undefined = document
@@ -125,6 +178,12 @@ export function queryList(
   return list;
 }
 
+/**
+ * Returns the count of elements matching a selector
+ * @param selector - CSS selector
+ * @param context - DOM context to query within (default: document)
+ * @returns Number of matching elements
+ */
 export function queryLength(
   selector: string,
   context: HTMLElement | Document | undefined = document
@@ -136,6 +195,12 @@ export function queryLength(
   return length;
 }
 
+/**
+ * Gets or sets inner HTML of an element
+ * @param el - Target DOM element
+ * @param value - HTML string to set (optional)
+ * @returns Element when setting, HTML string when getting
+ */
 export function html(el: HTMLElement, value?: string | null): string;
 export function html(el: HTMLElement, value: string): HTMLElement;
 export function html(
@@ -150,6 +215,11 @@ export function html(
   return el.innerHTML;
 }
 
+/**
+ * Converts DOM nodes or elements to HTML string
+ * @param data - Node, element, array, or string to convert
+ * @returns HTML string representation
+ */
 export function toHtml(data: string | Node | Node[] | HTMLElement | HTMLElement[]): string {
   if (typeof data === 'string') return data;
 
@@ -176,6 +246,12 @@ export function toHtml(data: string | Node | Node[] | HTMLElement | HTMLElement[
   return '';
 }
 
+/**
+ * Appends a child node or nodes to an element
+ * @param el - Parent element
+ * @param child - Child node, array of nodes, or NodeList to append
+ * @returns The parent element
+ */
 export function append(
   el: Node | Element | HTMLElement,
   child: HTMLElement | Node | NodeList | Node[]
@@ -189,6 +265,12 @@ export function append(
   return el;
 }
 
+/**
+ * Prepends a child node or nodes to an element (inserts at the beginning)
+ * @param el - Parent element
+ * @param child - Child node, array of nodes, or NodeList to prepend
+ * @returns The parent element
+ */
 export function prepend(
   el: Node | Element | HTMLElement,
   child: HTMLElement | Node | NodeList | Node[]
@@ -206,6 +288,12 @@ export function prepend(
   return el;
 }
 
+/**
+ * Inserts a node or nodes before an element
+ * @param el - Reference element
+ * @param child - Node or nodes to insert
+ * @returns The reference element
+ */
 export function before(
   el: Node | Element | HTMLElement,
   child: HTMLElement | Node | NodeList | Node[]
@@ -220,6 +308,12 @@ export function before(
   return el;
 }
 
+/**
+ * Inserts a node or nodes after an element
+ * @param el - Reference element
+ * @param child - Node or nodes to insert
+ * @returns The reference element
+ */
 export function after(
   el: Node | Element | HTMLElement,
   child: HTMLElement | Node | NodeList | Node[]
@@ -234,11 +328,24 @@ export function after(
   return el;
 }
 
+/**
+ * Gets or sets an attribute on an element
+ * @param el - Target element
+ * @param key - Attribute name
+ * @param value - Attribute value (if provided, sets the attribute)
+ * @returns Attribute value when getting, undefined when setting
+ */
 export function attr(el: HTMLElement, key: string, value?: string) {
   if (value !== undefined) el.setAttribute(key, value);
   else return el.getAttribute(key);
 }
 
+/**
+ * Checks if an element is a child of another element
+ * @param element - Child element to check
+ * @param children - Potential parent element
+ * @returns The parent if found, false otherwise
+ */
 export function closest(
   element: Node | HTMLElement | EventTarget | HTMLTextAreaElement | null,
   children: Node | HTMLElement | EventTarget | HTMLTextAreaElement | null
@@ -256,6 +363,12 @@ export function closest(
   return false;
 }
 
+/**
+ * Appends a text node to an element
+ * @param el - Target element
+ * @param text - Text content
+ * @returns The parent element
+ */
 export function appendText(
   el: Node | Element | HTMLElement,
   text: string
@@ -263,12 +376,21 @@ export function appendText(
   return append(el, document.createTextNode(text));
 }
 
+/**
+ * Creates a text node
+ * @param text - Text content
+ * @returns The created text node
+ */
 export function toTextNode(
   text: string
 ): Node {
   return document.createTextNode(text);
 }
 
+/**
+ * Merges adjacent text nodes within an element
+ * @param element - Target element
+ */
 export function mergeAdjacentTextNodes(element: HTMLElement): void {
   let childNodes = Array.from(element.childNodes);
   let i = 0;
@@ -294,6 +416,10 @@ export function mergeAdjacentTextNodes(element: HTMLElement): void {
   }
 }
 
+/**
+ * Replaces an element with its children (removes the wrapper element)
+ * @param element - Element to replace with its children
+ */
 export function replaceWithChildren(element: HTMLElement): void {
   const parent = element.parentNode;
 
@@ -308,6 +434,12 @@ export function replaceWithChildren(element: HTMLElement): void {
   parent.removeChild(element);
 }
 
+/**
+ * Finds all data attributes with a specific prefix and returns them as an object
+ * @param element - Target element
+ * @param prefix - Data attribute prefix (without 'data-')
+ * @returns Object with camelCased keys and parsed values
+ */
 export function findDatasetsWithPrefix(
   element: HTMLElement,
   prefix: string
@@ -329,6 +461,11 @@ export function findDatasetsWithPrefix(
   return result;
 }
 
+/**
+ * Returns an array of child nodes from an element
+ * @param element - Target node
+ * @returns Array of child nodes
+ */
 export function getChildNodes(element: Node): Node[] {
   const nodes: Node[] = [],
     childNodes = Array.from(element.childNodes);
@@ -340,6 +477,11 @@ export function getChildNodes(element: Node): Node[] {
   return nodes;
 }
 
+/**
+ * Gets combined text content from a node or array of nodes
+ * @param node - Node or array of nodes
+ * @returns Combined text content
+ */
 export function getText(node: Node | Node[]): string {
   let result = "";
 
@@ -354,12 +496,17 @@ export function getText(node: Node | Node[]): string {
   return result;
 }
 
+/**
+ * Gets the total text length from a node or array of nodes
+ * @param node - Node or array of nodes
+ * @returns Total text length
+ */
 export function getLength(node: Node | Node[]): number {
   return getText(node).length;
 }
 
 /**
- * Removes HTML fragment wrapper tags (<!--StartFragment--> and <!--EndFragment-->)
+ * Removes HTML fragment wrapper tags
  * @param html - Raw HTML string that may contain fragment tags
  * @returns Cleaned HTML string without fragment tags
  */

@@ -1,6 +1,13 @@
 import type { BaseEvent, EventHandler } from "@/types";
 import { eventStore } from "@/store/eventStore";
 
+/**
+ * Registers an event listener on an element with automatic tracking for later removal
+ * @param element - Target DOM element or EventTarget
+ * @param eventName - Event name with optional dot-separated ID (e.g., "click.submitBtn")
+ * @param handler - Event handler function
+ * @param options - AddEventListener options or useCapture flag
+ */
 export function on<T extends Event>(
   element: EventTarget,
   eventName: string,
@@ -41,6 +48,12 @@ export function on(
   element.addEventListener(eventType, wrappedHandler as EventListener, options);
 }
 
+/**
+ * Removes an event listener from an element
+ * @param element - Target DOM element or EventTarget
+ * @param eventName - Event name with optional dot-separated ID. If ID is omitted, removes all listeners for that event type
+ * @param options - AddEventListener options or useCapture flag that matches the original registration
+ */
 export function off(
   element: EventTarget,
   eventName: string,
@@ -76,6 +89,13 @@ export function off(
   if (handlers.size === 0) eventStore.delete(element);
 }
 
+/**
+ * Replaces an existing event listener with a new one (removes old, adds new)
+ * @param element - Target DOM element or EventTarget
+ * @param eventName - Event name with optional dot-separated ID
+ * @param handler - New event handler function
+ * @param options - AddEventListener options or useCapture flag
+ */
 export function rebind<T extends Event>(
   element: EventTarget,
   eventName: string,

@@ -66,7 +66,7 @@ export default class Filex extends BlockModel implements BlockModelInterface {
       tagName: "div",
       translation: "files",
       groupCode: 'files',
-      autoParse: false,
+      // autoParse: false,
       autoMerge: false,
       actions: [
         // MoveLeftFileAction,
@@ -110,20 +110,19 @@ export default class Filex extends BlockModel implements BlockModelInterface {
     };
   }
 
-  protected create(options?: BlockCreateSchema): BlockNode {
+  protected onCompose(createSchema?: BlockCreateSchema): void {
     const blockNode = this.getNode(),
       contentNode = this.getContentNode(),
-      realOptions = options && Object.keys(options) && options.data
-        ? options
+      realOptions = createSchema && Object.keys(createSchema) && createSchema.data
+        ? createSchema
         : { data: [] }
 
     css(contentNode, 'display', 'none');
     this.formNode = this.createForm(realOptions);
     prepend(blockNode, this.formNode);
     this.createList(realOptions);
-
-    return blockNode;
   }
+
 
   getRenderCallback(mimeType: string) {
     return this.renderCallbacks[mimeType] || this.renderCallbacks["default"];
@@ -134,11 +133,11 @@ export default class Filex extends BlockModel implements BlockModelInterface {
   }
 
   protected createForm(
-    options: BlockCreateSchema
+    createSchema: BlockCreateSchema
   ): HTMLElement {
     const isMultiple = this.getConfig("multiple", true),
       id = generateRandomString(16),
-      itemsLength = options?.content?.length || 0;
+      itemsLength = createSchema?.data?.length || 0;
 
     return make('div', (form: HTMLElement) => {
       addClass(form, "tex-files-form");
@@ -155,7 +154,7 @@ export default class Filex extends BlockModel implements BlockModelInterface {
 
       this.onFormCreate({
         form: form,
-        options: options
+        createSchema: createSchema
       });
     })
   }
@@ -276,7 +275,7 @@ export default class Filex extends BlockModel implements BlockModelInterface {
     }
 
     this.onListCreate({
-      options: options
+      createSchema: options
     });
 
     return contentNode;
@@ -451,9 +450,9 @@ export default class Filex extends BlockModel implements BlockModelInterface {
     }
   }
 
-  protected parse(item: BlockSchema) {
-    return this.create({ content: item.data });
-  }
+  // protected parse(item: BlockSchema) {
+  //   return this.compose(item);
+  // }
 
   protected onPaste(evt: Event): boolean {
     evt.preventDefault();

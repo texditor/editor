@@ -22,7 +22,6 @@ import {
 import "@/styles/tools/link.css";
 import { off, on, rebind } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
-import { generateRandomString } from "@/utils";
 
 export default class LinkTool extends ToolModel implements ToolModelInterface {
   /**
@@ -62,11 +61,13 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
    * @param tags - Array of formatted link elements 
    */
   onFormat(tags: HTMLLinkElement[]): void {
-    const uniqueId = generateRandomString(12),
+    const uniqueId = this.getEventId(),
       formElement = document.getElementById("form-link-" + uniqueId),
       valElement = document.getElementById(
         "input-link-" + uniqueId
       ) as HTMLInputElement;
+
+    console.log(formElement, 2, tags, 5, valElement)
 
     if (formElement && valElement) {
       tags.forEach((link) => {
@@ -99,7 +100,7 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
    */
   private createForm(link: string = "", targetBlank: boolean = false) {
     const { api, commands, selectionApi, i18n } = this.editor,
-      uniqueId = generateRandomString(12),
+      uniqueId = this.getEventId(),
       root = api.getRoot();
 
     const linkForm = make("div", (el: HTMLElement) => {
@@ -260,8 +261,6 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
    * Destroy link tool instance and clean up resources 
    */
   destroy(): void {
-    const uniqueId = generateRandomString(12);
-
-    off(document, "click.link" + uniqueId);
+    off(document, "click.link" + this.getEventId());
   }
 }

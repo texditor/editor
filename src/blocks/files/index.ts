@@ -122,6 +122,10 @@ export default class Files extends BlockModel implements BlockModelInterface {
     return false;
   }
 
+  protected onCreateNode(blockNode: BlockNode): void {
+    
+  }
+
   create(options: FilesCreateOptions): HTMLElement {
     const realOptions = Object.keys(options) && options.content
       ? options
@@ -280,7 +284,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
       items: items,
       blockNode: blockNode,
       contentElement: contentElement,
-      options: options
+      createSchema: options
     });
 
     return make("div", (el: HTMLElement) => {
@@ -345,7 +349,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
           if (el.fileName) preparedItem.name = el.fileName;
           if (el.fileSize) preparedItem.size = el.fileSize;
           if (el.fileId) preparedItem.id = el.fileId;
-          if (el.thumbnail) preparedItem.thumbnail = el.thumbnail;
+          if (el.thumbnail) preparedItem.thumbnail = el.thumbnail; 
 
           const fileItem = this.onSaveItem(preparedItem, el);
 

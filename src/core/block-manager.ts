@@ -575,7 +575,7 @@ export default class BlockManager implements BlockManagerInterface {
             const blockContainer = this.getBlocksContainer();
 
             if (blockContainer) {
-              block = executeMethodIfExists(blockInstance, '__create', [options]) as BlockNode;
+              block = executeMethodIfExists(blockInstance, '__compose', [options]) as BlockNode;
 
               if (block) {
                 if (to == 'start')
@@ -602,7 +602,7 @@ export default class BlockManager implements BlockManagerInterface {
                 } else {
 
                   const curBlock = this.getNode(curIndex);
-                  block = executeMethodIfExists(blockInstance, '__create', [options]) as BlockNode;
+                  block = executeMethodIfExists(blockInstance, '__compose', [options]) as BlockNode;
 
                   if (curBlock && block) {
                     if (curIndex != index) {
@@ -910,7 +910,7 @@ export default class BlockManager implements BlockManagerInterface {
       if (!beforeBlockNode)
         return false;
 
-      const targetBlockNode = executeMethodIfExists(beforeTargetModel, '__create') as BlockNode;
+      const targetBlockNode = executeMethodIfExists(beforeTargetModel, '__compose') as BlockNode;
 
       const createItem = (target: HTMLElement, content: string) => {
         const newItem = executeMethodIfExists(beforeTargetModel, '__makeItemNode', [content]) as HTMLElement
@@ -1194,11 +1194,10 @@ export default class BlockManager implements BlockManagerInterface {
     if (!modelSchema)
       return null;
 
-    const blockModel = new modelSchema.constructor(this.editor);
-
     let blockNode = null;
+    const blockModel = new modelSchema.constructor(this.editor),
+      newSchema: BlockCreateSchema = { ...blockSchema };
 
-    const newSchema: BlockCreateSchema = { ...blockSchema };
     delete newSchema.type;
 
     if (blockModel.isAutoParse()) {
@@ -1220,7 +1219,7 @@ export default class BlockManager implements BlockManagerInterface {
               const nodes = this.parseChilds(item),
                 itemData: BlockCreateItemSchema = {
                   type: item.type,
-                  data: nodes
+                  data: toHtml(nodes)
                 };
 
               if (item.attr && Object.keys(item.attr).length) {
@@ -1233,7 +1232,7 @@ export default class BlockManager implements BlockManagerInterface {
 
           if (items.length) {
             newSchema.data = items;
-            blockNode = executeMethodIfExists(blockModel, '__create', [newSchema]) as BlockNode
+            blockNode = executeMethodIfExists(blockModel, '__compose', [newSchema]) as BlockNode
           }
         }
       } else {
@@ -1241,17 +1240,19 @@ export default class BlockManager implements BlockManagerInterface {
         if (nodes) {
           newSchema.data = toHtml(nodes);
 
-          blockNode = executeMethodIfExists(blockModel, '__create', [newSchema]) as BlockNode;
+          blockNode = executeMethodIfExists(blockModel, '__compose', [newSchema]) as BlockNode;
         }
 
       }
     } else {
       if ('__parse' in blockModel) {
-        blockNode = executeMethodIfExists(
+        const parsedSchema = executeMethodIfExists(
           blockModel,
           '__parse',
-          [blockSchema]
-        ) as BlockNode;
+          [newSchema]
+        ) as BlockCreateSchema;
+
+        blockNode = executeMethodIfExists(blockModel, '__compose', [parsedSchema]) as BlockNode;
       }
     }
 

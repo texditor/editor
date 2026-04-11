@@ -356,11 +356,11 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * Protected methods for understanding the block model structure
   * 
   * Create
-  * protected create(options?: BlockCreateSchema): HTMLElement;
   * protected makeItemNode(content?: string | unknown): HTMLElement;
+  * protected compose(createSchema?: BlockCreateSchema): BlockNode;
   * 
   * Parse
-  * protected parse(item: BlockSchema): BlockNode | HTMLElement | null;
+  * protected parse(_item: BlockCreateSchema): BlockCreateSchema
   * 
   * Merge
   * protected merge(): HTMLElement | null;
@@ -369,6 +369,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * protected save(block: BlockSchema, blockNode?: BlockNode): BlockSchema;
   * 
   * Events
+  * protected onCompose(createSchema?: BlockCreateSchema): void
   * protected onPaste(evt: Event, map: PasteMap): boolean;
   * protected onKeyDown(evt: KeyboardEvent): boolean;
   * protected onKeyUp(evt: KeyboardEvent): boolean;
@@ -421,5 +422,5 @@ export interface BlockCreateSchema extends Omit<BlockSchema, "type"> {
 
 export interface BlockCreateItemSchema extends Omit<BlockChildSchema, 'data'> {
   type: string;
-  data: string | Node | Node[],
+  data: string,
 }

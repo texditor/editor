@@ -440,7 +440,7 @@ export default class Events implements EventsInterface {
       cursorEnd = end < 0 ? 0 : end;
 
     if (blocksContainer && contentNode) {
-      if (api.isEmpty()) blockManager.createBlock(defBlock);
+      if (api.isEmpty() && blockManager.count() == 0) blockManager.createBlock(defBlock);
 
       if (evt.key == "Enter") {
         this.trigger("keydownEnterKey", { domEvent: evt });
