@@ -331,11 +331,18 @@ export function after(
 /**
  * Gets or sets an attribute on an element
  * @param el - Target element
- * @param key - Attribute name
+ * @param key - Attribute name or object with attributes
  * @param value - Attribute value (if provided, sets the attribute)
  * @returns Attribute value when getting, undefined when setting
  */
-export function attr(el: HTMLElement, key: string, value?: string) {
+export function attr(el: HTMLElement, key: string | Record<string, string>, value?: string) {
+  if (typeof key === 'object' && key !== null) {
+    Object.entries(key).forEach(([attrKey, attrValue]) => {
+      attr(el, attrKey, attrValue);
+    });
+    return;
+  }
+
   if (value !== undefined) el.setAttribute(key, value);
   else return el.getAttribute(key);
 }
@@ -432,6 +439,25 @@ export function replaceWithChildren(element: HTMLElement): void {
   });
 
   parent.removeChild(element);
+}
+
+/**
+ * Gets or sets a data attribute on an element
+ * @param el - Target element
+ * @param key - Data attribute name (without 'data-' prefix) or object with data attributes
+ * @param value - Data attribute value (if provided, sets the attribute)
+ * @returns Data attribute value when getting, undefined when setting
+ */
+export function data(el: HTMLElement, key: string | Record<string, string>, value?: string) {
+  if (typeof key === 'object' && key !== null) {
+    Object.entries(key).forEach(([dataKey, dataValue]) => {
+      data(el, dataKey, dataValue);
+    });
+    return;
+  }
+
+  if (value !== undefined) el.dataset[key] = value;
+  else return el.dataset[key];
 }
 
 /**

@@ -1,23 +1,36 @@
-import type { FileActionModelInterface, RenderIconContent } from "@/types";
+import type {
+  BaseEvent,
+  FileActionModelConfig,
+  FileActionModelInterface
+} from "@/types";
 import { IconTrash } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
-import Files from "..";
 
-export default class DeleteFileAction
-  extends FileActionModel
-  implements FileActionModelInterface
-{
-  name: string = "delete";
-  protected icon: RenderIconContent = IconTrash;
-  protected translation: string = "delete";
-  protected defaultTitle: string = "Delete file";
+export default class DeleteFileAction extends FileActionModel implements FileActionModelInterface {
+  protected configure(): Partial<FileActionModelConfig> {
+    return {
+      name: 'delete',
+      icon: IconTrash,
+      translation: 'delete'
+    }
+  }
 
-  onClick() {
-    const model = this.getBlockModel() as Files,
-      currentItem = this.getItem();
+  protected onClick(_evt: BaseEvent): void {
+    const { blockManager } = this.editor;
+    const blockNode = this.getBlockNode();
+    const model = blockNode?.baseModel;
+    const itemNode = this.getItemNode();
 
-    currentItem.remove();
+    if (blockNode && model && itemNode) {
+      const itemIndex = model.getItemIndex(itemNode);
+      const index = blockManager.getIndex();
 
-    if (model?.removeIsEmpty) model.removeIsEmpty(this.getNode());
+      model.removeItem(itemIndex);
+
+      if (model.isEmpty())
+        blockManager.removeBlock();
+      else
+        blockManager.focus(index);
+    }
   }
 }

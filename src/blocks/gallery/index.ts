@@ -1,55 +1,56 @@
-import type {
-  FileItem,
-  TexditorEvent,
-  BlockNode,
-  BlockSchema,
-  FilesFormCreateParams,
-  FilesListCreateParams,
-  BlockModelConfig
-} from "@/types";
 import Files from "../files";
+import type {
+  BlockModelConstructor,
+  BlockNode,
+  FileItem,
+  GalleryBlockModelConfig,
+  GalleryBlockModelInterface,
+  SliderInterface,
+  TexditorEvent
+} from "@/types";
+import { IconImage, IconMultipleGrid, IconSingleGrid, IconSlider } from "@/icons";
 import {
   addClass,
   append,
   attr,
+  data,
   html,
   make,
   prepend,
   query,
-  removeClass
-} from "@/utils/dom";
-import {
-  IconGallery,
-  IconMultipleGrid,
-  IconPlay,
-  IconSingleGrid,
-  IconSlider
-} from "@/icons";
-import "@/styles/blocks/galllery.css";
-import { renderIcon } from "@/utils/icon";
-import { rebind } from "@/utils/events";
-import "@/styles/core/ui/slider.css";
+  rebind,
+  removeClass,
+  renderIcon
+} from "@/utils";
 import Slider from "@/core/ui/slider";
+import "@/styles/blocks/gallery.css";
+import "@/styles/core/ui/slider.css";
 
-export default class Gallery extends Files {
+export default class Gallery extends Files implements GalleryBlockModelInterface {
   private defaultStyles: string[] = ["grid", "slider", "single"];
-  private slider?: Slider;
+  private slider?: SliderInterface;
+  /**
+  * Set up global configuration
+  * @param config - Partial configuration
+  * @returns Model constructor
+  */
+  public static setup(
+    config: Partial<GalleryBlockModelConfig>
+  ): BlockModelConstructor {
+    return super.setup(config);
+  }
 
-  protected configure(): Partial<BlockModelConfig> {
+  protected configure(): Partial<GalleryBlockModelConfig> {
     return {
       ...super.configure(),
       ...{
         name: "gallery",
-        tagName: "div",
-        groupCode: 'gallery',
-        listCss: "tex-gallery-list",
-        className: "tex-gallery",
-        icon: IconGallery,
+        icon: IconImage,
+        className: 'tex-gallery tex-files',
         translation: "gallery",
         styles: ["grid", "slider", "single"],
         stylesLtr: "right",
         defaultStyle: "single",
-        renderImage: false,
         sliderInfinite: true,
         imageMimeTypes: [
           "image/jpeg",
@@ -71,7 +72,11 @@ export default class Gallery extends Files {
     };
   }
 
-  private isStyles() {
+  protected onMount(_node: BlockNode): void {
+    this.initSlider();
+  }
+
+  isAllowedStyles(): boolean {
     const styles = this.getConfig("styles", []) as string[];
 
     return (styles).every((key: string) =>
@@ -79,7 +84,7 @@ export default class Gallery extends Files {
     );
   }
 
-  private getDefaultStyle() {
+  getDefaultStyle(): string {
     const defaultStyle = this.getConfig("defaultStyle", []) as string;
 
     if (!this.defaultStyles.includes(defaultStyle)) return "single";
@@ -87,28 +92,29 @@ export default class Gallery extends Files {
     return defaultStyle;
   }
 
-  protected onFormCreate({ el, blockNode, options }: FilesFormCreateParams): HTMLElement {
+  protected onFormCreate(form: HTMLElement): void {
     const { blockManager, events, i18n } = this.editor,
+      ltr = this.getConfig("stylesLtr", "left"),
       styles = this.getConfig("styles", []) as string[],
-      defaultStyle = this.getDefaultStyle();
+      defaultStyle = this.getDefaultStyle(),
+      blockNode = this.getNode();
 
-    if (this.isStyles()) {
-      const ltr = this.getConfig("stylesLtr", "left");
-      const setActveItem = (code: string) => {
+    if (this.isAllowedStyles()) {
+      const saveActiveItem = (code: string) => {
         if (styles.includes(code)) {
           query(
             ".tex-gallery-style-item",
             (div: HTMLDivElement) => {
               removeClass(div, "tex-active");
             },
-            el
+            form
           );
           query(
             ".tex-gallery-style-item-" + code,
             (div: HTMLDivElement) => {
               addClass(div, "tex-active");
             },
-            el
+            form
           );
         }
       };
@@ -120,8 +126,8 @@ export default class Gallery extends Files {
             "tex-gallery-style-item tex-gallery-style-item-" + code
           );
           rebind(item, "click.style", () => {
-            setActveItem(code);
-            blockNode.dataset.optionsStyle = code;
+            saveActiveItem(code);
+            data(blockNode, 'optionsStyle', code);
             this.destroySlider();
             events.change({
               type: "galleryStyle",
@@ -166,57 +172,51 @@ export default class Gallery extends Files {
         );
       });
 
-      if (this.isStyles() && styles.length) {
-        const ltrClass =
-          ltr === "right" ? "tex-gallery-right" : "tex-gallery-left";
+      if (ltr == 'left')
+        prepend(form, stylePanel);
+      else
+        append(form, stylePanel);
 
-        if (ltr === "right") append(el, stylePanel);
-        else prepend(el, stylePanel);
-
-        removeClass(el, "tex-gallery-right");
-        removeClass(el, "tex-gallery-left");
-        addClass(el, ltrClass);
-
-        const setStyle = options?.style ? options.style : defaultStyle;
-        setActveItem(setStyle as string);
-      }
+      let currentStyle = this.getOption('style', 'single') || 'single';
+      currentStyle = this.defaultStyles.includes(currentStyle) ? currentStyle : 'single';
+      saveActiveItem(currentStyle);
     }
-    return el;
   }
 
-  protected onSaveItem(
-    item: FileItem,
-    _el: HTMLElement
-  ): FileItem {
-    if (item.size) delete item.size;
+  protected onListCreate(_contentNode: HTMLElement): void {
+    const styles = this.getStyles(),
+      blockNode = this.getNode(),
+      itemStyle = this.getOption('style', '');
 
-    return item;
-  }
 
-  protected onSaveAfter(
-    block: BlockSchema,
-    blockNode: BlockNode
-  ): BlockSchema {
-    const defaultStyle = this.getDefaultStyle();
-
-    if (this.isStyles()) {
-      if (blockNode.dataset.optionsStyle) {
-        const style = blockNode.dataset.optionsStyle;
-        if (style == "single") {
-          blockNode.removeAttribute("data-option-style");
-
-          if (block?.style) delete block.style;
-        } else block.style = style;
-      } else {
-        if (defaultStyle && defaultStyle != "single") {
-          block.style = defaultStyle;
-        }
-      }
-    } else {
-      if (block?.style) delete block.style;
+    if (this.areStylesAllowed() && itemStyle) {
+      if (styles.includes(itemStyle))
+        data(blockNode, 'optionsStyle', itemStyle);
     }
 
-    return block;
+    this.setRenderCallback(
+      this.getConfig("imageMimeTypes", []) as string[],
+      (item: FileItem): HTMLElement => {
+        return make("img", (img: HTMLImageElement) => {
+          img.src = item.url;
+        });
+      }
+    );
+
+  }
+
+  /** @see GalleryBlockModelInterface.getStyles */
+  getStyles(): string[] {
+    return this.getConfig('styles', []) as string[];
+  }
+
+  /** @see GalleryBlockModelInterface.areStylesAllowed */
+  areStylesAllowed(): boolean {
+    const styles = this.getStyles();
+
+    return (styles).every((key: string) =>
+      this.defaultStyles.includes(key)
+    );
   }
 
   protected initSlider(
@@ -254,96 +254,5 @@ export default class Gallery extends Files {
     const { events } = this.editor;
     this.slider?.destroy();
     events.remove("onChange", "fileActionSlider");
-  }
-
-  onMount(): void {
-    this.initSlider();
-  }
-
-  protected onListCreate({
-    items,
-    blockNode,
-    contentElement,
-    options
-  }: FilesListCreateParams) {
-    const styles = this.getConfig("styles", []) as string[];
-
-    if (this.isStyles()) {
-      if (options?.style && blockNode) {
-        const style = options.style as string;
-
-        if (styles.includes(style)) blockNode.dataset.optionsStyle = style;
-      }
-    }
-
-    this.setRenderCallback(
-      this.getConfig("imageMimeTypes", []) as string[],
-      (item: FileItem): HTMLElement => {
-        return make("img", (img: HTMLImageElement) => {
-          img.src = item.url;
-        });
-      }
-    );
-
-    this.setRenderCallback(
-      this.getConfig("videoMimeTypes", []) as string[],
-      (item: FileItem): HTMLElement => {
-        const videoContainer = make("div", (vc: HTMLDivElement) => {
-          const video = make("video", (video: HTMLVideoElement) => {
-            append(
-              video,
-              make("source", (source: HTMLSourceElement) => {
-                source.src = item.url;
-                attr(source, "type", item.type);
-              })
-            );
-          }),
-            playIcon = make("div", (div: HTMLDivElement) => {
-              addClass(div, "tex-gallery-item-play");
-              div.innerHTML = renderIcon(IconPlay, {
-                width: 18,
-                height: 18
-              });
-            });
-
-          append(vc, [video, playIcon]);
-        });
-
-        return videoContainer;
-      }
-    );
-
-    return {
-      items: items,
-      blockNode: blockNode,
-      contentElement: contentElement,
-      options: options
-    };
-  }
-
-  protected renderImage(item: FileItem): HTMLElement {
-    return make("img", (img: HTMLImageElement) => {
-      img.src = item.url;
-
-      if (item.caption) img.alt = item.caption;
-    });
-  }
-
-  protected saveImage(el: HTMLElement): FileItem | null {
-    const file: FileItem = { url: "", type: el.dataset.type || "" };
-
-    query(
-      "img",
-      (img: HTMLImageElement) => {
-        file.url = img.src;
-
-        if (img.alt) file.caption = img.alt;
-      },
-      el
-    );
-
-    if (!file.url || !file.type) return null;
-
-    return file;
   }
 }

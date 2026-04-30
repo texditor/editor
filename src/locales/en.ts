@@ -28,10 +28,12 @@ export const EnLocale = {
   orderedList: "Ordered list",
   emptyUrl: "Request error. The server url is not specified",
   fileUploadError: "Error when uploading",
+  fileUploadMaxItems: "The upload was rejected because the total number of items exceeds the maximum allowed",
   fileUploadSuccess: "Files uploaded",
   invalidFileType: "Invalid file type",
   edit: "Edit",
   caption: "Caption",
+  fileName: 'File Name',
   desc: "Detailed description",
   save: "Save",
   сancel: "Cancel",
@@ -54,5 +56,8 @@ export const EnLocale = {
   link: "Link",
   clearFormatting: "Clear formatting",
   subscript: "Subscript",
-  superscript: "Superscript"
+  superscript: "Superscript",
+  close: "Close",
+  move: "Move",
+  requiredField: "Required field"
 };

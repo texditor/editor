@@ -1,25 +1,27 @@
+import { AjaxOptions, AjaxResponse, AjaxData } from "@/types";
+
 /**
  * Sends an AJAX request with support for FormData and plain data, including progress tracking
  * @param url - Request URL
  * @param options - Request configuration
  * @returns Promise that resolves with the response data
  */
-export function ajax(
+export function ajax<
+  TResponse = unknown,
+  TData extends AjaxData = AjaxData,
+  THeaders extends Record<string, string> = Record<string, string>
+>(
   url: string,
-  options: {
-    method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-    data?: FormData | Record<string, unknown> | string;
-    headers?: Record<string, string>;
-    onProgress?: (percent: number, loaded: number, total: number) => void;
-    timeout?: number;
-  } = {}
-): Promise<unknown> {
+  options: AjaxOptions<TResponse, TData, THeaders> = {}
+): Promise<AjaxResponse<TResponse>> {
   return new Promise((resolve, reject) => {
     const {
       method = "GET",
       data,
-      headers = {},
-      onProgress,
+      headers = {} as THeaders,
+      progress: onProgress,
+      success: onSuccess,
+      error: onError,
       timeout = 30000
     } = options;
 
@@ -38,11 +40,21 @@ export function ajax(
       xhr.setRequestHeader(key, value);
     }
 
-    // Progress tracking
-    if (onProgress && method !== "GET") {
+    // Progress tracking for upload (sending data to server)
+    if (onProgress && method !== "GET" && data) {
       xhr.upload.addEventListener("progress", (e) => {
         if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
+          const percent = Math.round((e.loaded / e.total) * 100);
+          onProgress(percent, e.loaded, e.total);
+        }
+      });
+    }
+
+    // Progress tracking for download (receiving response from server)
+    if (onProgress) {
+      xhr.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
           onProgress(percent, e.loaded, e.total);
         }
       });
@@ -51,18 +63,32 @@ export function ajax(
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
-          const response = JSON.parse(xhr.responseText);
+          const response = JSON.parse(xhr.responseText) as TResponse;
+          onSuccess?.(response);
           resolve(response);
         } catch {
-          resolve(xhr.responseText);
+          const response = xhr.responseText as TResponse;
+          onSuccess?.(response);
+          resolve(response);
         }
       } else {
-        reject(new Error(`Request failed with status ${xhr.status}`));
+        const error = new Error(`Request failed with status ${xhr.status}`);
+        onError?.(error);
+        reject(error);
       }
     };
 
-    xhr.onerror = () => reject(new Error("Network error"));
-    xhr.ontimeout = () => reject(new Error("Request timeout"));
+    xhr.onerror = () => {
+      const error = new Error("Network error");
+      onError?.(error);
+      reject(error);
+    };
+
+    xhr.ontimeout = () => {
+      const error = new Error("Request timeout");
+      onError?.(error);
+      reject(error);
+    };
 
     // Prepare body
     let body: FormData | string | undefined;

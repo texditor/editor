@@ -1,37 +1,37 @@
 import type {
-  TexditorInterface,
-  BlockNode,
-  BlockModelInterface
+  BaseModelConfig,
+  BaseModelInterface,
+  BaseNode,
+  FileItemNode,
+  ModelConstructor
 } from "@/types";
-export interface FileActionModelInstanceInterface {
-  new (
-    editor: TexditorInterface,
-    item: HTMLElement,
-    container: HTMLElement,
-    fileBlock: BlockNode
-  ): FileActionModelInterface;
+
+/**
+ * Block model constructor type
+ * Specialized constructor that creates ActionModelInterface instances
+ * with ActionModelConfig
+ */
+export type FileActionModelConstructor = ModelConstructor<FileActionModelInterface, FileActionModelConfig>;
+
+/**
+ * File action DOM node interface
+ * Extends HTMLElement with action model reference
+ */
+export interface FileActionNode extends BaseNode {
+  /** Reference to the action model instance */
+  baseModel: FileActionModelInterface;
 }
 
-export interface FileActionModelInterface {
-  onLoad(): void;
-  create(): HTMLElement;
-  onClick(evt: Event): void;
-  onCreate?(el: HTMLElement): HTMLElement;
-  getId(): string;
-  getName(): string;
-  getName(): string;
-  getItem(): HTMLElement;
-  getItemIndex(): number;
-  getNode(): HTMLElement | null;
-  getContainer(): HTMLElement;
-  getNode(): BlockNode;
-  getBlockModel(): BlockModelInterface;
-  isVisible(): boolean;
-  refresh(): void;
-  menuConfig(): {
-    title: string;
-    items: [] | HTMLElement[];
-    onCreate?: CallableFunction;
-  };
-  name: string;
+/**
+ * File action model configuration interface
+ * @property menu - Whether action shows a menu on click
+ * @property confirm - Whether action requires confirmation before execution
+ */
+export interface FileActionModelConfig extends BaseModelConfig {
+  actions: FileActionModelInterface[]
+}
+
+export interface FileActionModelInterface extends BaseModelInterface<FileActionNode> {
+  setItemNode(itemNode: FileItemNode): void
+  getItemNode(): FileItemNode | null;
 }

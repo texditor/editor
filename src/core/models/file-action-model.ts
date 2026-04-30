@@ -1,186 +1,52 @@
 import type {
-  BlockModelInterface,
   FileActionModelInterface,
-  BlockNode,
-  RenderIconContent,
-  TexditorInterface
+  FileActionModelConfig,
+  FileItemNode,
+  FileActionModelConstructor,
+  FileActionNode,
+  BlockNode
 } from "@/types";
-import { generateRandomString } from "@/utils/common";
-import { addClass, append, make, query } from "@/utils/dom";
-import { on } from "@/utils/events";
-import { renderIcon } from "@/utils/icon";
+import BaseModel from "./base-model";
 
-export default class FileActionModel implements FileActionModelInterface {
-  name: string = "";
-  className: string = "";
-  protected translation: string = "";
-  protected defaultTitle: string = "";
-  protected tagName: string = "div";
-  protected editor: TexditorInterface;
-  protected icon: RenderIconContent = "";
-  protected prepare: boolean = false;
-  private randomId: string = generateRandomString(10);
-  private item: HTMLElement;
-  private container: HTMLElement;
-  private currentBlockElement: BlockNode;
-
-  constructor(
-    editor: TexditorInterface,
-    item: HTMLElement,
-    container: HTMLElement,
-    fileBlockElement: BlockNode
-  ) {
-    this.editor = editor;
-    this.item = item;
-    this.container = container;
-    this.currentBlockElement = fileBlockElement;
-    this.onLoad();
-
-    this.editor.events.add("file:actions:render:end", () => {
-      this.refresh();
-    });
+export default class FileActionModel extends BaseModel<FileActionNode> implements FileActionModelInterface {
+  private itemNode?: FileItemNode;
+  private blockNode?: BlockNode;
+  /**
+  * Set up global configuration
+  * @param config - Partial configuration
+  * @returns Model constructor
+  */
+  public static setup(
+    config: Partial<FileActionModelConfig>
+  ): FileActionModelConstructor {
+    return super.setup(config) as FileActionModelConstructor;
   }
 
-  onLoad(): void { }
-  onClick(_evt: Event) { }
-  onCreate(el: HTMLElement): HTMLElement {
-    return el;
+  setItemNode(itemNode: FileItemNode): void {
+    this.itemNode = itemNode;
   }
 
-  menuConfig(): {
-    title: string;
-    items: [] | HTMLElement[];
-    onCreate?: CallableFunction;
-  } {
+  getItemNode(): FileItemNode | null {
+    return this.itemNode || null;
+  }
+
+  setBlockNode(blockNode: BlockNode): void {
+    this.blockNode = blockNode;
+  }
+
+  getBlockNode(): BlockNode | null {
+    return this.blockNode || null;
+  }
+
+  /**
+ * Parent model configuration
+ * @returns Parent model configuration
+ */
+  protected parentСonfig(): Partial<FileActionModelConfig> {
     return {
-      title: "",
-      items: []
-    };
-  }
-
-  private handleClick(evt: Event) {
-    this.onClick(evt);
-
-    const eventTriggrer = () => {
-      const eventName = this.getName() + "FileItem";
-      if (eventName) {
-        this.editor.events.change({
-          type: eventName,
-          blockElement: this.getNode(),
-          item: this.getItem(),
-          index: this.getItemIndex(),
-          container: this.getContainer(),
-          isFileAction: true
-        });
-      }
-    };
-
-    if (this.prepare) {
-      const menu = this.render();
-      if (menu) append(this.getNode(), menu);
-    } else {
-      this.refresh();
-      eventTriggrer();
+      __modelCode: 'fileAction',
+      visibleTitle: false,
+      className: 'tex-file-action'
     }
-  }
-
-  protected render(): HTMLElement | null {
-    return null;
-  }
-
-  getId(): string {
-    return (
-      "tex-file-action-" +
-      this.getName() +
-      "-" +
-      this.randomId
-    );
-  }
-
-  getNode(): HTMLElement | null {
-    return document.getElementById(this.getId());
-  }
-
-  getName(): string {
-    return this.name;
-  }
-
-  getItem(): HTMLElement {
-    return this.item;
-  }
-
-  getItemIndex(): number {
-    const block = this.getNode();
-    let realIndex = 0;
-
-    query(
-      ".tex-file",
-      (file: HTMLDivElement, index: number) => {
-        if (file === this.getItem()) {
-          realIndex = index;
-        }
-      },
-      block
-    );
-
-    return realIndex;
-  }
-
-  getContainer(): HTMLElement {
-    return this.container;
-  }
-
-  getNode(): BlockNode {
-    return this.currentBlockElement;
-  }
-
-  getBlockModel(): BlockModelInterface {
-    return this.currentBlockElement.baseModel;
-  }
-
-  create(): HTMLElement {
-    const cssName =
-      "tex-files-action-item-" + this.getName() + " " + this.className;
-
-    this.handleClick = this.handleClick.bind(this);
-
-    const elem = make(this.tagName, (act: HTMLDivElement) => {
-      act.id = this.getId();
-      addClass(act, "tex-files-action " + cssName);
-      act.setAttribute(
-        "title",
-        this.editor.i18n.get(this.translation, this.defaultTitle)
-      );
-
-      Object.defineProperty(act, "fileAction", {
-        value: this,
-        writable: true
-      });
-
-      if (this.icon) {
-        act.innerHTML = renderIcon(this.icon, {
-          width: 18,
-          height: 18
-        });
-      }
-
-      on(act, "click.fileAction", (evt) => {
-        this.handleClick(evt);
-      });
-    });
-
-    this.onCreate(elem);
-
-    return this.onCreate(elem);
-  }
-
-  refresh(): void {
-    const element = this.getNode();
-
-    if (element) element.style.display = !this.isVisible() ? "none" : "";
-  }
-
-  isVisible() {
-    return true;
   }
 }

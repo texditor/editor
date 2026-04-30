@@ -15,7 +15,6 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
   * @returns Model constructor
   */
   public static setup(
-    this: ToolModelConstructor,
     config: Partial<ToolModelConfig>
   ): ToolModelConstructor {
     return super.setup(config) as ToolModelConstructor;
@@ -27,7 +26,8 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
    */
   protected parentСonfig(): Partial<ToolModelConfig> {
     return {
-      __modelCode: 'tool'
+      __modelCode: 'tool',
+      tagName: "div"
     }
   }
 

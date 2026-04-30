@@ -46,12 +46,14 @@ export interface BaseNode extends HTMLElement {
  */
 export interface BaseModelConfig {
   name: string;
+  nodeTagName: string;
   translation: string;
   icon: RenderIconContent;
   visibleIcon: boolean;
   iconWidth: number;
   iconHeight: number;
   className: string;
+  attributeTitle: boolean;
   visibleTitle: boolean;
   __modelCode: string;
   [key: string]: unknown;
@@ -78,6 +80,12 @@ export interface BaseModelInterface<TNode extends BaseNode = BaseNode> {
    * @returns Model name string
    */
   getName(): string;
+
+  /**
+   * Get model node tag name
+   * @returns Tag name string (default: 'div')
+   */
+  getNodeTagName(): string
 
   /**
    * Get model ID
@@ -132,6 +140,12 @@ export interface BaseModelInterface<TNode extends BaseNode = BaseNode> {
    * @returns True if title should be always visible
    */
   isVisibleTitle(): boolean;
+
+  /**
+   * Checks if the attribute title is configured to be always visible.
+   * @returns {boolean} True if the 'attributeTitle' config option is enabled, false otherwise.
+   */
+  isAttributeTitle(): boolean
 
   /**
    * Check if icon is always visible

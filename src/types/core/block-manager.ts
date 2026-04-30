@@ -71,15 +71,14 @@ export interface BlockManagerInterface {
    * @param targetNode - Target element or event target
    * @returns Parent block node or null
    */
-  findParent(targetNode: EventTarget | HTMLElement): BlockNode | null;
+  findParent(targetNode: EventTarget | BlockNode | HTMLElement): BlockNode | null;
 
   /**
    * Gets the index of a block
    * @param node - Target node (defaults to current block)
-   * @param findParent - Whether to find parent block of the node
    * @returns Block index
    */
-  getIndex(node?: BlockNode | HTMLElement | EventTarget, findParent?: boolean): number;
+  getIndex(node?: BlockNode | HTMLElement | EventTarget): number;
 
   /**
    * Sets the active block index and updates UI

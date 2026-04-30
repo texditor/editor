@@ -1,31 +1,35 @@
-import type { FileActionModelInterface, RenderIconContent } from "@/types";
+import type {
+  FileActionModelConfig,
+  FileActionModelInterface,
+  FileActionNode
+} from "@/types";
 import { IconDownload } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
+import { attr } from "@/utils";
 
-export default class DownloadFileAction
-  extends FileActionModel
-  implements FileActionModelInterface
-{
-  name: string = "download";
-  protected icon: RenderIconContent = IconDownload;
-  protected tagName: string = "a";
-  protected translation: string = "downloadFile";
-  protected defaultTitle: string = "Download file";
+export default class DownloadFileAction extends FileActionModel implements FileActionModelInterface {
+  protected configure(): Partial<FileActionModelConfig> {
+    return {
+      name: 'download',
+      icon: IconDownload,
+      nodeTagName: 'a',
+      translation: 'downloadFile',
+    }
+  }
 
-  onCreateNode(el: HTMLLinkElement): HTMLElement {
-    const currentItem = this.getItem();
-
-    if (currentItem) {
-      const url = currentItem?.dataset?.url;
-      const name = currentItem?.fileName || "";
+  protected onMount(node: FileActionNode): void {
+    const itemNode = this.getItemNode();
+    if (itemNode) {
+      const url = itemNode.fileUrl;
+      const name = itemNode.fileName || "";
 
       if (url) {
-        el.setAttribute("download", name || url.split("/").pop() || "");
-        el.setAttribute("href", url);
-        el.setAttribute("target", "_blank");
+        attr(node, {
+          href: url,
+          target: '_blank',
+          download: name || url.split("/").pop() || ""
+        })
       }
     }
-
-    return el;
   }
 }

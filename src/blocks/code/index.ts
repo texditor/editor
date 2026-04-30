@@ -11,6 +11,7 @@ import {
   attr,
   closest,
   css,
+  data,
   html,
   make,
   prepend,
@@ -107,7 +108,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                       query("." + cssName + "-menu-item", (searchItem: HTMLDivElement) => {
                         if (text) {
                           const itemText = searchItem.textContent?.toLowerCase() || '';
-                          const itemKey = searchItem.dataset.langKey || '';
+                          const itemKey = data(searchItem, 'langKey') || '';
 
                           if (!itemText.includes(text) && !itemKey.includes(text)) {
                             css(searchItem, 'display', 'none');
@@ -117,7 +118,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                         } else {
                           css(searchItem, 'display', '');
                         }
-                      });
+                      }, blockNode);
                     });
                   });
                   append(search, searchInput);

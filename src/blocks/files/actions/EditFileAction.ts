@@ -1,4 +1,8 @@
-import type { FileActionModelInterface, RenderIconContent } from "@/types";
+import type {
+  FileActionModelConfig,
+  FileActionModelInterface,
+  FilesBlockModelInterface
+} from "@/types";
 import { IconPencil } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
 import {
@@ -7,168 +11,277 @@ import {
   attr,
   closest,
   css,
-  html,
   make,
-  query
+  prepend,
+  query,
+  queryList
 } from "@/utils/dom";
 import { off, on, rebind } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
-import { encodeHtmlSpecialChars } from "@/utils";
+import { executeMethodIfExists, generateRandomString } from "@/utils";
 
-export default class EditFileAction
-  extends FileActionModel
-  implements FileActionModelInterface {
-  name: string = "edit";
-  prepare: boolean = true;
-  protected icon: RenderIconContent = IconPencil;
-  protected translation: string = "edit";
-  protected defaultTitle: string = "Edit";
+/**
+ * Handles the "edit" action for file items.
+ * Creates a popup form to edit file name, caption, and description.
+ */
+export default class EditFileAction extends FileActionModel implements FileActionModelInterface {
+  /** Reference to the popup DOM element */
+  private popupNode: HTMLElement | null = null;
+  /** Stores timeout IDs for error message hiding */
+  private timeouts: Record<string, number | undefined> = {}
 
-  onClick() { }
-
-  private afterSave(item: HTMLElement) {
-    const caption = item?.dataset?.caption || "",
-      desc = item?.dataset?.desc || "";
-
-    if (caption) {
-      query(
-        ".tex-file-caption",
-        (el: HTMLElement) => {
-          html(el, encodeHtmlSpecialChars(caption));
-        },
-        item
-      );
-    }
-
-    if (desc) {
-      query(
-        ".tex-file-desc",
-        (el: HTMLElement) => {
-          html(el, encodeHtmlSpecialChars(desc));
-        },
-        item
-      );
+  /**
+   * Configures the action with name and icon
+   */
+  protected configure(): Partial<FileActionModelConfig> {
+    return {
+      name: 'edit',
+      icon: IconPencil,
     }
   }
 
-  protected render(): HTMLElement | null {
-    const block = this.getNode(),
-      uniqueId = this.getId(),
-      item = this.getItem();
+  /** Handles click event  */
+  protected onClick(): void {
+    this.createPopup();
+  }
 
-    return make("div", (editWrap: HTMLDivElement) => {
-      const closePopup = () => block.removeChild(editWrap);
+  /**
+   * Creates and displays the edit popup forms
+   */
+  protected createPopup() {
+    const { i18n } = this.editor,
+      eid = this.getEventId(),
+      cssName = 'tex-files-edit-popup',
+      cssForm = 'tex-files-edit-form',
+      blockNode = this.getBlockNode(),
+      itemNode = this.getItemNode(),
+      model = blockNode?.baseModel as FilesBlockModelInterface;
 
-      rebind(
-        document,
-        "click.clfp" + uniqueId,
-        (evt) => {
-          if (closest(editWrap, evt.target)) {
-            off(document, "click.clfp");
-            closePopup();
-          }
-        },
-        true
-      );
+    if (blockNode && itemNode && model) {
+      this.popupNode = make('div', (popup: HTMLDivElement) => {
+        addClass(popup, cssName);
 
-      addClass(editWrap, "tex-file-edit tex-animate-fadeIn");
-      append(
-        editWrap,
-        make("div", (editContent: HTMLDivElement) => {
-          addClass(editContent, "tex-file-edit-content");
-          append(editContent, this.renderEditItem(item));
-          const reposition = () => {
-            setTimeout(() => {
-              if (
-                block.offsetHeight <
-                editContent.offsetHeight + item.offsetTop
-              ) {
-                css(
-                  editContent,
-                  "top",
-                  block.offsetHeight - editContent.offsetHeight - 48
-                );
-              } else {
-                css(editContent, "top", item.offsetTop - 24);
+        const popupOverlay = make('div', (overlay: HTMLDivElement) => {
+          addClass(overlay, `${cssName}-overlay tex-animate-fadeIn`);
+
+          const popupContent = make('div', (content: HTMLDivElement) => {
+            addClass(content, `${cssName}-content`);
+
+            // Form header with title
+            const formHeader = make("div", (div: HTMLDivElement) => {
+              addClass(div, cssForm + "-header");
+              div.textContent = i18n.get("edit", "Edit");
+            });
+
+            // Form body with dynamic input fields
+            const formBody = make('div', (body: HTMLDivElement) => {
+              addClass(body, cssForm + '-body');
+
+              /**
+               * Creates an input field if it's visible per model configuration
+               * @param name - Field name (name, caption, desc)
+               * @param translation - Translation key for placeholder
+               */
+              const createInput = (name: string, translation: string = ''): HTMLElement | null => {
+                const inputId = `name-${generateRandomString(12)}`,
+                  upperName = name.charAt(0).toUpperCase() + name.slice(1);
+                const isRequired = executeMethodIfExists(model, 'isRequiredField' + upperName);
+
+                if (executeMethodIfExists(model, 'isVisibleField' + upperName)) {
+                  return make('div', (field: HTMLDivElement) => {
+                    addClass(field, cssForm + '-field ' + cssForm + '-field-' + name);
+
+                    const input = make("input", (input: HTMLInputElement) => {
+                      const prop = Object.getOwnPropertyDescriptor(itemNode, 'file' + upperName);
+                      input.type = "text";
+                      input.id = inputId;
+                      input.value = prop?.value || '';
+                      attr(input, "placeholder", `${i18n.get(translation ? translation : name)}` + (isRequired ? '*' : ''));
+                      addClass(input, 'tex-input ' + cssForm + '-input-' + name);
+                    }) as HTMLInputElement;
+
+                    append(field, input);
+
+                    // Add error label for required fields
+                    if (isRequired) {
+                      const errorLabel = make('label', (label: HTMLLabelElement) => {
+                        addClass(label, 'tex-message tex-message-error tex-hidden tex-animate-fadeIn');
+                        attr(label, 'for', inputId);
+                        label.textContent = i18n.get('requiredField', 'Required field');
+                      }) as HTMLLabelElement;
+
+                      append(field, errorLabel);
+                    }
+                  })
+                }
+
+                return null;
               }
-            }, 1);
-          };
-          rebind(window, "resize.actEdit" + uniqueId, reposition);
-          reposition();
-        })
-      );
+
+              // Create individual fields
+              const nameInput = createInput('name', 'fileName'),
+                captionInput = createInput('caption'),
+                descInput = createInput('desc');
+
+              if (nameInput) append(body, nameInput);
+              if (captionInput) append(body, captionInput);
+              if (descInput) append(body, descInput);
+            });
+
+            // Form footer with action buttons
+            const formFooter = make("div", (footer: HTMLDivElement) => {
+              addClass(footer, cssForm + "-footer");
+              const btnCss = 'tex-btn tex-btn-radius tex-btn-padding';
+
+              const saveButton = make("button", (btn: HTMLButtonElement) => {
+                btn.type = "button";
+                addClass(btn, btnCss + " tex-btn-primary");
+                btn.textContent = i18n.get("save", "Save");
+                on(btn, "click", (evt: MouseEvent) => this.saveHandler(evt));
+              });
+
+              const cancelButton = make("button", (btn: HTMLButtonElement) => {
+                btn.type = "button";
+                addClass(btn, btnCss + " tex-btn-secondary");
+                btn.textContent = i18n.get("сancel", "Cancel");
+                on(btn, "click", () => this.removePopup());
+              });
+
+              append(footer, [saveButton, cancelButton]);
+            });
+
+            append(content, [formHeader, formBody, formFooter]);
+
+            // Reposition popup based on available space
+            const reposition = () => {
+              setTimeout(() => {
+                if (
+                  blockNode.offsetHeight <
+                  content.offsetHeight + itemNode.offsetTop
+                ) {
+                  css(content, "top", blockNode.offsetHeight - content.offsetHeight + itemNode.offsetHeight / 2);
+                } else {
+                  css(content, "top", itemNode.offsetTop);
+                }
+              }, 1);
+            };
+
+            rebind(window, "resize.efa" + eid, () => reposition());
+            reposition();
+          });
+
+          append(overlay, popupContent);
+        });
+
+        append(popup, popupOverlay);
+
+        // Close popup when clicking outside
+        on(document, 'click.efa' + eid, (evt: MouseEvent) => {
+          if (!closest(evt.target, popup)) {
+            off(document, 'click.efa' + eid);
+            this.removePopup();
+          }
+        }, true)
+      })
+
+      prepend(blockNode, this.popupNode);
+    }
+  }
+
+  /**
+   * Handles save button click
+   * @param _evt - Click event
+   */
+  protected saveHandler(_evt: MouseEvent) {
+    const { events } = this.editor,
+      blockNode = this.getBlockNode(),
+      popupNode = this.popupNode,
+      itemNode = this.getItemNode(),
+      formCss = 'tex-files-edit-form',
+      model = blockNode?.baseModel as FilesBlockModelInterface;
+
+    if (!blockNode || !itemNode || !popupNode || !model) {
+      this.removePopup();
+      return;
+    }
+
+    const requiredStatus = (name: string): boolean => {
+      const upperName = name.charAt(0).toUpperCase() + name.slice(1);
+      const [field] = queryList('.' + formCss + '-field-' + name, popupNode) as HTMLInputElement[];
+
+      if (!field) return false;
+
+      const [input] = queryList('.' + formCss + '-input-' + name, field) as HTMLInputElement[];
+
+      if (
+        (!input || (input && isEmptyString(input.value))) &&
+        executeMethodIfExists(model, 'isRequiredField' + upperName)
+      ) {
+        // Show error message
+        query('.tex-message-error', (errorLabel: HTMLLabelElement) => {
+          css(errorLabel, 'display', 'block');
+
+          clearTimeout(this.timeouts[name]);
+          this.timeouts[name] = setTimeout(() => {
+            css(errorLabel, 'display', '');
+          }, model.getMessageTimeout());
+        }, field)
+        return false;
+      }
+
+      return true;
+    }
+
+    const reqName = requiredStatus('name'),
+      reqCaption = requiredStatus('caption'),
+      reqDesc = requiredStatus('desc');
+
+    if (!reqName || !reqCaption || !reqDesc) return;
+
+    const saveField = (name: string) => {
+      const [field] = queryList('.' + formCss + '-field-' + name, popupNode) as HTMLInputElement[];
+
+      if (field) {
+        const [input] = queryList('.' + formCss + '-input-' + name, field) as HTMLInputElement[];
+
+        if (input) {
+          const value = input.value || '';
+
+          query(".tex-file-" + name, (el: HTMLElement) => {
+            el.textContent = value;
+
+            Object.defineProperty(itemNode, "file" + name.charAt(0).toUpperCase() + name.slice(1), {
+              value: value,
+              writable: true,
+            });
+          }, itemNode);
+        }
+      }
+    }
+
+    saveField('name');
+    saveField('caption');
+    saveField('desc');
+
+    this.removePopup();
+    events.change({
+      type: "changeFileItem",
+      blockNode: this.getBlockNode(),
+      item: itemNode
     });
   }
 
-  protected renderEditItem(item: HTMLElement) {
-    const { events, i18n } = this.editor;
+  /** Removes the popup and cleans up event listeners */
+  private removePopup(): void {
+    const eid = this.getEventId();
+    off(document, "click.efa" + eid);
+    off(window, "resize.efa" + eid);
+    this.popupNode?.remove();
+    this.popupNode = null;
+  }
 
-    return make("div", (el: HTMLElement) => {
-      addClass(el, "tex-file-edit-popup");
-
-      const captionImput = make("input", (input: HTMLInputElement) => {
-        input.type = "text";
-        input.value = item.dataset.caption || "";
-        attr(input, "placeholder", i18n.get("caption", "Caption"));
-        addClass(input, "tex-input tex-files-input");
-      }) as HTMLInputElement,
-        descInput = make("input", (input: HTMLInputElement) => {
-          input.type = "text";
-          input.value = item.dataset.desc || "";
-          attr(input, "placeholder", i18n.get("desc", "Description"));
-          addClass(input, "tex-input tex-files-input");
-        }) as HTMLInputElement;
-
-      append(el, [
-        make("div", (div: HTMLDivElement) => {
-          addClass(div, "tex-file-edit-popup-h");
-          div.textContent = i18n.get("edit", "Edit");
-        }),
-        captionImput,
-        descInput,
-        make("div", (div: HTMLDivElement) => {
-          addClass(div, "tex-file-edit-popup-btns");
-          append(div, [
-            make("button", (btn: HTMLButtonElement) => {
-              btn.type = "button";
-              addClass(
-                btn,
-                "tex-btn tex-btn-primary tex-btn-radius tex-btn-padding"
-              );
-              btn.textContent = i18n.get("save", "Save");
-              on(btn, "click.sv", () => {
-                document.body.click();
-                const captionValue = captionImput?.value || "",
-                  descValue = descInput?.value || "";
-
-                if (!isEmptyString(captionValue))
-                  item.dataset.caption = captionValue;
-
-                if (!isEmptyString(descValue)) item.dataset.desc = descValue;
-
-                this.afterSave(item);
-
-                events.change({
-                  type: "changeFileItem",
-                  blockNode: this.getNode(),
-                  item: item
-                });
-              });
-            }),
-            make("button", (btn: HTMLButtonElement) => {
-              btn.type = "button";
-              addClass(
-                btn,
-                "tex-btn tex-btn-secondary tex-btn-radius tex-btn-padding"
-              );
-              btn.textContent = i18n.get("сancel", "Сancel");
-              on(btn, "click.cn", () => {
-                document.body.click();
-              });
-            })
-          ]);
-        })
-      ]);
-    });
+  /** Cleanup when destroying the action */
+  destroy(): void {
+    this.removePopup();
   }
 }

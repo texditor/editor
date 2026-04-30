@@ -17,16 +17,16 @@ import {
  * Supports both mouse and touch events with customizable handles
  */
 export default class Sortable implements SortableInerface {
-    private container: HTMLElement;           // The container element that holds sortable items
-    private options: SortableOptions;          // Configuration options for the sortable behavior
+    private container: HTMLElement;                  // The container element that holds sortable items
+    private options: SortableOptions;                // Configuration options for the sortable behavior
     private draggedItem: HTMLElement | null = null;  // Currently being dragged element
-    private startY: number = 0;                 // Initial Y coordinate of drag start
-    private startTop: number = 0;                // Initial top position of dragged item
-    private placeholder: HTMLElement;            // Placeholder element shown during drag
-    private oldIndex: number = -1;                // Original index of dragged item
-    private eid: string;                          // Unique event identifier for this instance
-    private containerRect: DOMRect | null = null; // Container's bounding rectangle at drag start
-    private itemRect: DOMRect | null = null;      // Dragged item's bounding rectangle at drag start
+    private startY: number = 0;                      // Initial Y coordinate of drag start
+    private startTop: number = 0;                    // Initial top position of dragged item
+    private placeholder: HTMLElement;                // Placeholder element shown during drag
+    private oldIndex: number = -1;                   // Original index of dragged item
+    private eid: string = generateRandomString(24);  // Unique event identifier for this instance
+    private containerRect: DOMRect | null = null;    // Container's bounding rectangle at drag start
+    private itemRect: DOMRect | null = null;         // Dragged item's bounding rectangle at drag start
 
     /**
      * Creates a new Sortable instance
@@ -51,8 +51,6 @@ export default class Sortable implements SortableInerface {
             itemSelector: "li"      // Selector for sortable items
         }, options);
 
-        // Generate unique ID for event namespacing
-        this.eid = generateRandomString(24);
         // Create placeholder element for visual feedback during drag
         this.placeholder = this.createPlaceholder();
         // Initialize all sortable items
@@ -103,17 +101,17 @@ export default class Sortable implements SortableInerface {
      * @returns The element that should serve as the drag handle
      */
     private getHandleElement(item: HTMLElement): HTMLElement {
+        const selector = this.options.handleSelector;
+
         // If no handle selector specified, the item itself is the handle
-        if (!this.options.handleSelector) {
-            return item;
-        }
+        if (!selector) return item;
 
         // If selector is a string, find the handle element within the item
-        if (typeof this.options.handleSelector === 'string') {
-            const [handle] = queryList(this.options.handleSelector, item);
+        if (typeof selector === 'string') {
+            const [handle] = queryList(selector, item);
 
             if (!handle) {
-                console.warn(`Handle element "${this.options.handleSelector}" not found, using item itself`);
+                console.warn(`Handle element "${selector}" not found, using item itself`);
                 return item;
             }
 
@@ -121,7 +119,7 @@ export default class Sortable implements SortableInerface {
         }
 
         // Handle selector is already an element
-        return this.options.handleSelector;
+        return selector;
     }
 
     /**

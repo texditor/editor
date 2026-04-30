@@ -17,13 +17,12 @@ import {
   append,
   appendText,
   attr,
+  data,
   getLength,
   html,
   make,
   prepend,
-  query,
-  queryList,
-  toHtml
+  queryList
 } from "@/utils/dom";
 import Sanitizer from "../security/sanitizer";
 import { renderIcon } from "@/utils/icon";
@@ -35,6 +34,7 @@ import BaseModel from "./base-model";
 /**
  * Base block model class - manages block behavior, content, and lifecycle
  */
+// TODO: BlockModel<TConfig>
 export default class BlockModel extends BaseModel<BlockNode> implements BlockModelInterface {
   /** Sortable items manager instance */
   private sortableItems: SortableInerface | null = null;
@@ -45,16 +45,15 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   * @returns Model constructor
   */
   public static setup(
-    this: BlockModelConstructor,
     config: Partial<BlockModelConfig>
   ): BlockModelConstructor {
     return super.setup(config) as BlockModelConstructor;
   }
 
   /**
-* Parent model configuration
-* @returns Parent model configuration
-*/
+  * Parent model configuration
+  * @returns Parent model configuration
+  */
   protected parentСonfig(): Partial<BlockModelConfig> {
     return {
       __modelCode: 'block',
@@ -64,6 +63,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       visibleIcon: false,
       translation: "",
       groupCode: '',
+      contentClassName: '',
       itemTagName: 'li',
       itemName: 'li',
       itemRelatedNames: [],
@@ -97,26 +97,30 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       customSave: false,
       normalize: false,
       convertible: false,
-      sortableItems: false
+      sortableItems: false,
+      dragzoneClassName: 'tex-item-dragzone-default',
+      visibleTitle: false,
+      attributeTitle: false
     }
   }
 
   /**
- * Parent hook called after model node creation
- * @param el - Created model node
- * @returns void
- */
+   * Parent hook called after model node creation
+   * @param el - Created model node
+   * @returns void
+   */
   protected parentOnCreateNode(el: BlockNode): void {
-    const tagName = this.getTagName();
+    const tagName = this.getTagName(),
+      contentClassName = this.getContentClassName();
     const contentNode = make(tagName, (content: HTMLElement) => {
-      addClass(content, 'tex-block-content');
-      if (this.isEmptyDetect()) content.dataset.empty = "true";
+      addClass(content, 'tex-block-content' + (contentClassName ? ' ' + contentClassName : ''));
+      if (this.isEmptyDetect()) data(content, 'empty', 'true');
       if (this.isEditable()) content.contentEditable = "true";
 
       const placeholder = this.getPlaceholder()
 
       if (placeholder && !isEmptyString(placeholder))
-        content.dataset.placeholder = placeholder;
+        data(content, 'placeholder', placeholder);
     });
 
     append(el, contentNode);
@@ -153,10 +157,14 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
               });
 
               setTimeout(() => {
-                const item = this.getItemBody(newIndex);
-                if (item) {
-                  const length = getLength(item);
-                  selectionApi.select(length, length, item);
+                const itemBody = this.getItemBody(newIndex);
+
+                if (itemBody) {
+                  if (attr(itemBody, 'contenteditable') == 'true') {
+                    const length = getLength(itemBody);
+                    selectionApi.select(length, length, itemBody);
+                  } else
+                    itemBody.click();
                 }
               }, 5);
             }
@@ -232,11 +240,11 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   }
 
   /**
-   * Parses block creation schema preparing it for composition
-   * @param item - Block creation schema
+   * Parses block schema preparing it for composition
+   * @param item - Block schema
    * @returns Composition schema
    */
-  protected parse(item: BlockCreateSchema): BlockCreateSchema {
+  protected parse(item: BlockSchema): BlockCreateSchema {
     return item;
   }
 
@@ -245,38 +253,31 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @param item - Block creation schema
    * @returns Composition schema
    */
-  __parse(item: BlockCreateSchema): BlockCreateSchema {
+  __parse(item: BlockSchema): BlockCreateSchema {
     return this.parse(item);
   }
 
-  /**
-   * Get block tag name
-   * @returns Tag name
-   */
+  /** @see BlockModelInterface.getTagName */
   getTagName(): string {
     return this.getConfig("tagName", '');
   }
 
-  /**
-   * Gets the block placeholder text
-   * @returns Placeholder text (empty string if not set)
-   */
+  /** @see BlockModelInterface.getPlaceholder */
   getPlaceholder(): string {
     return this.getConfig('placeholder', '');
   }
 
-  /**
-   * Get group code for categorization
-   * @returns Group code
-   */
+  /** @see BlockModelInterface.getGroupCode */
   getGroupCode(): string {
     return this.getConfig("groupCode", 'block');
   }
 
-  /**
-   * Get content DOM node inside block
-   * @returns Content node
-   */
+  /** @see BlockModelInterface.getContentClassName */
+  getContentClassName(): string {
+    return this.getConfig("contentClassName", '');
+  }
+
+  /** @see BlockModelInterface.getContentNode */
   getContentNode(): HTMLElement {
     const block = this.getNode();
     const [contentNode] = queryList(".tex-block-content", block);
@@ -284,34 +285,22 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return contentNode;
   }
 
-  /**
-   * Check if auto-merge is enabled
-   * @returns True if auto-merge enabled
-   */
+  /** @see BlockModelInterface.isAutoMerge */
   isAutoMerge(): boolean {
     return this.getConfig("autoMerge", true);
   }
 
-  /**
-   * Check if auto-parse is enabled
-   * @returns True if auto-parse enabled
-   */
+  /** @see BlockModelInterface.isAutoParse */
   isAutoParse(): boolean {
     return this.getConfig("autoParse", true);
   }
 
-  /**
-   * Check if Enter key creates new block
-   * @returns True if Enter creates block
-   */
+  /** @see BlockModelInterface.isEnterCreate */
   isEnterCreate(): boolean {
     return this.getConfig("enterCreate", true);
   }
 
-  /**
-   * Check if block is empty
-   * @returns True if block is empty
-   */
+  /** @see BlockModelInterface.isEmpty */
   isEmpty(): boolean {
     const contentNode = this.getContentNode();
 
@@ -342,11 +331,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     );
   }
 
-  /**
-   * Check if specific item is empty
-   * @param index - Item index
-   * @returns True if item is empty
-   */
+  /** @see BlockModelInterface.isEmptyItem */
   isEmptyItem(index: number): boolean {
     const itemBody = this.getItemBody(index);
 
@@ -362,106 +347,67 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     );
   }
 
-  /**
-   * Check if empty detection is enabled
-   * @returns True if empty detection enabled
-   */
+  /** @see BlockModelInterface.isEmptyDetect */
   isEmptyDetect(): boolean {
     return this.getConfig("emptyDetect", false);
   }
 
-  /**
-   * Check if backspace removes block
-   * @returns True if backspace removes block
-   */
+  /** @see BlockModelInterface.isBackspaceRemove */
   isBackspaceRemove(): boolean {
     return this.getConfig("backspaceRemove", true);
   }
 
-  /**
-   * Check if block content is editable
-   * @returns True if editable
-   */
+  /** @see BlockModelInterface.isEditable */
   isEditable(): boolean {
     return this.getConfig("editable", false);
   }
 
-  /**
-   * Check if block items are editable
-   * @returns True if items editable
-   */
+  /** @see BlockModelInterface.isEditableItems */
   isEditableItems(): boolean {
     return this.getConfig("editableItems", false);
   }
 
-  /**
-   * Check if block has single item only
-   * @returns True if single item
-   */
+  /** @see BlockModelInterface.isSingleItem */
   isSingleItem(): boolean {
     return this.getConfig("singleItem", false);
   }
 
-  /**
-   * Check if content is raw text
-   * @returns True if raw content
-   */
+  /** @see BlockModelInterface.isRaw */
   isRaw(): boolean {
     return this.getConfig("raw", false);
   }
 
-  /**
-   * Check if content normalization is enabled
-   * @returns True if normalization enabled
-   */
+  /** @see BlockModelInterface.isNormalize */
   isNormalize(): boolean {
     return this.getConfig("normalize", false);
   }
 
-  /**
-   * Check if block can be converted
-   * @returns True if convertible
-   */
+  /** @see BlockModelInterface.isConvertible */
   isConvertible(): boolean {
     return this.getConfig("convertible", false);
   }
 
-  /**
-   * Check if custom save is enabled
-   * @returns True if custom save enabled
-   */
+  /** @see BlockModelInterface.isCustomSave */
   isCustomSave(): boolean {
     return this.getConfig("customSave", false);
   }
 
-  /**
-   * Check if tools is enabled
-   * @returns True if tools enabled
-   */
+  /** @see BlockModelInterface.isVisibleTools */
   isVisibleTools(): boolean {
     return this.getConfig("visibleTools", false);
   }
 
-  /**
-   * Get list of available tools
-   * @returns Array of tool names
-   */
+  /** @see BlockModelInterface.getAvailableTools */
   getAvailableTools(): string[] {
     return this.getConfig("tools", []) as string[];
   }
 
-  /**
-   * Get related block names
-   * @returns Array of related names
-   */
+  /** @see BlockModelInterface.getRelatedNames */
   getRelatedNames(): string[] {
     return this.getConfig("relatedNames", []) as string[];
   }
 
-  /**
-   * Gets an array of all supported type names
-   * @returns Array of supported type names (includes main type and related types)
-   */
+  /** @see BlockModelInterface.getSupportedNames */
   getSupportedNames(): string[] {
     return [this.getName(), ...this.getRelatedNames()];
   }
@@ -487,9 +433,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    */
   protected onLoad(): void { }
 
-  /**
-   * Sanitize block content for security 
-   */
+  /** @see BlockModelInterface.sanitize */
   sanitize(): void {
     if (this.getConfig("sanitizer", false)) {
       const container = this.toSanitize();
@@ -509,10 +453,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     }
   }
 
-  /**
-   * Get content to sanitize
-   * @returns Content node(s) to sanitize
-   */
+  /** @see BlockModelInterface.toSanitize */
   toSanitize(): BlockNode | HTMLElement | HTMLElement[] | null {
     if (this.isEditableItems()) {
       const bodyNodes: HTMLElement[] = [];
@@ -533,10 +474,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return this.getContentNode();
   }
 
-  /**
-   * Gets the sanitizer configuration for block content
-   * @returns Sanitizer configuration object, or empty object if not set
-   */
+  /** @see BlockModelInterface.getSanitizerConfig */
   getSanitizerConfig(): SanitizerConfig {
     return this.getConfig(
       "sanitizerConfig",
@@ -544,76 +482,52 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     ) as SanitizerConfig
   }
 
-  /**
-   * Get content to normalize
-   * @returns Content node(s) to normalize
-   */
+  /** @see BlockModelInterface.toNormalize */
   toNormalize(): BlockNode | HTMLElement | HTMLElement[] | null {
     return this.toSanitize();
   }
 
-  // Items methods
-
-  /**
-   * Get item tag name
-   * @returns Item tag name
-   */
+  /** @see BlockModelInterface.getItemTagName */
   getItemTagName(): string {
     return this.getConfig("itemTagName", "li");
   }
 
-  /**
-   * Get item CSS class name
-   * @returns Item class name
-   */
+  /** @see BlockModelInterface.getItemClassName */
   getItemClassName(): string {
     return this.getConfig("itemClassName", "");
   }
 
-  /**
-   * Get item body CSS class name
-   * @returns Item body class name
-   */
+  /** @see BlockModelInterface.getItemBodyClassName */
   getItemBodyClassName(): string {
     return this.getConfig("itemBodyClassName", "");
   }
 
-  /**
-   * Get item type
-   * @returns Item type
-   */
+  /** @see BlockModelInterface.getItemName */
   getItemName(): string {
     return this.getConfig("itemName", "li");
   }
 
-  /**
-   * Get related item names
-   * @returns Related item names array
-   */
+  /** @see BlockModelInterface.getItemRelatedNames */
   getItemRelatedNames(): string[] {
     return this.getConfig("itemRelatedNames", []) as string[];
   }
 
-  /**
-   * Gets an array of all supported item type names
-   * @returns Array of supported type names (includes main item type and related types)
-   */
+  /** @see BlockModelInterface.getItemSupportedNames */
   getItemSupportedNames(): string[] {
     return [this.getItemName(), ...this.getItemRelatedNames()];
   }
 
-  /**
-   * Check if items are sortable
-   * @returns True if sortable
-   */
+  /** @see BlockModelInterface.isSortableItems */
   isSortableItems(): boolean {
     return this.getConfig("sortableItems", false);
   }
 
-  /**
-   * Get all items in block
-   * @returns Array of item elements
-   */
+  /** @see BlockModelInterface.getDragzoneClassName */
+  getDragzoneClassName(): string {
+    return this.getConfig('dragzoneClassName', 'tex-item-dragzone-default');
+  }
+
+  /** @see BlockModelInterface.getItems */
   getItems(): HTMLElement[] {
     const contentNode = this.getContentNode();
 
@@ -622,10 +536,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return queryList(':scope > *', contentNode);
   }
 
-  /**
-   * Get number of items
-   * @returns Item count
-   */
+  /** @see BlockModelInterface.getItemsLength */
   getItemsLength(): number {
     return this.getItems().length;
   }
@@ -636,7 +547,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    */
   protected makeItemDragZone(): HTMLSpanElement {
     return make('span', (span: HTMLSpanElement) => {
-      addClass(span, 'tex-item-dragzone');
+      addClass(span, 'tex-item-dragzone ' + this.getDragzoneClassName());
       html(span,
         renderIcon(
           IconMove,
@@ -665,7 +576,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       el.id = this.getId() + "-" + type + "-" + generateRandomString(8);
 
       const body = make('div', (div: HTMLDivElement) => {
-        addClass(div, bodyClassName);
+        addClass(div, 'tex-item-body ' + bodyClassName);
 
         if (this.isEditableItems())
           attr(div, 'contenteditable', 'true');
@@ -699,16 +610,13 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return this.makeItemNode(content);
   }
 
-  /**
-   * Create new item at specified index
-   * @param content - Item content
-   * @param index - Position index (-1 for end)
-   * @returns True if created successfully
-   */
+  /** @see BlockModelInterface.createItem */
   createItem(
     content?: string | unknown,
     index: number = -1,
+    skipEvents: boolean = false
   ): boolean {
+    const { events } = this.editor;
     const contentNode = this.getContentNode();
 
     if (!contentNode)
@@ -743,39 +651,96 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     this.refreshSortableItems();
 
     const newIndex = this.getItemIndex(itemNode);
+    const itemBody = this.getItemBody(newIndex);
 
-    setTimeout(() => this.getItemBody(newIndex)?.focus(), 5);
+    if (!skipEvents) {
+      if (itemBody) {
+        if (attr(itemBody, 'contenteditable') == 'true') {
+          itemBody.focus();
+        } else
+          itemBody.click();
+      }
 
-    return true;
-  }
-
-  /**
-   * Remove item at specified index
-   * @param index - Item index (-1 for last)
-   * @returns True if removed successfully
-   */
-  removeItem(index: number = -1): boolean {
-    const item = this.getItem(index) as HTMLElement;
-
-    if (!item)
-      return false;
-
-    item.remove()
-
-    const length = this.getItemsLength();
-
-    if (!length) {
-      this.getNode()?.remove()
+      events.change({
+        type: "createItem",
+        contentNode: contentNode,
+        blockNode: this.getNode(),
+        index: newIndex
+      });
     }
 
     return true;
   }
 
-  /**
-   * Get item at specified index
-   * @param index - Item index (-1 for last selected)
-   * @returns Item element or null
-   */
+  /** @see BlockModelInterface.moveItem */
+  moveItem(index: number, targetIndex: number): void {
+    const contentNode = this.getContentNode();
+
+    if (!contentNode) return;
+
+    const itemsLength = this.getItemsLength();
+
+    if (itemsLength === 0) return;
+
+    let realIndex = index;
+    if (realIndex < 0) realIndex = 0;
+    if (realIndex >= itemsLength) realIndex = itemsLength - 1;
+
+    let realTargetIndex = targetIndex;
+    if (realTargetIndex <= 0) {
+      realTargetIndex = 0;
+    } else if (realTargetIndex >= itemsLength) {
+      realTargetIndex = itemsLength - 1;
+    }
+
+    if (realIndex === realTargetIndex) return;
+
+    const itemNode = this.getItem(realIndex);
+
+    if (!itemNode) return;
+
+    itemNode.remove();
+
+    if (realTargetIndex === 0) {
+      prepend(contentNode, itemNode);
+    } else {
+      if (realTargetIndex >= itemsLength - 1) {
+        append(contentNode, itemNode);
+      } else {
+        const insertAfterIndex = realTargetIndex - 1;
+        const targetItemNode = this.getItem(insertAfterIndex);
+
+        if (targetItemNode) {
+          after(targetItemNode, itemNode);
+        } else {
+          append(contentNode, itemNode);
+        }
+      }
+    }
+  }
+
+  /** @see BlockModelInterface.removeItem */
+  removeItem(index: number = -1): boolean {
+    const { events } = this.editor;
+    const item = this.getItem(index) as HTMLElement;
+    const realIndex = this.getItemIndex(item) || 0;
+
+    if (!item)
+      return false;
+
+    item.remove();
+
+    events.change({
+      type: "removeItem",
+      contentNode: this.getContentNode(),
+      blockNode: this.getNode(),
+      index: realIndex
+    });
+
+    return true;
+  }
+
+  /** @see BlockModelInterface.getItem */
   getItem(
     index: number
   ): HTMLElement | null {
@@ -802,11 +767,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return items[index] || null;
   }
 
-  /**
-   * Get item body at specified index
-   * @param index - Item index
-   * @returns Item body element or null
-   */
+  /** @see BlockModelInterface.getItemBody */
   getItemBody(
     index: number
   ): HTMLElement | null {
@@ -814,23 +775,12 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
     if (!item) return null;
 
-    let itemBody = null;
+    const [itemBody] = queryList('.tex-item-body', item);
 
-    query(':scope > *', (itemChild: HTMLElement) => {
-
-      if (itemChild.contentEditable == 'true') {
-        itemBody = itemChild;
-      }
-    }, item)
-
-    return itemBody;
+    return itemBody || null;
   }
 
-  /**
-   * Get index of item
-   * @param itemNode - Item element (optional)
-   * @returns Item index
-   */
+  /** @see BlockModelInterface.getItemIndex */
   getItemIndex(itemNode?: HTMLElement): number {
     let index = 0;
     const items = this.getItems(),

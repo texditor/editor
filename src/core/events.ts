@@ -21,6 +21,7 @@ import {
   make,
   parseHtml,
   removeClass,
+  toHtml,
   toTextNode
 } from "@/utils/dom";
 import { off, on, rebind } from "@/utils/events";
@@ -36,11 +37,10 @@ export default class Events implements EventsInterface {
   private triggers: EventTriggerObject = {};
 
   /** Unique identifier for event listeners to prevent conflicts */
-  private eventId: string = '';
+  private eventId: string = generateRandomString(16);
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
-    this.eventId = generateRandomString(16);
     this.onDocumentKeyDownHandle = this.onDocumentKeyDownHandle.bind(this);
     this.onKeyDownHandle = this.onKeyDownHandle.bind(this);
     this.onKeyUpHandle = this.onKeyUpHandle.bind(this);
@@ -323,9 +323,15 @@ export default class Events implements EventsInterface {
    */
   private setIndexByTarget(target?: EventTarget | null) {
     const { blockManager } = this.editor;
-    const targetIndex = blockManager.getIndex(target || undefined, true);
 
-    this.setIndex(targetIndex);
+    if (target) {
+      const blockNode = blockManager.findParent(target);
+
+      if (blockNode) {
+        const targetIndex = blockManager.getIndex(blockNode);
+        this.setIndex(targetIndex);
+      }
+    }
   }
 
   /**
@@ -334,6 +340,7 @@ export default class Events implements EventsInterface {
    */
   private setIndex(index: number) {
     const { blockManager } = this.editor;
+
     const model = blockManager.getModel(index);
     blockManager.use(index);
 
@@ -403,9 +410,13 @@ export default class Events implements EventsInterface {
     this.trigger("keydown", { domEvent: evt });
 
     if (evt.target) {
-      blockManager.use(
-        blockManager.getIndex(evt.target, true)
-      );
+      const blockNode = blockManager.findParent(evt.target);
+
+      if (blockNode) {
+        blockManager.use(
+          blockManager.getIndex(blockNode)
+        );
+      }
     }
 
     const blocksContainer = blockManager.getBlocksContainer(),
@@ -814,7 +825,7 @@ export default class Events implements EventsInterface {
                           if (relatedNames.includes(childNodeName)) {
                             items.push({
                               type: schemaModel.getItemName(),
-                              data: getChildNodes(child)
+                              data: toHtml(getChildNodes(child))
                             })
                           }
                         });

@@ -13,6 +13,7 @@ import {
   attr,
   closest,
   css,
+  data,
   html,
   make,
   query,
@@ -67,13 +68,11 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
         "input-link-" + uniqueId
       ) as HTMLInputElement;
 
-    console.log(formElement, 2, tags, 5, valElement)
-
     if (formElement && valElement) {
       tags.forEach((link) => {
         if (valElement?.value) attr(link, "href", valElement?.value);
 
-        if (formElement.dataset.targetBlank == "Y")
+        if (data(formElement, 'targetBlank') == 'Y')
           attr(link, "target", "_blank");
       });
     }
@@ -105,7 +104,7 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
 
     const linkForm = make("div", (el: HTMLElement) => {
       el.id = "form-link-" + uniqueId;
-      el.dataset.targetBlank = "N";
+      data(el, 'targetBlank', 'N');
       addClass(el, "tex-link-form");
 
       // Create target blank toggle button
@@ -116,12 +115,12 @@ export default class LinkTool extends ToolModel implements ToolModelInterface {
 
           if (targetBlank) {
             addClass(btn, "tex-active");
-            el.dataset.targetBlank = "Y";
+            data(el, 'targetBlank', 'Y');
           }
 
           on(btn, "click.link", () => {
-            const isBlank = el.dataset.targetBlank == "Y";
-            el.dataset.targetBlank = isBlank ? "N" : "Y";
+            const isBlank = data(el, 'targetBlank') == "Y";
+            data(el, 'targetBlank', isBlank ? "N" : "Y");
             toggleClass(btn, "tex-active");
           });
           html(

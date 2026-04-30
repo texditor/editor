@@ -15,7 +15,6 @@ import MainView from "@/views/main";
 import { executeMethodIfExists } from "@/utils/common";
 import { isEmptyString, sanitizeJson } from "@/utils";
 
-
 export default class API implements APIInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
@@ -145,7 +144,7 @@ export default class API implements APIInterface {
    */
   save(): BlockSchema[] {
     const data: BlockSchema[] = [];
-    const { blockManager, events, config } = this.editor,
+    const { blockManager, events } = this.editor,
       root = this.getRoot();
 
     events.trigger("save");
@@ -155,31 +154,22 @@ export default class API implements APIInterface {
     blockManager.getBlockNodes().forEach((el) => {
       events.trigger("saveEach", { blockNode: el });
 
-      if (el.dataset?.type) {
+      const model = el.baseModel;
+
+      if (model.getName()) {
         const extOptions = findDatasetsWithPrefix(el, "options");
         let block: BlockSchema = {
-          type: el.dataset.type,
+          type: model.getName(),
           data: [],
           ...extOptions
         };
 
-        const contentNode = blockManager.getContentNode(el),
-          model = el.baseModel;
+        const contentNode = blockManager.getContentNode(el);
 
         if (contentNode && model) {
           if (model.isCustomSave()) {
             block = executeMethodIfExists(model, '__save', [block, el]) as BlockSchema;
           } else {
-            for (const itemData in el.dataset) {
-              if (
-                (config.get("blockParseDataset", []) as string[]).includes(
-                  itemData
-                )
-              ) {
-                block[itemData] = el.dataset[itemData];
-              }
-            }
-
             if (model.isRaw()) {
               block.data = [contentNode.innerText];
             } else {

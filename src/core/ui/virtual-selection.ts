@@ -27,6 +27,7 @@ export default class VirtualSelection implements VirtualSelectionInterface {
   private selectionRect: HTMLElement | null = null;
   private eventId = 'slUi_' + generateRandomString(8);
   private autoScrollInterval: number | null = null;
+  private startBlock: HTMLElement | null = null;
 
   // Touch delay
   private touchDelayTimeout: number | null = null;
@@ -115,22 +116,6 @@ export default class VirtualSelection implements VirtualSelectionInterface {
   }
 
   /**
-   * Checks if a point is outside the full block boundaries (including margins).
-   * @param point - Point coordinates in document
-   * @param block - The block element
-   * @returns True if point is completely outside the block's visual area
-   * @private
-   */
-  private isPointOutsideFullBlock(point: { x: number; y: number }, block: HTMLElement): boolean {
-    const fullRect = this.getFullBlockRect(block);
-
-    return point.x < fullRect.left ||
-      point.x > fullRect.right ||
-      point.y < fullRect.top ||
-      point.y > fullRect.bottom;
-  }
-
-  /**
    * Checks if the cursor has completely exited the block's visual boundaries.
    * @param currentPoint - Current cursor point
    * @param startBlock - The block where selection started
@@ -185,6 +170,7 @@ export default class VirtualSelection implements VirtualSelectionInterface {
       this.contentEditableStartPoint.x,
       this.contentEditableStartPoint.y
     );
+
     if (!startBlock) return false;
 
     // Check if we've completely exited the block's visual boundaries
@@ -215,18 +201,11 @@ export default class VirtualSelection implements VirtualSelectionInterface {
    * @private
    */
   private createElements(): void {
-    this.selectionRect = make('div', (div: HTMLDivElement) => {
-      addClass(div, 'tex-ui-vs-rect');
-      css(div, {
-        position: "fixed",
-        border: "var(--tex-vs-ui-border)",
-        background: "var(--tex-vs-ui-bg)",
-        pointerEvents: "none",
-        zIndex: 10000,
-        borderRadius: "var(--tex-vs-ui-radius)",
-        display: "none"
-      });
-    });
+    this.selectionRect = make(
+      'div',
+      (div: HTMLDivElement) =>
+        addClass(div, 'tex-ui-vs-rect')
+    );
 
     append(document.body, this.selectionRect);
   }
@@ -442,10 +421,10 @@ export default class VirtualSelection implements VirtualSelectionInterface {
   }
 
   /**
-   * Handles mouse down event to initiate selection.
-   * @param e - The mouse event
-   * @private
-   */
+  * Handles mouse down event to initiate selection.
+  * @param e - The mouse event
+  * @private
+  */
   private onMouseDown(e: MouseEvent) {
     if (e.button !== 0) return;
 
@@ -458,10 +437,11 @@ export default class VirtualSelection implements VirtualSelectionInterface {
     this.hasMoved = false;
     this.startedInContentEditable = this.isInsideContentEditable(target);
     this.contentEditableStartPoint = p;
+    this.startBlock = this.getBlockAtPoint(p.x, p.y);
   }
 
   /**
-   * Handles mouse move event for lasso selection and contentEditable detection.
+   * Handles mouse move event for lasso selection.
    * @param e - The mouse event
    * @private
    */
@@ -476,17 +456,15 @@ export default class VirtualSelection implements VirtualSelectionInterface {
 
     if (Math.abs(dx) > 2 || Math.abs(dy) > 2) this.hasMoved = true;
 
-    // Handle lasso activation from contentEditable with block boundary checking
-    if (this.startedInContentEditable && !this.isLassoActive) {
-      if (this.shouldActivateLassoForMouse(p)) {
+    if (!this.isLassoActive && this.hasMoved && !this.startBlock) {
+      this.startLassoMode();
+    }
+
+    if (!this.isLassoActive && this.hasMoved && this.startBlock) {
+      if (this.hasExitedBlockBoundaries(p, this.startBlock)) {
         this.startLassoMode();
         e.preventDefault();
       }
-    }
-
-    // Handle lasso activation from non-contentEditable areas
-    if (!this.isLassoActive && this.hasMoved && !this.startedInContentEditable) {
-      this.startLassoMode();
     }
 
     if (this.isLassoActive) {
@@ -496,7 +474,7 @@ export default class VirtualSelection implements VirtualSelectionInterface {
   }
 
   /**
-   * Handles mouse up event to finalize selection.
+   *  Handles mouse up event to finalize selection.
    * @private
    */
   private onMouseUp() {
@@ -510,6 +488,7 @@ export default class VirtualSelection implements VirtualSelectionInterface {
     this.isDragging = false;
     this.startedInContentEditable = false;
     this.pendingLassoActivation = false;
+    this.startBlock = null;
 
     if (this.touchDelayTimeout) {
       clearTimeout(this.touchDelayTimeout);
@@ -538,13 +517,14 @@ export default class VirtualSelection implements VirtualSelectionInterface {
     this.isTouchScrolling = false;
     this.pendingLassoActivation = false;
 
-    // Clear any existing timeout
+    // Save block
+    this.startBlock = this.getBlockAtPoint(p.x, p.y);
+
     if (this.touchDelayTimeout) {
       clearTimeout(this.touchDelayTimeout);
       this.touchDelayTimeout = null;
     }
 
-    // Apply touch-action: none immediately to prevent browser navigation gestures
     this.setTouchAction('none');
   }
 
@@ -564,14 +544,11 @@ export default class VirtualSelection implements VirtualSelectionInterface {
 
     const dx = p.x - this.startPointInDocument.x;
     const dy = p.y - this.startPointInDocument.y;
-
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
-    // Detect vertical scrolling - if user is scrolling vertically, cancel lasso activation
     if (!this.isLassoActive && absY > absX && absY > 10) {
       this.isTouchScrolling = true;
-      // Restore touch-action for scrolling
       this.setTouchAction('pan-y');
       if (this.touchDelayTimeout) {
         clearTimeout(this.touchDelayTimeout);
@@ -581,16 +558,20 @@ export default class VirtualSelection implements VirtualSelectionInterface {
       return;
     }
 
-    // Handle lasso activation with delay for all cases
     if (!this.isLassoActive && !this.isTouchScrolling && (absX > 5 || absY > 5)) {
       if (!this.pendingLassoActivation && !this.touchDelayTimeout) {
         this.pendingLassoActivation = true;
 
-        // Set delay before activating lasso
         this.touchDelayTimeout = window.setTimeout(() => {
           if (this.isDragging && !this.isLassoActive && !this.isTouchScrolling) {
-            this.startLassoMode();
-            e.preventDefault();
+            if (!this.startBlock) {
+              this.startLassoMode();
+              e.preventDefault();
+            }
+            else if (this.startBlock && this.hasExitedBlockBoundaries(this.currentPointInDocument, this.startBlock)) {
+              this.startLassoMode();
+              e.preventDefault();
+            }
           }
           this.touchDelayTimeout = null;
           this.pendingLassoActivation = false;
@@ -598,7 +579,6 @@ export default class VirtualSelection implements VirtualSelectionInterface {
       }
     }
 
-    // Cancel pending activation if touch movement is too small (tremor)
     if (absX < 3 && absY < 3 && this.pendingLassoActivation) {
       if (this.touchDelayTimeout) {
         clearTimeout(this.touchDelayTimeout);
@@ -612,7 +592,6 @@ export default class VirtualSelection implements VirtualSelectionInterface {
       e.preventDefault();
     }
 
-    // Prevent default to stop browser navigation gestures when lasso is active or pending
     if (this.pendingLassoActivation || this.isLassoActive) {
       e.preventDefault();
     }
@@ -623,7 +602,6 @@ export default class VirtualSelection implements VirtualSelectionInterface {
    * @private
    */
   private onTouchEnd() {
-    // Clear pending activation
     if (this.touchDelayTimeout) {
       clearTimeout(this.touchDelayTimeout);
       this.touchDelayTimeout = null;
@@ -641,8 +619,8 @@ export default class VirtualSelection implements VirtualSelectionInterface {
     this.isDragging = false;
     this.startedInContentEditable = false;
     this.isTouchScrolling = false;
+    this.startBlock = null;
 
-    // Restore touch-action after interaction ends
     this.setTouchAction('pan-y');
   }
 

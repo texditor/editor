@@ -43,8 +43,8 @@ export default class Extensions implements ExtensionsInterface {
     this.getExtensions().forEach((extension) => {
       const node = extension.getNode();
       if (node) {
-        if (!extension.isActive()) addClass(node, cssName + "-unactive");
-        else removeClass(node, cssName + "-unactive");
+        if (!extension.isActive()) addClass(node, cssName + "-not-active");
+        else removeClass(node, cssName + "-not-active");
 
         if (!extension.isVisible()) css(node, 'display', 'none');
         else css(node, 'display', '')

@@ -1,5 +1,5 @@
 import type { TexditorInterface } from "@/types";
-import { addClass, append, make, query, queryLength } from "@/utils";
+import { addClass, append, executeMethodIfExists, make, query, queryLength } from "@/utils";
 
 export default function ExtensionsView(
   editor: TexditorInterface
@@ -46,6 +46,8 @@ export default function ExtensionsView(
           append(el, groupElement);
         }
       } else append(el, element);
+
+      executeMethodIfExists(extension, '__onMount', [element]);
     })
   });
 

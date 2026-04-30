@@ -1,5 +1,5 @@
 import BoldTool from "./bold";
-import ClearFormatingTool from "./clear-formating";
+import ClearFormattingTool from "./clear-formatting";
 import InlineCodeTool from "./inline-code";
 import ItalicTool from "./italic";
 import LinkTool from "./link";
@@ -9,7 +9,7 @@ import SuperscriptTool from "./superscript";
 
 export {
   BoldTool,
-  ClearFormatingTool,
+  ClearFormattingTool,
   InlineCodeTool,
   ItalicTool,
   LinkTool,

@@ -30,14 +30,19 @@ import {
   before,
   parseHtml,
   attr,
-  toHtml
+  toHtml,
+  data
 } from "@/utils/dom";
 import { off, rebind } from "@/utils/events";
 import { Paragraph } from "@/blocks";
 import VirtualSelection from "./ui/virtual-selection";
 import { VirtualSelectionInterface } from "@/types/core/ui/virtual-selection";
 import { globalStore } from "@/store/globalStore";
-import { decodeHtmlSpecialChars, executeMethodIfExists, isEmptyString } from "@/utils";
+import {
+  decodeHtmlSpecialChars,
+  executeMethodIfExists,
+  generateRandomString
+} from "@/utils";
 export default class BlockManager implements BlockManagerInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
@@ -50,6 +55,9 @@ export default class BlockManager implements BlockManagerInterface {
 
   /** VirtualSelection */
   private virtualSelection: VirtualSelectionInterface | null = null;
+
+  /** Unique identifier for event listeners to prevent conflicts */
+  private eventId: string = generateRandomString(16);
 
   constructor(editor: TexditorInterface) {
     this.editor = editor;
@@ -194,6 +202,10 @@ export default class BlockManager implements BlockManagerInterface {
           selectEnd(item);
       } else {
         contentNode.click();
+
+        if (!model?.isEditableItems() && model.getItemsLength() > 0 && typeof itemIndex === 'number') {
+          model.getItemBody(itemIndex)?.click();
+        }
       }
     }
 
@@ -225,7 +237,9 @@ export default class BlockManager implements BlockManagerInterface {
    * @returns Block node or null if not found
    */
   getNode(index?: number): BlockNode | null {
-    const realIndex = index !== undefined ? index : this.getIndex(),
+    const realIndex = index !== undefined
+      ? index
+      : this.getIndex(),
       blockContainer = this.getBlocksContainer();
 
     if (!blockContainer) return null;
@@ -284,7 +298,7 @@ export default class BlockManager implements BlockManagerInterface {
    * @param targetNode - Target element or event target
    * @returns Parent block node or null
    */
-  findParent(targetNode: EventTarget | HTMLElement): BlockNode | null {
+  findParent(targetNode: EventTarget | BlockNode | HTMLElement): BlockNode | null {
     let node = null;
     const container = this.getBlocksContainer();
 
@@ -314,6 +328,7 @@ export default class BlockManager implements BlockManagerInterface {
     this.blockIndex = index;
     this.clearVirtualSelection();
 
+
     if (root && blockNode) {
       globalStore.set('el', root);
       globalStore.set('index', index);
@@ -326,9 +341,10 @@ export default class BlockManager implements BlockManagerInterface {
         root
       );
 
-      addClass(blockNode, cssName + "-active")
+      addClass(blockNode, cssName + "-active");
+
       actions.create(blockNode);
-      rebind(document, 'dblclick.unactive', () => {
+      rebind(document, 'dblclick.notActive' + this.eventId, () => {
         removeClass(blockNode, cssName + "-active");
       });
     }
@@ -342,7 +358,6 @@ export default class BlockManager implements BlockManagerInterface {
    */
   getIndex(
     node?: BlockNode | HTMLElement | EventTarget,
-    findParent?: boolean
   ): number {
     if (!node)
       return this.blockIndex;
@@ -352,12 +367,10 @@ export default class BlockManager implements BlockManagerInterface {
     const container = this.getBlocksContainer();
 
     if (container) {
-      const realNode = findParent ? this.findParent(node) : node;
-
       query(
         '.tex-block',
         (el: HTMLElement, i: number) => {
-          if (realNode === el) index = i;
+          if (node === el) index = i;
         },
         container
       );
@@ -409,11 +422,16 @@ export default class BlockManager implements BlockManagerInterface {
             const contentNode = this.getContentNode(blockNode);
 
             if (contentNode) {
-              contentNode.dataset["empty"] = !emptyAttr
-                ? "false"
-                : this.isEmpty(index)
-                  ? "true"
-                  : "false";
+              data(
+                contentNode,
+                'empty',
+                (!emptyAttr
+                  ? "false"
+                  : this.isEmpty(index)
+                    ? "true"
+                    : "false"
+                )
+              )
             }
           }
         },
@@ -620,7 +638,7 @@ export default class BlockManager implements BlockManagerInterface {
               if (!skipEvents)
                 this.focus(curIndex);
 
-              executeMethodIfExists(blockInstance, '__onMount')
+              executeMethodIfExists(blockInstance, '__onMount');
 
               if (!skipEvents) {
                 events.change({
@@ -1098,24 +1116,6 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   /**
-   * Cleans up event listeners
-   */
-  destroy() {
-    const modelsStructure = this.getSchemas();
-
-    this.getModels().forEach((model) => {
-      if (model.destroy) model.destroy();
-    })
-
-    modelsStructure.forEach((modelStruct) => {
-      if (modelStruct.model.destroy) modelStruct.model.destroy();
-    });
-
-    off(document, 'dblclick.unactive');
-    this.destroyVirtualSelection();
-  }
-
-  /**
    * Converts HTML string to an array of BlockSchema objects or text strings.
    * 
    * @param html - HTML string to parse
@@ -1249,7 +1249,7 @@ export default class BlockManager implements BlockManagerInterface {
         const parsedSchema = executeMethodIfExists(
           blockModel,
           '__parse',
-          [newSchema]
+          [blockSchema]
         ) as BlockCreateSchema;
 
         blockNode = executeMethodIfExists(blockModel, '__compose', [parsedSchema]) as BlockNode;
@@ -1336,4 +1336,21 @@ export default class BlockManager implements BlockManagerInterface {
     return returnElement ? [element] : getChildNodes(element);
   }
 
+  /**
+   * Cleans up event listeners
+   */
+  destroy() {
+    const modelsStructure = this.getSchemas();
+
+    this.getModels().forEach((model) => {
+      if (model.destroy) model.destroy();
+    })
+
+    modelsStructure.forEach((modelStruct) => {
+      if (modelStruct.model.destroy) modelStruct.model.destroy();
+    });
+
+    off(document, 'dblclick.notActive' + this.eventId);
+    this.destroyVirtualSelection();
+  }
 }

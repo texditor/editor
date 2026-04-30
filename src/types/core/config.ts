@@ -2,6 +2,7 @@ import type {
   ActionModelConstructor,
   BlockModelConstructor,
   ExtensionModelConstructor,
+  LocaleMap,
   ToolModelConstructor
 } from "@/types";
 
@@ -34,13 +35,10 @@ export interface ConfigStoreInterface {
   locale?: string;
 
   /** Localizations */
-  locales?: object;
+  locales?: LocaleMap[];
 
   /** Default locale fallback */
   defaultLocale?: string;
-
-  /** Dataset attributes to preserve during block parsing */
-  blockParseDataset?: string[];
 
   /** Array of action model instances */
   actions?: ActionModelConstructor[];

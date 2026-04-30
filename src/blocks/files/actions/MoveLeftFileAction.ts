@@ -1,40 +1,34 @@
-import type { FileActionModelInterface, RenderIconContent } from "@/types";
+import type { FileActionModelConfig, FileActionModelInterface } from "@/types";
 import { IconArrowLeft } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
 
-export default class MoveLeftFileAction
-  extends FileActionModel
-  implements FileActionModelInterface
-{
-  name: string = "moveLeft";
-  protected icon: RenderIconContent = IconArrowLeft;
-  protected translation: string = "moveLeft";
-  protected defaultTitle: string = "Move left";
-
-  private use() {
-    const model = this.getBlockModel(),
-      currentItem = this.getItem();
-
+export default class MoveLeftFileAction extends FileActionModel implements FileActionModelInterface {
+  protected configure(): Partial<FileActionModelConfig> {
     return {
-      model,
-      currentItem
-    };
+      name: 'moveLeft',
+      icon: IconArrowLeft
+    }
   }
 
   onClick() {
-    const { model, currentItem } = this.use();
+    const blockNode = this.getBlockNode();
+    const itemNode = this.getItemNode();
+    const model = blockNode?.baseModel;
 
-    if (currentItem && model?.moveItem) {
-      model.moveItem(
-        currentItem,
-        (model?.getItem(currentItem || 0) as number) - 1
-      );
+    if (blockNode && model && itemNode) {
+      const index = model.getItemIndex(itemNode);
+      model.moveItem(index, index - 1);
     }
   }
 
   isVisible(): boolean {
-    const { model, currentItem } = this.use();
+    const blockNode = this.getBlockNode();
+    const itemNode = this.getItemNode();
+    const model = blockNode?.baseModel;
 
-    return (model?.getItem(currentItem || 0) as number) !== 0;
+    if (blockNode && model && itemNode) 
+      return model.getItemIndex(itemNode) > 0;
+    
+    return false;
   }
 }

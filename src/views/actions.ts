@@ -1,6 +1,6 @@
 import { IconBars } from "@/icons";
 import { TexditorInterface } from "@/types";
-import { on } from "@/utils";
+import { executeMethodIfExists, on } from "@/utils";
 import { append, make, html, addClass, css } from "@/utils/dom";
 import { renderIcon } from "@/utils/icon";
 
@@ -42,6 +42,7 @@ export default function ActionsView(editor: TexditorInterface): HTMLElement {
                   const actionEl = action.getNode();
                   append(cnt, actionEl);
                   css(actionEl, 'display', !action.isVisible() ? "none" : "");
+                  executeMethodIfExists(action, '__onMount', [actionEl]);
                 })
               })
             );

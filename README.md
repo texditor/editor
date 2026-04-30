@@ -52,7 +52,7 @@ import { Undo, Redo } from "@texditor/editor/extensions";
 
 import {
   BoldTool,
-  ClearFormatingTool,
+  ClearFormattingTool,
   ItalicTool,
   LinkTool,
   SubscriptTool,

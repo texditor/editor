@@ -6,11 +6,12 @@
 }
 
 .tex-ui-vs-rect {
+    display: none;
     position: fixed;
-    border: 2px dashed #3b82f6;
-    background: rgba(59, 130, 246, 0.15);
+    border: var(--tex-vs-ui-border);
+    background: var(--tex-vs-ui-bg);
     pointer-events: none;
     z-index: 10000;
-    border-radius: 4px;
+    border-radius: var(--tex-vs-ui-radius);
     will-change: left, top, width, height;
 }

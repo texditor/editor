@@ -18,7 +18,6 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
   * @returns Model constructor
   */
   public static setup(
-    this: ActionModelConstructor,
     config: Partial<ActionModelConfig>
   ): ActionModelConstructor {
     return super.setup(config) as ActionModelConstructor;

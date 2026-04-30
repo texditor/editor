@@ -63,8 +63,5 @@
   ],
   "engines": {
     "node": ">=22"
-  },
-  "dependencies": {
-    "@priveted/ajax": "^1.0.14"
   }
 }

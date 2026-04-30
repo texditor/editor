@@ -225,6 +225,10 @@
   border: 1px solid var(--tex-input-border);
 }
 
+.tex-hidden {
+  display: none;
+}
+
 .tex-message {
   font-weight: 500;
   font-size: var(--tex-message-font-size);
@@ -321,7 +325,7 @@
   z-index: 999;
 }
 
-.tex-extension-unactive {
+.tex-extension-not-active {
   opacity: 0.4;
 }
 
@@ -356,7 +360,7 @@
   user-select: none !important;
 }
 
-.tex-item-dragzone {
+.tex-item-dragzone-default {
   display: none;
   position: absolute;
   right: 0;

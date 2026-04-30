@@ -262,8 +262,8 @@ export default class SelectionAPI implements SelectionAPIInterface {
 
     if (!currentParagraph) return "";
 
-    const newBlock = document.createElement("div");
-    newBlock.innerHTML = "";
+    const newBlock = make("div");
+    html(newBlock, '');
 
     // Handle split within text node
     if (range.startContainer.nodeType === Node.TEXT_NODE) {

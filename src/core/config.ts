@@ -5,7 +5,6 @@ export default class Config implements ConfigInterface {
 
   constructor(config: ConfigStoreInterface) {
     this.store = {};
-    this.store.blockParseDataset = ["type", "data"];
     Object.assign(this.store, config);
   }
 

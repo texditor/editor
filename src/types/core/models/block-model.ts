@@ -33,6 +33,7 @@ export interface BlockModelSchema {
  * @property icon - Block icon
  * @property autoParse - Automatically parse content
  * @property groupCode - Block group categorization
+ * @property contentClassName - Name of the CSS class of the content node
  * @property backspaceRemove - Remove block on backspace
  * @property visibleTools - Show tools for block
  * @property tools - Available tools list
@@ -50,6 +51,7 @@ export interface BlockModelSchema {
  * @property itemClassName - Item CSS class
  * @property itemBodyClassName - Item body CSS class
  * @property sortableItems - Enable item sorting
+ * @property dragzoneClassName - Name of the drag zone class
  * @property relatedNames - Related block names
  * @property emptyDetect - Enable empty detection
  * @property customSave - Use custom save logic
@@ -78,12 +80,14 @@ export interface BlockModelConfig extends BaseModelConfig {
   itemClassName: string,
   itemBodyClassName: string,
   sortableItems: boolean;
+  dragzoneClassName: string;
   relatedNames: string[];
   emptyDetect: boolean;
   customSave: boolean;
   normalize: boolean;
   placeholder?: string;
   convertible: boolean;
+  contentClassName: string;
   [key: string]: unknown;
 }
 
@@ -129,10 +133,16 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   getPlaceholder(): string;
 
   /**
-   * Get block group code
-   * @returns Group code
+   * Gets the CSS class name for the content element
+   * @returns The CSS class name as a string
    */
-  getGroupCode(): string;
+  getContentClassName(): string;
+
+  /**
+   * Gets content node CSS class name
+   * @returns CSS class name
+   */
+  getContentClassName(): string;
 
   /**
    * Get content DOM node
@@ -189,6 +199,12 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   isSortableItems(): boolean;
 
   /**
+ * Get the name of the drag zone class
+ * @returns {string} Name of the drag zone class
+ */
+  getDragzoneClassName(): string
+
+  /**
    * Get item index
    * @param itemNode - Item element
    * @returns Item index
@@ -199,9 +215,10 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
    * Create new item
    * @param content - Item content
    * @param index - Insert position
+   * @param skipEvents - Skip events
    * @returns True if created
    */
-  createItem(content?: string, index?: number): boolean;
+  createItem(content?: string, index?: number, skipEvents?: boolean): boolean;
 
   /**
    * Remove item
@@ -232,10 +249,10 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
 
   /**
    * Move item to new position
-   * @param item - Item to move
-   * @param index - Target index 
+   * @param item - Item index
+   * @param targetIndex - Target item index 
    */
-  moveItem?(item: HTMLElement, index: number): void;
+  moveItem(index: number, targetIndex: number): void;
 
   /**
    * Get number of items
@@ -389,7 +406,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   */
 }
 
-export type BlockSchemaData = string[] | BlockChildSchema[];
+export type BlockSchemaData = string | string[] | BlockChildSchema[];
 export type BlockSchemaAttr = Record<string, string>;
 
 

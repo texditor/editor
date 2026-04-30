@@ -15,7 +15,7 @@ import {
 } from "@/utils/dom";
 import { off, rebind } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
-import { detectMobileOS, generateRandomString, getCaretPosition } from "@/utils/common";
+import { detectMobileOS, executeMethodIfExists, generateRandomString, getCaretPosition } from "@/utils/common";
 import {
   BoldTool,
   ItalicTool,
@@ -24,7 +24,7 @@ import {
   MarkerTool,
   SubscriptTool,
   SuperscriptTool,
-  ClearFormatingTool
+  ClearFormattingTool
 } from "@/tools";
 
 export default class Tools implements ToolsInterface {
@@ -57,7 +57,7 @@ export default class Tools implements ToolsInterface {
       MarkerTool,
       SubscriptTool,
       SuperscriptTool,
-      ClearFormatingTool
+      ClearFormattingTool
     ]
 
     toolModels.forEach((instance: ToolModelConstructor) => {
@@ -87,6 +87,7 @@ export default class Tools implements ToolsInterface {
       const node = tool.getNode();
       append(toolsListNode, node);
       css(node, 'display', tool.isVisible() ? '' : 'none');
+      executeMethodIfExists(tool, '__onMount', [node])
     })
 
     addClass(toolsNode, cssName + "-fixed");

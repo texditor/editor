@@ -50,6 +50,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
     this.onConstruct(editor);
     this.config = {
       name: '',
+      nodeTagName: 'div',
       translation: '',
       icon: '',
       visibleIcon: true,
@@ -57,6 +58,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
       iconHeight: 16,
       className: '',
       visibleTitle: false,
+      attributeTitle: true,
       __modelCode: "baseModel",
       ...this.parentСonfig(),
       ...this.configure(),
@@ -76,7 +78,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
       codeName = this.getModelCode(),
       cssName = this.getClassName();
 
-    return make("div", (el: TNode) => {
+    return make(this.getNodeTagName(), (el: TNode) => {
       el.id = `tex-${codeName}-${generateRandomString(12)}-${generateRandomString(12)}`;
       const customCss = cssName !== '' ? ' ' + cssName : "",
         namedCss = name.trim() !== '' ? ' tex-' + codeName + "-" + name : '';
@@ -99,7 +101,8 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
 
       const title = this.getTranslation();
 
-      attr(el, "title", title);
+      if (this.isAttributeTitle())
+        attr(el, "title", title);
 
       if (this.isVisibleTitle()) {
         append(
@@ -112,6 +115,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
       }
 
       el.baseModel = this;
+      this.node = el;
       this.parentOnCreateNode(el);
       this.onCreateNode(el);
     }) as TNode;
@@ -125,18 +129,17 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
     return this.eventId;
   }
 
-
   /**
    * Hook called after model node creation
-   * @param _el - Created model node 
+   * @param _node - Created model node 
    */
-  protected onCreateNode(_el: TNode): void { }
+  protected onCreateNode(_node: TNode): void { }
 
   /**
    * Parent hook called after model node creation
-   * @param _el - Created model node 
+   * @param _node - Created model node 
    */
-  protected parentOnCreateNode(_el: TNode): void { }
+  protected parentOnCreateNode(_node: TNode): void { }
 
   /**
    * Get configuration value by key
@@ -374,6 +377,14 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
   }
 
   /**
+   * Get model node tag name
+   * @returns Tag name string (default: 'div')
+   */
+  getNodeTagName(): string {
+    return this.getConfig('nodeTagName', 'div');
+  }
+
+  /**
    * Get CSS class name
    * @returns CSS class name string
    */
@@ -389,10 +400,10 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
     const { i18n } = this.editor,
       name = this.getName();
 
-    const translation = this.getConfig('translation', name);
-    const translationCode = translation == ''
-      ? name
-      : translation;
+    const translation = this.getConfig('translation');
+    const translationCode = translation
+      ? translation
+      : name;
 
     return i18n.get(translationCode, name);
   }
@@ -415,7 +426,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
 
   /**
    * Get icon height
-   * @returns Icon height in pixels
+   * @returns {number} Icon height in pixels
    */
   getIconHeight(): number {
     return this.getConfig('iconHeight', 16);
@@ -431,15 +442,23 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
 
   /**
    * Check if title is always visible
-   * @returns True if title should be always visible
+   * @returns {boolean} True if title should be always visible
    */
   isVisibleTitle(): boolean {
     return this.getConfig('visibleTitle', false);
   }
 
   /**
+   * Checks if the attribute title is configured to be always visible.
+   * @returns {boolean} True if the 'attributeTitle' config option is enabled, false otherwise.
+   */
+  isAttributeTitle(): boolean {
+    return this.getConfig('attributeTitle', false);
+  }
+
+  /**
    * Check if icon is always visible
-   * @returns True if icon should be always visible
+   * @returns {boolean} True if icon should be always visible
    */
   isVisibleIcon(): boolean {
     return this.getConfig('visibleIcon', false);

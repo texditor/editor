@@ -1,49 +1,51 @@
 import type {
-  BlockModelInterface,
-  FileActionModelInstanceInterface,
-  FileActionModelInterface,
-  FilesCreateOptions,
-  FileItem,
-  BlockSchema,
   BlockNode,
-  Response,
-  FilesFormCreateParams,
-  FilesListCreateParams,
-  BlockModelConfig,
-  BlockCreateSchema
+  FileItem,
+  BlockModelConstructor,
+  FilesBlockModelConfig,
+  FileItemNode,
+  BlockSchema,
+  AjaxConfig,
+  BaseEvent,
+  AjaxOptions,
+  FilesAjaxResponse,
+  FilesBlockModelInterface,
+  BlockModelInterface
 } from "@/types";
 
+
 import BlockModel from "@/core/models/block-model";
-import {
-  addClass,
-  after,
-  append,
-  attr,
-  closest,
-  css,
-  html,
-  make,
-  prepend,
-  query,
-  queryLength
-} from "@/utils/dom";
-import { isEmptyString } from "@/utils/string";
-import {
-  decodeHtmlSpecialChars,
-  encodeHtmlSpecialChars,
-  formatBytes,
-  generateRandomString
-} from "@/utils/common";
-import { off, on, rebind } from "@/utils/events";
-import { IconClose, IconFile, IconPlus } from "@/icons";
+import { IconClose, IconFile, IconFiles, IconPlus } from "@/icons";
 import { renderIcon } from "@/utils/icon";
-import { AjaxOptions, fetchRequest, ProgressEvent } from "@priveted/ajax";
 import MoveRightFileAction from "./actions/MoveRightFileAction";
 import MoveLeftFileAction from "./actions/MoveLeftFileAction";
 import DeleteFileAction from "./actions/DeleteFileAction";
 import EditFileAction from "./actions/EditFileAction";
 import DownloadFileAction from "./actions/DownloadFileAction";
 import "@/styles/blocks/files.css";
+import {
+  addClass,
+  ajax,
+  append,
+  attr,
+  closest,
+  css,
+  decodeHtmlSpecialChars,
+  executeMethodIfExists,
+  formatBytes,
+  generateRandomString,
+  getChildNodes,
+  html,
+  isEmptyString,
+  make,
+  off,
+  on,
+  prepend,
+  query,
+  queryList,
+  rebind
+} from "@/utils";
+import FileActionModel from "@/core/models/file-action-model";
 
 export {
   MoveRightFileAction,
@@ -53,22 +55,35 @@ export {
   EditFileAction
 };
 
-declare global {
-  interface HTMLElement {
-    fileSize?: number;
-    fileName?: string;
-    fileId?: number;
-    thumbnail?: string;
-  }
-}
-
-export default class Files extends BlockModel implements BlockModelInterface {
+export default class Files extends BlockModel implements FilesBlockModelInterface {
+  /** Form container element */
+  private formNode: HTMLElement | null = null;
+  /** Toast notifications container */
+  private toastsNode: HTMLElement | null = null;
+  /** Upload progress bar element */
+  private progressNode: HTMLElement | null = null;
+  /** Counter displaying current/total items */
+  private conuterNode: HTMLElement | null = null;
+  /** Custom render functions mapped by MIME type */
   private renderCallbacks: Record<string, CallableFunction> = {};
 
-  protected configure(): Partial<BlockModelConfig> {
+  /** @see FilesBlockModelInterface.setup */
+  public static setup(config: Partial<FilesBlockModelConfig>): BlockModelConstructor {
+    return super.setup(config);
+  }
+
+  /**
+   * Configure block model
+   * @returns Partial configuration object
+   */
+  protected configure(): Partial<FilesBlockModelConfig> {
     const { i18n } = this.editor;
 
     return {
+      name: "files",
+      tagName: "div",
+      translation: "files",
+      groupCode: "files",
       autoParse: false,
       autoMerge: false,
       actions: [
@@ -79,28 +94,23 @@ export default class Files extends BlockModel implements BlockModelInterface {
         MoveRightFileAction
       ],
       icon: IconFile,
-      itemIcon: IconFile,
       renderImage: true,
       backspaceRemove: false,
       enterCreate: false,
-      tagName: "div",
-      translation: "files",
-      type: "files",
-      groupCode: 'files',
       editable: false,
-      editableItems: true,
       sanitizer: false,
       className: "tex-files",
       customSave: true,
+      sortableItems: true,
+      dragzoneClassName: "tex-files-item-dragzone",
       messageTimeout: 7000,
       mimeTypes: [],
       multiple: true,
+      maxItems: 10,
+      visibleCounter: true,
       inputName: "files",
-      responseMessageField: "message",
-      responseMessageErrorField: "errors",
-      listCss: "tex-files-list-c",
-      fileCss: "tex-file",
-      sourceWrapCss: "tex-file-source-c",
+      contentClassName: "tex-files-content",
+      itemClassName: "tex-file-default",
       uploadLabelIcon: renderIcon(IconPlus, {
         width: 12,
         height: 12
@@ -110,61 +120,68 @@ export default class Files extends BlockModel implements BlockModelInterface {
       uploadLabelText: i18n.get("uploadFile", "Upload file"),
       uploadLabelMessage: "",
       showOnlyWhenEmpty: false,
-      ajaxConfig: {
-        url: "",
-        options: {}
-      }
+      requiredFieldFileName: true,
+      requiredFieldCaption: false,
+      requiredFieldDesc: false,
+      visibleFieldFileName: true,
+      visibleFieldCaption: true,
+      visibleFieldDesc: true,
+      ajaxConfig: { url: "" }
     };
   }
 
-  protected onPaste(evt: Event): boolean {
-    evt.preventDefault();
-    return false;
+  /**
+    * Hook called after model node creation
+    * @param node - Created model node 
+    */
+  protected onCreateNode(node: BlockNode): void {
+    const contentNode = node.baseModel.getContentNode();
+
+    if (contentNode) css(contentNode, "display", "none");
   }
 
-  protected onCreateNode(blockNode: BlockNode): void {
-    
+  /**
+   * Hook triggered after composition is complete
+   */
+  protected onCompose(): void {
+    const blockNode = this.getNode();
+    this.conuterNode = this.createCounter();
+    this.formNode = this.createForm();
+    this.toastsNode = this.createToasts();
+
+    prepend(blockNode, [this.formNode, this.toastsNode]);
+
+    this.createList();
+    this.refresh();
   }
 
-  create(options: FilesCreateOptions): HTMLElement {
-    const realOptions = Object.keys(options) && options.content
-      ? options
-      : { content: [] }
+  /** @see FilesBlockModelInterface.getRenderCallback */
+  getRenderCallback(mimeType: string): CallableFunction {
+    return this.renderCallbacks[mimeType] || this.renderCallbacks["default"];
+  }
 
-    return this.make(
-      "div",
-      ({ blockNode, contentNode }:
-        { blockNode: BlockNode, contentNode: HTMLElement }) => {
-        append(
-          contentNode,
-          this.form(
-            realOptions,
-            blockNode,
-            contentNode,
-          )
-        );
-
-        append(
-          contentNode,
-          this.createList(
-            realOptions,
-            blockNode,
-            contentNode,
-          )
-        );
+  /** @see FilesBlockModelInterface.setRenderCallback */
+  setRenderCallback(
+    mimeType: string | string[],
+    callback: CallableFunction
+  ): void {
+    if (Array.isArray(mimeType)) {
+      mimeType.forEach((mime: string) => {
+        this.renderCallbacks[mime] = callback;
       });
+    } else {
+      this.renderCallbacks[mimeType] = callback;
+    }
   }
 
-  protected onListCreate(data: FilesListCreateParams) {
-
-    // console.log(this.getItems(), 332)
-    return data;
-  }
-
+  /**
+   * Default render method for file items
+   * @param item - File item data
+   * @returns Rendered HTMLElement
+   */
   protected defaultRenderItem(item: FileItem): HTMLElement {
-    const itemIcon = this.getConfig("itemIcon", IconFile),
-      isRenderImage = this.getConfig("renderImage", true),
-      fileCss = this.getConfig("fileCss", "tex-file");
+    const isRenderImage = this.isRenderImage(),
+      fileCss = "tex-file";
 
     return make("div", (div: HTMLElement) => {
       const className = fileCss + "-layout",
@@ -173,7 +190,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
       addClass(div, className);
 
       const layoutGrid = make("div", (lg: HTMLElement) => {
-        addClass(lg, className + "-grid");
+        addClass(lg, className + "-wrap");
 
         const leftBlock = make("div", (lb: HTMLDivElement) => {
           addClass(lb, className + "-left");
@@ -181,7 +198,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
           const iconWrap = make("div", (iconWrap: HTMLDivElement) => {
             addClass(iconWrap, className + "-icon-wrap");
 
-            let iconHtml = renderIcon(itemIcon, {
+            let iconHtml = renderIcon(IconFile, {
               width: 16,
               height: 16
             });
@@ -202,7 +219,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
             addClass(cnt, className + "-content");
 
             const name = make("div", (nameEl: HTMLDivElement) => {
-              addClass(nameEl, className + "-name");
+              addClass(nameEl, "tex-file-name");
 
               if (item?.name) {
                 nameEl.innerText = item?.name;
@@ -212,27 +229,17 @@ export default class Files extends BlockModel implements BlockModelInterface {
               }
             });
 
-            const contentElements = [name];
+            const caption = make("div", (captionEl: HTMLDivElement) => {
+              addClass(captionEl, "tex-file-caption");
+              captionEl.textContent = item.caption || "";
+            });
 
-            if (item?.caption) {
-              const caption = make("div", (captionEl: HTMLDivElement) => {
-                addClass(captionEl, className + "-caption tex-file-caption");
-                html(captionEl, encodeHtmlSpecialChars(item.caption || ""));
-              });
+            const desc = make("div", (descEl: HTMLDivElement) => {
+              addClass(descEl, "tex-file-desc");
+              descEl.textContent = item.desc || "";
+            });
 
-              contentElements.push(caption);
-            }
-
-            if (item?.desc) {
-              const desc = make("div", (descEl: HTMLDivElement) => {
-                addClass(descEl, className + "-desc tex-file-desc");
-                html(descEl, encodeHtmlSpecialChars(item.desc || ""));
-              });
-
-              contentElements.push(desc);
-            }
-
-            append(cnt, contentElements);
+            append(cnt, [name, caption, desc]);
           });
 
           append(lb, [iconWrap, content]);
@@ -258,205 +265,348 @@ export default class Files extends BlockModel implements BlockModelInterface {
     });
   }
 
-  // getItems(): HTMLElement[] {
-  //   const contentNode = this.getContentNode();
+  /** @see FilesBlockModelInterface.refresh */
+  refresh(): void {
+    const contentNode = this.getContentNode(),
+      formNode = this.getFormNode(),
+      itemsLength = this.getItemsLength(),
+      maxItems = this.getMaxItems();
 
-  //   if (!contentNode) return [];
+    if (!formNode) return;
 
-  //   const [listContainer] = queryList('.tex-files-list-container', contentNode);
+    if (itemsLength > 0) css(contentNode, "display", "");
 
-  //   if (!listContainer) return [];
-  //   return queryList(':scope > *', listContainer);
-  // }
+    const [formUploader] = queryList(".tex-files-form-uploader", formNode);
 
-  protected createList(
-    options: FilesCreateOptions,
-    blockNode: BlockNode,
-    contentElement: HTMLElement,
-  ): HTMLElement {
-    this.setRenderCallback("default", (item: FileItem) =>
-      this.defaultRenderItem(item)
-    );
+    if (formUploader) {
 
-    const items = options.content as FileItem[];
-
-    this.onListCreate({
-      items: items,
-      blockNode: blockNode,
-      contentElement: contentElement,
-      createSchema: options
-    });
-
-    return make("div", (el: HTMLElement) => {
-      addClass(el, "tex-files-list-container");
-
-      const list = make("div", (list: HTMLDivElement) => {
-        addClass(
-          list,
-          "tex-files-list " + this.getConfig("listCss")
-        );
-
-        if (items && Array.isArray(items)) {
-          const finalyItems: FileItem[] = [];
-
-          items.forEach((item: FileItem) => {
-            if (item?.url && item?.type) finalyItems.push(item);
-          });
-
-          finalyItems.forEach((item: FileItem) => {
-            this.onCreateItemBefore(item, list);
-            this.item(list, item, "after", blockNode);
-            this.onCreateItemAfter(item, list);
-          });
+      query('input[type="file"]', (inputFile: HTMLInputElement) => {
+        if ((itemsLength >= maxItems) || (!this.isMultiple() && itemsLength > 0)) {
+          attr(inputFile, 'disabled', 'disabled')
+        } else {
+          inputFile.removeAttribute('disabled');
         }
-      });
 
-      append(el, list);
-    });
-  }
+      }, formUploader)
 
-  getRenderCallback(mimeType: string) {
-    return this.renderCallbacks[mimeType] || this.renderCallbacks["default"];
-  }
-
-  setRenderCallback(mimeType: string | string[], callback: CallableFunction) {
-    if (Array.isArray(mimeType)) {
-      mimeType.forEach((mime: string) => {
-        this.renderCallbacks[mime] = callback;
-      });
-    } else this.renderCallbacks[mimeType] = callback;
-  }
-
-  protected parse(item: BlockSchema) {
-    return this.create({ content: item.data });
-  }
-
-  protected save(block: BlockSchema, node?: HTMLElement): BlockSchema {
-    const root = node || this.getNode();
-    block.data = [];
-    block = this.onSaveBefore(block, root);
-
-    if (root) {
-      query(
-        ".tex-file",
-        (el: HTMLElement) => {
-          const preparedItem = {
-            url: el.dataset.url,
-            type: el.dataset.type
-          } as FileItem;
-          if (el.dataset.caption) preparedItem.caption = el.dataset.caption;
-          if (el.dataset.desc) preparedItem.desc = el.dataset.desc;
-          if (el.fileName) preparedItem.name = el.fileName;
-          if (el.fileSize) preparedItem.size = el.fileSize;
-          if (el.fileId) preparedItem.id = el.fileId;
-          if (el.thumbnail) preparedItem.thumbnail = el.thumbnail; 
-
-          const fileItem = this.onSaveItem(preparedItem, el);
-
-          if (fileItem.url && fileItem.type) {
-            (block?.data as FileItem[])?.push(fileItem);
-          }
-        },
-        root
-      );
+      this.refreshCount();
     }
-
-    block = this.onSaveAfter(block, root);
-    return block;
   }
 
-  protected onSaveBefore(
-    block: BlockSchema,
-    _blockNode: HTMLElement | BlockNode | null
-  ): BlockSchema {
-    return block;
-  }
+  /** @see FilesBlockModelInterface.refreshCount */
+  refreshCount(count?: number): void {
+    const realCount = count || typeof count == "number"
+      ? count
+      : this.getItemsLength();
 
-  protected onSaveAfter(
-    block: BlockSchema,
-    _blockNode: HTMLElement | BlockNode | null
-  ): BlockSchema {
-    return block;
-  }
+    const counterNode = this.getCounterNode(),
+      maxItems = this.getMaxItems();
 
-  protected onSaveItem(
-    item: FileItem,
-    _el: HTMLElement
-  ): FileItem {
-    return item;
-  }
-
-  protected onCreateItemBefore(
-    item: FileItem,
-    _el: HTMLElement
-  ) {
-    return item;
-  }
-
-  protected onCreateItemAfter(
-    item: FileItem,
-    _el: HTMLElement
-  ) {
-    return item;
-  }
-
-  protected onFormCreate(data: FilesFormCreateParams): HTMLElement {
-    return data.el;
-  }
-
-  private createLoader(id: string | number) {
-    return make("div", (div: HTMLDivElement) => {
-      div.id = "loader-" + id;
-      addClass(div, "tex-files-form-loading");
-      append(div, [
-        make("div", (pro: HTMLDivElement) => {
-          pro.id = "progress-" + id;
-          addClass(pro, "tex-files-form-progress");
+    if (this.isMultiple() && counterNode) {
+      const max = !maxItems ? "" : " / " + maxItems.toString();
+      html(counterNode, "");
+      append(counterNode, [
+        make("span", (span: HTMLSpanElement) => {
+          html(
+            span,
+            renderIcon(IconFiles, {
+              width: 11,
+              height: 11
+            })
+          );
         }),
-        make("div", (per: HTMLDivElement) => {
-          per.id = "percent-" + id;
-          addClass(per, "tex-files-form-loading-percent");
+        make("span", (span: HTMLSpanElement) => {
+          span.textContent = realCount.toString() + max;
         })
       ]);
+    }
+  }
+
+  /**
+   * Get the counter DOM element
+   * @returns Counter element or null
+   */
+  getCounterNode(): HTMLElement | null {
+    return this.conuterNode;
+  }
+
+  /**
+   * Create counter element for file count display
+   * @returns Counter element
+   */
+  protected createCounter(): HTMLElement {
+    return make("div", (el: HTMLDListElement) => {
+      addClass(el, "tex-files-counter");
     });
   }
 
-  private progress(id: string | number, percent: number) {
-    const loader = document.getElementById("loader-" + id),
-      progress = document.getElementById("progress-" + id),
-      label = document.getElementById("label-" + id),
-      percentText = document.getElementById("percent-" + id);
+  /**
+   * Create toast notifications container
+   * @returns Toast container element
+   */
+  protected createToasts(): HTMLElement {
+    return make("div", (el: HTMLDivElement) => {
+      addClass(el, "tex-files-toasts");
+    });
+  }
 
-    if (loader && progress && percentText && label) {
-      if (css(loader, "display") === "none") css(loader, "display", "block");
+  /** @see FilesBlockModelInterface.getToastsNode */
+  getToastsNode(): HTMLElement | null {
+    return this.toastsNode;
+  }
 
-      css(label, "visibility", "hidden");
-      percentText.innerText = percent + "%";
-      css(progress, "width", percent + "%");
+  /** @see FilesBlockModelInterface.clearToasts */
+  clearToasts(): void {
+    const toasts = this.getToastsNode();
+
+    if (toasts) {
+      html(toasts, "");
+      css(toasts, "display", "");
     }
   }
 
-  hideProgress(id: string | number) {
-    const loader = document.getElementById("loader-" + id);
+  /** @see FilesBlockModelInterface.addToast */
+  addToast(message: string, status: string = "error"): void {
+    const toasts = this.getToastsNode(),
+      hideTimeout = this.getMessageTimeout();
 
-    if (loader) {
-      css(loader, "display", "");
+    if (toasts) {
+      const messageBlock = make("div", (msg: HTMLDivElement) => {
+        addClass(
+          msg,
+          "tex-file-message tex-animate-fadeIn tex-message tex-message-" +
+          status
+        );
+        html(msg, message);
+      });
+
+      css(toasts, "display", "grid");
+      append(toasts, messageBlock);
+
+      setTimeout(() => {
+        messageBlock.remove();
+
+        if (!getChildNodes(toasts).length) {
+          this.clearToasts();
+        }
+      }, hideTimeout);
     }
   }
 
-  getListElement(node?: BlockNode): HTMLElement | null {
-    const blockEl = node || this.getNode();
-
-    if (!node) return null;
-
-    let list = null;
-
-    query(".tex-files-list", (el: HTMLElement) => (list = el), blockEl);
-
-    return list;
+  /** @see FilesBlockModelInterface.getFormNode */
+  getFormNode(): HTMLElement | null {
+    return this.formNode;
   }
 
-  protected createLabel(length: number, id: string) {
+  /**
+   * Create file upload form with input and label
+   * @returns Form element
+   */
+  protected createForm(): HTMLElement {
+    const isMultiple = this.getConfig("multiple", true),
+      id = generateRandomString(16),
+      itemsLength = this.getOption("data", [])?.length || 0;
+
+    return make("div", (form: HTMLElement) => {
+      addClass(form, "tex-files-form");
+
+      const uploader = make("div", (uploaderEl: HTMLElement) => {
+        addClass(uploaderEl, "tex-files-form-uploader");
+        const labelFile = this.formLabel(itemsLength, id);
+        const inputFile = this.formInputFile(id);
+        append(uploaderEl, [inputFile, labelFile]);
+      });
+
+      append(form, uploader);
+
+      this.onFormCreate(form);
+    });
+  }
+
+  /**
+   * Handle file input cancel event
+   * @param _evt - Base event object
+   */
+  protected onCancelFile(_evt: BaseEvent): void {
+    const { blockManager } = this.editor;
+
+    if (this.isEmpty()) blockManager.removeBlock();
+  }
+
+  /**
+   * Handle file input change event, process upload
+   * @param evt - Base event object with file input element
+   */
+  protected onChangeFile(evt: BaseEvent): void {
+    const { i18n } = this.editor,
+      input = evt.el as HTMLInputElement,
+      form = this.getFormNode();
+
+    if (form) {
+      const [label] = queryList(".tex-files-form-label", form);
+
+      const onloaded = () => {
+        css(label, "visibility", "");
+        this.removeProgress();
+        this.refresh();
+      };
+
+      if (label) {
+        css(label, "visibility", "hidden");
+
+        const maxItems = this.getMaxItems(),
+          itemsLength = this.getItemsLength(),
+          filesLength = input.files?.length || 0;
+
+        if ((itemsLength + filesLength > maxItems) || (!this.isMultiple() && itemsLength > 0)) {
+          this.addToast(i18n.get("fileUploadMaxItems"), "error");
+          onloaded();
+        } else {
+          this.progress(0);
+          this.ajax(
+            input,
+            (response: FilesAjaxResponse) => {
+              if (
+                response.success &&
+                Array.isArray(response.data) &&
+                response.data.length
+              ) {
+                response.data.forEach((item: FileItem) => {
+                  if (item.url && item.type) {
+                    this.createItem(item, 0, true);
+                  }
+                });
+
+                this.addToast(
+                  response?.message || i18n.get("fileUploadSuccess"),
+                  "success"
+                );
+              } else {
+                this.addToast(
+                  response?.message || i18n.get("fileUploadError")
+                );
+              }
+              onloaded();
+            },
+            (percent: number) => {
+              this.progress(percent);
+            },
+            () => {
+              onloaded();
+            }
+          );
+        }
+      }
+    }
+  }
+
+  /** @see FilesBlockModelInterface.getMaxItems */
+  getMaxItems(): number {
+    return this.getConfig("maxItems", 10);
+  }
+
+  /** @see FilesBlockModelInterface.isVisibleCounter */
+  isVisibleCounter(): boolean {
+    return this.getConfig("visibleCounter", true);
+  }
+
+  /** @see FilesBlockModelInterface.getMessageTimeout */
+  getMessageTimeout(): number {
+    return this.getConfig("messageTimeout", 7000);
+  }
+
+  /** @see FilesBlockModelInterface.getMimeTypes */
+  getMimeTypes(): string[] {
+    return this.getConfig("mimeTypes", []) as string[];
+  }
+
+  /** @see FilesBlockModelInterface.isMultiple */
+  isMultiple(): boolean {
+    return this.getConfig("multiple", true);
+  }
+
+  /** @see FilesBlockModelInterface.getAjaxConfig */
+  getAjaxConfig(): AjaxConfig {
+    return this.getConfig("ajaxConfig", { url: "" }) as AjaxConfig;
+  }
+
+  /** @see FilesBlockModelInterface.getInputName */
+  getInputName(): string {
+    return this.getConfig("inputName", "files");
+  }
+
+  /** @see FilesBlockModelInterface.isRequiredFieldName */
+  isRequiredFieldName(): boolean {
+    return this.getConfig("requiredFieldName", true);
+  }
+
+  /** @see FilesBlockModelInterface.isRequiredFieldCaption */
+  isRequiredFieldCaption(): boolean {
+    return this.getConfig("requiredFieldCaption", true);
+  }
+
+  /** @see FilesBlockModelInterface.isRequiredFieldDesc */
+  isRequiredFieldDesc(): boolean {
+    return this.getConfig("requiredFieldDesc", true);
+  }
+
+  /** @see FilesBlockModelInterface.isVisibleFieldName */
+  isVisibleFieldName(): boolean {
+    return this.getConfig("visibleFieldName", true);
+  }
+
+  /** @see FilesBlockModelInterface.isVisibleFieldCaption */
+  isVisibleFieldCaption(): boolean {
+    return this.getConfig("visibleFieldCaption", true);
+  }
+
+  /** @see FilesBlockModelInterface.isVisibleFieldDesc */
+  isVisibleFieldDesc(): boolean {
+    return this.getConfig("visibleFieldDesc", true);
+  }
+
+  /** @see FilesBlockModelInterface.isRenderImage */
+  isRenderImage(): boolean {
+    return this.getConfig('renderImage', true);
+  }
+
+  /** @see BlockModelInterface.removeItem */
+  removeItem(index?: number): boolean {
+    const status = super.removeItem(index);
+    this.refresh();
+    return status;
+  }
+
+  /**
+   * Create file input element
+   * @param id - Unique identifier for input
+   * @returns File input element
+   */
+  protected formInputFile(id: string): HTMLInputElement {
+    const mimeTypes = this.getMimeTypes(),
+      isMultiple = this.getConfig("multiple", true);
+
+    return make("input", (input: HTMLInputElement) => {
+      input.id = "file-" + id;
+      attr(input, "type", "file");
+      css(input, "display", "none");
+
+      if (isMultiple) attr(input, "multiple", "multiple");
+
+      if (mimeTypes.length) attr(input, "accept", mimeTypes.join(", "));
+
+      on(input, "cancel.file", (evt: BaseEvent) => this.onCancelFile(evt));
+      on(input, "change.file", (evt: BaseEvent) => this.onChangeFile(evt));
+    }) as HTMLInputElement;
+  }
+
+  /**
+   * Create form label element for file input
+   * @param length - Current items count
+   * @param id - Unique identifier
+   * @returns Label element
+   */
+  protected formLabel(length: number, id: string): HTMLLabelElement {
     const isMultiple = this.getConfig("multiple", true),
       multipleLabelText = this.getConfig("uploadMultipleLabelText") as string,
       labelText = this.getConfig("uploadLabelText") as string,
@@ -470,6 +620,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
 
       const labelCnt = make("div", (labelContainer: HTMLDivElement) => {
         addClass(labelContainer, "tex-files-form-label-container");
+
         const text = make(
           "span",
           (span: HTMLSpanElement) =>
@@ -485,6 +636,11 @@ export default class Files extends BlockModel implements BlockModelInterface {
           );
 
         append(labelContainer, [icon, text]);
+
+        const counterNode = this.getCounterNode();
+
+        if (counterNode && this.isVisibleCounter())
+          append(labelContainer, counterNode);
       });
 
       const uploadLabelMessage = this.getConfig("uploadLabelMessage", ""),
@@ -494,7 +650,7 @@ export default class Files extends BlockModel implements BlockModelInterface {
       if (!isEmptyString(uploadLabelMessage)) {
         const labelMessage = make("div", (msg: HTMLDivElement) => {
           addClass(msg, "tex-files-form-label-message");
-          msg.innerHTML = uploadLabelMessage;
+          html(msg, uploadLabelMessage);
         });
 
         if ((showOnlyWhenEmpty && !length) || !showOnlyWhenEmpty) {
@@ -503,385 +659,314 @@ export default class Files extends BlockModel implements BlockModelInterface {
       }
 
       append(label, labelItems);
-    });
+    }) as HTMLLabelElement;
   }
 
-  protected form(
-    options: BlockCreateSchema,
-    blockNode: BlockNode,
-    contentNode: HTMLElement,
-  ) {
-    const mimeTypes = this.getConfig("mimeTypes", []) as string[],
-      isMultiple = this.getConfig("multiple", true),
-      id = generateRandomString(16),
-      { i18n } = this.editor,
-      itemsLength = options?.content?.length || 0
+  /**
+   * Hook called after form element creation
+   * @param _form - Form element
+   */
+  protected onFormCreate(_form: HTMLElement): void { }
 
-    return make("div", (el: HTMLElement) => {
-      addClass(el, "tex-files-form");
+  /**
+   * Create list of file items from stored data
+   * @returns Content node element
+   */
+  protected createList(): HTMLElement {
+    const contentNode = this.getContentNode(),
+      items = this.getOption("data", []) as FileItem[];
 
-      const form = make("div", (form: HTMLFormElement) => {
-        const labelFile = this.createLabel(itemsLength, id);
-        const inputFile = make("input", (input: HTMLInputElement) => {
-          attr(input, "type", "file");
-          css(input, "display", "none");
-
-          if (isMultiple) attr(input, "multiple", "multiple");
-
-          input.id = "file-" + id;
-
-          if (mimeTypes.length) attr(input, "accept", mimeTypes.join(", "));
-
-          const onloaded = (error: boolean = false) => {
-            setTimeout(() => {
-              css(labelFile, "visibility", "");
-              this.hideProgress(id);
-
-              if (!error) {
-                document.getElementById("label-" + id)?.remove();
-
-                if (isMultiple)
-                  prepend(form, this.createLabel(this.getItem(0) ? 1 : 0, id));
-                else form.remove();
-              }
-            }, 500);
-          };
-
-          on(input, "cancel.file", () => {
-            const element = this.getNode();
-
-            if (element) this.removeIsEmpty(element as BlockNode);
-          });
-
-          on(input, "change.file", () => {
-            css(labelFile, "visibility", "hidden");
-            this.ajax(
-              input,
-              (response: Response) => {
-                if (
-                  response.success &&
-                  Array.isArray(response.data) &&
-                  response.data.length
-                ) {
-                  const list = this.getListElement(blockNode);
-
-                  if (list) {
-                    const items: FileItem[] = [];
-
-                    response.data.forEach(
-                      (item: Record<string, string | number>) => {
-                        if (item?.url && item?.type) {
-                          const fileItem = {
-                            url: item?.url,
-                            type: item?.type
-                          } as FileItem;
-
-                          if (item?.size) fileItem.size = item.size as number;
-                          if (item?.id) fileItem.id = item.id as number;
-
-                          items.push(fileItem);
-                        }
-                      }
-                    );
-
-                    items.forEach((item: FileItem) => {
-                      this.item(list, item, "before", blockNode);
-                    });
-                  }
-                  this.createMessage(
-                    this.responseMessage(
-                      response,
-                      i18n.get("fileUploadSuccess")
-                    ),
-                    "success"
-                  );
-                } else {
-                  this.createMessage(
-                    this.responseMessage(
-                      response,
-                      i18n.get("fileUploadError"),
-                      true
-                    )
-                  );
-                }
-                onloaded();
-              },
-              (event: ProgressEvent) => this.progress(id, event.percent || 0),
-              () => onloaded(true)
-            );
-          });
-        });
-
-        addClass(form, "tex-files-form-uploader");
-        append(form, [labelFile, inputFile, this.createLoader(id)]);
-      });
-
-      if (!(!isMultiple && itemsLength > 0)) {
-        append(el, form);
-      }
-
-      this.onFormCreate({
-        el: el,
-        blockNode: blockNode,
-        contentNode: contentNode,
-        options: options
-      });
-    });
-  }
-
-  moveItem(item: HTMLElement, index: number): void {
-    const block = this.getNode();
-
-    if (block) {
-      const moveItem = this.getItem(index) as HTMLElement,
-        curIndex = this.getItem(item) as number;
-
-      if (moveItem && item) {
-        if (curIndex > index) {
-          after(item, moveItem);
-        } else if (curIndex < index) {
-          after(moveItem, item);
-        }
-      }
-    }
-  }
-
-  getItem(item: HTMLElement | number): HTMLElement | number | null {
-    const block = this.getNode();
-    let data: HTMLElement | number = 0;
-
-    if (block) {
-      query(
-        ".tex-file",
-        (el: HTMLElement, i: number) => {
-          if (typeof item === "number" && i === item) data = el;
-          if (el === item) data = i;
-        },
-        block
-      );
-    }
-
-    return data;
-  }
-
-  getItemsLength(): number {
-    const block = this.getNode();
-
-    if (!block) return 0;
-
-    return queryLength(".tex-file", block);
-  }
-
-  private createActionBar(
-    item: HTMLElement,
-    container: HTMLElement,
-    blockNode: BlockNode
-  ): HTMLElement {
-    const uniqueId = generateRandomString(12);
-
-    return make("div", (div: HTMLDivElement) => {
-      addClass(div, "tex-files-actions");
-      const actionsWrap = make("div", (wrap: HTMLDivElement) => {
-        addClass(wrap, "tex-files-actions-wrap tex-animate-fadeIn");
-        append(
-          wrap,
-          make("div", (fileActions: HTMLDivElement) => {
-            addClass(fileActions, "tex-files-actions-list");
-
-            const actionList = this.getConfig("actions");
-
-            (actionList as FileActionModelInstanceInterface[]).forEach(
-              (fileAction: FileActionModelInstanceInterface) => {
-                const fileActionInstance = new fileAction(
-                  this.editor,
-                  item,
-                  container,
-                  blockNode
-                );
-                append(fileActions, fileActionInstance.create());
-              }
-            );
-          })
-        );
-      });
-
-      const hideActions = () => {
-        query(
-          ".tex-files-actions",
-          (actions: HTMLElement) => {
-            css(actions, "display", "");
-          },
-          container
-        );
-      };
-
-      const closeIcon = make("div", (close: HTMLDivElement) => {
-        addClass(close, "tex-files-actions-close");
-        html(
-          close,
-          renderIcon(IconClose, {
-            width: 14,
-            height: 14
-          })
-        );
-        on(close, "click.close", () => setTimeout(() => hideActions(), 5));
-      });
-
-      append(div, [actionsWrap, closeIcon]);
-      rebind(item, "click.cab", () => {
-        query(
-          ".tex-files-action",
-          (actionElement: HTMLElement) => {
-            if ("fileAction" in actionElement) {
-              const fileAction =
-                actionElement?.fileAction as FileActionModelInterface;
-              fileAction?.refresh();
-            }
-          },
-          container
-        );
-
-        hideActions();
-        rebind(
-          document,
-          "click.cab" + uniqueId,
-          (evt: MouseEvent) => {
-            if (closest(item, evt.target)) hideActions();
-          },
-          true
-        );
-        css(div, "display", "block");
-      });
-    });
-  }
-
-  protected createMessage(message: string, status: string = "error") {
-    const block = this.getNode(),
-      id = "message-" + generateRandomString(10);
-
-    const messageBlock = make("div", (msg: HTMLInputElement) => {
-      addClass(msg, "tex-file-message tex-message tex-message-" + status);
-      msg.innerHTML = message;
-      msg.id = id;
-    });
-
-    query(
-      ".tex-files-form",
-      (el: HTMLElement) => {
-        after(el, messageBlock);
-
-        setTimeout(
-          () => {
-            const msgEl = document.getElementById(id);
-
-            if (msgEl) msgEl.remove();
-          },
-          this.getConfig("messageTimeout") as number
-        );
-      },
-      block
+    this.setRenderCallback("default", (item: FileItem) =>
+      this.defaultRenderItem(item)
     );
+
+    if (items.length && Array.isArray(items)) {
+      const maxItems = this.getMaxItems();
+
+      let filtered = items.filter((item) => item?.url && item?.type);
+
+      if (filtered.length > maxItems) filtered = filtered.slice(0, maxItems);
+
+      filtered.forEach((item: FileItem, index) =>
+        this.createItem(item, index, true)
+      );
+
+      css(contentNode, "display", "");
+    }
+
+    this.onListCreate(contentNode);
+
+    return contentNode;
   }
 
-  protected item(
-    container: HTMLElement,
-    item: FileItem,
-    insert: "before" | "after" = "after",
-    blockNode: BlockNode
-  ) {
-    const methodName = this.getRenderCallback(item.type);
-    const fileCss = this.getConfig("fileCss", "tex-file");
+  /**
+   * Hook called after list element creation
+   * @param _contentNode - Content node element
+   */
+  protected onListCreate(_contentNode: HTMLElement): void { }
 
-    if (typeof methodName === "function") {
-      const itemElement = make("div", (el: HTMLElement) => {
-        addClass(el, fileCss);
-        el.dataset.type = item.type;
-        el.dataset.url = item.url;
+  /**
+   * Create DOM node for a file item
+   * @param item - File item data
+   * @returns Item element
+   */
+  protected makeItemNode(item: FileItem): HTMLElement {
+    const methodName = this.getRenderCallback(item.type),
+      className = this.getItemClassName(),
+      fileCss = "tex-file",
+      blockNode = this.getNode();
+
+    let itemNode = make("div") as FileItemNode;
+
+    if (typeof methodName === "function" && blockNode) {
+      itemNode = make("div", (el: FileItemNode) => {
+        addClass(el, "tex-item  " + fileCss + " " + className);
         el.id = blockNode.id + "-" + generateRandomString(12);
+        el.fileType = item.type;
+        el.fileUrl = item.url;
 
         if (item?.name) el.fileName = item.name;
         if (item?.size) el.fileSize = item.size;
         if (item?.id) el.fileId = item.id;
         if (item?.thumbnail) el.thumbnail = item.thumbnail;
-        if (item.caption)
-          el.dataset.caption = decodeHtmlSpecialChars(item.caption);
-        if (item.desc) el.dataset.desc = decodeHtmlSpecialChars(item.desc);
+        if (item.caption) el.fileCaption = decodeHtmlSpecialChars(item.caption);
+        if (item.desc) el.fileDesc = decodeHtmlSpecialChars(item.desc);
 
         const wrapper = make("div", (wrap: HTMLElement) => {
-          addClass(wrap, fileCss + "-wrapper");
-          append(wrap, this.createActionBar(el, container, blockNode));
-
-          const source = make("div", (src: HTMLElement) => {
-            const sourceElement = methodName(item, blockNode, container);
-            addClass(src, fileCss + "-source");
-            append(src, sourceElement);
-          });
-
-          append(wrap, source);
+          const sourceElement = methodName(item, blockNode);
+          addClass(wrap, "tex-item-body " + fileCss + "-wrapper");
+          append(wrap, sourceElement);
         });
 
         append(el, wrapper);
+      }) as FileItemNode;
+    }
+
+    this.createActions(itemNode);
+
+    return itemNode;
+  }
+
+  /**
+   * Create action buttons for a file item
+   * @param itemNode - File item element
+   */
+  protected createActions(itemNode: FileItemNode): void {
+    let actionsConstructors: FileActionModel[] = [];
+    const { i18n } = this.editor;
+    const cssName = "tex-files-actions",
+      eid = this.getEventId(),
+      contentNode = this.getContentNode();
+
+    const hideActions = () => {
+      actionsConstructors.forEach((action) => {
+        const node = action.getNode();
+        action.destroy();
+        node.remove();
       });
 
-      if (insert === "before") prepend(container, itemElement);
-      else append(container, itemElement);
+      actionsConstructors = []
+      query(
+        "." + cssName,
+        (actions: HTMLElement) => {
+          css(actions, "display", "");
+        },
+        contentNode
+      );
+    };
+
+    const actionsNode = make("div", (div: HTMLDivElement) => {
+      addClass(div, cssName);
+      const actionsWrap = make("div", (wrap: HTMLDivElement) => {
+        addClass(wrap, cssName + "-wrap tex-animate-fadeIn");
+        append(
+          wrap,
+          make("div", (fileActions: HTMLDivElement) => {
+            addClass(fileActions, cssName + '-list');
+          })
+        );
+      });
+
+      const actionButtons = make("div", (buttons: HTMLDivElement) => {
+        const btnClassName = "tex-files-actions-btn";
+        addClass(buttons, "tex-files-actions-buttons");
+
+        const closeIcon = make("div", (close: HTMLDivElement) => {
+          addClass(close, btnClassName + " " + btnClassName + "-close");
+          attr(close, "title", i18n.get("close", "Close"));
+          html(
+            close,
+            renderIcon(IconClose, {
+              width: 14,
+              height: 14
+            })
+          );
+          on(close, "click.close", () => setTimeout(() => hideActions(), 5));
+        });
+
+        if (this.isSortableItems()) {
+          const dragZone = this.makeItemDragZone();
+          addClass(dragZone, btnClassName + " " + btnClassName + "-sort");
+          attr(dragZone, "title", i18n.get("move", "Move"));
+          append(buttons, dragZone);
+        }
+
+        append(buttons, closeIcon);
+      });
+
+      append(div, [actionsWrap, actionButtons]);
+    });
+
+    append(itemNode, actionsNode);
+
+    rebind(itemNode, "click.cab", () => {
+      hideActions();
+      css(actionsNode, "display", "block");
+
+      const [actionsNodeList] = queryList('.' + cssName + '-list', itemNode);
+
+      if (actionsNodeList) {
+        const actions = this.getConfig("actions", []) as typeof FileActionModel[];
+
+        actions.forEach((action) => {
+          const fileAction = new action(this.editor);
+          const fileActionNode = fileAction.getNode();
+          fileAction.setBlockNode(this.getNode());
+          fileAction.setItemNode(itemNode);
+          css(fileActionNode, "display", fileAction.isVisible() ? "" : "none");
+          append(actionsNodeList, fileActionNode);
+          actionsConstructors.push(fileAction);
+          executeMethodIfExists(fileAction, "__onMount", [fileActionNode]);
+        });
+      }
+
+      on(
+        document,
+        "click.cab" + eid,
+        (evt: MouseEvent) => {
+          if (!closest(evt.target, itemNode)) {
+            hideActions();
+            off(document, 'click.cab' + eid, true);
+          };
+        },
+        true
+      );
+    }, true);
+  }
+
+  /**
+   * Create progress bar element for upload
+   */
+  protected createProgress(): void {
+    const form = this.getFormNode();
+
+    if (form && !this.progressNode) {
+      this.progressNode = make("div", (div: HTMLDivElement) => {
+        addClass(div, "tex-files-form-progress");
+        append(div, [
+          make("div", (pro: HTMLDivElement) => {
+            addClass(pro, "tex-files-form-progress-line");
+          }),
+          make("div", (per: HTMLDivElement) => {
+            addClass(per, "tex-files-form-progress-percent");
+          })
+        ]);
+      });
+
+      const [uploaderNode] = queryList(".tex-files-form-uploader", form);
+
+      if (uploaderNode) {
+        append(uploaderNode, this.progressNode);
+      }
     }
   }
 
-  removeIsEmpty(blockNode: BlockNode) {
-    const { blockManager } = this.editor;
-    const len = queryLength(".tex-file", blockNode);
+  /** @see FilesBlockModelInterface.getProgressNode */
+  getProgressNode(): HTMLElement | null {
+    return this.progressNode;
+  }
 
-    if (!len) {
-      const curIndex = blockManager.getIndex();
-      blockManager.removeBlock();
-      blockManager.focus(curIndex > 0 ? curIndex - 1 : 0);
+  /** @see FilesBlockModelInterface.progress */
+  progress(percent: number): void {
+    this.createProgress();
+
+    const progressNode = this.getProgressNode();
+    const cssName = ".tex-files-form";
+
+    if (progressNode) {
+      query(
+        cssName + "-progress-line",
+        (el: HTMLDivElement) => css(el, "width", percent + "%"),
+        progressNode
+      );
+      query(
+        cssName + "-progress-percent",
+        (el: HTMLDivElement) => (el.innerText = percent + "%"),
+        progressNode
+      );
     }
   }
 
-  ajax(
+  /** @see FilesBlockModelInterface.removeProgress */
+  removeProgress(): void {
+    const progressNode = this.getProgressNode();
+
+    if (progressNode) {
+      progressNode.remove();
+      this.progressNode = null;
+    }
+  }
+
+  /**
+   * Perform AJAX file upload
+   * @param input - File input element
+   * @param success - Success callback
+   * @param progress - Progress callback
+   * @param error - Error callback
+   */
+  protected ajax(
     input: HTMLInputElement,
-    callback: CallableFunction,
-    onUploadCallback: CallableFunction,
-    onError?: CallableFunction
-  ) {
+    success: CallableFunction,
+    progress: CallableFunction,
+    error?: CallableFunction
+  ): void {
     const { events, i18n } = this.editor;
-    const ajaxConfig = this.getConfig("ajaxConfig") as {
-      url: string;
-      options: AjaxOptions;
-    },
-      inputName = this.getConfig("inputName", "files");
+    const ajaxConfig = this.getAjaxConfig(),
+      inputName = this.getInputName();
 
-    if (isEmptyString(ajaxConfig?.url || "")) {
-      this.createMessage(i18n.get("emptyUrl"));
+    const url = ajaxConfig.url;
+
+    if (isEmptyString(url)) {
+      this.addToast(i18n.get("emptyUrl"));
       return;
     }
 
     const userOptions = ajaxConfig.options;
 
     if (input.files && input.files.length > 0) {
-      const allowedTypes = this.getConfig("mimeTypes", []) as string[];
+      const allowedTypes = this.getMimeTypes();
       const files = Array.from(input.files);
 
-      for (const file of files) {
-        const isValid = allowedTypes.some((pattern: string) => {
-          if (pattern === "*/*") return true;
-          if (pattern.endsWith("/*")) {
-            return file.type.startsWith(pattern.split("/")[0] + "/");
-          }
-          return file.type === pattern;
-        });
+      if (allowedTypes.length) {
+        for (const file of files) {
+          const isValid = allowedTypes.some((pattern: string) => {
+            if (pattern === "*/*") return true;
+            if (pattern.endsWith("/*")) {
+              return file.type.startsWith(pattern.split("/")[0] + "/");
+            }
+            return file.type === pattern;
+          });
 
-        if (!isValid) {
-          this.createMessage(i18n.get("invalidFileType") + ": " + file.name);
-          if (onError) onError(new Error("Invalid file type"));
-          return;
+          if (!isValid) {
+            this.addToast(i18n.get("invalidFileType") + ": " + file.name);
+            if (error) error(new Error("Invalid file type"));
+            return;
+          }
         }
       }
 
       const formData = new FormData(),
         { data } = userOptions || {};
-
       if (
         data &&
         typeof data === "object" &&
@@ -907,18 +992,35 @@ export default class Files extends BlockModel implements BlockModelInterface {
         formData.append(inputName + "[]", files[i]);
       }
 
-      const requestOptions: AjaxOptions = {
-        method: "POST",
+      const ajaxOptions: AjaxOptions = {
+        method: userOptions?.method || "POST",
         data: formData,
-        onUploadProgress: (progressEvent: ProgressEvent) => {
-          if (onUploadCallback) onUploadCallback(progressEvent);
+        progress: (percent: number, loaded: number, total: number) => {
+          if (progress) progress(percent, loaded, total);
+
+          if (userOptions?.progress) {
+            userOptions.progress(percent, loaded, total);
+          }
         },
-        headers: userOptions?.headers ? { ...userOptions.headers } : {}
+        error: (errorData) => {
+          if (error) error(errorData);
+
+          if (userOptions?.error) {
+            userOptions.error(errorData);
+          }
+        },
+        headers: userOptions?.headers ? { ...userOptions.headers } : {},
+        timeout: userOptions?.timeout || 45000,
       };
 
-      fetchRequest(ajaxConfig.url, requestOptions)
+      ajax<FilesAjaxResponse>(url, ajaxOptions)
         .then((response) => {
-          callback(response);
+          if (progress) success(response);
+
+          if (userOptions?.success) {
+            userOptions.success(response);
+          }
+
           events.change({
             type: "upload",
             success: true,
@@ -926,14 +1028,18 @@ export default class Files extends BlockModel implements BlockModelInterface {
             isFileAction: true
           });
         })
-        .catch((error) => {
-          const message = this.responseMessage(
-            error?.response,
-            error.message,
-            true
+        .catch((errorData) => {
+          this.addToast(
+            i18n.get("fileUploadError") +
+            ": " +
+            (errorData?.message || "Unknown error")
           );
-          this.createMessage(i18n.get("fileUploadError") + ": " + message);
-          if (onError) onError(error);
+
+          if (error) error(errorData);
+
+          if (userOptions?.error) {
+            userOptions.error(errorData);
+          }
 
           events.change({
             type: "upload",
@@ -945,80 +1051,58 @@ export default class Files extends BlockModel implements BlockModelInterface {
     }
   }
 
-  private responseMessage(
-    response?: Response,
-    defaultMessage?: string,
-    isError: boolean = false
-  ): string {
-    const messageField = isError
-      ? (this.getConfig("responseMessageErrorField", "message"))
-      : (this.getConfig("responseMessageField", "message"));
+  /**
+   * Save block data to schema
+   * @param block - Block schema object
+   * @param node - Optional block node
+   * @returns Updated block schema
+   */
+  protected save(block: BlockSchema, node?: BlockNode): BlockSchema {
+    const root = node || this.getNode();
+    block.data = [];
 
-    if (!response) {
-      return defaultMessage || "";
-    }
+    if (root) {
+      query(
+        ".tex-file",
+        (el: FileItemNode) => {
+          const preparedItem = {
+            url: el.fileUrl || '',
+            type: el.fileType || "",
+          } as FileItem;
 
-    let message: unknown;
+          if (el?.fileCaption) preparedItem.caption = el.fileCaption;
+          if (el?.fileDesc) preparedItem.desc = el?.fileDesc;
+          if (el.fileName) preparedItem.name = el.fileName;
+          if (el.fileSize) preparedItem.size = el.fileSize;
+          if (el.fileId) preparedItem.id = el.fileId;
+          if (el.thumbnail) preparedItem.thumbnail = el.thumbnail;
 
-    if (messageField in response) {
-      message = response[messageField];
-    } else if (
-      response.data &&
-      typeof response.data === "object" &&
-      response.data !== null &&
-      messageField in response.data
-    ) {
-      message = (response.data as Record<string, unknown>)[messageField];
-    } else {
-      for (const key in response) {
-        if (
-          key !== "data" &&
-          key !== "success" &&
-          typeof response[key] === "string"
-        ) {
-          message = response[key];
-          break;
-        }
-      }
+          const fileItem = preparedItem;
 
-      if (!message && response.data && typeof response.data === "object") {
-        for (const key in response.data) {
-          if (
-            typeof (response.data as Record<string, unknown>)[key] === "string"
-          ) {
-            message = (response.data as Record<string, unknown>)[key];
-            break;
+          if (fileItem.url && fileItem.type) {
+            (block?.data as FileItem[])?.push(fileItem);
           }
-        }
-      }
+        },
+        root
+      );
     }
-
-    return this.normalizeMessage(message, defaultMessage);
+    return block;
   }
 
-  private normalizeMessage(message: unknown, defaultMessage?: string): string {
-    if (typeof message === "string") {
-      return message;
-    }
-
-    if (Array.isArray(message)) {
-      return message
-        .map((item) => this.normalizeMessage(item))
-        .filter((msg) => msg)
-        .join(" | ");
-    }
-
-    if (message !== null && message !== undefined) {
-      return String(message);
-    }
-
-    return defaultMessage || "Unknown error";
+  /**
+   * Handle paste event (disabled for files block)
+   * @param _evt - Paste event
+   * @returns Always false
+   */
+  protected onPaste(_evt: Event): boolean {
+    return false;
   }
 
-  destroy() {
-    const uniqueId = generateRandomString(12);
-
-    off(document, "click.clfp" + uniqueId);
-    off(document, "click.cab" + uniqueId);
+  /**
+   * Clean up event listeners on destroy
+   */
+  destroy(): void {
+    const eid = this.getEventId();
+    off(document, "click.cab" + eid);
   }
 }

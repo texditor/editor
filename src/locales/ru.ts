@@ -28,10 +28,12 @@ export const RuLocale = {
   orderedList: "Упорядоченный список",
   emptyUrl: "Ошибка запроса. Не указан URL-адрес сервера",
   fileUploadError: "Ошибка загрузки",
+  fileUploadMaxItems: "Загрузка отклонена, так как общее количество элементов превышает максимально допустимое",
   fileUploadSuccess: "Файлы загружены",
   invalidFileType: "Недопустимый формат файла",
   edit: "Редактировать",
   caption: "Подпись",
+  fileName: 'Имя файла',
   desc: "Подробное описание",
   save: "Сохранить",
   сancel: "Отменить",
@@ -54,5 +56,8 @@ export const RuLocale = {
   link: "Ссылка",
   clearFormatting: "Очистить форматирование",
   subscript: "Нижний индекс",
-  superscript: "Верхний индекс"
+  superscript: "Верхний индекс",
+  close: "Закрыть",
+  move: "Переместить",
+  requiredField: "Обязательное поле"
 };

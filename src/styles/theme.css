@@ -1,7 +1,7 @@
 :root {
   --tex-vs-ui-bg: rgba(59, 130, 246, 0.15);
   --tex-vs-ui-border: 2px dashed #3b82f6;
-  --tex-vs-ui-radius: 40px;
+  --tex-vs-ui-radius: 4px;
   --tex-vs-ui-selected-bg: rgba(59, 130, 246, 0.1);
   --tex-vs-ui-selected-border-color: #3b82f6
 }
@@ -17,9 +17,9 @@
   --tex-color-light: rgba(55, 55, 55, 0.5);
   --tex-background-lite: rgba(204, 255, 204, 0.3);
   --tex-background-secondary: rgba(150, 150, 150, 0.07);
-  --tex-progress-background: rgba(33, 78, 33, 0.2);
+  --tex-progress-background: #34785a;
   --tex-background-blur: rgba(150, 150, 150, 0.04);
-  --tex-progress-color: rgba(33, 78, 33, 0.7);
+  --tex-progress-color: #70c29e;
   --tex-shadow-color: rgb(33, 33, 33, 0.4);
   --tex-border-color: rgba(179, 179, 179, 0.2);
   --tex-error: #e6004c;
