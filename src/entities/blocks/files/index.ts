@@ -150,12 +150,12 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
    * Hook triggered after composition is complete
    */
   protected onCompose(): void {
-    const blockNode = this.getElement();
+    const blockElement = this.getElement();
     this.counterNode = this.createCounter();
     this.formNode = this.createForm();
     this.toastsNode = this.createToasts();
 
-    prepend(blockNode, [this.formNode, this.toastsNode]);
+    prepend(blockElement, [this.formNode, this.toastsNode]);
 
     this.createList();
     this.refresh();
@@ -728,14 +728,14 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
     const methodName = this.getRenderCallback(item.type),
       className = this.getItemClassName(),
       fileCss = "tex-file",
-      blockNode = this.getElement();
+      blockElement = this.getElement();
 
     let itemNode = make("div") as FileItemNode;
 
-    if (typeof methodName === "function" && blockNode) {
+    if (typeof methodName === "function" && blockElement) {
       itemNode = make("div", (el: FileItemNode) => {
         addClass(el, "tex-item  " + fileCss + " " + className);
-        el.id = blockNode.id + "-" + generateRandomString(12);
+        el.id = blockElement.id + "-" + generateRandomString(12);
         el.fileType = item.type;
         el.fileUrl = item.url;
 
@@ -747,7 +747,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
         if (item.desc) el.fileDesc = decodeHtmlSpecialChars(item.desc);
 
         const wrapper = make("div", (wrap: HTMLElement) => {
-          const sourceElement = methodName(item, blockNode);
+          const sourceElement = methodName(item, blockElement);
           addClass(wrap, "tex-item-body " + fileCss + "-wrapper");
           append(wrap, sourceElement);
         });

@@ -107,11 +107,11 @@ export default class API implements APIInterface {
       append(container, blocks);
       blockManager.detectEmpty(false);
       blockManager.normalize();
-      blocks.forEach((blockNode) => {
+      blocks.forEach((blockElement) => {
         executeMethodIfExists(
-          blockNode.baseModel,
+          blockElement.baseModel,
           '__onMount',
-          [blockNode])
+          [blockElement])
       });
       events.refresh();
 
@@ -152,7 +152,7 @@ export default class API implements APIInterface {
     if (!root) return [];
 
     blockManager.getBlockNodes().forEach((el) => {
-      events.triggerEvent("saveEach", { blockNode: el });
+      events.triggerEvent("saveEach", { blockElement: el });
 
       const model = el.baseModel;
 
@@ -209,7 +209,7 @@ export default class API implements APIInterface {
         if (block.data.length) data.push(block);
       }
 
-      events.triggerEvent("saveEachEnd", { blockNode: el });
+      events.triggerEvent("saveEachEnd", { blockElement: el });
     });
 
     events.triggerEvent("saveEnd");

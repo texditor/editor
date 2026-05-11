@@ -23,7 +23,7 @@ export default class ConvertAction
   }
   protected dropdown(): HTMLElement {
     const { blockManager } = this.editor;
-    const blockNode = this.getBlockNode(),
+    const blockElement = this.getBlockNode(),
       schemas = blockManager.getSchemas();
 
     return make('div', (div: HTMLDivElement) => {
@@ -37,7 +37,7 @@ export default class ConvertAction
         const model = schema.model;
         if (
           model.isConvertible() &&
-          blockNode?.baseModel.getName() !== model.getName()
+          blockElement?.baseModel.getName() !== model.getName()
         ) {
           const modelElement = make("div", (el: HTMLDivElement) => {
             addClass(el, "tex-actions-content-dropdown-item");
@@ -69,7 +69,7 @@ export default class ConvertAction
             ));
 
             rebind(el, "click.am", () => {
-              if (blockNode) blockManager.convert(blockNode, model);
+              if (blockElement) blockManager.convert(blockElement, model);
             });
           });
 
@@ -80,8 +80,8 @@ export default class ConvertAction
   }
 
   isVisible(): boolean {
-    const blockNode = this.getBlockNode();
-    const model = blockNode?.baseModel;
+    const blockElement = this.getBlockNode();
+    const model = blockElement?.baseModel;
 
     if (!model) return false;
 

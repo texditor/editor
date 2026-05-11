@@ -59,12 +59,12 @@ export default class Code extends BlockModel implements BlockModelInterface {
   }
 
   protected onCompose(): void {
-    const blockNode = this.getElement();
-    this.init(blockNode);
+    const blockElement = this.getElement();
+    this.init(blockElement);
   }
 
-  private init(blockNode: BlockNode): void {
-    if (!blockNode)
+  private init(blockElement: BlockNode): void {
+    if (!blockElement)
       return;
 
     const { events, i18n } = this.editor;
@@ -73,7 +73,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
       const cssName = 'tex-code',
         notSpecified = i18n.get('notSpecified', 'Not specified');
 
-      if (blockNode) {
+      if (blockElement) {
         const languages = this.getConfig('languages', {}) as CodeLanguagesInterface;
 
         const getLanguageName = (key: string): string => {
@@ -83,7 +83,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
         const updateName = (name: string = notSpecified) => {
           query('.' + cssName + '-lang-link-name', (lnk: HTMLLinkElement) => {
             lnk.textContent = name
-          }, blockNode)
+          }, blockElement)
         };
 
         const languageWrap = make('div', (wrap: HTMLDivElement) => {
@@ -118,7 +118,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                         } else {
                           css(searchItem, 'display', '');
                         }
-                      }, blockNode);
+                      }, blockElement);
                     });
                   });
                   append(search, searchInput);
@@ -139,7 +139,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                   events.change({
                     modelCode: this.getModelCode(),
                     type: "codeClearLanguage",
-                    blockNode: blockNode
+                    blockElement: blockElement
                   })
                 });
               })
@@ -159,7 +159,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                     events.change({
                       modelCode: this.getModelCode(),
                       type: "codeChangeLanguage",
-                      blockNode: blockNode,
+                      blockElement: blockElement,
                       lang: codeKey
                     })
                   });
@@ -202,7 +202,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
           append(wrap, [link, menu]);
         })
 
-        prepend(blockNode, languageWrap)
+        prepend(blockElement, languageWrap)
       }
     }
 
@@ -210,7 +210,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
 
     if (lineBreakInfoMessage) {
       append(
-        blockNode, make('div', (info: HTMLDivElement) => {
+        blockElement, make('div', (info: HTMLDivElement) => {
           addClass(info, 'tex-code-line-break-info');
           append(
             info,
@@ -243,9 +243,9 @@ export default class Code extends BlockModel implements BlockModelInterface {
     return true;
   }
 
-  protected save(block: BlockSchema, blockNode?: BlockNode): BlockSchema {
+  protected save(block: BlockSchema, blockElement?: BlockNode): BlockSchema {
     const { blockManager } = this.editor;
-    const contnetNode = blockManager.getContentNode(blockNode);
+    const contnetNode = blockManager.getContentNode(blockElement);
 
     if (contnetNode?.textContent && !isEmptyString(contnetNode?.textContent)) {
       block.data = [contnetNode.textContent];

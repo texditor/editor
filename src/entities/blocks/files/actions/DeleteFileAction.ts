@@ -17,11 +17,11 @@ export default class DeleteFileAction extends FileActionModel implements FileAct
 
   protected onClick(_evt: BaseEvent): void {
     const { blockManager } = this.editor;
-    const blockNode = this.getBlockNode();
-    const model = blockNode?.baseModel;
+    const blockElement = this.getBlockNode();
+    const model = blockElement?.baseModel;
     const itemNode = this.getItemNode();
 
-    if (blockNode && model && itemNode) {
+    if (blockElement && model && itemNode) {
       const itemIndex = model.getItemIndex(itemNode);
       const index = blockManager.getIndex();
 

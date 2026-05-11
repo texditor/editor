@@ -390,7 +390,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * protected merge(): HTMLElement | null;
   * 
   * Save
-  * protected save(block: BlockSchema, blockNode?: BlockNode): BlockSchema;
+  * protected save(block: BlockSchema, blockElement?: BlockNode): BlockSchema;
   * 
   * Events
   * protected onCompose(createSchema?: BlockCreateSchema): void
@@ -408,7 +408,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * protected onDrop(evt: DragEvent): boolean;
   * 
   * Convert
-  * protected beforeConvert(blockNode: BlockNode, targetModel: BlockModelInterface): [BlockNode, BlockModelInterface];
+  * protected beforeConvert(blockElement: BlockNode, targetModel: BlockModelInterface): [BlockNode, BlockModelInterface];
   * protected afterConvert(newBlockNode: BlockNode): BlockNode;
   */
 }

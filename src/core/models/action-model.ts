@@ -16,7 +16,7 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
   /**
    * Reference to the parent block node that contains this action
    */
-  private blockNode?: BlockNode;
+  private blockElement?: BlockNode;
 
   /**
   * Set up global configuration
@@ -33,7 +33,7 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
    * @see ActionModelInterface.getBlockNode
    */
   getBlockNode(): BlockNode | null {
-    return this.blockNode || null;
+    return this.blockElement || null;
   }
 
   /**
@@ -123,20 +123,20 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
    */
   protected parentOnClick(evt: BaseEvent): void {
     const { events, tools } = this.editor;
-    const blockNode = this.getBlockNode();
+    const blockElement = this.getBlockNode();
 
-    if (blockNode) {
+    if (blockElement) {
       if (this.isConfirm()) {
         this.confirm(evt);
       } else if (this.isDropdown()) {
         const cssContent = 'tex-actions-content',
           dropdownElement = this.dropdown();
 
-        query('.' + cssContent + '-body', (body: HTMLDivElement) => html(body, ''), blockNode);
+        query('.' + cssContent + '-body', (body: HTMLDivElement) => html(body, ''), blockElement);
         query('.' + cssContent + '-dropdown', (dropdown: HTMLDivElement) => {
           append(dropdown, dropdownElement);
           addClass(dropdown, 'tex-active');
-        }, blockNode);
+        }, blockElement);
       } else {
         this.onClick(evt);
         events.refresh();
@@ -171,9 +171,9 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
 
   /**
    * Internal method to set the parent block node reference
-   * @param blockNode - Block node
+   * @param blockElement - Block node
    */
-  __setBlockNode(blockNode: BlockNode): void {
-    this.blockNode = blockNode;
+  __setBlockNode(blockElement: BlockNode): void {
+    this.blockElement = blockElement;
   }
 }

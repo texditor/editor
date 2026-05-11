@@ -11,22 +11,22 @@ export default class MoveLeftFileAction extends FileActionModel implements FileA
   }
 
   onClick() {
-    const blockNode = this.getBlockNode();
+    const blockElement = this.getBlockNode();
     const itemNode = this.getItemNode();
-    const model = blockNode?.baseModel;
+    const model = blockElement?.baseModel;
 
-    if (blockNode && model && itemNode) {
+    if (blockElement && model && itemNode) {
       const index = model.getItemIndex(itemNode);
       model.moveItem(index, index - 1);
     }
   }
 
   isVisible(): boolean {
-    const blockNode = this.getBlockNode();
+    const blockElement = this.getBlockNode();
     const itemNode = this.getItemNode();
-    const model = blockNode?.baseModel;
+    const model = blockElement?.baseModel;
 
-    if (blockNode && model && itemNode) 
+    if (blockElement && model && itemNode) 
       return model.getItemIndex(itemNode) > 0;
     
     return false;

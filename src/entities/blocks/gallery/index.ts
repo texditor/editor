@@ -103,7 +103,7 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
     const { blockManager, events, i18n } = this.editor,
       ltr = this.getConfig("stylesLtr", "left"),
       styles = this.getConfig("styles", []) as string[],
-      blockNode = this.getElement();
+      blockElement = this.getElement();
 
     if (this.isAllowedStyles()) {
       const saveActiveItem = (code: string) => {
@@ -133,14 +133,14 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
           );
           rebind(item, "click.style", () => {
             saveActiveItem(code);
-            data(blockNode, 'optionsStyle', code);
+            data(blockElement, 'optionsStyle', code);
             this.destroySlider();
 
             events.change({
               modelCode: this.getModelCode(),
               type: "galleryStyle",
               index: blockManager.getIndex(),
-              blockNode: blockNode,
+              blockElement: blockElement,
               contentNode: this.getContentNode(),
             });
 
@@ -195,12 +195,12 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
 
   protected onCreateList(_contentNode: HTMLElement): void {
     const styles = this.getStyles(),
-      blockNode = this.getElement(),
+      blockElement = this.getElement(),
       itemStyle = this.getOption('style', '');
 
     if (this.areStylesAllowed() && itemStyle) {
       if (styles.includes(itemStyle))
-        data(blockNode, 'optionsStyle', itemStyle);
+        data(blockElement, 'optionsStyle', itemStyle);
     }
 
     this.setRenderCallback(
@@ -256,13 +256,13 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
   }
 
   protected initSlider(index: number = 0) {
-    const blockNode = this.getElement(),
+    const blockElement = this.getElement(),
       contentNode = this.getContentNode();
 
     this.destroySlider();
 
-    if (blockNode && contentNode) {
-      const isSliderOption = data(blockNode, 'optionsStyle') === "slider";
+    if (blockElement && contentNode) {
+      const isSliderOption = data(blockElement, 'optionsStyle') === "slider";
 
       if (isSliderOption) {
         this.slider = new Slider(contentNode, {

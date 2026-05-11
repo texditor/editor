@@ -53,11 +53,11 @@ export default class EditFileAction extends FileActionModel implements FileActio
       eid = this.getEventId(),
       cssName = 'tex-files-edit-popup',
       cssForm = 'tex-files-edit-form',
-      blockNode = this.getBlockNode(),
+      blockElement = this.getBlockNode(),
       itemNode = this.getItemNode(),
-      model = blockNode?.baseModel as FilesBlockModelInterface;
+      model = blockElement?.baseModel as FilesBlockModelInterface;
 
-    if (blockNode && itemNode && model) {
+    if (blockElement && itemNode && model) {
       this.popupNode = make('div', (popup: HTMLDivElement) => {
         addClass(popup, cssName);
 
@@ -151,10 +151,10 @@ export default class EditFileAction extends FileActionModel implements FileActio
             const reposition = () => {
               setTimeout(() => {
                 if (
-                  blockNode.offsetHeight <
+                  blockElement.offsetHeight <
                   content.offsetHeight + itemNode.offsetTop
                 ) {
-                  css(content, "top", blockNode.offsetHeight - content.offsetHeight + itemNode.offsetHeight / 2);
+                  css(content, "top", blockElement.offsetHeight - content.offsetHeight + itemNode.offsetHeight / 2);
                 } else {
                   css(content, "top", itemNode.offsetTop);
                 }
@@ -179,7 +179,7 @@ export default class EditFileAction extends FileActionModel implements FileActio
         }, true)
       })
 
-      prepend(blockNode, this.popupNode);
+      prepend(blockElement, this.popupNode);
     }
   }
 
@@ -189,13 +189,13 @@ export default class EditFileAction extends FileActionModel implements FileActio
    */
   protected saveHandler(_evt: MouseEvent) {
     const { events } = this.editor,
-      blockNode = this.getBlockNode(),
+      blockElement = this.getBlockNode(),
       popupNode = this.popupNode,
       itemNode = this.getItemNode(),
       formCss = 'tex-files-edit-form',
-      model = blockNode?.baseModel as FilesBlockModelInterface;
+      model = blockElement?.baseModel as FilesBlockModelInterface;
 
-    if (!blockNode || !itemNode || !popupNode || !model) {
+    if (!blockElement || !itemNode || !popupNode || !model) {
       this.removePopup();
       return;
     }
@@ -263,7 +263,7 @@ export default class EditFileAction extends FileActionModel implements FileActio
     events.change({
       modelCode: this.getModelCode(),
       type: "changeFileItem",
-      blockNode: this.getBlockNode(),
+      blockElement: this.getBlockNode(),
       item: itemNode
     });
   }

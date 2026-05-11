@@ -10,7 +10,7 @@ import BaseModel from "../base/base-model";
 
 export default class FileActionModel extends BaseModel<FileActionNode> implements FileActionModelInterface {
   private itemNode?: FileItemNode;
-  private blockNode?: BlockNode;
+  private blockElement?: BlockNode;
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -26,13 +26,13 @@ export default class FileActionModel extends BaseModel<FileActionNode> implement
     return this.itemNode || null;
   }
 
-  __setElements(blockNode: BlockNode, itemNode: FileItemNode): void {
-    this.blockNode = blockNode;
+  __setElements(blockElement: BlockNode, itemNode: FileItemNode): void {
+    this.blockElement = blockElement;
     this.itemNode = itemNode;
   }
 
   getBlockNode(): BlockNode | null {
-    return this.blockNode || null;
+    return this.blockElement || null;
   }
 
   /**

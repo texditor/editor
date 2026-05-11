@@ -14,9 +14,9 @@ export default class MoveDownAction extends ActionModel implements ActionModelIn
   protected onClick(): void {
     const { blockManager } = this.editor;
     const curIndex = blockManager.getIndex(),
-      blockNode = this.getBlockNode();
+      blockElement = this.getBlockNode();
 
-    const model = blockNode?.baseModel;
+    const model = blockElement?.baseModel;
 
     blockManager.moveBlock(curIndex, curIndex + 1);
 

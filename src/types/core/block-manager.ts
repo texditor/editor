@@ -49,10 +49,10 @@ export interface BlockManagerInterface {
 
   /**
    * Gets the content node within a block
-   * @param blockNode - Block node (defaults to current block)
+   * @param blockElement - Block node (defaults to current block)
    * @returns Content element or null
    */
-  getContentNode(blockNode?: BlockNode): HTMLElement | null;
+  getContentNode(blockElement?: BlockNode): HTMLElement | null;
 
   /**
    * Gets the next block node after current active block

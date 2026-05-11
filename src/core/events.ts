@@ -249,10 +249,10 @@ export default class Events extends EventManager implements EventsInterface {
     const { blockManager } = this.editor;
 
     if (target) {
-      const blockNode = blockManager.findParent(target);
+      const blockElement = blockManager.findParent(target);
 
-      if (blockNode) {
-        const targetIndex = blockManager.getIndex(blockNode);
+      if (blockElement) {
+        const targetIndex = blockManager.getIndex(blockElement);
         this.setIndex(targetIndex);
       }
     }
@@ -334,11 +334,11 @@ export default class Events extends EventManager implements EventsInterface {
     this.triggerEvent("keydown", { domEvent: evt });
 
     if (evt.target) {
-      const blockNode = blockManager.findParent(evt.target);
+      const blockElement = blockManager.findParent(evt.target);
 
-      if (blockNode) {
+      if (blockElement) {
         blockManager.use(
-          blockManager.getIndex(blockNode)
+          blockManager.getIndex(blockElement)
         );
       }
     }

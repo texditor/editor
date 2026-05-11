@@ -214,9 +214,9 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     const { config } = this.editor,
       eid = this.getEventId(),
       cssName = '.tex-actions',
-      blockNode = this.getElement();
+      blockElement = this.getElement();
 
-    const [actionsElement] = queryList(cssName, blockNode);
+    const [actionsElement] = queryList(cssName, blockElement);
 
     if (actionsElement) {
       const blockActions = config.get("actions", []) as ActionModelConstructor[];
@@ -236,7 +236,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
           css(content, "display", "block");
         }
-      }, blockNode);
+      }, blockElement);
 
       rebind(
         document,
@@ -255,9 +255,9 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   hideActions(): void {
     const eid = this.getEventId(),
       cssName = '.tex-actions',
-      blockNode = this.getElement();
+      blockElement = this.getElement();
 
-    const [actionsElement] = queryList(cssName, blockNode);
+    const [actionsElement] = queryList(cssName, blockElement);
 
     if (actionsElement) {
       off(document, "click.actions" + eid);
@@ -276,7 +276,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
           content
         );
         css(content, "display", "");
-      }, blockNode);
+      }, blockElement);
     }
   }
 
@@ -318,7 +318,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
                 index: evt.newIndex,
                 targetIndex: evt.oldIndex
               }, {
-                blockNode: this.getElement(),
+                blockElement: this.getElement(),
                 contentNode: contentNode,
               });
 
@@ -397,7 +397,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       this.setOptions(createSchema)
     }
 
-    const blockNode = this.compose(createSchema);
+    const blockElement = this.compose(createSchema);
 
     this.onCompose(createSchema);
 
@@ -405,7 +405,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       createSchema: createSchema
     });
 
-    return blockNode;
+    return blockElement;
   }
 
   /**
@@ -851,7 +851,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         index: newIndex
       }, {
         contentNode: contentNode,
-        blockNode: this.getElement(),
+        blockElement: this.getElement(),
       });
     }
 
@@ -915,7 +915,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         targetIndex: realTargetIndex
       }, {
         contentNode: contentNode,
-        blockNode: this.getElement(),
+        blockElement: this.getElement(),
       });
     }
   }
@@ -934,7 +934,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       index: realIndex
     }, {
       contentNode: this.getContentNode(),
-      blockNode: this.getElement(),
+      blockElement: this.getElement(),
     });
 
     return true;
@@ -1003,12 +1003,12 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   /**
    * Save block data to output format
    * @param block - Block output object
-   * @param _blockNode - Block node (optional)
+   * @param _blockElement - Block node (optional)
    * @returns Modified block output
    */
   protected save(
     block: BlockSchema,
-    _blockNode?: BlockNode
+    _blockElement?: BlockNode
   ): BlockSchema {
     return block;
   }
@@ -1016,14 +1016,14 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   /**
    * Public wrapper for save method
    * @param block - Block output object
-   * @param blockNode - Block node (optional)
+   * @param blockElement - Block node (optional)
    * @returns Modified block output
    */
   __save(
     block: BlockSchema,
-    blockNode?: BlockNode
+    blockElement?: BlockNode
   ): BlockSchema {
-    const blockSchema = this.save(block, blockNode);
+    const blockSchema = this.save(block, blockElement);
     this.triggerEvent('save', {
       type: 'save',
       modelCode: this.getModelCode(),
@@ -1318,28 +1318,28 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
   /**
    * Hook called before block conversion
-   * @param blockNode - Block node to convert
+   * @param blockElement - Block node to convert
    * @param targetModel - Target block model
    * @returns Tuple of modified block node and target model
    */
   protected beforeConvert(
-    blockNode: BlockNode,
+    blockElement: BlockNode,
     targetModel: BlockModelInterface
   ): [BlockNode, BlockModelInterface] {
-    return [blockNode, targetModel];
+    return [blockElement, targetModel];
   }
 
   /**
    * Public wrapper for beforeConvert
-   * @param blockNode - Block node to convert
+   * @param blockElement - Block node to convert
    * @param targetModel - Target block model
    * @returns Tuple of modified block node and target model
    */
   __beforeConvert(
-    blockNode: BlockNode,
+    blockElement: BlockNode,
     targetModel: BlockModelInterface
   ): [BlockNode, BlockModelInterface] {
-    return this.beforeConvert(blockNode, targetModel);
+    return this.beforeConvert(blockElement, targetModel);
   }
 
   /**

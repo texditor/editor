@@ -19,11 +19,11 @@ export default class DownloadFileAction extends FileActionModel implements FileA
 
   protected onClick(): void {
     const { events } = this.editor,
-      blockNode = this.getBlockNode();
+      blockElement = this.getBlockNode();
 
-    const model = blockNode?.baseModel;
+    const model = blockElement?.baseModel;
 
-    if (blockNode && model) {
+    if (blockElement && model) {
       const itemNode = this.getItemNode();
 
       if (itemNode) {
@@ -34,7 +34,7 @@ export default class DownloadFileAction extends FileActionModel implements FileA
           modelCode: this.getModelCode(),
           type: "download",
           contentNode: contentNode,
-          blockNode: blockNode,
+          blockElement: blockElement,
           item: itemNode,
           index: index,
         });

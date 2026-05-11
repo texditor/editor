@@ -17,7 +17,7 @@ export interface TexditorEvent {
   targetIndex?: number | number[];
 
   /** Block node involved in the event */
-  blockNode?: BlockNode | HTMLElement | null;
+  blockElement?: BlockNode | HTMLElement | null;
 
   /** The content node inside the block */
   contentNode?: HTMLElement | null;
