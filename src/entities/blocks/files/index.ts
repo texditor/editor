@@ -59,7 +59,7 @@ export {
   EditFileAction
 };
 
-export default class Files extends BlockModel implements FilesBlockModelInterface {
+export default class Files extends BlockModel  {
   /** Form container element */
   private formNode: HTMLElement | null = null;
   /** Toast notifications container */

@@ -2,7 +2,6 @@ import type {
   BlockManagerInterface,
   CommandsInterface,
   ConfigInterface,
-  TexditorInterface,
   SelectionAPIInterface,
   APIInterface,
   EventsInterface,

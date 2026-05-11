@@ -24,7 +24,7 @@ import "@/styles/tools/link.css";
 import { off, on, rebind } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
-export default class LinkTool extends ToolModel implements ToolModelInterface {
+export default class LinkTool extends ToolModel  {
   /**
    * Get tool configuration
    * @returns Partial tool configuration

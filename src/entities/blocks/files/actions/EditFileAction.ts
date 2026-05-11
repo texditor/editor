@@ -24,7 +24,7 @@ import { executeMethodIfExists, generateRandomString } from "@/utils";
  * Handles the "edit" action for file items.
  * Creates a popup form to edit file name, caption, and description.
  */
-export default class EditFileAction extends FileActionModel implements FileActionModelInterface {
+export default class EditFileAction extends FileActionModel  {
   /** Reference to the popup DOM element */
   private popupNode: HTMLElement | null = null;
   /** Stores timeout IDs for error message hiding */

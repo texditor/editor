@@ -2,7 +2,7 @@ import type { FileActionModelConfig, FileActionModelInterface } from "@/types";
 import { IconArrowRight } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
 
-export default class MoveRightFileAction extends FileActionModel implements FileActionModelInterface {
+export default class MoveRightFileAction extends FileActionModel  {
   protected configure(): Partial<FileActionModelConfig> {
     return {
       name: 'moveRight',

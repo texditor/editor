@@ -1,7 +1,7 @@
 import type { I18NInterface, TexditorInterface } from "@/types";
 import { EnLocale } from "@/locales";
 
-export default class I18N implements I18NInterface {
+export default class I18N  {
   /** Reference to the editor instance */
   private editor: TexditorInterface;
   /** Current active locale code */

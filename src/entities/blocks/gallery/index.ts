@@ -25,7 +25,7 @@ import {
 import Slider from "@/core/ui/slider";
 import "@/styles/blocks/gallery.css";
 
-export default class Gallery extends Files implements GalleryBlockModelInterface {
+export default class Gallery extends Files  {
   private defaultStyles: string[] = ["grid", "slider", "single"];
   private slider?: SliderInterface | null = null;
 

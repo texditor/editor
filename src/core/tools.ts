@@ -27,7 +27,7 @@ import {
   ClearFormattingTool
 } from "@/entities/tools";
 
-export default class Tools implements ToolsInterface {
+export default class Tools  {
   /** Reference to the editor instance */
   private editor: TexditorInterface;
   /** Collection of tool models available in the toolbar */

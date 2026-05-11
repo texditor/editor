@@ -8,7 +8,7 @@ import type {
 } from "@/types";
 import BaseModel from "../base/base-model";
 
-export default class ToolModel extends BaseModel<ToolElement> implements ToolModelInterface {
+export default class ToolModel extends BaseModel<ToolElement>  {
   /**
   * Set up global configuration
   * @param config - Partial configuration

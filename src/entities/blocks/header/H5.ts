@@ -2,7 +2,7 @@ import type { BlockModelConfig, BlockModelInterface } from "@/types";
 import { IconHeader5 } from "@/icons";
 import Header from ".";
 
-export default class H5 extends Header implements BlockModelInterface {
+export default class H5 extends Header  {
   protected configure(): Partial<BlockModelConfig> {
     return {
       ...super.configure(),

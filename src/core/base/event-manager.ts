@@ -2,7 +2,7 @@ import { EventTriggerObject, TexditorEvent } from "@/types";
 import { EventManagerInterface } from "@/types/core/base/event-manager";
 import { generateRandomString } from "@/utils";
 
-export default abstract class EventManager implements EventManagerInterface {
+export default abstract class EventManager  {
     /** Storage for registered event callbacks */
     private triggers: EventTriggerObject = {};
 

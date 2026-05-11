@@ -6,7 +6,7 @@ import type {
 import ExtensionModel from "@/core/models/extension-model";
 import { IconTrash } from "@/icons";
 
-export default class DeleteSelected extends ExtensionModel implements ExtensionModelInterface {
+export default class DeleteSelected extends ExtensionModel  {
   protected configure(): Partial<ExtensionModelConfig> {
     return {
       name: 'deleteSelected',

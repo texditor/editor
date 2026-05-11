@@ -29,7 +29,7 @@ import { isEmptyString } from "@/utils/string";
 import { globalStore } from "@/store/globalStore";
 import EventManager from "./base/event-manager";
 
-export default class Events extends EventManager implements EventsInterface {
+export default class Events extends EventManager  {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 

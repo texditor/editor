@@ -32,7 +32,7 @@ import BlockModel from "@/core/models/block-model";
 import CodeLanguages, { CodeLanguagesInterface } from './languages';
 import "@/styles/blocks/code.css";
 
-export default class Code extends BlockModel implements BlockModelInterface {
+export default class Code extends BlockModel  {
   protected configure(): Partial<BlockModelConfig> {
     return {
       name: "code",

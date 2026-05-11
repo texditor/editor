@@ -2,7 +2,7 @@ import type { ToolModelInterface, ToolModelConfig } from "@/types";
 import { IconClearFormatting } from "@/icons";
 import ToolModel from "@/core/models/tool-model";
 
-export default class ClearFormattingTool extends ToolModel implements ToolModelInterface {
+export default class ClearFormattingTool extends ToolModel  {
   protected configure(): Partial<ToolModelConfig> {
     return {
       name: "clearFormatting",

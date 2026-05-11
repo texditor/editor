@@ -9,7 +9,7 @@ import type {
 import { toggleClass } from "@/utils/dom";
 import BaseModel from "../base/base-model";
 
-export default class ExtensionModel extends BaseModel<ExtensionElement> implements ExtensionModelInterface {
+export default class ExtensionModel extends BaseModel<ExtensionElement>  {
   /**
    * Set up global configuration
    * @param config - Partial configuration

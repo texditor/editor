@@ -9,7 +9,7 @@ import type {
 import BaseModel from "../base/base-model";
 
 // TODO: отказ от постфикса Interface и implements в классах
-export default class FileActionModel extends BaseModel<FileActionElement> implements FileActionModelInterface {
+export default class FileActionModel extends BaseModel<FileActionElement>  {
   private itemNode?: FileItemNode;
   private blockElement?: BlockElement;
   /**

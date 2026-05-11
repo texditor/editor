@@ -2,7 +2,7 @@ import type { ToolModelInterface, ToolModelConfig } from "@/types";
 import { IconSubscript } from "@/icons";
 import ToolModel from "@/core/models/tool-model";
 
-export default class SubscriptTool extends ToolModel implements ToolModelInterface {
+export default class SubscriptTool extends ToolModel  {
   protected configure(): Partial<ToolModelConfig> {
     return {
       name: "subscript",

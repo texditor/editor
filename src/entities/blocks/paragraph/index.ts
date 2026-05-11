@@ -5,7 +5,7 @@ import { IconParagraph } from "@/icons";
 
 export default class Paragraph
   extends BlockModel
-  implements BlockModelInterface {
+   {
   protected configure(): Partial<BlockModelConfig> {
     return {
       name: "p",

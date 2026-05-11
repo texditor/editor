@@ -5,7 +5,7 @@ import type {
   TexditorInterface
 } from "@/types";
 
-export default class HistoryManager implements HistoryManagerInterface {
+export default class HistoryManager  {
   private editor: TexditorInterface;
   private history: HistoryState[] = [];
   private future: HistoryState[] = [];

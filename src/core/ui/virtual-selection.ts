@@ -12,7 +12,7 @@ import {
   removeClass
 } from '@/utils';
 
-export default class VirtualSelection implements VirtualSelectionInterface {
+export default class VirtualSelection  {
   private options: Required<VirtualSelectionOptions>;
   private blocks: HTMLElement[] = [];
   private isDragging = false;

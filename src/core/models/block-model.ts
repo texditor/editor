@@ -47,7 +47,7 @@ import Sortable from "sortablejs";
  * Base block model class - manages block behavior, content, and lifecycle
  */
 // TODO: BlockModel<TConfig>
-export default class BlockModel extends BaseModel<BlockElement> implements BlockModelInterface {
+export default class BlockModel extends BaseModel<BlockElement>  {
   /** Sortable items manager instance */
   private sortableItems: Sortable | null = null;
 

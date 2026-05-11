@@ -2,7 +2,7 @@ import type { ExtensionModelInterface, ExtensionModelConfig, BaseEvent } from "@
 import ExtensionModel from "@/core/models/extension-model";
 import { IconRedo } from "@/icons";
 
-export default class Redo extends ExtensionModel implements ExtensionModelInterface {
+export default class Redo extends ExtensionModel  {
 
   protected configure(): Partial<ExtensionModelConfig> {
     return {

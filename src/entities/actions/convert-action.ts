@@ -12,7 +12,7 @@ import { renderIcon } from "@/utils";
 /** Convert a block */
 export default class ConvertAction
   extends ActionModel
-  implements ActionModelInterface {
+   {
   protected configure(): Partial<ActionModelConfig> {
     return {
       name: 'convertAction',

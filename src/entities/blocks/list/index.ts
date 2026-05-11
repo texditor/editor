@@ -3,7 +3,7 @@ import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/list.css";
 import { IconList } from "@/icons";
 
-export default class List extends BlockModel implements BlockModelInterface {
+export default class List extends BlockModel  {
   protected configure(): Partial<BlockModelConfig> {
     return {
       name: "ul",

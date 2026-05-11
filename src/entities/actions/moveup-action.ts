@@ -3,7 +3,7 @@ import { IconArrowUp } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 
 /** Move the block up */
-export default class MoveUpAction extends ActionModel implements ActionModelInterface {
+export default class MoveUpAction extends ActionModel  {
   protected configure(): Partial<ActionModelConfig> {
     return {
       name: 'moveUpAction',

@@ -20,7 +20,7 @@ import {
 } from "@/utils";
 import EventManager from "./event-manager";
 
-export default class BaseModel<TElement extends BaseElement = BaseElement> extends EventManager implements BaseModelInterface<TElement> {
+export default class BaseModel<TElement extends BaseElement = BaseElement> extends EventManager {
   /** Global user configuration for all model instances */
   private static userConfig: Partial<BaseModelConfig> = {};
 

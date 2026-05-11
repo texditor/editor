@@ -14,7 +14,7 @@ import {
 import { SliderInterface, SliderOptions } from "@/types";
 import "@/styles/core/ui/slider.css";
 
-export default class Slider implements SliderInterface {
+export default class Slider  {
   private container: HTMLElement;
   private slider: HTMLElement;
   private slides: HTMLElement[] = [];

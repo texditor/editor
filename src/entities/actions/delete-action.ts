@@ -5,7 +5,7 @@ import ActionModel from "@/core/models/action-model";
 /** Delete a block */
 export default class DeleteAction
   extends ActionModel
-  implements ActionModelInterface {
+   {
 
   protected configure(): Partial<ActionModelConfig> {
     return {

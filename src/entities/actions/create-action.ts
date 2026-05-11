@@ -13,7 +13,7 @@ import { renderIcon } from "@/utils";
 /** Create a block */
 export default class CreateAction
   extends ActionModel
-  implements ActionModelInterface {
+   {
   protected configure(): Partial<ActionModelConfig> {
     return {
       name: 'createAction',

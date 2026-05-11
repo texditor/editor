@@ -2,7 +2,7 @@ import type { ActionModelConfig, ActionModelInterface } from "@/types";
 import { IconArrowDown } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 /** Move the block down */
-export default class MoveDownAction extends ActionModel implements ActionModelInterface {
+export default class MoveDownAction extends ActionModel  {
   protected configure(): Partial<ActionModelConfig> {
     return {
       name: 'moveDownAction',

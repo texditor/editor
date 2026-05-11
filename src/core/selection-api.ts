@@ -5,7 +5,7 @@ import type {
   TexditorInterface
 } from "@/types";
 import { getChildNodes, make, html } from "@/utils";
-export default class SelectionAPI implements SelectionAPIInterface {
+export default class SelectionAPI  {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 

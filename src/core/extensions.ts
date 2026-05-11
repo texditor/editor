@@ -13,7 +13,7 @@ import {
 } from "@/utils/dom";
 import { off, rebind } from "@/utils/events";
 
-export default class Extensions implements ExtensionsInterface {
+export default class Extensions  {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 

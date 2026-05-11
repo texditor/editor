@@ -2,7 +2,7 @@ import type { BlockModelConfig, BlockModelInterface } from "@/types";
 import { IconOrderedList } from "@/icons";
 import List from ".";
 
-export default class OL extends List implements BlockModelInterface {
+export default class OL extends List  {
   protected configure(): Partial<BlockModelConfig> {
     return {
       ...super.configure(),

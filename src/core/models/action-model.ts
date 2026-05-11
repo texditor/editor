@@ -12,7 +12,7 @@ import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 import BaseModel from "../base/base-model";
 
-export default class ActionModel extends BaseModel<ActionElement> implements ActionModelInterface {
+export default class ActionModel extends BaseModel<ActionElement>  {
   /**
    * Reference to the parent block node that contains this action
    */
