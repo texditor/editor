@@ -14,7 +14,7 @@ export type EventTriggerObject = {
  * Interface defining the contract for event management
  * All event managers must implement these methods
  */
-export interface EventManagerInterface {
+export interface EventManager {
     /**
      * Adds an event listener with optional identifier
      * @param name - Event name (can include .id suffix)

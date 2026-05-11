@@ -11,6 +11,7 @@ import type {
   BlockModelConstructor,
   TexditorEvent,
   ActionModelConstructor,
+  ToolModelInterface,
 } from "@/types";
 import {
   addClass,
@@ -47,9 +48,12 @@ import Sortable from "sortablejs";
  * Base block model class - manages block behavior, content, and lifecycle
  */
 // TODO: BlockModel<TConfig>
-export default class BlockModel extends BaseModel<BlockElement>  {
+export default class BlockModel extends BaseModel<BlockElement> {
   /** Sortable items manager instance */
   private sortableItems: Sortable | null = null;
+
+  /** Collection of tool models available in the toolbar */
+  private tools: ToolModelInterface[] = [];
 
   /**
   * Set up global configuration
@@ -106,7 +110,7 @@ export default class BlockModel extends BaseModel<BlockElement>  {
       backspaceRemove: true,
       className: "",
       visibleTools: false,
-      tools: [],
+      availableTools: [],
       editable: false,
       editableItems: false,
       singleItem: false,
@@ -574,7 +578,7 @@ export default class BlockModel extends BaseModel<BlockElement>  {
 
   /** @see BlockModelInterface.getAvailableTools */
   getAvailableTools(): string[] {
-    return this.getConfig("tools", []) as string[];
+    return this.getConfig("availableTools", []) as string[];
   }
 
   /** @see BlockModelInterface.getRelatedNames */
@@ -1184,18 +1188,7 @@ export default class BlockModel extends BaseModel<BlockElement>  {
    * @returns True if selection handled
    */
   __onSelectionChange(evt: Event, range: Range): boolean {
-    const { tools } = this.editor;
-
     const status = this.onSelectionChange(evt, range);
-
-    if (status) {
-      if (range && !range.collapsed && this.isVisibleTools()) {
-        tools.show();
-        tools.syncHighlight();
-      } else {
-        tools.hide();
-      }
-    }
 
     this.triggerEvent('onSelectionChange', {
       type: 'onSelectionChange',

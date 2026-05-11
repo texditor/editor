@@ -4,14 +4,14 @@ import type {
   Config as IConfig,
   SelectionAPI as ISelectionAPI,
   Events as IEvents,
-  ToolsInterface,
-  I18NInterface,
-  HistoryManagerInterface,
-  ExtensionsInterface,
+  Tools as ITools,
+  I18N as II18N,
+  HistoryManager as IHistoryManager,
+  Extensions as IExtensions,
   BlockSchema,
   BlockSchemaData,
   ConfigOptions,
-  TexditorInterface
+  Texditor as ITexditor
 } from "./types";
 import Events from "@/core/events";
 import BlockManager from "@/core/block-manager";
@@ -38,33 +38,33 @@ import "@/styles/animations.css";
 export * from "./types";
 export * from "./utils";
 
-export default class Texditor implements TexditorInterface {
-  /** Editor configuration object */
+export default class Texditor implements ITexditor {
+  /** @see ITexditor.config */
   config: IConfig;
 
-  /** Manages all editor blocks (creation, deletion, manipulation) */
+  /** @see ITexditor.blockManager */
   blockManager: IBlockManager;
 
-  /** Handles text selection, cursor position, and range management */
+  /** @see ITexditor.selectionApi */
   selectionApi: ISelectionAPI;
 
-  /** Event system for editor lifecycle and user action notifications */
+  /** @see ITexditor.events */
   events: IEvents;
 
-  /** Tool management system for additional editor functionalities */
-  tools: ToolsInterface;
+  /** @see ITexditor.tools */
+  tools: ITools;
 
-  /** Internationalization system for multi-language support */
-  i18n: I18NInterface;
+  /** @see ITexditor.i18n */
+  i18n: II18N;
 
-  /** Command execution system for complex editor operations */
+  /** @see ITexditor.commands */
   commands: ICommands;
 
-  /** Undo/redo history manager for state tracking and restoration */
-  historyManager: HistoryManagerInterface;
+  /** @see ITexditor.historyManager */
+  historyManager: IHistoryManager;
 
-  /** Extension system for third-party plugins and custom features */
-  extensions: ExtensionsInterface;
+  /** @see ITexditor.extensions */
+  extensions: IExtensions;
 
   /** Root HTML element where the editor is mounted */
   private rootElement?: HTMLElement;
@@ -108,7 +108,7 @@ export default class Texditor implements TexditorInterface {
 
   /**
    * Gets the root element of the editor
-   * @see TexditorInterface#getRoot
+   * @see ITexditor.getRoot
    */
   getRoot(): HTMLElement | null {
     const root = this.rootElement || null;
@@ -120,7 +120,7 @@ export default class Texditor implements TexditorInterface {
 
   /**
    * Checks if the editor is empty (no content)
-   * @see TexditorInterface#isEmpty
+   * @see ITexditor.isEmpty
    */
   isEmpty(): boolean {
     const { blockManager } = this;
@@ -135,7 +135,7 @@ export default class Texditor implements TexditorInterface {
 
   /**
    * Sets the editor content
-   * @see TexditorInterface#setContent
+   * @see ITexditor.setContent
    */
   setContent(
     content: string | BlockSchema[],
@@ -209,7 +209,7 @@ export default class Texditor implements TexditorInterface {
 
   /**
    * Gets the current editor content
-   * @see TexditorInterface#getContent
+   * @see ITexditor.getContent
    */
   getContent(): BlockSchema[] {
     return this.save();
@@ -218,7 +218,7 @@ export default class Texditor implements TexditorInterface {
   /**
    * Saves the current editor state to a serializable format
    * Triggers 'save', 'saveEach', 'saveEachEnd', and 'saveEnd' events
-   * @see TexditorInterface#save
+   * @see ITexditor.save
    */
   save(): BlockSchema[] {
     const data: BlockSchema[] = [];
@@ -299,7 +299,7 @@ export default class Texditor implements TexditorInterface {
    * Completely destroys the editor instance
    * Cleans up all event listeners, removes DOM elements,
    * and destroys all sub-components (actions, blocks, tools, etc.)
-   * @see TexditorInterface#destroy
+   * @see ITexditor.destroy
    */
   destroy(): void {
     const {

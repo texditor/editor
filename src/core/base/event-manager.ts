@@ -1,13 +1,13 @@
 import { EventTriggerObject, TexditorEvent } from "@/types";
-import { EventManagerInterface } from "@/types/core/base/event-manager";
+import type { EventManager as IEventManager } from "@/types/core/base/event-manager";
 import { generateRandomString } from "@/utils";
 
-export default abstract class EventManager  {
+export default abstract class EventManager implements IEventManager {
     /** Storage for registered event callbacks */
     private triggers: EventTriggerObject = {};
 
     /**
-     * @see EventManagerInterface#addEvent
+     * @see IEventManager.addEvent
      */
     addEvent(name: string, callback: CallableFunction) {
         const nameOrId = name.split(".");
@@ -22,7 +22,7 @@ export default abstract class EventManager  {
     }
 
     /**
-     * @see EventManagerInterface#isEventExists
+     * @see IEventManager.isEventExists
      */
     isEventExists(name: string) {
         const nameOrId = name.split(".");
@@ -38,7 +38,7 @@ export default abstract class EventManager  {
     }
 
     /**
-     * @see EventManagerInterface#removeEvent
+     * @see IEventManager.removeEvent
      */
     removeEvent(name: string, id?: string): boolean {
         if (!this.triggers[name]) return false;
@@ -57,7 +57,7 @@ export default abstract class EventManager  {
     }
 
     /**
-     * @see EventManagerInterface#triggerEvent
+     * @see IEventManager.triggerEvent
      */
     triggerEvent(name: string, params: TexditorEvent = {}) {
         if (!this.triggers[name]) return;

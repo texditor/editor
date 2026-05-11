@@ -1,4 +1,4 @@
-import type { EventManagerInterface, RenderIconContent, TexditorInterface } from "@/texditor";
+import type { EventManager, RenderIconContent, Texditor } from "@/texditor";
 
 /**
  * Generic model constructor interface
@@ -14,7 +14,7 @@ export interface ModelConstructor<
    * @param editor - Editor instance
    * @returns Model instance of type T
    */
-  new(editor: TexditorInterface): T;
+  new(editor: Texditor): T;
 
   /**
    * Set up global configuration for the model
@@ -68,7 +68,7 @@ export type BaseModelConstructor = ModelConstructor<BaseModelInterface, BaseMode
  * Base model behavior interface
  * Defines all public methods for model manipulation
  */
-export interface BaseModelInterface<TElement extends BaseElement = BaseElement> extends EventManagerInterface {
+export interface BaseModelInterface<TElement extends BaseElement = BaseElement> extends EventManager {
   /**
   * Returns the unique identifier for this event listener instance
   * @returns The unique event ID string used to identify and manage event listeners

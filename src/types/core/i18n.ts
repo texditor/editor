@@ -20,7 +20,7 @@ export interface LocaleMap {
  * I18N interface for internationalization management
  * Defines all public methods for translation handling
  */
-export interface I18NInterface {
+export interface I18N {
   /**
    * Get current active locale
    * @returns Current locale code string

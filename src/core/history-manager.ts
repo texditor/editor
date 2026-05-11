@@ -1,12 +1,12 @@
 import type {
   HistoryState,
   HistoryStateSelectionData,
-  HistoryManagerInterface,
-  TexditorInterface
+  HistoryManager,
+  Texditor
 } from "@/types";
 
 export default class HistoryManager {
-  private editor: TexditorInterface;
+  private editor: Texditor;
   private history: HistoryState[] = [];
   private future: HistoryState[] = [];
   private maxHistorySize: number = 100;
@@ -15,7 +15,7 @@ export default class HistoryManager {
   private saveInterval: number = 800;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     this.editor = editor;
   }
 

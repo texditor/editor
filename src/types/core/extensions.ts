@@ -1,6 +1,6 @@
 import { ExtensionModelInterface } from "./models";
 
-export interface ExtensionsInterface {
+export interface Extensions {
   getExtensions(): ExtensionModelInterface[];
   refresh(): void;
 

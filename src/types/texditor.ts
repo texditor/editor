@@ -3,11 +3,11 @@ import type {
   Config,
   Events,
   SelectionAPI,
-  ToolsInterface,
-  I18NInterface,
+  Tools,
+  I18N,
   Commands,
-  HistoryManagerInterface,
-  ExtensionsInterface,
+  HistoryManager,
+  Extensions,
   BlockSchema
 } from ".";
 
@@ -15,7 +15,7 @@ import type {
  * Main Texditor editor interface
  * Defines the public API and core component accessors for the editor instance
  */
-export interface TexditorInterface {
+export interface Texditor {
   /** Editor configuration object containing settings, plugins, and behaviors */
   config: Config;
 
@@ -29,19 +29,19 @@ export interface TexditorInterface {
   events: Events;
 
   /** Tool management system for additional editor functionalities and UI components */
-  tools: ToolsInterface;
+  tools: Tools;
 
   /** Internationalization system providing multi-language support and translations */
-  i18n: I18NInterface;
+  i18n: I18N;
 
   /** Command execution system for complex editor operations and batch manipulations */
   commands: Commands;
 
   /** Undo/redo history manager for state tracking, restoration, and time travel */
-  historyManager: HistoryManagerInterface;
+  historyManager: HistoryManager;
 
   /** Extension system for third-party plugins, custom features, and external integrations */
-  extensions: ExtensionsInterface;
+  extensions: Extensions;
 
   /**
    * Gets the root element of the editor

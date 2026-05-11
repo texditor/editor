@@ -32,7 +32,7 @@ export interface HistoryState {
  * Interface for history manager
  * Defines API for managing change history, undo and redo operations
  */
-export interface HistoryManagerInterface {
+export interface HistoryManager {
   /**
    * Schedule delayed state saving with debouncing
    * Used to optimize frequent changes

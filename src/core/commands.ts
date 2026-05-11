@@ -1,7 +1,7 @@
 import type {
   Commands,
   SelectionAPI,
-  TexditorInterface
+  Texditor
 } from "@/types";
 import { isEmptyString } from "@/utils/string";
 import { closest, mergeAdjacentTextNodes, query } from "@/utils/dom";
@@ -13,7 +13,7 @@ import { closest, mergeAdjacentTextNodes, query } from "@/utils/dom";
  */
 export default class Commands  {
   /** Reference to the main editor instance */
-  private editor: TexditorInterface;
+  private editor: Texditor;
 
   // Direction constants for selection analysis
   static DIR_LEFT: string = "LEFT"; // ( .|.~ <b>...<-|...</b> )
@@ -35,7 +35,7 @@ export default class Commands  {
   static DIR_NONE: null = null; // ( |......| )
   static DIR_IGNORE: string = "IGNORE";
 
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     this.editor = editor;
   }
 

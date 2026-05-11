@@ -1,9 +1,9 @@
-import type { I18NInterface, TexditorInterface } from "@/types";
+import type { I18N, Texditor } from "@/types";
 import { EnLocale } from "@/locales";
 
 export default class I18N  {
   /** Reference to the editor instance */
-  private editor: TexditorInterface;
+  private editor: Texditor;
   /** Current active locale code */
   private locale: string = 'en';
   /** Default fallback locale code */
@@ -15,7 +15,7 @@ export default class I18N  {
    * Create a new i18n instance
    * @param editor - Editor instance reference
    */
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     this.editor = editor;
     const { config } = this.editor;
     this.defaultLocale = config.get("defaultLocale") || 'en';

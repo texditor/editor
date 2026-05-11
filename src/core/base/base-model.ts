@@ -3,7 +3,7 @@ import {
   BaseElement,
   BaseEvent,
   RenderIconContent,
-  TexditorInterface,
+  Texditor,
   ModelConstructor
 } from "@/types";
 
@@ -24,7 +24,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   private static userConfig: Partial<BaseModelConfig> = {};
 
   /** Reference to the editor instance */
-  protected editor: TexditorInterface;
+  protected editor: Texditor;
 
   /** DOM element representing the model button */
   private element: TElement;
@@ -45,7 +45,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Create a new base model instance
    * @param editor - Editor instance reference
    */
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     super();
     this.editor = editor;
     this.onConstruct(editor);
@@ -369,7 +369,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Hook called during constructor creation
    * @param editor - Editor instance reference 
    */
-  protected onConstruct(_editor: TexditorInterface): void { }
+  protected onConstruct(_editor: Texditor): void { }
 
   /**
    * Check if model element is active

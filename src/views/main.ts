@@ -1,9 +1,9 @@
-import type { TexditorInterface } from "@/types";
+import type { Texditor } from "@/types";
 import { addClass, append, make } from "@/utils/dom";
 import ToolsView from "./tools";
 import ExtensionsView from "./extensions";
 
-export default function MainView(editor: TexditorInterface): HTMLElement {
+export default function MainView(editor: Texditor): HTMLElement {
   return make("div", (el: HTMLElement) => {
     addClass(el, "tex");
     append(el, [

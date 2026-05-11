@@ -4,7 +4,7 @@ import type {
   PasteMap,
   PasteMapItem,
   TexditorEvent,
-  TexditorInterface
+  Texditor
 } from "@/types";
 import { encodeHtmlSpecialChars, executeMethodIfExists, generateRandomString } from "@/utils/common";
 import {
@@ -30,12 +30,12 @@ import EventManager from "./base/event-manager";
 
 export default class Events extends EventManager {
   /** Reference to the main editor instance */
-  private editor: TexditorInterface;
+  private editor: Texditor;
 
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = generateRandomString(16);
 
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     super();
     this.editor = editor;
     this.onDocumentKeyDownHandle = this.onDocumentKeyDownHandle.bind(this);
@@ -868,9 +868,10 @@ export default class Events extends EventManager {
   private onSelectionChangeHandle(evt: Event) {
     const {
       blockManager,
-      selectionApi
+      selectionApi,
+      tools
     } = this.editor;
-    
+
     const root = this.editor.getRoot();
 
     if (root) {
@@ -906,8 +907,16 @@ export default class Events extends EventManager {
                   });
                 }
 
-                if (range && model)
+                if (range && model) {
                   executeMethodIfExists(model, '__onSelectionChange', [evt, range]);
+
+                  if (!range.collapsed && model.isVisibleTools()) {
+                    tools.show();
+                    tools.syncHighlight();
+                  } else {
+                    tools.hide();
+                  }
+                }
               }
             }
           }

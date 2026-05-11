@@ -4,7 +4,7 @@ import { ToolModelInterface } from "./models";
  * Tools manager interface
  * Defines all public methods for toolbar manipulation
  */
-export interface ToolsInterface {
+export interface Tools {
   /**
    * Show the toolbar at the current selection position 
    */

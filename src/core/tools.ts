@@ -1,6 +1,5 @@
 import type {
-  TexditorInterface,
-  ToolsInterface,
+  Texditor,
   ToolModelConstructor,
   ToolModelInterface,
   ToolElement
@@ -29,7 +28,7 @@ import {
 
 export default class Tools {
   /** Reference to the editor instance */
-  private editor: TexditorInterface;
+  private editor: Texditor;
   /** Collection of tool models available in the toolbar */
   private tools: ToolModelInterface[] = [];
   /** Unique identifier for event listeners to prevent conflicts */
@@ -39,7 +38,7 @@ export default class Tools {
    * Create a new tools manager instance
    * @param editor - Editor instance reference
    */
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     this.editor = editor;
 
     this.show = this.show.bind(this);

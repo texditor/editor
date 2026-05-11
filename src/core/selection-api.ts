@@ -2,12 +2,12 @@ import type {
   CurrentSelectionData,
   CursorPosition,
   SelectionAPI,
-  TexditorInterface
+  Texditor
 } from "@/types";
 import { getChildNodes, make, html } from "@/utils";
 export default class SelectionAPI  {
   /** Reference to the main editor instance */
-  private editor: TexditorInterface;
+  private editor: Texditor;
 
   /** Currently stored selection data (element and cursor position) */
   private currentData: CurrentSelectionData = {
@@ -22,7 +22,7 @@ export default class SelectionAPI  {
    * Creates a new SelectionAPI instance
    * @param editor - Reference to the main Texditor instance
    */
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     this.editor = editor;
   }
 

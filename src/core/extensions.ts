@@ -1,8 +1,8 @@
 import type {
   ExtensionModelConstructor,
   ExtensionModelInterface,
-  ExtensionsInterface,
-  TexditorInterface
+  Extensions,
+  Texditor
 } from "@/types";
 import { generateRandomString } from "@/utils";
 import {
@@ -15,7 +15,7 @@ import { off, rebind } from "@/utils/events";
 
 export default class Extensions  {
   /** Reference to the main editor instance */
-  private editor: TexditorInterface;
+  private editor: Texditor;
 
   /** Collection of extensions models */
   private extensions: ExtensionModelInterface[] = [];
@@ -23,7 +23,7 @@ export default class Extensions  {
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = '.ext' + generateRandomString(12);
 
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     this.editor = editor;
     const extModels = this.editor.config.get("extensions", []);
 

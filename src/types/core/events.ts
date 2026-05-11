@@ -1,4 +1,4 @@
-import type { BaseEvent, BlockElement, EventManagerInterface } from "..";
+import type { BaseEvent, BlockElement, EventManager } from "..";
 
 export type PasteMapItem = { type: string; node: Node };
 export type PasteMap = { schema: string; data: PasteMapItem[] };
@@ -38,7 +38,7 @@ export interface TexditorEvent {
 /**
  * Events manager interface for handling editor events
  */
-export interface Events extends EventManagerInterface {
+export interface Events extends EventManager {
   /**
    * Handles content change events
    * @param event - Change event data

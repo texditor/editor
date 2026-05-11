@@ -1,7 +1,7 @@
 import type {
   BlockManager as IBlockManager,
   BlockElement,
-  TexditorInterface,
+  Texditor,
   BlockModelConstructor,
   BlockModelInterface,
   BlockModelSchema,
@@ -46,7 +46,7 @@ import {
 
 export default class BlockManager {
   /** Reference to the main editor instance */
-  private editor: TexditorInterface;
+  private editor: Texditor;
 
   /** Current active block index */
   private blockIndex: number = 0;
@@ -60,7 +60,7 @@ export default class BlockManager {
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = generateRandomString(16);
 
-  constructor(editor: TexditorInterface) {
+  constructor(editor: Texditor) {
     this.editor = editor;
   }
 
@@ -72,7 +72,7 @@ export default class BlockManager {
   refreshVirtualSelection(): VirtualSelectionInterface | null {
     this.destroyVirtualSelection();
 
-    const { config, events, tools } = this.editor
+    const { config, events } = this.editor
     const blocksContainer = this.getBlocksContainer();
 
     if (blocksContainer) {
@@ -89,7 +89,7 @@ export default class BlockManager {
         touchActivationDelay: 250,
         selectedBlockClass: 'tex-ui-vs-selected',
         onLassoStart: () => {
-          tools.hide();
+          // tools.hide();
         },
         onSelectionChange: (indices) => {
           events.change({

@@ -1,4 +1,4 @@
-import type { BlockModelConfig, BlockModelInterface } from "@/types";
+import type { BlockModelConfig } from "@/types";
 import { IconHeader6 } from "@/icons";
 import Header from ".";
 export default class H6 extends Header  {

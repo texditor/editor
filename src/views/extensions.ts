@@ -1,8 +1,8 @@
-import type { TexditorInterface } from "@/types";
+import type { Texditor } from "@/types";
 import { addClass, append, executeMethodIfExists, make, query, queryLength } from "@/utils";
 
 export default function ExtensionsView(
-  editor: TexditorInterface
+  editor: Texditor
 ): HTMLElement | Node {
   const { config, extensions } = editor,
     cssName = 'tex-extensions',

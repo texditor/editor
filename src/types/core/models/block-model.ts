@@ -36,7 +36,7 @@ export interface BlockModelSchema {
  * @property contentClassName - Name of the CSS class of the content node
  * @property backspaceRemove - Remove block on backspace
  * @property visibleTools - Show tools for block
- * @property tools - Available tools list
+ * @property availableTools - Available tools list
  * @property editable - Content is editable
  * @property editableItems - Individual items are editable
  * @property singleItem - Block supports single item only
