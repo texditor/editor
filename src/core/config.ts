@@ -1,5 +1,5 @@
 import type { ConfigInterface, ConfigStoreInterface } from "@/types";
-export default class Config implements ConfigInterface {
+export default class Config  {
   /** Internal storage for configuration values */
   private store: ConfigStoreInterface;
 

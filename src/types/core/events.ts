@@ -1,4 +1,4 @@
-import type { BaseEvent, BlockNode, EventManagerInterface } from "..";
+import type { BaseEvent, BlockElement, EventManagerInterface } from "..";
 
 export type PasteMapItem = { type: string; node: Node };
 export type PasteMap = { schema: string; data: PasteMapItem[] };
@@ -17,10 +17,10 @@ export interface TexditorEvent {
   targetIndex?: number | number[];
 
   /** Block node involved in the event */
-  blockElement?: BlockNode | HTMLElement | null;
+  blockElement?: BlockElement | HTMLElement | null;
 
   /** The content node inside the block */
-  contentNode?: HTMLElement | null;
+  contentElement?: HTMLElement | null;
 
   /** Event-bound DOM element */
   element?: HTMLElement | HTMLElement[] | null;

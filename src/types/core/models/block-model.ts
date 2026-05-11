@@ -13,7 +13,7 @@ import type {
  */
 export type BlockModelConstructor = ModelConstructor<BlockModelInterface, BlockModelConfig>;
 
-export interface BlockNode extends BaseElement {
+export interface BlockElement extends BaseElement {
   baseModel: BlockModelInterface;
 }
 
@@ -95,7 +95,7 @@ export interface BlockModelConfig extends BaseModelConfig {
  * Block model behavior interface
  * Defines all public methods for block manipulation
  */
-export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
+export interface BlockModelInterface extends BaseModelInterface<BlockElement> {
   /**
    * Check if Enter creates new block
    * @returns True if Enter creates block
@@ -148,7 +148,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
    * Get content DOM node
    * @returns Content node
    */
-  getContentNode(): HTMLElement;
+  getContentElement(): HTMLElement;
 
   /**
    * Get the name of the block element
@@ -355,13 +355,13 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
    * Get content to normalize
    * @returns Content node(s)
    */
-  toNormalize(): BlockNode | HTMLElement | HTMLElement[] | null;
+  toNormalize(): BlockElement | HTMLElement | HTMLElement[] | null;
 
   /**
    * Get content to sanitize
    * @returns Content node(s)
    */
-  toSanitize(): BlockNode | HTMLElement | HTMLElement[] | null;
+  toSanitize(): BlockElement | HTMLElement | HTMLElement[] | null;
 
   /**
    * Gets the sanitizer configuration for block content
@@ -381,7 +381,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * 
   * Create
   * protected makeItemNode(content?: string | unknown): HTMLElement;
-  * protected compose(createSchema?: BlockCreateSchema): BlockNode;
+  * protected compose(createSchema?: BlockCreateSchema): BlockElement;
   * 
   * Parse
   * protected parse(_item: BlockCreateSchema): BlockCreateSchema
@@ -390,7 +390,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * protected merge(): HTMLElement | null;
   * 
   * Save
-  * protected save(block: BlockSchema, blockElement?: BlockNode): BlockSchema;
+  * protected save(block: BlockSchema, blockElement?: BlockElement): BlockSchema;
   * 
   * Events
   * protected onCompose(createSchema?: BlockCreateSchema): void
@@ -408,8 +408,8 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
   * protected onDrop(evt: DragEvent): boolean;
   * 
   * Convert
-  * protected beforeConvert(blockElement: BlockNode, targetModel: BlockModelInterface): [BlockNode, BlockModelInterface];
-  * protected afterConvert(newBlockNode: BlockNode): BlockNode;
+  * protected beforeConvert(blockElement: BlockElement, targetModel: BlockModelInterface): [BlockElement, BlockModelInterface];
+  * protected afterConvert(newBlockElement: BlockElement): BlockElement;
   */
 }
 

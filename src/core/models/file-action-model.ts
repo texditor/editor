@@ -3,14 +3,15 @@ import type {
   FileActionModelConfig,
   FileItemNode,
   FileActionModelConstructor,
-  FileActionNode,
-  BlockNode
+  FileActionElement,
+  BlockElement
 } from "@/types";
 import BaseModel from "../base/base-model";
 
-export default class FileActionModel extends BaseModel<FileActionNode> implements FileActionModelInterface {
+// TODO: отказ от постфикса Interface и implements в классах
+export default class FileActionModel extends BaseModel<FileActionElement> implements FileActionModelInterface {
   private itemNode?: FileItemNode;
-  private blockElement?: BlockNode;
+  private blockElement?: BlockElement;
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -26,12 +27,12 @@ export default class FileActionModel extends BaseModel<FileActionNode> implement
     return this.itemNode || null;
   }
 
-  __setElements(blockElement: BlockNode, itemNode: FileItemNode): void {
+  __setElements(blockElement: BlockElement, itemNode: FileItemNode): void {
     this.blockElement = blockElement;
     this.itemNode = itemNode;
   }
 
-  getBlockNode(): BlockNode | null {
+  getBlockElement(): BlockElement | null {
     return this.blockElement || null;
   }
 

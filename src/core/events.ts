@@ -1,6 +1,6 @@
 import type {
   BlockCreateItemSchema,
-  BlockNode,
+  BlockElement,
   EventsInterface,
   PasteMap,
   PasteMapItem,
@@ -346,7 +346,7 @@ export default class Events extends EventManager implements EventsInterface {
     const blocksContainer = blockManager.getBlocksContainer(),
       defBlock = config.get("defaultBlock", "p"),
       model = blockManager.getModel(),
-      contentNode = blockManager.getContentNode();
+      contentElement = blockManager.getContentElement();
 
     const breakEvent = () => {
       evt.stopPropagation();
@@ -362,7 +362,7 @@ export default class Events extends EventManager implements EventsInterface {
 
     const focusedNode = model.isEditableItems() && model.getItemBody(-1)
       ? model.getItemBody(-1)
-      : contentNode;
+      : contentElement;
 
     if (!focusedNode) {
       breakEvent();
@@ -370,17 +370,17 @@ export default class Events extends EventManager implements EventsInterface {
     }
 
     const [start, end] = selectionApi.getOffset(focusedNode),
-      curTextLength = contentNode?.textContent?.length || 0,
+      curTextLength = contentElement?.textContent?.length || 0,
       cursorStart = start < 0 ? 0 : start,
       cursorEnd = end < 0 ? 0 : end;
 
-    if (blocksContainer && contentNode) {
+    if (blocksContainer && contentElement) {
       if (api.isEmpty() && blockManager.count() == 0) blockManager.createBlock(defBlock);
 
       if (evt.key == "Enter") {
         this.triggerEvent("keydownEnterKey", { domEvent: evt });
 
-        if (closest(evt.target, contentNode)) {
+        if (closest(evt.target, contentElement)) {
           if (model.isEditableItems()) {
             if (model.isEnterCreate()) {
               breakEvent();
@@ -419,7 +419,7 @@ export default class Events extends EventManager implements EventsInterface {
                   blockManager.createBlock(defBlock);
               } else {
                 blockManager.createBlock(defBlock, -1, {
-                  data: selectionApi.splitContent(contentNode)
+                  data: selectionApi.splitContent(contentElement)
                 });
               }
             }
@@ -728,7 +728,7 @@ export default class Events extends EventManager implements EventsInterface {
                     const names = schemaModel.getSupportedNames();
 
                     if (names.includes(realName)) {
-                      let newBlock: BlockNode | null = null;
+                      let newBlock: BlockElement | null = null;
 
                       if (schemaModel.isEditable() && !schemaModel.isEditableItems()) {
                         const html = (node as Element)?.innerHTML;
@@ -907,7 +907,7 @@ export default class Events extends EventManager implements EventsInterface {
 
       query(
         '.tex-block',
-        (el: BlockNode) => {
+        (el: BlockElement) => {
           const range = selectionApi.getRange();
 
           if (range) {
@@ -920,12 +920,12 @@ export default class Events extends EventManager implements EventsInterface {
               this.setIndex(index);
 
               if (model) {
-                const contentNode = model.getContentNode(),
+                const contentElement = model.getContentElement(),
                   blockItem = model.isEditableItems()
                     ? model.getItemBody(-1)
                     : null;
 
-                const element = blockItem || contentNode,
+                const element = blockItem || contentElement,
                   [start, end] = selectionApi.getOffset(element);
 
                 if (element) {

@@ -15,7 +15,7 @@ export default class MoveUpAction extends ActionModel implements ActionModelInte
   protected onClick(): void {
     const { blockManager } = this.editor;
     const curIndex = blockManager.getIndex(),
-      blockElement = this.getBlockNode();
+      blockElement = this.getBlockElement();
 
     const model = blockElement?.baseModel;
 

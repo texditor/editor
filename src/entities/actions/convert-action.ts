@@ -23,7 +23,7 @@ export default class ConvertAction
   }
   protected dropdown(): HTMLElement {
     const { blockManager } = this.editor;
-    const blockElement = this.getBlockNode(),
+    const blockElement = this.getBlockElement(),
       schemas = blockManager.getSchemas();
 
     return make('div', (div: HTMLDivElement) => {
@@ -80,7 +80,7 @@ export default class ConvertAction
   }
 
   isVisible(): boolean {
-    const blockElement = this.getBlockNode();
+    const blockElement = this.getBlockElement();
     const model = blockElement?.baseModel;
 
     if (!model) return false;

@@ -29,7 +29,7 @@ import "@/styles/animations.css";
 export * from "./types";
 export * from "./utils";
 
-export default class Texditor implements TexditorInterface {
+export default class Texditor  {
   /** Editor configuration object containing settings, plugins, and behaviors */
   config: ConfigInterface;
 

@@ -1,6 +1,6 @@
 import type {
   BlockManagerInterface,
-  BlockNode,
+  BlockElement,
   TexditorInterface,
   BlockModelConstructor,
   BlockModelInterface,
@@ -44,7 +44,7 @@ import {
   generateRandomString
 } from "@/utils";
 
-export default class BlockManager implements BlockManagerInterface {
+export default class BlockManager  {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 
@@ -161,7 +161,7 @@ export default class BlockManager implements BlockManagerInterface {
     startPos?: number,
     endPos?: number,
     itemIndex?: number
-  ): BlockNode | null {
+  ): BlockElement | null {
     const blockElement = this.getElement(index),
       model = blockElement?.baseModel,
       { selectionApi } = this.editor;
@@ -172,7 +172,7 @@ export default class BlockManager implements BlockManagerInterface {
     if (!blockElement)
       return null;
 
-    const contentNode = this.getContentNode(blockElement);
+    const contentElement = this.getContentElement(blockElement);
     const selectEnd = (el: HTMLElement) => {
       const length = getLength(el) || 0
 
@@ -189,11 +189,11 @@ export default class BlockManager implements BlockManagerInterface {
       }
     };
 
-    if (contentNode) {
-      contentNode.click();
+    if (contentElement) {
+      contentElement.click();
 
       if (model?.isEditable() && !model.isEditableItems()) {
-        selectEnd(contentNode);
+        selectEnd(contentElement);
       } else if (model?.isEditableItems()) {
         const item = typeof itemIndex === 'number'
           ? model.getItemBody(itemIndex)
@@ -202,7 +202,7 @@ export default class BlockManager implements BlockManagerInterface {
         if (item)
           selectEnd(item);
       } else {
-        contentNode.click();
+        contentElement.click();
 
         if (!model?.isEditableItems() && model.getItemsLength() > 0 && typeof itemIndex === 'number') {
           model.getItemBody(itemIndex)?.click();
@@ -217,14 +217,14 @@ export default class BlockManager implements BlockManagerInterface {
    * Gets all block nodes in the editor
    * @returns Array of block nodes
    */
-  getBlockNodes(): BlockNode[] {
-    const nodes: BlockNode[] = [],
+  getBlockElements(): BlockElement[] {
+    const nodes: BlockElement[] = [],
       blockContainer = this.getBlocksContainer();
 
     if (blockContainer) {
       query(
         '.tex-block',
-        (el: BlockNode) => nodes.push(el),
+        (el: BlockElement) => nodes.push(el),
         blockContainer
       );
     }
@@ -237,7 +237,7 @@ export default class BlockManager implements BlockManagerInterface {
    * @param index - Block index (defaults to current index)
    * @returns Block node or null if not found
    */
-  getElement(index?: number): BlockNode | null {
+  getElement(index?: number): BlockElement | null {
     const realIndex = index !== undefined
       ? index
       : this.getIndex(),
@@ -263,13 +263,13 @@ export default class BlockManager implements BlockManagerInterface {
    * @param blockElement - Block node (defaults to current block)
    * @returns Content element or null
    */
-  getContentNode(blockElement?: BlockNode): HTMLElement | null {
-    const realBlockNode = blockElement || this.getElement();
+  getContentElement(blockElement?: BlockElement): HTMLElement | null {
+    const realBlockElement = blockElement || this.getElement();
 
-    if (!realBlockNode)
+    if (!realBlockElement)
       return null;
 
-    const [content] = queryList('.tex-block-content', realBlockNode);
+    const [content] = queryList('.tex-block-content', realBlockElement);
 
     return content || null;
   }
@@ -278,7 +278,7 @@ export default class BlockManager implements BlockManagerInterface {
    * Gets the next block node after current active block
    * @returns Next block node or null
    */
-  getNextBlockNode(): BlockNode | null {
+  getNextBlockElement(): BlockElement | null {
     const currentIndex = this.getIndex();
 
     return this.getElement(currentIndex + 1);
@@ -288,7 +288,7 @@ export default class BlockManager implements BlockManagerInterface {
    * Gets the previous block node before current active block
    * @returns Previous block node or null
    */
-  getPrevBlockNode(): BlockNode | null {
+  getPrevBlockElement(): BlockElement | null {
     const currentIndex = this.getIndex();
 
     return this.getElement(currentIndex - 1);
@@ -299,7 +299,7 @@ export default class BlockManager implements BlockManagerInterface {
    * @param targetNode - Target element or event target
    * @returns Parent block node or null
    */
-  findParent(targetNode: EventTarget | BlockNode | HTMLElement): BlockNode | null {
+  findParent(targetNode: EventTarget | BlockElement | HTMLElement): BlockElement | null {
     let node = null;
     const container = this.getBlocksContainer();
 
@@ -335,7 +335,7 @@ export default class BlockManager implements BlockManagerInterface {
 
       query(
         "." + cssName,
-        (block: BlockNode) => {
+        (block: BlockElement) => {
           removeClass(block, cssName + "-active");
         },
         root
@@ -356,7 +356,7 @@ export default class BlockManager implements BlockManagerInterface {
    * @returns Block index
    */
   getIndex(
-    node?: BlockNode | HTMLElement | EventTarget,
+    node?: BlockElement | HTMLElement | EventTarget,
   ): number {
     if (!node)
       return this.blockIndex;
@@ -415,14 +415,14 @@ export default class BlockManager implements BlockManagerInterface {
     if (container) {
       query(
         '.tex-block',
-        (blockElement: BlockNode) => {
+        (blockElement: BlockElement) => {
           if (blockElement.baseModel?.isEmptyDetect()) {
             const index = this.getIndex(blockElement);
-            const contentNode = this.getContentNode(blockElement);
+            const contentElement = this.getContentElement(blockElement);
 
-            if (contentNode) {
+            if (contentElement) {
               data(
-                contentNode,
+                contentElement,
                 'empty',
                 (!emptyAttr
                   ? "false"
@@ -443,10 +443,10 @@ export default class BlockManager implements BlockManagerInterface {
    * Normalizes all blocks that require normalization
    */
   normalize() {
-    const items = this.getBlockNodes(),
+    const items = this.getBlockElements(),
       { commands } = this.editor;
 
-    items.forEach((blockElement: BlockNode) => {
+    items.forEach((blockElement: BlockElement) => {
       const model = blockElement.baseModel;
 
       if (
@@ -458,7 +458,7 @@ export default class BlockManager implements BlockManagerInterface {
 
         if (container) {
           if (Array.isArray(container)) {
-            container.forEach((el: HTMLElement | BlockNode) => {
+            container.forEach((el: HTMLElement | BlockElement) => {
               commands.normalize(el as HTMLElement);
             });
           } else {
@@ -557,7 +557,7 @@ export default class BlockManager implements BlockManagerInterface {
    */
   createDefaultBlock(
     index: number = -1,
-    options?: BlockCreateSchema): BlockNode | null {
+    options?: BlockCreateSchema): BlockElement | null {
     return this.createBlock(
       this.editor.config.get("defaultBlock", "p"),
       index,
@@ -578,8 +578,8 @@ export default class BlockManager implements BlockManagerInterface {
     index: number = -1,
     options?: BlockCreateSchema,
     skipEvents: boolean = false
-  ): BlockNode | null {
-    let block: BlockNode | null = null;
+  ): BlockElement | null {
+    let block: BlockElement | null = null;
     const { events } = this.editor,
       schemas = this.getSchemas();
 
@@ -592,7 +592,7 @@ export default class BlockManager implements BlockManagerInterface {
             const blockContainer = this.getBlocksContainer();
 
             if (blockContainer) {
-              block = executeMethodIfExists(blockInstance, '__compose', [options]) as BlockNode;
+              block = executeMethodIfExists(blockInstance, '__compose', [options]) as BlockElement;
 
               if (block) {
                 if (to == 'start')
@@ -619,7 +619,7 @@ export default class BlockManager implements BlockManagerInterface {
                 } else {
 
                   const curBlock = this.getElement(curIndex);
-                  block = executeMethodIfExists(blockInstance, '__compose', [options]) as BlockNode;
+                  block = executeMethodIfExists(blockInstance, '__compose', [options]) as BlockElement;
 
                   if (curBlock && block) {
                     if (curIndex != index) {
@@ -733,14 +733,14 @@ export default class BlockManager implements BlockManagerInterface {
     let itemIndex = 0;
     const { events } = this.editor;
     const blockElement = this.getElement(index),
-      targetBlockNode = this.getElement(targetIndex);
+      targetBlockElement = this.getElement(targetIndex);
 
-    if (blockElement && targetBlockNode) {
+    if (blockElement && targetBlockElement) {
       const model = blockElement.baseModel,
-        targetModel = targetBlockNode.baseModel;
+        targetModel = targetBlockElement.baseModel;
 
-      const contentNode = model.getContentNode(),
-        targetContentNode = targetModel.getContentNode();
+      const contentElement = model.getContentElement(),
+        targetContentElement = targetModel.getContentElement();
 
       const appendChildNodes = (target: HTMLElement, el: HTMLElement) => {
         appendText(target, ' ');
@@ -751,7 +751,7 @@ export default class BlockManager implements BlockManagerInterface {
           append(target, getChildNodes(el));
       }
 
-      if (contentNode && targetContentNode) {
+      if (contentElement && targetContentElement) {
         const mergeTextToChild = (node: HTMLElement) => {
           const itemsLength = targetModel.getItemsLength();
 
@@ -767,7 +767,7 @@ export default class BlockManager implements BlockManagerInterface {
               blockElement.remove();
             }
           } else {
-            targetBlockNode.remove();
+            targetBlockElement.remove();
           }
         };
 
@@ -836,7 +836,7 @@ export default class BlockManager implements BlockManagerInterface {
 
         const autoMerge = model.getConfig('autoMerge'),
           targetAutoMerge = targetModel.getConfig('autoMerge'),
-          targetLength = getLength(targetContentNode);
+          targetLength = getLength(targetContentElement);
 
         const editableChild = model?.isEditableItems(),
           targetEditableChild = targetModel.isEditableItems();
@@ -845,7 +845,7 @@ export default class BlockManager implements BlockManagerInterface {
         if (autoMerge && targetAutoMerge) {
           // text -> text
           if (!editableChild && !targetEditableChild) {
-            appendChildNodes(targetContentNode, contentNode);
+            appendChildNodes(targetContentElement, contentElement);
             blockElement.remove();
           }
           // list/child -> list/child
@@ -854,11 +854,11 @@ export default class BlockManager implements BlockManagerInterface {
           }
           // list/child -> text
           else if (editableChild && !targetEditableChild) {
-            mergeChildToText(targetContentNode)
+            mergeChildToText(targetContentElement)
           }
           // text -> list/child
           else if (!editableChild && targetEditableChild) {
-            mergeTextToChild(contentNode);
+            mergeTextToChild(contentElement);
           }
         }
         // Custom -> target (target has autoMerge)
@@ -872,7 +872,7 @@ export default class BlockManager implements BlockManagerInterface {
             }
             // custom -> text
             else {
-              appendChildNodes(targetContentNode, mergeNode);
+              appendChildNodes(targetContentElement, mergeNode);
             }
           }
         }
@@ -886,7 +886,7 @@ export default class BlockManager implements BlockManagerInterface {
             }
             // text -> custom
             else if (!editableChild && !targetEditableChild) {
-              appendChildNodes(targetMergeNode, contentNode);
+              appendChildNodes(targetMergeNode, contentElement);
               blockElement.remove();
             }
             // list/child -> custom (when target is editableChild)
@@ -944,7 +944,7 @@ export default class BlockManager implements BlockManagerInterface {
 
         const focusIndex = focus !== undefined
           ? focus
-          : this.getIndex(targetBlockNode);
+          : this.getIndex(targetBlockElement);
 
         this.focus(
           focusIndex,
@@ -955,8 +955,8 @@ export default class BlockManager implements BlockManagerInterface {
 
         events.change({
           type: 'mergeBlocks',
-          blockElement: targetBlockNode,
-          contentNode: this.getContentNode(targetBlockNode),
+          blockElement: targetBlockElement,
+          contentElement: this.getContentElement(targetBlockElement),
           targetIndex: targetIndex,
           index: index
         });
@@ -971,38 +971,38 @@ export default class BlockManager implements BlockManagerInterface {
    * @param blockElement - Block to convert
    * @param targetModel - Target block model
    */
-  convert(blockElement: BlockNode, targetModel: BlockModelInterface): boolean {
+  convert(blockElement: BlockElement, targetModel: BlockModelInterface): boolean {
     const { events } = this.editor;
     const model = blockElement.baseModel,
       curIndex = this.getIndex(blockElement);
 
-    const [beforeBlockNode, beforeTargetModel] = executeMethodIfExists(
+    const [beforeBlockElement, beforeTargetModel] = executeMethodIfExists(
       model,
       '__beforeConvert',
       [blockElement, targetModel]
-    ) as [BlockNode, BlockModelInterface];
+    ) as [BlockElement, BlockModelInterface];
 
     if (model.isConvertible() && beforeTargetModel.isConvertible()) {
-      if (!beforeBlockNode)
+      if (!beforeBlockElement)
         return false;
 
-      const targetBlockNode = executeMethodIfExists(beforeTargetModel, '__compose') as BlockNode;
+      const targetBlockElement = executeMethodIfExists(beforeTargetModel, '__compose') as BlockElement;
 
       const createItem = (target: HTMLElement, content: string) => {
         const newItem = executeMethodIfExists(beforeTargetModel, '__makeItemNode', [content]) as HTMLElement
         append(target, newItem);
       }
 
-      if (targetBlockNode) {
-        const contentNode = this.getContentNode(beforeBlockNode),
-          targetContentNode = this.getContentNode(targetBlockNode),
+      if (targetBlockElement) {
+        const contentElement = this.getContentElement(beforeBlockElement),
+          targetContentElement = this.getContentElement(targetBlockElement),
           editableItems = model.isEditableItems(),
           isTargetEditableChilds = beforeTargetModel.isEditableItems(),
           sanitizerConfig = beforeTargetModel.getSanitizerConfig(),
           isSanitize = Object.keys(sanitizerConfig).length,
           isRaw = beforeTargetModel.isRaw();
 
-        if (contentNode && targetContentNode) {
+        if (contentElement && targetContentElement) {
           const appendContent = (target: HTMLElement, source: HTMLElement) => {
             if (isRaw || !isSanitize) {
               appendText(target, getText(source));
@@ -1013,7 +1013,7 @@ export default class BlockManager implements BlockManagerInterface {
 
           // Case 1: text -> text (both not editable child)
           if (!editableItems && !isTargetEditableChilds) {
-            appendContent(targetContentNode, contentNode);
+            appendContent(targetContentElement, contentElement);
           }
 
           // Case 2: list/child -> text
@@ -1024,8 +1024,8 @@ export default class BlockManager implements BlockManagerInterface {
               items.forEach((item: HTMLElement, index: number) => {
                 const itemBodyNode = model.getItemBody(index);
                 if (itemBodyNode) {
-                  if (index > 0) appendText(targetContentNode, ' ');
-                  appendContent(targetContentNode, itemBodyNode);
+                  if (index > 0) appendText(targetContentElement, ' ');
+                  appendContent(targetContentElement, itemBodyNode);
                 }
               });
             } else
@@ -1034,8 +1034,8 @@ export default class BlockManager implements BlockManagerInterface {
 
           // Case 3: text -> list/child
           else if (!editableItems && isTargetEditableChilds) {
-            html(targetContentNode, '');
-            createItem(targetContentNode, html(contentNode));
+            html(targetContentElement, '');
+            createItem(targetContentElement, html(contentElement));
           }
 
           // Case 4: list/child -> list/child
@@ -1044,7 +1044,7 @@ export default class BlockManager implements BlockManagerInterface {
               isSingleItem = beforeTargetModel.isSingleItem();
 
             if (items && items.length) {
-              html(targetContentNode, '');
+              html(targetContentElement, '');
               const childs: Node[] = [];
 
               items.forEach((_item: HTMLElement, index: number) => {
@@ -1055,7 +1055,7 @@ export default class BlockManager implements BlockManagerInterface {
                       childs.push(child);
                     });
                   } else
-                    createItem(targetContentNode, html(itemBodyNode));
+                    createItem(targetContentElement, html(itemBodyNode));
                 }
               });
 
@@ -1064,28 +1064,28 @@ export default class BlockManager implements BlockManagerInterface {
                   'div',
                   (div: HTMLDivElement) => append(div, childs)
                 );
-                createItem(targetContentNode, html(temp));
+                createItem(targetContentElement, html(temp));
               }
             }
           }
         }
 
-        after(beforeBlockNode, targetBlockNode);
+        after(beforeBlockElement, targetBlockElement);
 
         if (isSanitize) {
           beforeTargetModel.sanitize();
         }
 
-        beforeBlockNode.remove();
+        beforeBlockElement.remove();
         this.focus(curIndex);
       }
 
-      const afterBlockNode = executeMethodIfExists(targetModel, '__afterConvert', [targetBlockNode]) as BlockNode;
+      const afterBlockElement = executeMethodIfExists(targetModel, '__afterConvert', [targetBlockElement]) as BlockElement;
 
       events.change({
         type: "convertBlock",
         index: curIndex,
-        blockElement: afterBlockNode
+        blockElement: afterBlockElement
       });
 
       events.refresh();
@@ -1099,14 +1099,14 @@ export default class BlockManager implements BlockManagerInterface {
    * @returns List of block models
    */
   getModels(): BlockModelInterface[] {
-    const nodes = this.getBlockNodes();
+    const nodes = this.getBlockElements();
 
     if (!nodes.length)
       return []
 
     const models: BlockModelInterface[] = [];
 
-    nodes.forEach((node: BlockNode) => models.push(node.baseModel));
+    nodes.forEach((node: BlockElement) => models.push(node.baseModel));
 
     return models;
   }
@@ -1238,15 +1238,15 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   /**
-   * Parses a block schema into a BlockNode instance
+   * Parses a block schema into a BlockElement instance
    * @param blockSchema - Block schema object containing type and data
    * @param skipDecode - Whether to skip decoding of child content (default: false)
-   * @returns Parsed BlockNode instance, or null if parsing failed
+   * @returns Parsed BlockElement instance, or null if parsing failed
    */
   parseBlock(
     blockSchema: BlockSchema,
     skipDecode: boolean = false
-  ): BlockNode | null {
+  ): BlockElement | null {
     const modelSchema = this.getSchema(blockSchema.type);
 
     if (!modelSchema)
@@ -1290,7 +1290,7 @@ export default class BlockManager implements BlockManagerInterface {
 
           if (items.length) {
             newSchema.data = items;
-            blockElement = executeMethodIfExists(blockModel, '__compose', [newSchema]) as BlockNode
+            blockElement = executeMethodIfExists(blockModel, '__compose', [newSchema]) as BlockElement
           }
         }
       } else {
@@ -1298,7 +1298,7 @@ export default class BlockManager implements BlockManagerInterface {
         if (nodes) {
           newSchema.data = toHtml(nodes);
 
-          blockElement = executeMethodIfExists(blockModel, '__compose', [newSchema]) as BlockNode;
+          blockElement = executeMethodIfExists(blockModel, '__compose', [newSchema]) as BlockElement;
         }
 
       }
@@ -1310,7 +1310,7 @@ export default class BlockManager implements BlockManagerInterface {
           [blockSchema]
         ) as BlockCreateSchema;
 
-        blockElement = executeMethodIfExists(blockModel, '__compose', [parsedSchema]) as BlockNode;
+        blockElement = executeMethodIfExists(blockModel, '__compose', [parsedSchema]) as BlockElement;
       }
     }
 
@@ -1318,17 +1318,17 @@ export default class BlockManager implements BlockManagerInterface {
   }
 
   /**
-   * Converts an array of BlockSchema objects into an array of BlockNode objects.
+   * Converts an array of BlockSchema objects into an array of BlockElement objects.
    * 
    * @param data - Array of BlockSchema objects to be parsed
    * @param skipDecode - If true, skips HTML entity decoding for text content
-   * @returns An array of parsed BlockNode objects
+   * @returns An array of parsed BlockElement objects
    */
   parseBlocks(
     data: BlockSchema[],
     skipDecode: boolean = false
-  ): BlockNode[] {
-    const blockElements: BlockNode[] = [];
+  ): BlockElement[] {
+    const blockElements: BlockElement[] = [];
 
     data.forEach((blockSchema) => {
       const newBlock = this.parseBlock(blockSchema, skipDecode);

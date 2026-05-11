@@ -15,7 +15,7 @@ import MainView from "@/views/main";
 import { executeMethodIfExists } from "@/utils/common";
 import { isEmptyString, sanitizeJson } from "@/utils";
 
-export default class API implements APIInterface {
+export default class API  {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 
@@ -151,7 +151,7 @@ export default class API implements APIInterface {
 
     if (!root) return [];
 
-    blockManager.getBlockNodes().forEach((el) => {
+    blockManager.getBlockElements().forEach((el) => {
       events.triggerEvent("saveEach", { blockElement: el });
 
       const model = el.baseModel;
@@ -164,16 +164,16 @@ export default class API implements APIInterface {
           ...extOptions
         };
 
-        const contentNode = blockManager.getContentNode(el);
+        const contentElement = blockManager.getContentElement(el);
 
-        if (contentNode && model) {
+        if (contentElement && model) {
           if (model.isCustomSave()) {
             block = executeMethodIfExists(model, '__save', [block, el]) as BlockSchema;
           } else {
             if (model.isRaw()) {
-              block.data = [contentNode.innerText];
+              block.data = [contentElement.innerText];
             } else {
-              const parsedData = blockManager.htmlToData(contentNode.innerHTML);
+              const parsedData = blockManager.htmlToData(html(contentElement));
 
               if (model.isEditableItems() && model.getItemsLength()) {
                 let i = 0;
@@ -182,7 +182,7 @@ export default class API implements APIInterface {
                 items.forEach(() => {
                   const itemBody = model.getItemBody(i);
                   if (itemBody) {
-                    const parsedData = blockManager.htmlToData(itemBody.innerHTML);
+                    const parsedData = blockManager.htmlToData(html(itemBody));
 
                     if (parsedData.length) {
                       const dataObj = {

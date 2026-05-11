@@ -11,7 +11,7 @@ export default class MoveLeftFileAction extends FileActionModel implements FileA
   }
 
   onClick() {
-    const blockElement = this.getBlockNode();
+    const blockElement = this.getBlockElement();
     const itemNode = this.getItemNode();
     const model = blockElement?.baseModel;
 
@@ -22,7 +22,7 @@ export default class MoveLeftFileAction extends FileActionModel implements FileA
   }
 
   isVisible(): boolean {
-    const blockElement = this.getBlockNode();
+    const blockElement = this.getBlockElement();
     const itemNode = this.getItemNode();
     const model = blockElement?.baseModel;
 

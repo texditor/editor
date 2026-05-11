@@ -4,11 +4,11 @@ import type {
   ToolModelInterface,
   ToolModelConfig,
   ToolModelConstructor,
-  ToolNode
+  ToolElement
 } from "@/types";
 import BaseModel from "../base/base-model";
 
-export default class ToolModel extends BaseModel<ToolNode> implements ToolModelInterface {
+export default class ToolModel extends BaseModel<ToolElement> implements ToolModelInterface {
   /**
   * Set up global configuration
   * @param config - Partial configuration

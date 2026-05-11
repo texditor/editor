@@ -11,7 +11,7 @@ import { closest, mergeAdjacentTextNodes, query } from "@/utils/dom";
  * and DOM normalization for the editor. Provides methods for applying and
  * removing HTML tags, managing text ranges, and cleaning up the document structure.
  */
-export default class Commands implements CommandsInterface {
+export default class Commands  {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 

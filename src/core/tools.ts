@@ -3,7 +3,7 @@ import type {
   ToolsInterface,
   ToolModelConstructor,
   ToolModelInterface,
-  ToolNode
+  ToolElement
 } from "@/types";
 import {
   addClass,
@@ -78,9 +78,9 @@ export default class Tools implements ToolsInterface {
 
     const [toolsNode] = queryList('.' + cssName, root),
       [toolsListNode] = queryList('.' + cssName + '-list', root),
-      [toolsContentNode] = queryList('.' + cssName + '-content', root);
+      [toolsContentElement] = queryList('.' + cssName + '-content', root);
 
-    if (!toolsNode && !toolsListNode && !toolsContentNode)
+    if (!toolsNode && !toolsListNode && !toolsContentElement)
       return;
 
     this.getTools().forEach((tool) => {
@@ -150,7 +150,7 @@ export default class Tools implements ToolsInterface {
 
     query(
       cssName,
-      (el: ToolNode) => removeClass(el, "active"),
+      (el: ToolElement) => removeClass(el, "active"),
       root
     );
 
@@ -161,7 +161,7 @@ export default class Tools implements ToolsInterface {
     if (tags.length) {
       query(
         cssName,
-        (el: ToolNode) => {
+        (el: ToolElement) => {
           if (el.baseModel) {
             tags.forEach((selected: HTMLElement) => {
               if (

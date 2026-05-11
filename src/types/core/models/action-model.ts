@@ -2,7 +2,7 @@ import type {
   BaseModelConfig,
   BaseModelInterface,
   BaseElement,
-  BlockNode,
+  BlockElement,
   ModelConstructor
 } from "@/types";
 
@@ -17,7 +17,7 @@ export type ActionModelConstructor = ModelConstructor<ActionModelInterface, Acti
  * Action DOM node interface
  * Extends HTMLElement with action model reference
  */
-export interface ActionNode extends BaseElement {
+export interface ActionElement extends BaseElement {
   /** Reference to the action model instance */
   baseModel: ActionModelInterface;
 }
@@ -36,12 +36,12 @@ export interface ActionModelConfig extends BaseModelConfig {
  * Action model behavior interface
  * Defines all public methods for action manipulation
  */
-export interface ActionModelInterface extends BaseModelInterface<ActionNode> {
+export interface ActionModelInterface extends BaseModelInterface<ActionElement> {
   /**
    * Get the parent block node associated with this action
    * @returns The parent block node or null if not set
    */
-  getBlockNode(): BlockNode | null;
+  getBlockElement(): BlockElement | null;
 
   /**
    * Check if the drop-down list of actions is displayed when you click

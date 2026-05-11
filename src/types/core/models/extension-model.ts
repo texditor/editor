@@ -16,7 +16,7 @@ export type ExtensionModelConstructor = ModelConstructor<ExtensionModelInterface
  * Extension DOM node interface
  * Extends HTMLElement with extension model reference
  */
-export interface ExtensionNode extends BaseElement {
+export interface ExtensionElement extends BaseElement {
   /** Reference to the extension model instance */
   baseModel: ExtensionModelInterface;
 }
@@ -35,7 +35,7 @@ export interface ExtensionModelConfig extends BaseModelConfig {
  * Extension model behavior interface
  * Defines all public methods for extension manipulation
  */
-export interface ExtensionModelInterface extends BaseModelInterface<ExtensionNode> {
+export interface ExtensionModelInterface extends BaseModelInterface<ExtensionElement> {
   /**
    * Get group name for categorization
    * @returns Group name string

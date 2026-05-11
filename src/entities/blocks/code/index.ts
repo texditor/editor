@@ -1,7 +1,7 @@
 import type {
   BlockModelInterface,
   BlockSchema,
-  BlockNode,
+  BlockElement,
   BlockModelConfig,
   BlockCreateSchema
 } from "@/types";
@@ -63,7 +63,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
     this.init(blockElement);
   }
 
-  private init(blockElement: BlockNode): void {
+  private init(blockElement: BlockElement): void {
     if (!blockElement)
       return;
 
@@ -243,9 +243,9 @@ export default class Code extends BlockModel implements BlockModelInterface {
     return true;
   }
 
-  protected save(block: BlockSchema, blockElement?: BlockNode): BlockSchema {
+  protected save(block: BlockSchema, blockElement?: BlockElement): BlockSchema {
     const { blockManager } = this.editor;
-    const contnetNode = blockManager.getContentNode(blockElement);
+    const contnetNode = blockManager.getContentElement(blockElement);
 
     if (contnetNode?.textContent && !isEmptyString(contnetNode?.textContent)) {
       block.data = [contnetNode.textContent];
@@ -275,9 +275,9 @@ export default class Code extends BlockModel implements BlockModelInterface {
     }
   }
 
-  afterConvert(newBlockNode: BlockNode): BlockNode {
-    this.init(newBlockNode);
+  afterConvert(newBlockElement: BlockElement): BlockElement {
+    this.init(newBlockElement);
 
-    return newBlockNode;
+    return newBlockElement;
   }
 }

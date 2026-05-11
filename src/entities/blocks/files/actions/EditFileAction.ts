@@ -53,7 +53,7 @@ export default class EditFileAction extends FileActionModel implements FileActio
       eid = this.getEventId(),
       cssName = 'tex-files-edit-popup',
       cssForm = 'tex-files-edit-form',
-      blockElement = this.getBlockNode(),
+      blockElement = this.getBlockElement(),
       itemNode = this.getItemNode(),
       model = blockElement?.baseModel as FilesBlockModelInterface;
 
@@ -189,7 +189,7 @@ export default class EditFileAction extends FileActionModel implements FileActio
    */
   protected saveHandler(_evt: MouseEvent) {
     const { events } = this.editor,
-      blockElement = this.getBlockNode(),
+      blockElement = this.getBlockElement(),
       popupNode = this.popupNode,
       itemNode = this.getItemNode(),
       formCss = 'tex-files-edit-form',
@@ -263,7 +263,7 @@ export default class EditFileAction extends FileActionModel implements FileActio
     events.change({
       modelCode: this.getModelCode(),
       type: "changeFileItem",
-      blockElement: this.getBlockNode(),
+      blockElement: this.getBlockElement(),
       item: itemNode
     });
   }

@@ -3,8 +3,8 @@ import type {
   ActionModelInterface,
   BaseEvent,
   ActionModelConstructor,
-  ActionNode,
-  BlockNode
+  ActionElement,
+  BlockElement
 } from "@/types";
 import { IconArrowRight } from "@/icons";
 import { addClass, append, before, css, html, make, query } from "@/utils/dom";
@@ -12,11 +12,11 @@ import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 import BaseModel from "../base/base-model";
 
-export default class ActionModel extends BaseModel<ActionNode> implements ActionModelInterface {
+export default class ActionModel extends BaseModel<ActionElement> implements ActionModelInterface {
   /**
    * Reference to the parent block node that contains this action
    */
-  private blockElement?: BlockNode;
+  private blockElement?: BlockElement;
 
   /**
   * Set up global configuration
@@ -30,9 +30,9 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
   }
 
   /**
-   * @see ActionModelInterface.getBlockNode
+   * @see ActionModelInterface.getBlockElement
    */
-  getBlockNode(): BlockNode | null {
+  getBlockElement(): BlockElement | null {
     return this.blockElement || null;
   }
 
@@ -54,7 +54,7 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
    * @param el - Created model node
    * @returns void
    */
-  protected parentOnCreateElement(el: ActionNode): void {
+  protected parentOnCreateElement(el: ActionElement): void {
     const cssName = 'tex-action';
 
     if (this.isConfirm())
@@ -123,7 +123,7 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
    */
   protected parentOnClick(evt: BaseEvent): void {
     const { events, tools } = this.editor;
-    const blockElement = this.getBlockNode();
+    const blockElement = this.getBlockElement();
 
     if (blockElement) {
       if (this.isConfirm()) {
@@ -173,7 +173,7 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
    * Internal method to set the parent block node reference
    * @param blockElement - Block node
    */
-  __setBlockNode(blockElement: BlockNode): void {
+  __setBlockElement(blockElement: BlockElement): void {
     this.blockElement = blockElement;
   }
 }

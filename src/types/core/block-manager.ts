@@ -1,4 +1,4 @@
-import type { BlockChildSchema, BlockCreateSchema, BlockModelInterface, BlockModelSchema, BlockNode, BlockSchema } from ".";
+import type { BlockChildSchema, BlockCreateSchema, BlockModelInterface, BlockModelSchema, BlockElement, BlockSchema } from ".";
 import { VirtualSelectionInterface } from "./ui/virtual-selection";
 
 export interface BlockManagerInterface {
@@ -38,47 +38,47 @@ export interface BlockManagerInterface {
    * Gets all block nodes in the editor
    * @returns Array of block nodes
    */
-  getBlockNodes(): BlockNode[];
+  getBlockElements(): BlockElement[];
 
   /**
    * Gets a specific block node by index
    * @param index - Block index (defaults to current index)
    * @returns Block node or null if not found
    */
-  getElement(index?: number): BlockNode | null;
+  getElement(index?: number): BlockElement | null;
 
   /**
    * Gets the content node within a block
    * @param blockElement - Block node (defaults to current block)
    * @returns Content element or null
    */
-  getContentNode(blockElement?: BlockNode): HTMLElement | null;
+  getContentElement(blockElement?: BlockElement): HTMLElement | null;
 
   /**
    * Gets the next block node after current active block
    * @returns Next block node or null
    */
-  getNextBlockNode(): BlockNode | null;
+  getNextBlockElement(): BlockElement | null;
 
   /**
    * Gets the previous block node before current active block
    * @returns Previous block node or null
    */
-  getPrevBlockNode(): BlockNode | null;
+  getPrevBlockElement(): BlockElement | null;
 
   /**
    * Finds parent block of a target element
    * @param targetNode - Target element or event target
    * @returns Parent block node or null
    */
-  findParent(targetNode: EventTarget | BlockNode | HTMLElement): BlockNode | null;
+  findParent(targetNode: EventTarget | BlockElement | HTMLElement): BlockElement | null;
 
   /**
    * Gets the index of a block
    * @param node - Target node (defaults to current block)
    * @returns Block index
    */
-  getIndex(node?: BlockNode | HTMLElement | EventTarget): number;
+  getIndex(node?: BlockElement | HTMLElement | EventTarget): number;
 
   /**
    * Sets the active block index and updates UI
@@ -114,7 +114,7 @@ export interface BlockManagerInterface {
    * @param itemIndex - Item index
    * @returns The focused block node or null if focus failed
    */
-  focus(index: number, startPos?: number, endPos?: number, itemIndex?: number): BlockNode | null;
+  focus(index: number, startPos?: number, endPos?: number, itemIndex?: number): BlockElement | null;
 
   /**
    * Creates a default block based on editor configuration
@@ -122,7 +122,7 @@ export interface BlockManagerInterface {
     * @param options - Block Options
     * @returns Created block node or null
    */
-  createDefaultBlock(index?: number, options?: BlockCreateSchema): BlockNode | null;
+  createDefaultBlock(index?: number, options?: BlockCreateSchema): BlockElement | null;
 
   /**
    * Creates a new block of specified type
@@ -132,7 +132,7 @@ export interface BlockManagerInterface {
    * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
    * @returns Created block node or null
    */
-  createBlock(name: string, index?: number, options?: BlockCreateSchema, skipEvents?: boolean): BlockNode | null;
+  createBlock(name: string, index?: number, options?: BlockCreateSchema, skipEvents?: boolean): BlockElement | null;
 
   /**
  * Move block to new position
@@ -165,7 +165,7 @@ export interface BlockManagerInterface {
    * @param targetModel - Target block model
    * @returns Convert status
    */
-  convert(block: BlockNode, targetModel: BlockModelInterface): boolean;
+  convert(block: BlockElement, targetModel: BlockModelInterface): boolean;
 
   /**
    * Updates empty state data attributes on blocks
@@ -213,21 +213,21 @@ export interface BlockManagerInterface {
   htmlToData(html: string): Array<BlockSchema | string>;
 
   /**
-   * Parses a block schema into a BlockNode instance
+   * Parses a block schema into a BlockElement instance
    * @param blockSchema - Block schema object containing type and data
    * @param skipDecode - Whether to skip decoding of child content (default: false)
-   * @returns Parsed BlockNode instance, or null if parsing failed
+   * @returns Parsed BlockElement instance, or null if parsing failed
    */
-  parseBlock(blockSchema: BlockSchema, skipDecode?: boolean): BlockNode | null
+  parseBlock(blockSchema: BlockSchema, skipDecode?: boolean): BlockElement | null
 
   /**
-  * Converts an array of BlockSchema objects into an array of BlockNode objects.
+  * Converts an array of BlockSchema objects into an array of BlockElement objects.
   * 
   * @param data - Array of BlockSchema objects to be parsed
   * @param skipDecode - If true, skips HTML entity decoding for text content
-  * @returns An array of parsed BlockNode objects
+  * @returns An array of parsed BlockElement objects
   */
-  parseBlocks(data: BlockSchema[], skipDecode?: boolean): BlockNode[];
+  parseBlocks(data: BlockSchema[], skipDecode?: boolean): BlockElement[];
 
   /**
    * Recursively parses a BlockSchema structure and converts it into an array of DOM Nodes.

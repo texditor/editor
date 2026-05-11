@@ -1,5 +1,5 @@
 import type {
-  BlockNode,
+  BlockElement,
   FileItem,
   BlockModelConstructor,
   FilesBlockModelConfig,
@@ -140,10 +140,10 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
     * Hook called after model node creation
     * @param node - Created model node 
     */
-  protected onCreateElement(node: BlockNode): void {
-    const contentNode = node.baseModel.getContentNode();
+  protected onCreateElement(node: BlockElement): void {
+    const contentElement = node.baseModel.getContentElement();
 
-    if (contentNode) css(contentNode, "display", "none");
+    if (contentElement) css(contentElement, "display", "none");
   }
 
   /**
@@ -273,14 +273,14 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
 
   /** @see FilesBlockModelInterface.refresh */
   refresh(): void {
-    const contentNode = this.getContentNode(),
+    const contentElement = this.getContentElement(),
       formNode = this.getFormNode(),
       itemsLength = this.getItemsLength(),
       maxItems = this.getMaxItems();
 
     if (!formNode) return;
 
-    if (itemsLength > 0) css(contentNode, "display", "");
+    if (itemsLength > 0) css(contentElement, "display", "");
 
     const [formUploader] = queryList(".tex-files-form-uploader", formNode);
 
@@ -679,14 +679,14 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
    * @returns Content node element
    */
   protected createList(): HTMLElement {
-    const contentNode = this.getContentNode(),
+    const contentElement = this.getContentElement(),
       items = this.getOption("data", []) as FileItem[];
 
     this.setRenderCallback("default", (item: FileItem) =>
       this.defaultRenderItem(item)
     );
 
-    this.onCreateList(contentNode);
+    this.onCreateList(contentElement);
 
     if (items.length && Array.isArray(items)) {
       const maxItems = this.getMaxItems();
@@ -699,25 +699,25 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
         this.createItem(item, index, true)
       );
 
-      css(contentNode, "display", "");
+      css(contentElement, "display", "");
     }
 
-    this.onCreatedList(contentNode);
+    this.onCreatedList(contentElement);
 
-    return contentNode;
+    return contentElement;
   }
 
   /**
    * Hook called before list element creation
-   * @param _contentNode - Content node element
+   * @param _contentElement - Content node element
    */
-  protected onCreateList(_contentNode: HTMLElement): void { }
+  protected onCreateList(_contentElement: HTMLElement): void { }
 
   /**
    * Hook called after list element creation
-   * @param _contentNode - Content node element
+   * @param _contentElement - Content node element
    */
-  protected onCreatedList(_contentNode: HTMLElement): void { }
+  protected onCreatedList(_contentElement: HTMLElement): void { }
 
   /**
    * Create DOM node for a file item
@@ -770,7 +770,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
     const { i18n } = this.editor;
     const cssName = "tex-files-actions",
       eid = this.getEventId(),
-      contentNode = this.getContentNode();
+      contentElement = this.getContentElement();
 
     const hideActions = () => {
       actionsConstructors.forEach((action) => {
@@ -785,7 +785,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
         (actions: HTMLElement) => {
           css(actions, "display", "");
         },
-        contentNode
+        contentElement
       );
     };
 
@@ -844,9 +844,9 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
           '__setElements',
           [this.getElement(), itemNode]
         );
-        const fileActionNode = action.getElement();
-        append(actionsNodeList, fileActionNode);
-        executeMethodIfExists(action, "__onMount", [fileActionNode]);
+        const fileActionElement = action.getElement();
+        append(actionsNodeList, fileActionElement);
+        executeMethodIfExists(action, "__onMount", [fileActionElement]);
         this.fileActions.push(action);
       });
 
@@ -1085,7 +1085,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
    * @param node - Optional block node
    * @returns Updated block schema
    */
-  protected save(block: BlockSchema, node?: BlockNode): BlockSchema {
+  protected save(block: BlockSchema, node?: BlockElement): BlockSchema {
     const root = node || this.getElement();
     block.data = [];
 

@@ -8,7 +8,7 @@ import { BaseModelInterface } from "../base/base-model";
  */
 export type ToolModelConstructor = ModelConstructor<ToolModelInterface, ToolModelConfig>;
 
-export interface ToolNode extends BaseElement {
+export interface ToolElement extends BaseElement {
   baseModel: ToolModelInterface;
 }
 
@@ -27,7 +27,7 @@ export interface ToolModelConfig extends BaseModelConfig {
  * Tool model behavior interface
  * Defines all public methods for tool manipulation
  */
-export interface ToolModelInterface extends BaseModelInterface<ToolNode> {
+export interface ToolModelInterface extends BaseModelInterface<ToolElement> {
   /**
    * Get tool tag name
    * @returns Tag name string

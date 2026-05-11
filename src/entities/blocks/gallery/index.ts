@@ -1,7 +1,7 @@
 import Files from "../files";
 import type {
   BlockModelConstructor,
-  BlockNode,
+  BlockElement,
   FileItem,
   GalleryBlockModelConfig,
   GalleryBlockModelInterface,
@@ -74,7 +74,7 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
     };
   }
 
-  protected onMount(node: BlockNode): void {
+  protected onMount(node: BlockElement): void {
     super.onMount(node);
     this.initSlider();
     this.addEvent('onChange.gallery', (evt: TexditorEvent) => {
@@ -141,7 +141,7 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
               type: "galleryStyle",
               index: blockManager.getIndex(),
               blockElement: blockElement,
-              contentNode: this.getContentNode(),
+              contentElement: this.getContentElement(),
             });
 
             if (code === "slider")
@@ -193,7 +193,7 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
     }
   }
 
-  protected onCreateList(_contentNode: HTMLElement): void {
+  protected onCreateList(_contentElement: HTMLElement): void {
     const styles = this.getStyles(),
       blockElement = this.getElement(),
       itemStyle = this.getOption('style', '');
@@ -257,15 +257,15 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
 
   protected initSlider(index: number = 0) {
     const blockElement = this.getElement(),
-      contentNode = this.getContentNode();
+      contentElement = this.getContentElement();
 
     this.destroySlider();
 
-    if (blockElement && contentNode) {
+    if (blockElement && contentElement) {
       const isSliderOption = data(blockElement, 'optionsStyle') === "slider";
 
       if (isSliderOption) {
-        this.slider = new Slider(contentNode, {
+        this.slider = new Slider(contentElement, {
           infinite: this.getConfig("sliderInfinite", true) as boolean
         });
 

@@ -1,5 +1,5 @@
 import type {
-  BlockNode,
+  BlockElement,
   BlockSchema,
   SanitizerConfig,
   BlockModelConfig,
@@ -47,7 +47,7 @@ import Sortable from "sortablejs";
  * Base block model class - manages block behavior, content, and lifecycle
  */
 // TODO: BlockModel<TConfig>
-export default class BlockModel extends BaseModel<BlockNode> implements BlockModelInterface {
+export default class BlockModel extends BaseModel<BlockElement> implements BlockModelInterface {
   /** Sortable items manager instance */
   private sortableItems: Sortable | null = null;
 
@@ -143,7 +143,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @param el - Created model node
    * @returns void
    */
-  protected parentOnCreateElement(el: BlockNode): void {
+  protected parentOnCreateElement(el: BlockElement): void {
     const { config, i18n } = this.editor,
       tagName = this.getTagName(),
       contentClassName = this.getContentClassName(),
@@ -191,7 +191,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       elements.push(actionsElement);
     }
 
-    const contentNode = make(tagName, (content: HTMLDivElement) => {
+    const contentElement = make(tagName, (content: HTMLDivElement) => {
       addClass(content, 'tex-block-content' + (contentClassName ? ' ' + contentClassName : ''));
       if (this.isEmptyDetect()) data(content, 'empty', 'true');
       if (this.isEditable()) content.contentEditable = "true";
@@ -202,7 +202,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         data(content, 'placeholder', placeholder);
     });
 
-    elements.push(contentNode);
+    elements.push(contentElement);
 
     append(el, elements);
   }
@@ -225,7 +225,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         if (contentBody) {
           blockActions.forEach((instance: ActionModelConstructor) => {
             const action = new instance(this.editor);
-            executeMethodIfExists(action, '__setBlockNode', [this.getElement()])
+            executeMethodIfExists(action, '__setBlockElement', [this.getElement()])
             const actionEl = action.getElement(),
               isVisible = action.isVisible();
 
@@ -291,10 +291,10 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
           this.sortableItems.destroy();
         }
 
-        const contentNode = this.getContentNode();
+        const contentElement = this.getContentElement();
 
-        if (contentNode) {
-          this.sortableItems = new Sortable(contentNode, {
+        if (contentElement) {
+          this.sortableItems = new Sortable(contentElement, {
             handle: '.tex-item-drag-zone',
             ghostClass: 'tex-sortable-item',
             chosenClass: 'tex-sortable-chosen',
@@ -319,7 +319,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
                 targetIndex: evt.oldIndex
               }, {
                 blockElement: this.getElement(),
-                contentNode: contentNode,
+                contentElement: contentElement,
               });
 
               setTimeout(() => {
@@ -346,18 +346,18 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @param composeSchema - Composition schema
    * @returns Composed block node
    */
-  protected compose(createSchema?: BlockCreateSchema): BlockNode {
-    const contentNode = this.getContentNode();
+  protected compose(createSchema?: BlockCreateSchema): BlockElement {
+    const contentElement = this.getContentElement();
 
     if (!this.isEditable() && this.isEditableItems()) {
       const content = createSchema?.data || {};
 
       if (!Object.keys(content).length) {
-        append(contentNode, this.__makeItemNode());
+        append(contentElement, this.__makeItemNode());
       } else if (Array.isArray(content) && content.length) {
         content.forEach((item: BlockCreateItemSchema) => {
           if (!isEmptyString(item.data)) {
-            append(contentNode, [this.__makeItemNode(item.data)]);
+            append(contentElement, [this.__makeItemNode(item.data)]);
           }
         })
       }
@@ -366,9 +366,9 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
       if (content && typeof content === 'string') {
         if (this.isRaw()) {
-          appendText(contentNode, content);
+          appendText(contentElement, content);
         } else {
-          html(contentNode, content);
+          html(contentElement, content);
         }
       }
     }
@@ -387,7 +387,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @param composeSchema - Composition schema (options will be merged with existing)
    * @returns Composed block node
    */
-  __compose(createSchema?: BlockCreateSchema): BlockNode {
+  __compose(createSchema?: BlockCreateSchema): BlockElement {
     this.sanitize();
 
     if (
@@ -452,12 +452,12 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return this.getConfig("contentClassName", '');
   }
 
-  /** @see BlockModelInterface.getContentNode */
-  getContentNode(): HTMLElement {
+  /** @see BlockModelInterface.getContentElement */
+  getContentElement(): HTMLElement {
     const block = this.getElement();
-    const [contentNode] = queryList(".tex-block-content", block);
+    const [contentElement] = queryList(".tex-block-content", block);
 
-    return contentNode;
+    return contentElement;
   }
 
   /** @see BlockModelInterface.isAutoMerge */
@@ -477,9 +477,9 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
   /** @see BlockModelInterface.isEmpty */
   isEmpty(): boolean {
-    const contentNode = this.getContentNode();
+    const contentElement = this.getContentElement();
 
-    if (!contentNode)
+    if (!contentElement)
       return true;
 
     if (this.isEditableItems()) {
@@ -498,7 +498,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       );
     }
 
-    const content = html(contentNode).trim();
+    const content = html(contentElement).trim();
 
     return (
       isEmptyString(content) ||
@@ -634,7 +634,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   }
 
   /** @see BlockModelInterface.toSanitize */
-  toSanitize(): BlockNode | HTMLElement | HTMLElement[] | null {
+  toSanitize(): BlockElement | HTMLElement | HTMLElement[] | null {
     if (this.isEditableItems()) {
       const bodyNodes: HTMLElement[] = [];
       let i = 0;
@@ -651,7 +651,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       return bodyNodes;
     }
 
-    return this.getContentNode();
+    return this.getContentElement();
   }
 
   /** @see BlockModelInterface.getSanitizerConfig */
@@ -663,7 +663,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   }
 
   /** @see BlockModelInterface.toNormalize */
-  toNormalize(): BlockNode | HTMLElement | HTMLElement[] | null {
+  toNormalize(): BlockElement | HTMLElement | HTMLElement[] | null {
     return this.toSanitize();
   }
 
@@ -709,11 +709,11 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
   /** @see BlockModelInterface.getItems */
   getItems(): HTMLElement[] {
-    const contentNode = this.getContentNode();
+    const contentElement = this.getContentElement();
 
-    if (!contentNode) return [];
+    if (!contentElement) return [];
 
-    return queryList(':scope > *', contentNode);
+    return queryList(':scope > *', contentElement);
   }
 
   /** @see BlockModelInterface.getItemsLength */
@@ -803,33 +803,33 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     index: number = -1,
     skipEvents: boolean = false
   ): boolean {
-    const contentNode = this.getContentNode();
+    const contentElement = this.getContentElement();
 
-    if (!contentNode)
+    if (!contentElement)
       return false;
 
     const itemNode = this.__makeItemNode(content);
 
     if (index === 0) {
-      prepend(contentNode, itemNode)
+      prepend(contentElement, itemNode)
     } else if (index === -1) {
       const item = this.getItem(-1);
 
       if (item)
         after(item, itemNode);
       else
-        append(contentNode, itemNode);
+        append(contentElement, itemNode);
     } else {
       const prevIndex = index - 1;
       if (prevIndex < 0) {
-        prepend(contentNode, itemNode);
+        prepend(contentElement, itemNode);
       } else {
         const item = this.getItem(prevIndex);
 
         if (item)
           after(item, itemNode);
         else {
-          append(contentNode, itemNode);
+          append(contentElement, itemNode);
         }
       }
     }
@@ -850,7 +850,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       this.change('createItem', {
         index: newIndex
       }, {
-        contentNode: contentNode,
+        contentElement: contentElement,
         blockElement: this.getElement(),
       });
     }
@@ -864,9 +864,9 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     targetIndex: number,
     skipEvents: boolean = false
   ): void {
-    const contentNode = this.getContentNode();
+    const contentElement = this.getContentElement();
 
-    if (!contentNode) return;
+    if (!contentElement) return;
 
     const itemsLength = this.getItemsLength();
 
@@ -892,10 +892,10 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     itemNode.remove();
 
     if (realTargetIndex === 0) {
-      prepend(contentNode, itemNode);
+      prepend(contentElement, itemNode);
     } else {
       if (realTargetIndex >= itemsLength - 1) {
-        append(contentNode, itemNode);
+        append(contentElement, itemNode);
       } else {
         const insertAfterIndex = realTargetIndex - 1;
         const targetItemNode = this.getItem(insertAfterIndex);
@@ -903,7 +903,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         if (targetItemNode) {
           after(targetItemNode, itemNode);
         } else {
-          append(contentNode, itemNode);
+          append(contentElement, itemNode);
         }
       }
     }
@@ -914,7 +914,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         index: index,
         targetIndex: realTargetIndex
       }, {
-        contentNode: contentNode,
+        contentElement: contentElement,
         blockElement: this.getElement(),
       });
     }
@@ -933,7 +933,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     this.change('removeItem', {
       index: realIndex
     }, {
-      contentNode: this.getContentNode(),
+      contentElement: this.getContentElement(),
       blockElement: this.getElement(),
     });
 
@@ -1008,7 +1008,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    */
   protected save(
     block: BlockSchema,
-    _blockElement?: BlockNode
+    _blockElement?: BlockElement
   ): BlockSchema {
     return block;
   }
@@ -1021,7 +1021,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    */
   __save(
     block: BlockSchema,
-    blockElement?: BlockNode
+    blockElement?: BlockElement
   ): BlockSchema {
     const blockSchema = this.save(block, blockElement);
     this.triggerEvent('save', {
@@ -1323,9 +1323,9 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns Tuple of modified block node and target model
    */
   protected beforeConvert(
-    blockElement: BlockNode,
+    blockElement: BlockElement,
     targetModel: BlockModelInterface
-  ): [BlockNode, BlockModelInterface] {
+  ): [BlockElement, BlockModelInterface] {
     return [blockElement, targetModel];
   }
 
@@ -1336,33 +1336,33 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns Tuple of modified block node and target model
    */
   __beforeConvert(
-    blockElement: BlockNode,
+    blockElement: BlockElement,
     targetModel: BlockModelInterface
-  ): [BlockNode, BlockModelInterface] {
+  ): [BlockElement, BlockModelInterface] {
     return this.beforeConvert(blockElement, targetModel);
   }
 
   /**
    * Hook called after block conversion
-   * @param newBlockNode - Newly converted block node
+   * @param newBlockElement - Newly converted block node
    * @returns Modified block node
    */
   protected afterConvert(
-    newBlockNode: BlockNode
-  ): BlockNode {
+    newBlockElement: BlockElement
+  ): BlockElement {
 
-    return newBlockNode;
+    return newBlockElement;
   }
 
   /**
    * Public wrapper for afterConvert
-   * @param newBlockNode - Newly converted block node
+   * @param newBlockElement - Newly converted block node
    * @returns Modified block node
    */
   __afterConvert(
-    newBlockNode: BlockNode
-  ): BlockNode {
-    return this.afterConvert(newBlockNode);
+    newBlockElement: BlockElement
+  ): BlockElement {
+    return this.afterConvert(newBlockElement);
   }
 
   protected parentDestroy(): void {

@@ -3,13 +3,13 @@ import type {
   ExtensionModelConfig,
   ExtensionModelConstructor,
   ExtensionModelInterface,
-  ExtensionNode,
+  ExtensionElement,
 } from "@/types";
 
 import { toggleClass } from "@/utils/dom";
 import BaseModel from "../base/base-model";
 
-export default class ExtensionModel extends BaseModel<ExtensionNode> implements ExtensionModelInterface {
+export default class ExtensionModel extends BaseModel<ExtensionElement> implements ExtensionModelInterface {
   /**
    * Set up global configuration
    * @param config - Partial configuration
