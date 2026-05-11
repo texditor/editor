@@ -1,2 +1,2 @@
 export * from "./slider";
-export * from "./sortable";
+export * from "./virtual-selection";

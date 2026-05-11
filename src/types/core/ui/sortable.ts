@@ -27,6 +27,9 @@ export interface SortableOptions {
      * @default "li"
      */
     itemSelector?: string;
+    
+
+    threshold?: number;
 
     /**
      * Callback fired when dragging starts

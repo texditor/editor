@@ -17,8 +17,34 @@ export default class DownloadFileAction extends FileActionModel implements FileA
     }
   }
 
+  protected onClick(): void {
+    const { events } = this.editor,
+      blockNode = this.getBlockNode();
+
+    const model = blockNode?.baseModel;
+
+    if (blockNode && model) {
+      const itemNode = this.getItemNode();
+
+      if (itemNode) {
+        const contentNode = model.getContentNode(),
+          index = model.getItemIndex(itemNode)
+
+        events.change({
+          modelCode: this.getModelCode(),
+          type: "download",
+          contentNode: contentNode,
+          blockNode: blockNode,
+          item: itemNode,
+          index: index,
+        });
+      }
+    }
+  }
+
   protected onMount(node: FileActionNode): void {
     const itemNode = this.getItemNode();
+
     if (itemNode) {
       const url = itemNode.fileUrl;
       const name = itemNode.fileName || "";

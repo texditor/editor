@@ -7,7 +7,7 @@ import type {
 } from "@/types";
 
 import { toggleClass } from "@/utils/dom";
-import BaseModel from "./base-model";
+import BaseModel from "../base/base-model";
 
 export default class ExtensionModel extends BaseModel<ExtensionNode> implements ExtensionModelInterface {
   /**
@@ -26,7 +26,7 @@ export default class ExtensionModel extends BaseModel<ExtensionNode> implements 
    * Parent model configuration
    * @returns Parent model configuration
    */
-  protected parentСonfig(): Partial<ExtensionModelConfig> {
+  protected parentConfig(): Partial<ExtensionModelConfig> {
     const { config } = this.editor;
 
     return {
@@ -43,9 +43,9 @@ export default class ExtensionModel extends BaseModel<ExtensionNode> implements 
    */
   protected parentOnClick(evt: BaseEvent): void {
     if (this.isToggleActive()) {
-      if (evt.el) {
+      if (evt.delegateTarget) {
         toggleClass(
-          evt.el as HTMLElement,
+          evt.delegateTarget as HTMLElement,
           "tex-extension-active"
         );
       }

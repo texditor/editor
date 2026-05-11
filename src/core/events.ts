@@ -2,7 +2,6 @@ import type {
   BlockCreateItemSchema,
   BlockNode,
   EventsInterface,
-  EventTriggerObject,
   PasteMap,
   PasteMapItem,
   TexditorEvent,
@@ -24,22 +23,21 @@ import {
   toHtml,
   toTextNode
 } from "@/utils/dom";
-import { off, on, rebind } from "@/utils/events";
+import { off, rebind } from "@/utils/events";
 import { query } from "@/utils/dom";
 import { isEmptyString } from "@/utils/string";
 import { globalStore } from "@/store/globalStore";
+import EventManager from "./base/event-manager";
 
-export default class Events implements EventsInterface {
+export default class Events extends EventManager implements EventsInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
-
-  /** Storage for registered event callbacks */
-  private triggers: EventTriggerObject = {};
 
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = generateRandomString(16);
 
   constructor(editor: TexditorInterface) {
+    super();
     this.editor = editor;
     this.onDocumentKeyDownHandle = this.onDocumentKeyDownHandle.bind(this);
     this.onKeyDownHandle = this.onKeyDownHandle.bind(this);
@@ -56,80 +54,6 @@ export default class Events implements EventsInterface {
     this.onDrag = this.onDrag.bind(this);
     this.onDrop = this.onDrop.bind(this);
     this.onDragEnd = this.onDragEnd.bind(this);
-  }
-
-  /**
-   * Adds an event listener with optional identifier
-   * @param name - Event name (can include .id suffix)
-   * @param callback - Function to call when event triggers
-   */
-  add(name: string, callback: CallableFunction) {
-    const nameOrId = name.split(".");
-    const [eventName, eventId] = nameOrId;
-
-    if (!this.triggers[eventName]) this.triggers[eventName] = {};
-
-    if (typeof callback === "function") {
-      const id = eventId ? eventId : generateRandomString(16);
-      this.triggers[eventName][id] = callback;
-    }
-  }
-
-  /**
-   * Checks if an event listener exists
-   * @param name - Event name (can include .id suffix)
-   * @returns True if event exists
-   */
-  exists(name: string) {
-    const nameOrId = name.split(".");
-    const [eventName, eventId] = nameOrId;
-
-    if (!this.triggers[eventName]) return false;
-
-    if (eventId) {
-      if (!this.triggers[eventName][eventId]) return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Removes an event listener
-   * @param name - Event name
-   * @param id - Optional specific event ID to remove
-   * @returns True if removal was successful
-   */
-  remove(name: string, id?: string): boolean {
-    if (!this.triggers[name]) return false;
-
-    if (id) {
-      if (this.triggers[name][id]) {
-        delete this.triggers[name][id];
-        return true;
-      }
-
-      return false;
-    }
-
-    delete this.triggers[name];
-    return true;
-  }
-
-  /**
-   * Triggers all callbacks for an event
-   * @param name - Event name to trigger
-   * @param params - Parameters to pass to callbacks
-   */
-  trigger(name: string, params: TexditorEvent = {}) {
-    if (!this.triggers[name]) return;
-
-    const trigger = this.triggers[name];
-
-    if (typeof trigger === "object") {
-      for (const eventId in trigger) {
-        trigger[eventId](params);
-      }
-    }
   }
 
   /**
@@ -162,23 +86,23 @@ export default class Events implements EventsInterface {
     query(
       '.tex-block-content',
       (el: HTMLElement) => {
-        on(el, "keydown.e", this.onKeyDownHandle);
-        on(el, "keyup.e", this.onKeyUpHandle);
-        on(el, "paste.e", this.onPasteHandle);
-        on(el, "dragstart.e", this.onDragStart);
-        on(el, "dragleave.e", this.onDragLeave);
-        on(el, "dragover.e", this.onDragOver);
-        on(el, "drag.e1", this.onDrag);
-        on(el, "drop.e1", this.onDrop);
-        on(el, "dragend.e", this.onDragEnd);
-        on(el, "focus.e", this.onFocusHandle);
-        on(el, "blur.e", this.onBlurHandle);
-        on(el, "click.e", this.onClickHandle);
+        rebind(el, "keydown.e", this.onKeyDownHandle);
+        rebind(el, "keyup.e", this.onKeyUpHandle);
+        rebind(el, "paste.e", this.onPasteHandle);
+        rebind(el, "dragstart.e", this.onDragStart);
+        rebind(el, "dragleave.e", this.onDragLeave);
+        rebind(el, "dragover.e", this.onDragOver);
+        rebind(el, "drag.e1", this.onDrag);
+        rebind(el, "drop.e1", this.onDrop);
+        rebind(el, "dragend.e", this.onDragEnd);
+        rebind(el, "focus.e", this.onFocusHandle);
+        rebind(el, "blur.e", this.onBlurHandle);
+        rebind(el, "click.e", this.onClickHandle);
       },
       blockContainer
     );
 
-    on(
+    rebind(
       document,
       "selectionchange.e" + this.eventId,
       this.onSelectionChangeHandle
@@ -231,13 +155,13 @@ export default class Events implements EventsInterface {
     blockManager.normalize();
 
     if (changeHandle && typeof changeHandle === "function") {
-      if (!this.exists("onChange.onReady"))
-        this.add("onChange.onReady", changeHandle);
+      if (!this.isEventExists("onChange.onReady"))
+        this.addEvent("onChange.onReady", changeHandle);
     }
 
     extensions.refresh();
 
-    this.trigger("onChange", event);
+    this.triggerEvent("onChange", event);
 
     if (
       event.type != "keydown" &&
@@ -254,14 +178,14 @@ export default class Events implements EventsInterface {
    * @param evt - Focus event
    */
   private onFocusHandle(evt: FocusEvent) {
-    this.trigger("focus", { domEvent: evt });
+    this.triggerEvent("focus", { domEvent: evt });
     this.setIndexByTarget(evt.target);
     const model = this.editor.blockManager.getModel();
 
     if (model && executeMethodIfExists(model, '__onFocus', [evt]))
       evt.preventDefault();
 
-    this.trigger("focusEnd", { domEvent: evt });
+    this.triggerEvent("focusEnd", { domEvent: evt });
   }
 
   /**
@@ -269,7 +193,7 @@ export default class Events implements EventsInterface {
    * @param evt - Mouse event
    */
   private onClickHandle(evt: MouseEvent) {
-    this.trigger("click", { domEvent: evt });
+    this.triggerEvent("click", { domEvent: evt });
     this.setIndexByTarget(evt.target);
 
     const model = this.editor.blockManager.getModel();
@@ -277,7 +201,7 @@ export default class Events implements EventsInterface {
     if (model)
       executeMethodIfExists(model, '__onClick', [evt]);
 
-    this.trigger("clickEnd", { domEvent: evt });
+    this.triggerEvent("clickEnd", { domEvent: evt });
   }
 
   /**
@@ -290,7 +214,7 @@ export default class Events implements EventsInterface {
     if (model && executeMethodIfExists(model, '__onBlur', [evt]))
       evt.preventDefault();
 
-    this.trigger("blur", { domEvent: evt });
+    this.triggerEvent("blur", { domEvent: evt });
   }
 
   /**
@@ -300,7 +224,7 @@ export default class Events implements EventsInterface {
   private onKeyUpHandle(evt: KeyboardEvent) {
     const { blockManager, historyManager } = this.editor;
 
-    this.trigger("keyup", { domEvent: evt });
+    this.triggerEvent("keyup", { domEvent: evt });
     this.setIndexByTarget(evt.target);
 
     const model = blockManager.getModel();
@@ -313,7 +237,7 @@ export default class Events implements EventsInterface {
       domEvent: evt
     });
 
-    this.trigger("keyupEnd", { domEvent: evt });
+    this.triggerEvent("keyupEnd", { domEvent: evt });
     historyManager.scheduleSave();
   }
 
@@ -372,11 +296,11 @@ export default class Events implements EventsInterface {
     if (!root)
       return;
 
-    this.trigger("docuemntKeydown", { domEvent: evt });
+    this.triggerEvent("documentKeydown", { domEvent: evt });
 
     if (globalStore.get('el') === root) {
       if (this.handleHistoryShortcuts(evt)) {
-        this.trigger("docuemntKeydownEnd", { domEvent: evt });
+        this.triggerEvent("documentKeydownEnd", { domEvent: evt });
         return;
       }
     }
@@ -394,10 +318,10 @@ export default class Events implements EventsInterface {
 
     if (evt.key == "Backspace" || evt.key == "Delete") {
       deleteSelectedBlocks();
-      this.trigger("docuemntKeydownBackspace", { domEvent: evt });
+      this.triggerEvent("documentKeydownBackspace", { domEvent: evt });
     }
 
-    this.trigger("docuemntKeydownEnd", { domEvent: evt });
+    this.triggerEvent("documentKeydownEnd", { domEvent: evt });
   }
 
   /**
@@ -407,7 +331,7 @@ export default class Events implements EventsInterface {
   private onKeyDownHandle(evt: KeyboardEvent) {
     const { blockManager, historyManager, selectionApi, config, api } = this.editor;
 
-    this.trigger("keydown", { domEvent: evt });
+    this.triggerEvent("keydown", { domEvent: evt });
 
     if (evt.target) {
       const blockNode = blockManager.findParent(evt.target);
@@ -454,7 +378,7 @@ export default class Events implements EventsInterface {
       if (api.isEmpty() && blockManager.count() == 0) blockManager.createBlock(defBlock);
 
       if (evt.key == "Enter") {
-        this.trigger("keydownEnterKey", { domEvent: evt });
+        this.triggerEvent("keydownEnterKey", { domEvent: evt });
 
         if (closest(evt.target, contentNode)) {
           if (model.isEditableItems()) {
@@ -502,9 +426,9 @@ export default class Events implements EventsInterface {
           }
         }
 
-        this.trigger("keydownEnterKeyEnd", { domEvent: evt });
+        this.triggerEvent("keydownEnterKeyEnd", { domEvent: evt });
       } else if (evt.key == "Backspace") {
-        this.trigger("keydownBackspaceKey", { domEvent: evt });
+        this.triggerEvent("keydownBackspaceKey", { domEvent: evt });
 
         if (blockManager.count() > 1) {
           const index = blockManager.getIndex();
@@ -570,11 +494,11 @@ export default class Events implements EventsInterface {
           }
         }
 
-        this.trigger("keydownBackspaceKeyEnd", { domEvent: evt });
+        this.triggerEvent("keydownBackspaceKeyEnd", { domEvent: evt });
       }
     }
 
-    this.trigger("keydownEnd", { domEvent: evt });
+    this.triggerEvent("keydownEnd", { domEvent: evt });
     this.change({
       type: "keydown",
       event: evt
@@ -608,7 +532,7 @@ export default class Events implements EventsInterface {
     if ((ctrlKey || isCommand) && !shiftKey && code === "KeyZ") {
       evt.preventDefault();
       historyManager.undo();
-      this.trigger("undo", { type: "undo" });
+      this.triggerEvent("undo", { type: "undo" });
       return true;
     }
 
@@ -619,7 +543,7 @@ export default class Events implements EventsInterface {
     ) {
       const { historyManager } = this.editor;
       historyManager.redo();
-      this.trigger("redo", { type: "undo" });
+      this.triggerEvent("redo", { type: "undo" });
     }
 
     return false;
@@ -748,7 +672,7 @@ export default class Events implements EventsInterface {
       selectionApi
     } = this.editor;
 
-    this.trigger("onPaste", { domEvent: evt });
+    this.triggerEvent("onPaste", { domEvent: evt });
 
     if (!evt.clipboardData) return;
 
@@ -897,7 +821,8 @@ export default class Events implements EventsInterface {
         });
       }
 
-      this.trigger("onPasteEnd", { domEvent: evt });
+      // TODO: Тригеры без on
+      this.triggerEvent("onPasteEnd", { domEvent: evt });
     }
   }
 
@@ -912,7 +837,7 @@ export default class Events implements EventsInterface {
       evt.preventDefault();
     }
 
-    this.trigger(name, { domEvent: evt });
+    this.triggerEvent(name, { domEvent: evt });
   }
 
   /**
@@ -978,7 +903,7 @@ export default class Events implements EventsInterface {
       root = api.getRoot();
 
     if (root) {
-      this.trigger("onSelectionChange", { domEvent: evt });
+      this.triggerEvent("onSelectionChange", { domEvent: evt });
 
       query(
         '.tex-block',
@@ -1010,8 +935,6 @@ export default class Events implements EventsInterface {
                   });
                 }
 
-                const range = selectionApi.getRange();
-
                 if (range && model)
                   executeMethodIfExists(model, '__onSelectionChange', [evt, range]);
               }
@@ -1021,7 +944,7 @@ export default class Events implements EventsInterface {
         root
       );
 
-      this.trigger("onSelectionChangeEnd", { domEvent: evt });
+      this.triggerEvent("onSelectionChangeEnd", { domEvent: evt });
     }
   }
 
@@ -1058,6 +981,5 @@ export default class Events implements EventsInterface {
     );
 
     off(document, "selectionchange.e" + this.eventId);
-    this.triggers = {};
   }
 }

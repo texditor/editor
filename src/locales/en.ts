@@ -1,4 +1,5 @@
 export const EnLocale = {
+  actions: "Actions",
   delete: "Delete",
   done: "Done",
   deleteAction: "Delete block",
@@ -7,7 +8,7 @@ export const EnLocale = {
   paragraphPlaceholder: "Enter your text",
   headerPlaceholder: "Enter your title",
   codePlaceholder: "Enter your code",
-  confirmAction: "Confirm deletion",
+  confirmAction: "Confirm the action",
   enterLink: "Enter the link",
   openInNewTab: "Open in a new tab",
   uploadFile: "Upload file",
@@ -36,7 +37,7 @@ export const EnLocale = {
   fileName: 'File Name',
   desc: "Detailed description",
   save: "Save",
-  сancel: "Cancel",
+  cancel: "Cancel",
   appearance: "Appearance",
   single: "Single",
   grid: "Grid",

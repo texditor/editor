@@ -3,15 +3,21 @@ import type {
   ActionModelInterface,
   BaseEvent,
   ActionModelConstructor,
-  ActionNode
+  ActionNode,
+  BlockNode
 } from "@/types";
 import { IconArrowRight } from "@/icons";
-import { addClass, append, before, css, html, make } from "@/utils/dom";
+import { addClass, append, before, css, html, make, query } from "@/utils/dom";
 import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
-import BaseModel from "./base-model";
+import BaseModel from "../base/base-model";
 
 export default class ActionModel extends BaseModel<ActionNode> implements ActionModelInterface {
+  /**
+   * Reference to the parent block node that contains this action
+   */
+  private blockNode?: BlockNode;
+
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -24,10 +30,17 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
   }
 
   /**
- * Parent model configuration
- * @returns Parent model configuration
- */
-  protected parentСonfig(): Partial<ActionModelConfig> {
+   * @see ActionModelInterface.getBlockNode
+   */
+  getBlockNode(): BlockNode | null {
+    return this.blockNode || null;
+  }
+
+  /**
+   * Parent model configuration
+   * @returns Parent model configuration
+   */
+  protected parentConfig(): Partial<ActionModelConfig> {
     return {
       __modelCode: 'action',
       visibleTitle: true,
@@ -37,10 +50,10 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
   }
 
   /**
- * Parent hook called after model node creation
- * @param el - Created model node
- * @returns void
- */
+   * Parent hook called after model node creation
+   * @param el - Created model node
+   * @returns void
+   */
   protected parentOnCreateNode(el: ActionNode): void {
     const cssName = 'tex-action';
 
@@ -57,106 +70,110 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
       );
     });
 
-    if (this.isMenu()) append(el, moreIcon);
+    if (this.isDropdown()) append(el, moreIcon);
   }
 
   /**
-   * Menu configuration
-   * @returns Menu configuration object with title and items
+   * Handle confirmation flow for actions that require user verification
+   * @param evt - Basic event
    */
-  menuConfig(): {
-    title: string;
-    items: [] | HTMLElement[];
-    onCreate?: CallableFunction;
-  } {
-    return {
-      title: "",
-      items: []
-    };
+  protected confirm(evt: BaseEvent) {
+    const { events, i18n } = this.editor,
+      cssName = "tex-action",
+      element = this.getNode(),
+      icon = this.getIcon();
+
+    if (element) {
+      css(element, 'display', 'none');
+      before(
+        element,
+        make("div", (cfm: HTMLElement) => {
+          addClass(
+            cfm,
+            cssName + " " + cssName + "-confirm " + cssName + "-" + this.getName() + "-confirm"
+          );
+
+          if (icon) {
+            html(
+              cfm,
+              renderIcon(icon, {
+                width: 20,
+                height: 20
+              })
+            );
+          }
+
+          cfm.innerHTML += i18n.get("confirmAction", "Confirm action");
+
+          on(cfm, "click.am", () => {
+            this.onClick(evt);
+            cfm.remove();
+            css(element, 'display', '');
+            events.refresh();
+          });
+        })
+      );
+    }
   }
 
   /**
-  * Parent hook called after model node clicked
-  * @param evt - Custom event with element reference
-  * @returns void
-  */
+   * Parent hook called after model node clicked
+   * @param evt - Basic event
+   * @returns void
+   */
   protected parentOnClick(evt: BaseEvent): void {
-    const { actions, events, i18n, tools } = this.editor;
+    const { events, tools } = this.editor;
+    const blockNode = this.getBlockNode();
 
-    if (this.isConfirm()) {
-      const element = this.getNode(),
-        icon = this.getIcon(),
-        cssName = "tex-action";
+    if (blockNode) {
+      if (this.isConfirm()) {
+        this.confirm(evt);
+      } else if (this.isDropdown()) {
+        const cssContent = 'tex-actions-content',
+          dropdownElement = this.dropdown();
 
-      setTimeout(() => {
-        actions.show();
+        query('.' + cssContent + '-body', (body: HTMLDivElement) => html(body, ''), blockNode);
+        query('.' + cssContent + '-dropdown', (dropdown: HTMLDivElement) => {
+          append(dropdown, dropdownElement);
+          addClass(dropdown, 'tex-active');
+        }, blockNode);
+      } else {
+        this.onClick(evt);
+        events.refresh();
+      }
 
-        if (element) {
-          css(element, 'display', 'none');
-          before(
-            element,
-            make("div", (cfm: HTMLElement) => {
-              addClass(
-                cfm,
-                cssName +
-                " " +
-                cssName +
-                "-confirm " +
-                cssName +
-                "-" +
-                this.getName() +
-                "-confirm"
-              );
-
-              if (icon) {
-                html(
-                  cfm,
-                  renderIcon(icon, {
-                    width: 20,
-                    height: 20
-                  })
-                );
-              }
-
-              cfm.innerHTML += i18n.get("confirmAction", "Confirm deletion");
-
-              on(cfm, "click.am", () => {
-                this.onClick(evt);
-                cfm.remove();
-                element.style.display = "";
-                events.refresh();
-              });
-            })
-          );
-        }
-      }, 1);
-    } else if (this.isMenu()) {
-      setTimeout(() => {
-        const { items, title } = this.menuConfig();
-        actions.show();
-        actions.showMenu(items, title);
-      }, 1);
-    } else {
-      this.onClick(evt);
-      events.refresh();
+      tools.hide();
     }
+  }
 
-    tools.hide();
+  /**
+   * Create and return the dropdown menu element
+   * @returns Empty div element as placeholder for dropdown content
+   */
+  protected dropdown(): HTMLElement {
+    return make('div');
   }
 
   /**
    * Check if action shows a menu on click
    * @returns True if action has a menu, false otherwise
    */
-  isMenu(): boolean {
-    return this.getConfig('menu', false);
+  isDropdown(): boolean {
+    return this.getConfig('dropdown', false);
   }
 
   /**
-   * Check if action requires confirmation before execution
-   * @returns True if confirmation is required, false otherwise
+   * @see ActionModelInterface.isConfirm
    */
   isConfirm(): boolean {
     return this.getConfig('confirm', false);
+  }
+
+  /**
+   * Internal method to set the parent block node reference
+   * @param blockNode - Block node
+   */
+  __setBlockNode(blockNode: BlockNode): void {
+    this.blockNode = blockNode;
   }
 }

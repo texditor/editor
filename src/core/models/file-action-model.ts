@@ -6,7 +6,7 @@ import type {
   FileActionNode,
   BlockNode
 } from "@/types";
-import BaseModel from "./base-model";
+import BaseModel from "../base/base-model";
 
 export default class FileActionModel extends BaseModel<FileActionNode> implements FileActionModelInterface {
   private itemNode?: FileItemNode;
@@ -22,16 +22,13 @@ export default class FileActionModel extends BaseModel<FileActionNode> implement
     return super.setup(config) as FileActionModelConstructor;
   }
 
-  setItemNode(itemNode: FileItemNode): void {
-    this.itemNode = itemNode;
-  }
-
   getItemNode(): FileItemNode | null {
     return this.itemNode || null;
   }
 
-  setBlockNode(blockNode: BlockNode): void {
+  __setElements(blockNode: BlockNode, itemNode: FileItemNode): void {
     this.blockNode = blockNode;
+    this.itemNode = itemNode;
   }
 
   getBlockNode(): BlockNode | null {
@@ -42,7 +39,7 @@ export default class FileActionModel extends BaseModel<FileActionNode> implement
  * Parent model configuration
  * @returns Parent model configuration
  */
-  protected parentСonfig(): Partial<FileActionModelConfig> {
+  protected parentConfig(): Partial<FileActionModelConfig> {
     return {
       __modelCode: 'fileAction',
       visibleTitle: false,

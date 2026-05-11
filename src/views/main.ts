@@ -1,7 +1,6 @@
 import type { TexditorInterface } from "@/types";
 import { addClass, append, make } from "@/utils/dom";
 import ToolsView from "./tools";
-import BlocksView from "./blocks";
 import ExtensionsView from "./extensions";
 
 export default function MainView(editor: TexditorInterface): HTMLElement {
@@ -12,7 +11,11 @@ export default function MainView(editor: TexditorInterface): HTMLElement {
       ToolsView(),
       make('div', (wrap: HTMLDivElement) => {
         addClass(wrap, 'tex-wrap');
-        append(wrap, BlocksView())
+        append(wrap,
+          make("div", (el: HTMLElement) => {
+            addClass(el, 'tex-blocks');
+          })
+        )
       }),
     ]);
   });

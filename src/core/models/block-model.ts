@@ -4,12 +4,13 @@ import type {
   SanitizerConfig,
   BlockModelConfig,
   BlockModelInterface,
-  SortableInerface,
   BlockCreateSchema,
   BlockCreateItemSchema,
   PasteMap,
   BaseEvent,
   BlockModelConstructor,
+  TexditorEvent,
+  ActionModelConstructor,
 } from "@/types";
 import {
   addClass,
@@ -17,19 +18,30 @@ import {
   append,
   appendText,
   attr,
+  closest,
+  css,
   data,
   getLength,
   html,
   make,
   prepend,
-  queryList
+  query,
+  queryList,
+  removeClass
 } from "@/utils/dom";
 import Sanitizer from "../security/sanitizer";
 import { renderIcon } from "@/utils/icon";
-import { generateRandomString, isEmptyString } from "@/utils";
-import { IconMove } from "@/icons";
-import Sortable from "../ui/sortable";
-import BaseModel from "./base-model";
+import {
+  executeMethodIfExists,
+  generateRandomString,
+  isEmptyString,
+  off,
+  on,
+  rebind
+} from "@/utils";
+import { IconBars, IconMove } from "@/icons";
+import BaseModel from "../base/base-model";
+import Sortable from "sortablejs";
 
 /**
  * Base block model class - manages block behavior, content, and lifecycle
@@ -37,7 +49,7 @@ import BaseModel from "./base-model";
 // TODO: BlockModel<TConfig>
 export default class BlockModel extends BaseModel<BlockNode> implements BlockModelInterface {
   /** Sortable items manager instance */
-  private sortableItems: SortableInerface | null = null;
+  private sortableItems: Sortable | null = null;
 
   /**
   * Set up global configuration
@@ -50,11 +62,33 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return super.setup(config) as BlockModelConstructor;
   }
 
+  protected change(
+    name: string,
+    params: TexditorEvent = {},
+    globalParams: TexditorEvent = {}
+  ): void {
+    const { events } = this.editor;
+    const finallyParams = {
+      ...{
+        type: name,
+        modelCode: this.getModelCode(),
+      },
+      ...params
+    };
+
+    if (Object.keys(globalParams).length) {
+      events.change({ ...finallyParams, ...globalParams });
+    }
+
+    this.triggerEvent(name, finallyParams);
+    this.triggerEvent("onChange", finallyParams);
+  }
+
   /**
   * Parent model configuration
   * @returns Parent model configuration
   */
-  protected parentСonfig(): Partial<BlockModelConfig> {
+  protected parentConfig(): Partial<BlockModelConfig> {
     return {
       __modelCode: 'block',
       autoMerge: true,
@@ -98,7 +132,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       normalize: false,
       convertible: false,
       sortableItems: false,
-      dragzoneClassName: 'tex-item-dragzone-default',
+      dragZoneClassName: 'tex-item-drag-zone-default',
       visibleTitle: false,
       attributeTitle: false
     }
@@ -110,9 +144,54 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns void
    */
   protected parentOnCreateNode(el: BlockNode): void {
-    const tagName = this.getTagName(),
-      contentClassName = this.getContentClassName();
-    const contentNode = make(tagName, (content: HTMLElement) => {
+    const { config, i18n } = this.editor,
+      tagName = this.getTagName(),
+      contentClassName = this.getContentClassName(),
+      elements = [];
+
+    const blockActions = config.get("actions", []) as ActionModelConstructor[];
+
+    if (blockActions.length) {
+      const actionsElement = make('div', (actions: HTMLDivElement) => {
+        const cssName = 'tex-actions';
+        addClass(actions, cssName);
+
+        const contentElement = make('div', (content: HTMLDivElement) => {
+          const contentCss = cssName + "-content";
+          addClass(content, contentCss + ' tex-animate-fadeIn');
+
+          const contentBody = make('div', (body: HTMLDivElement) => {
+            addClass(body, contentCss + '-body');
+          });
+
+          const contentMenu = make('div', (menu: HTMLDivElement) => {
+            addClass(menu, contentCss + '-dropdown');
+          });
+
+          append(content, [contentBody, contentMenu]);
+        });
+
+        const openBtn = make('div', (btn: HTMLDivElement) => {
+          addClass(btn, cssName + "-btn tex-animate-fadeIn");
+          attr(btn, 'title', i18n.get('actions', 'Actions'));
+          html(
+            btn,
+            renderIcon(IconBars, {
+              width: 14,
+              height: 14
+            })
+          );
+
+          on(btn, 'click.open', () => this.showActions());
+        })
+
+        append(actions, [openBtn, contentElement]);
+      });
+
+      elements.push(actionsElement);
+    }
+
+    const contentNode = make(tagName, (content: HTMLDivElement) => {
       addClass(content, 'tex-block-content' + (contentClassName ? ' ' + contentClassName : ''));
       if (this.isEmptyDetect()) data(content, 'empty', 'true');
       if (this.isEditable()) content.contentEditable = "true";
@@ -123,14 +202,89 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         data(content, 'placeholder', placeholder);
     });
 
-    append(el, contentNode);
+    elements.push(contentNode);
+
+    append(el, elements);
+  }
+
+  /** @see BlockModelInterface.showActions */
+  showActions(): void {
+    this.hideActions();
+
+    const { config } = this.editor,
+      eid = this.getEventId(),
+      cssName = '.tex-actions',
+      blockNode = this.getNode();
+
+    const [actionsElement] = queryList(cssName, blockNode);
+
+    if (actionsElement) {
+      const blockActions = config.get("actions", []) as ActionModelConstructor[];
+      query(cssName + '-content', (content: HTMLDivElement) => {
+        const [contentBody] = queryList(cssName + '-content-body', content);
+        if (contentBody) {
+          blockActions.forEach((instance: ActionModelConstructor) => {
+            const action = new instance(this.editor);
+            executeMethodIfExists(action, '__setBlockNode', [this.getNode()])
+            const actionEl = action.getNode(),
+              isVisible = action.isVisible();
+
+            append(contentBody, actionEl);
+            css(actionEl, 'display', isVisible ? "" : "none");
+            executeMethodIfExists(action, '__onMount', [actionEl]);
+          });
+
+          css(content, "display", "block");
+        }
+      }, blockNode);
+
+      rebind(
+        document,
+        "click.actions" + eid,
+        (evt) => {
+          if (!closest(evt.target, actionsElement)) {
+            this.hideActions();
+          }
+        },
+        true
+      );
+    }
+  }
+
+  /** @see BlockModelInterface.hideActions */
+  hideActions(): void {
+    const eid = this.getEventId(),
+      cssName = '.tex-actions',
+      blockNode = this.getNode();
+
+    const [actionsElement] = queryList(cssName, blockNode);
+
+    if (actionsElement) {
+      off(document, "click.actions" + eid);
+      query(cssName + '-content', (content: HTMLDivElement) => {
+        query(
+          cssName + '-content-body',
+          (contentBody: HTMLDivElement) => html(contentBody, ''),
+          content
+        );
+        query(
+          cssName + '-content-dropdown',
+          (contentDropdown: HTMLDivElement) => {
+            html(contentDropdown, '');
+            removeClass(contentDropdown, 'tex-active');
+          },
+          content
+        );
+        css(content, "display", "");
+      }, blockNode);
+    }
   }
 
   /**
    * Refresh sortable items functionality 
    */
   protected refreshSortableItems(): void {
-    const { blockManager, events, selectionApi } = this.editor;
+    const { blockManager, selectionApi } = this.editor;
     if (this.isSortableItems()) {
       setTimeout(() => {
         if (this.sortableItems) {
@@ -141,30 +295,43 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
         if (contentNode) {
           this.sortableItems = new Sortable(contentNode, {
-            itemSelector: '.tex-item',
-            handleSelector: '.tex-item-dragzone',
+            handle: '.tex-item-drag-zone',
+            ghostClass: 'tex-sortable-item',
+            chosenClass: 'tex-sortable-chosen',
+            forceFallback: true,
+            swap: false,
+            delay: 0,
+            dragoverBubble: false,
+            animation: 250,
+            sort: true,
+            direction: 'vertical',
+
             onStart: () => {
               blockManager.destroyVirtualSelection();
             },
-            onEnd: (item: HTMLElement, oldIndex: number, newIndex: number) => {
-              events.change({
-                type: "moveListItem",
+
+            onEnd: (evt) => {
+              blockManager.refreshVirtualSelection();
+
+              this.change('moveListItem', {
+                item: evt.item,
+                index: evt.newIndex,
+                targetIndex: evt.oldIndex
+              }, {
                 blockNode: this.getNode(),
                 contentNode: contentNode,
-                item: item,
-                index: newIndex,
-                targetIndex: oldIndex
               });
 
               setTimeout(() => {
-                const itemBody = this.getItemBody(newIndex);
-
+                blockManager.refreshVirtualSelection();
+                const itemBody = this.getItemBody(evt.newIndex || 0);
                 if (itemBody) {
-                  if (attr(itemBody, 'contenteditable') == 'true') {
+                  if (attr(itemBody, 'contentEditable') == 'true') {
                     const length = getLength(itemBody);
                     selectionApi.select(length, length, itemBody);
-                  } else
+                  } else {
                     itemBody.click();
+                  }
                 }
               }, 5);
             }
@@ -203,8 +370,6 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         } else {
           html(contentNode, content);
         }
-
-
       }
     }
 
@@ -236,6 +401,10 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
     this.onCompose(createSchema);
 
+    this.change('onCompose', {
+      createSchema: createSchema
+    });
+
     return blockNode;
   }
 
@@ -254,7 +423,13 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns Composition schema
    */
   __parse(item: BlockSchema): BlockCreateSchema {
-    return this.parse(item);
+    const createSchema = this.parse(item);
+
+    this.change('parse', {
+      createSchema: createSchema
+    });
+
+    return createSchema;
   }
 
   /** @see BlockModelInterface.getTagName */
@@ -425,13 +600,14 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns Merged element or null
    */
   __merge(): HTMLElement | null {
-    return this.merge();
-  }
+    const node = this.merge();
 
-  /**
-   * Hook called when block loads 
-   */
-  protected onLoad(): void { }
+    this.change('merge', {
+      node: node
+    });
+
+    return node;
+  }
 
   /** @see BlockModelInterface.sanitize */
   sanitize(): void {
@@ -444,11 +620,15 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
         if (Array.isArray(container)) {
           container.forEach((el: HTMLElement) => {
-            el.innerHTML = sanitizer.sanitize(el);
+            html(el, sanitizer.sanitize(el));
           });
         } else {
-          container.innerHTML = sanitizer.sanitize(container);
+          html(container, sanitizer.sanitize(container));
         }
+
+        this.change('sanitize', {
+          node: container
+        });
       }
     }
   }
@@ -522,9 +702,9 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     return this.getConfig("sortableItems", false);
   }
 
-  /** @see BlockModelInterface.getDragzoneClassName */
-  getDragzoneClassName(): string {
-    return this.getConfig('dragzoneClassName', 'tex-item-dragzone-default');
+  /** @see BlockModelInterface.getDragZoneClassName */
+  getDragZoneClassName(): string {
+    return this.getConfig('dragZoneClassName', 'tex-item-drag-zone-default');
   }
 
   /** @see BlockModelInterface.getItems */
@@ -547,7 +727,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    */
   protected makeItemDragZone(): HTMLSpanElement {
     return make('span', (span: HTMLSpanElement) => {
-      addClass(span, 'tex-item-dragzone ' + this.getDragzoneClassName());
+      addClass(span, 'tex-item-drag-zone ' + this.getDragZoneClassName());
       html(span,
         renderIcon(
           IconMove,
@@ -579,7 +759,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         addClass(div, 'tex-item-body ' + bodyClassName);
 
         if (this.isEditableItems())
-          attr(div, 'contenteditable', 'true');
+          attr(div, 'contentEditable', 'true');
 
         if (typeof content === 'string') {
           const textContent = isEmptyString(content || "") ? "" : content || "";
@@ -607,7 +787,14 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns Item element
    */
   __makeItemNode(content: string | unknown = ''): HTMLElement {
-    return this.makeItemNode(content);
+    const node = this.makeItemNode(content);
+
+    this.change('makeItemNode', {
+      node: node,
+      content: content
+    });
+
+    return node;
   }
 
   /** @see BlockModelInterface.createItem */
@@ -616,7 +803,6 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     index: number = -1,
     skipEvents: boolean = false
   ): boolean {
-    const { events } = this.editor;
     const contentNode = this.getContentNode();
 
     if (!contentNode)
@@ -655,17 +841,17 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
     if (!skipEvents) {
       if (itemBody) {
-        if (attr(itemBody, 'contenteditable') == 'true') {
+        if (attr(itemBody, 'contentEditable') == 'true') {
           itemBody.focus();
         } else
           itemBody.click();
       }
 
-      events.change({
-        type: "createItem",
+      this.change('createItem', {
+        index: newIndex
+      }, {
         contentNode: contentNode,
         blockNode: this.getNode(),
-        index: newIndex
       });
     }
 
@@ -673,7 +859,11 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   }
 
   /** @see BlockModelInterface.moveItem */
-  moveItem(index: number, targetIndex: number): void {
+  moveItem(
+    index: number,
+    targetIndex: number,
+    skipEvents: boolean = false
+  ): void {
     const contentNode = this.getContentNode();
 
     if (!contentNode) return;
@@ -717,11 +907,21 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         }
       }
     }
+
+    if (!skipEvents) {
+      this.change('moveItem', {
+        item: itemNode,
+        index: index,
+        targetIndex: realTargetIndex
+      }, {
+        contentNode: contentNode,
+        blockNode: this.getNode(),
+      });
+    }
   }
 
   /** @see BlockModelInterface.removeItem */
   removeItem(index: number = -1): boolean {
-    const { events } = this.editor;
     const item = this.getItem(index) as HTMLElement;
     const realIndex = this.getItemIndex(item) || 0;
 
@@ -730,11 +930,11 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
     item.remove();
 
-    events.change({
-      type: "removeItem",
+    this.change('removeItem', {
+      index: realIndex
+    }, {
       contentNode: this.getContentNode(),
       blockNode: this.getNode(),
-      index: realIndex
     });
 
     return true;
@@ -823,7 +1023,14 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     block: BlockSchema,
     blockNode?: BlockNode
   ): BlockSchema {
-    return this.save(block, blockNode);
+    const blockSchema = this.save(block, blockNode);
+    this.triggerEvent('save', {
+      type: 'save',
+      modelCode: this.getModelCode(),
+      blockSchema: blockSchema
+    });
+
+    return blockSchema;
   }
 
   /**
@@ -853,7 +1060,30 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow paste
    */
   __onPaste(evt: Event, map: PasteMap) {
-    return this.onPaste(evt, map)
+    const status = this.onPaste(evt, map);
+
+    this.change('onPaste', {
+      domEvent: evt,
+      status: status,
+      map: map
+    });
+
+    return status;
+  }
+
+  private defEvent(name: string, evt: Event): boolean {
+    const __name = 'on' + name;
+    const status = !!executeMethodIfExists(this, __name, [evt]);
+
+    if (!status)
+      evt.preventDefault();
+
+    this.change(__name, {
+      domEvent: evt,
+      status: status
+    });
+
+    return status;
   }
 
   /**
@@ -871,7 +1101,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onKeyDown(evt: KeyboardEvent): boolean {
-    return this.onKeyDown(evt);
+    return this.defEvent('KeyDown', evt);
   }
 
   /**
@@ -889,7 +1119,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onKeyUp(evt: KeyboardEvent): boolean {
-    return this.onKeyUp(evt);
+    return this.defEvent('KeyUp', evt);
   }
 
   /**
@@ -907,7 +1137,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onFocus(evt: FocusEvent): boolean {
-    return this.onFocus(evt);
+    return this.defEvent('Focus', evt);
   }
 
   /**
@@ -925,7 +1155,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onBlur(evt: FocusEvent): boolean {
-    return this.onBlur(evt);
+    return this.defEvent('Blur', evt);
   }
 
   /**
@@ -949,17 +1179,17 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
   /**
    * Public wrapper for onSelectionChange
-   * @param _evt - Selection change event
-   * @param _range - Current selection range
+   * @param evt - Selection change event
+   * @param range - Current selection range
    * @returns True if selection handled
    */
-  __onSelectionChange(_evt: Event, _range: Range): boolean {
+  __onSelectionChange(evt: Event, range: Range): boolean {
     const { tools } = this.editor;
 
-    const hasSelection = this.onSelectionChange(_evt, _range);
+    const status = this.onSelectionChange(evt, range);
 
-    if (hasSelection) {
-      if (_range && !_range.collapsed && this.isVisibleTools()) {
+    if (status) {
+      if (range && !range.collapsed && this.isVisibleTools()) {
         tools.show();
         tools.syncHighlight();
       } else {
@@ -967,7 +1197,15 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       }
     }
 
-    return hasSelection;
+    this.triggerEvent('onSelectionChange', {
+      type: 'onSelectionChange',
+      modelCode: this.getModelCode(),
+      domEvent: evt,
+      range: range,
+      status: status
+    });
+
+    return status;
   }
 
   /**
@@ -985,7 +1223,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onDragStart(evt: DragEvent): boolean {
-    return this.onDragStart(evt);
+    return this.defEvent('DragStart', evt);
   }
 
   /**
@@ -1003,7 +1241,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onDragLeave(evt: DragEvent): boolean {
-    return this.onDragLeave(evt);
+    return this.defEvent('DragLeave', evt);
   }
 
   /**
@@ -1021,7 +1259,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onDragOver(evt: DragEvent): boolean {
-    return this.onDragOver(evt);
+    return this.defEvent('DragOver', evt);
   }
 
   /**
@@ -1030,7 +1268,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   protected onDrag(_evt: DragEvent): boolean {
-    return true;
+    return false;
   }
 
   /**
@@ -1039,7 +1277,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onDrag(evt: DragEvent): boolean {
-    return this.onDrag(evt);
+    return this.defEvent('Drag', evt);
   }
 
   /**
@@ -1057,7 +1295,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onDragEnd(evt: DragEvent): boolean {
-    return this.onDragEnd(evt);
+    return this.defEvent('DragEnd', evt);
   }
 
   /**
@@ -1075,7 +1313,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @returns True to allow default behavior
    */
   __onDrop(evt: DragEvent): boolean {
-    return this.onDrop(evt);
+    return this.defEvent('Drop', evt);
   }
 
   /**
@@ -1125,5 +1363,10 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     newBlockNode: BlockNode
   ): BlockNode {
     return this.afterConvert(newBlockNode);
+  }
+
+  protected parentDestroy(): void {
+    const eid = this.getEventId();
+    off(document, "click.actions" + eid);
   }
 }

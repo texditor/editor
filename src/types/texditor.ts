@@ -5,7 +5,6 @@ import type {
   SelectionAPIInterface,
   ToolsInterface,
   APIInterface,
-  ActionsInterface,
   I18NInterface,
   CommandsInterface,
   HistoryManagerInterface,
@@ -35,9 +34,6 @@ export interface TexditorInterface {
 
   /** Tool management system for additional editor functionalities and UI components */
   tools: ToolsInterface;
-
-  /** Action handlers for user interactions including keyboard shortcuts and mouse events */
-  actions: ActionsInterface;
 
   /** Internationalization system providing multi-language support and translations */
   i18n: I18NInterface;

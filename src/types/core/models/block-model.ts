@@ -51,7 +51,7 @@ export interface BlockModelSchema {
  * @property itemClassName - Item CSS class
  * @property itemBodyClassName - Item body CSS class
  * @property sortableItems - Enable item sorting
- * @property dragzoneClassName - Name of the drag zone class
+ * @property dragZoneClassName - Name of the drag zone class
  * @property relatedNames - Related block names
  * @property emptyDetect - Enable empty detection
  * @property customSave - Use custom save logic
@@ -80,7 +80,7 @@ export interface BlockModelConfig extends BaseModelConfig {
   itemClassName: string,
   itemBodyClassName: string,
   sortableItems: boolean;
-  dragzoneClassName: string;
+  dragZoneClassName: string;
   relatedNames: string[];
   emptyDetect: boolean;
   customSave: boolean;
@@ -202,7 +202,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
  * Get the name of the drag zone class
  * @returns {string} Name of the drag zone class
  */
-  getDragzoneClassName(): string
+  getDragZoneClassName(): string
 
   /**
    * Get item index
@@ -210,6 +210,12 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
    * @returns Item index
    */
   getItemIndex(itemNode?: HTMLElement): number;
+
+  /** Show actions */
+  showActions(): void;
+  
+  /** Hide actions */
+  hideActions(): void;
 
   /**
    * Create new item
@@ -249,10 +255,11 @@ export interface BlockModelInterface extends BaseModelInterface<BlockNode> {
 
   /**
    * Move item to new position
-   * @param item - Item index
+   * @param index - Item index
    * @param targetIndex - Target item index 
+   * @param skipEvents - Skip events
    */
-  moveItem(index: number, targetIndex: number): void;
+  moveItem(index: number, targetIndex: number, skipEvents?: boolean): void;
 
   /**
    * Get number of items

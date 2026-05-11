@@ -10,12 +10,16 @@ import type {
   AjaxOptions,
   FilesAjaxResponse,
   FilesBlockModelInterface,
-  BlockModelInterface
+  FileActionModelConstructor,
+  FileActionModelInterface
 } from "@/types";
-
-
+import {
+  IconClose,
+  IconFile,
+  IconFiles,
+  IconPlus
+} from "@/icons";
 import BlockModel from "@/core/models/block-model";
-import { IconClose, IconFile, IconFiles, IconPlus } from "@/icons";
 import { renderIcon } from "@/utils/icon";
 import MoveRightFileAction from "./actions/MoveRightFileAction";
 import MoveLeftFileAction from "./actions/MoveLeftFileAction";
@@ -63,9 +67,11 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
   /** Upload progress bar element */
   private progressNode: HTMLElement | null = null;
   /** Counter displaying current/total items */
-  private conuterNode: HTMLElement | null = null;
+  private counterNode: HTMLElement | null = null;
   /** Custom render functions mapped by MIME type */
   private renderCallbacks: Record<string, CallableFunction> = {};
+
+  private fileActions: FileActionModelInterface[] = [];
 
   /** @see FilesBlockModelInterface.setup */
   public static setup(config: Partial<FilesBlockModelConfig>): BlockModelConstructor {
@@ -102,7 +108,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
       className: "tex-files",
       customSave: true,
       sortableItems: true,
-      dragzoneClassName: "tex-files-item-dragzone",
+      dragZoneClassName: "tex-files-item-drag-zone",
       messageTimeout: 7000,
       mimeTypes: [],
       multiple: true,
@@ -145,7 +151,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
    */
   protected onCompose(): void {
     const blockNode = this.getNode();
-    this.conuterNode = this.createCounter();
+    this.counterNode = this.createCounter();
     this.formNode = this.createForm();
     this.toastsNode = this.createToasts();
 
@@ -219,7 +225,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
             addClass(cnt, className + "-content");
 
             const name = make("div", (nameEl: HTMLDivElement) => {
-              addClass(nameEl, "tex-file-name");
+              addClass(nameEl, "tex-file-fileName");
 
               if (item?.name) {
                 nameEl.innerText = item?.name;
@@ -327,7 +333,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
    * @returns Counter element or null
    */
   getCounterNode(): HTMLElement | null {
-    return this.conuterNode;
+    return this.counterNode;
   }
 
   /**
@@ -411,7 +417,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
       addClass(form, "tex-files-form");
 
       const uploader = make("div", (uploaderEl: HTMLElement) => {
-        addClass(uploaderEl, "tex-files-form-uploader");
+        addClass(uploaderEl, "tex-files-form-uploader tex-no-select");
         const labelFile = this.formLabel(itemsLength, id);
         const inputFile = this.formInputFile(id);
         append(uploaderEl, [inputFile, labelFile]);
@@ -439,13 +445,13 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
    */
   protected onChangeFile(evt: BaseEvent): void {
     const { i18n } = this.editor,
-      input = evt.el as HTMLInputElement,
+      input = evt.delegateTarget as HTMLInputElement,
       form = this.getFormNode();
 
     if (form) {
       const [label] = queryList(".tex-files-form-label", form);
 
-      const onloaded = () => {
+      const onLoaded = () => {
         css(label, "visibility", "");
         this.removeProgress();
         this.refresh();
@@ -460,7 +466,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
 
         if ((itemsLength + filesLength > maxItems) || (!this.isMultiple() && itemsLength > 0)) {
           this.addToast(i18n.get("fileUploadMaxItems"), "error");
-          onloaded();
+          onLoaded();
         } else {
           this.progress(0);
           this.ajax(
@@ -486,13 +492,13 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
                   response?.message || i18n.get("fileUploadError")
                 );
               }
-              onloaded();
+              onLoaded();
             },
             (percent: number) => {
               this.progress(percent);
             },
             () => {
-              onloaded();
+              onLoaded();
             }
           );
         }
@@ -536,8 +542,8 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
   }
 
   /** @see FilesBlockModelInterface.isRequiredFieldName */
-  isRequiredFieldName(): boolean {
-    return this.getConfig("requiredFieldName", true);
+  isRequiredFieldFileName(): boolean {
+    return this.getConfig("requiredFieldFileName", true);
   }
 
   /** @see FilesBlockModelInterface.isRequiredFieldCaption */
@@ -551,8 +557,8 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
   }
 
   /** @see FilesBlockModelInterface.isVisibleFieldName */
-  isVisibleFieldName(): boolean {
-    return this.getConfig("visibleFieldName", true);
+  isVisibleFieldFileName(): boolean {
+    return this.getConfig("visibleFieldFileName", true);
   }
 
   /** @see FilesBlockModelInterface.isVisibleFieldCaption */
@@ -680,6 +686,8 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
       this.defaultRenderItem(item)
     );
 
+    this.onCreateList(contentNode);
+
     if (items.length && Array.isArray(items)) {
       const maxItems = this.getMaxItems();
 
@@ -694,16 +702,22 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
       css(contentNode, "display", "");
     }
 
-    this.onListCreate(contentNode);
+    this.onCreatedList(contentNode);
 
     return contentNode;
   }
 
   /**
+   * Hook called before list element creation
+   * @param _contentNode - Content node element
+   */
+  protected onCreateList(_contentNode: HTMLElement): void { }
+
+  /**
    * Hook called after list element creation
    * @param _contentNode - Content node element
    */
-  protected onListCreate(_contentNode: HTMLElement): void { }
+  protected onCreatedList(_contentNode: HTMLElement): void { }
 
   /**
    * Create DOM node for a file item
@@ -819,39 +833,54 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
 
     append(itemNode, actionsNode);
 
-    rebind(itemNode, "click.cab", () => {
-      hideActions();
-      css(actionsNode, "display", "block");
+    const actionConstructors = this.getConfig("actions", []) as FileActionModelConstructor[],
+      [actionsNodeList] = queryList('.' + cssName + '-list', itemNode);
 
-      const [actionsNodeList] = queryList('.' + cssName + '-list', itemNode);
+    if (actionsNodeList) {
+      actionConstructors.forEach((instance: FileActionModelConstructor) => {
+        const action = new instance(this.editor);
+        executeMethodIfExists(
+          action,
+          '__setElements',
+          [this.getNode(), itemNode]
+        );
+        const fileActionNode = action.getNode();
+        append(actionsNodeList, fileActionNode);
+        executeMethodIfExists(action, "__onMount", [fileActionNode]);
+        this.fileActions.push(action);
+      });
 
-      if (actionsNodeList) {
-        const actions = this.getConfig("actions", []) as typeof FileActionModel[];
-
-        actions.forEach((action) => {
-          const fileAction = new action(this.editor);
-          const fileActionNode = fileAction.getNode();
-          fileAction.setBlockNode(this.getNode());
-          fileAction.setItemNode(itemNode);
-          css(fileActionNode, "display", fileAction.isVisible() ? "" : "none");
-          append(actionsNodeList, fileActionNode);
-          actionsConstructors.push(fileAction);
-          executeMethodIfExists(fileAction, "__onMount", [fileActionNode]);
-        });
+      const reVisible = () => {
+        this.getFileActions().forEach((action: FileActionModelInterface) => {
+          css(action.getNode(), "display", action.isVisible() ? "" : "none");
+        })
       }
 
-      on(
-        document,
-        "click.cab" + eid,
-        (evt: MouseEvent) => {
-          if (!closest(evt.target, itemNode)) {
-            hideActions();
-            off(document, 'click.cab' + eid, true);
-          };
-        },
-        true
-      );
-    }, true);
+      reVisible();
+
+      this.addEvent('onChange.fileAction', () => reVisible());
+
+      rebind(itemNode, "click.cab", () => {
+        hideActions();
+        css(actionsNode, "display", "block");
+
+        on(
+          document,
+          "click.cab" + eid,
+          (evt: MouseEvent) => {
+            if (!closest(evt.target, itemNode)) {
+              hideActions();
+              off(document, 'click.cab' + eid, true);
+            };
+          },
+          true
+        );
+      }, true);
+    }
+  }
+
+  getFileActions(): FileActionModelInterface[] {
+    return this.fileActions;
   }
 
   /**
@@ -930,7 +959,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
     progress: CallableFunction,
     error?: CallableFunction
   ): void {
-    const { events, i18n } = this.editor;
+    const { i18n } = this.editor;
     const ajaxConfig = this.getAjaxConfig(),
       inputName = this.getInputName();
 
@@ -1020,13 +1049,12 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
           if (userOptions?.success) {
             userOptions.success(response);
           }
-
-          events.change({
-            type: "upload",
+          this.change('upload', {
             success: true,
-            response: response,
-            isFileAction: true
-          });
+            response: response
+          }, {
+            uploadEvent: true
+          })
         })
         .catch((errorData) => {
           this.addToast(
@@ -1041,12 +1069,12 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
             userOptions.error(errorData);
           }
 
-          events.change({
-            type: "upload",
+          this.change('upload', {
             success: false,
-            error: error,
-            isFileAction: true
-          });
+            error: error
+          }, {
+            uploadEvent: true
+          })
         });
     }
   }

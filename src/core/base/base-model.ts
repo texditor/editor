@@ -18,8 +18,9 @@ import {
   rebind,
   renderIcon
 } from "@/utils";
+import EventManager from "./event-manager";
 
-export default class BaseModel<TNode extends BaseNode = BaseNode> implements BaseModelInterface<TNode> {
+export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventManager implements BaseModelInterface<TNode> {
   /** Global user configuration for all model instances */
   private static userConfig: Partial<BaseModelConfig> = {};
 
@@ -46,8 +47,10 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
    * @param editor - Editor instance reference
    */
   constructor(editor: TexditorInterface) {
+    super();
     this.editor = editor;
     this.onConstruct(editor);
+
     this.config = {
       name: '',
       nodeTagName: 'div',
@@ -60,13 +63,25 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
       visibleTitle: false,
       attributeTitle: true,
       __modelCode: "baseModel",
-      ...this.parentСonfig(),
+      ...this.parentConfig(),
       ...this.configure(),
       ...(this.constructor as typeof BaseModel).userConfig
     };
-    this.handleClick = this.handleClick.bind(this);
+
     this.node = this.createNode();
     this.onLoad();
+
+    this.triggerEvent('onLoad', {
+      type: 'onLoad',
+      modelCode: this.getModelCode(),
+      config: this.config
+    });
+
+    const childDestroy = this.destroy;
+    this.destroy = () => {
+      this.originalDestroy();
+      childDestroy.call(this);
+    };
   }
 
   /**
@@ -84,7 +99,11 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
         namedCss = name.trim() !== '' ? ' tex-' + codeName + "-" + name : '';
 
       addClass(el, 'tex-' + codeName + namedCss + customCss);
-      rebind(el, "click.baseNode", this.handleClick);
+      rebind(
+        el,
+        "click.baseNode",
+        (evt: BaseEvent) => this.handleClick(evt)
+      );
 
       const icon = this.getIcon(),
         visibleIcon = this.isVisibleIcon();
@@ -118,6 +137,11 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
       this.node = el;
       this.parentOnCreateNode(el);
       this.onCreateNode(el);
+      this.triggerEvent('onCreateNode', {
+        type: 'onCreateNode',
+        modelCode: this.getModelCode(),
+        node: el
+      })
     }) as TNode;
   }
 
@@ -256,7 +280,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
    * Parent model configuration
    * @returns Parent model configuration
    */
-  protected parentСonfig(): Partial<BaseModelConfig> {
+  protected parentConfig(): Partial<BaseModelConfig> {
     return {};
   }
 
@@ -307,6 +331,12 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
    */
   private handleClick(evt: BaseEvent): void {
     this.parentOnClick(evt);
+
+    this.triggerEvent('onClick', {
+      type: 'onClick',
+      modelCode: this.getModelCode(),
+      domEvent: evt
+    });
   }
 
   /**
@@ -328,6 +358,12 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
   __onMount(node: TNode): void {
     this.parentOnMount(node);
     this.onMount(node);
+
+    this.triggerEvent('onMount', {
+      type: 'onMount',
+      modelCode: this.getModelCode(),
+      node: node
+    });
   }
 
   /**
@@ -468,4 +504,16 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> implements Bas
    * Destroy instance and clean up resources 
    */
   destroy(): void { }
+
+  /** Base class cleanup logic. */
+  protected parentDestroy(): void { }
+
+  /** Internal destroy routine: cleans up parent, then fires the destroy event. */
+  private originalDestroy(): void {
+    this.parentDestroy();
+    this.triggerEvent('destroy', {
+      type: 'destroy',
+      modelCode: this.getModelCode(),
+    });
+  }
 }

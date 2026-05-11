@@ -383,11 +383,11 @@ export default class Commands implements CommandsInterface {
    */
   findTags(tagName: string | boolean = false, childrens: boolean = true) {
     const { selectionApi } = this.editor,
-      curent = selectionApi.current();
+      current = selectionApi.current();
 
-    if (!curent?.element) return [];
+    if (!current?.element) return [];
 
-    const selectedTags = selectionApi.findTags(curent?.element, childrens);
+    const selectedTags = selectionApi.findTags(current?.element, childrens);
 
     if (tagName === false) return selectedTags || [];
 

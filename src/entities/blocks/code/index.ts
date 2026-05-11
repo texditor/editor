@@ -137,6 +137,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                   updateName();
                   closeMenu();
                   events.change({
+                    modelCode: this.getModelCode(),
                     type: "codeClearLanguage",
                     blockNode: blockNode
                   })
@@ -156,6 +157,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
                     updateName(codeName);
                     closeMenu();
                     events.change({
+                      modelCode: this.getModelCode(),
                       type: "codeChangeLanguage",
                       blockNode: blockNode,
                       lang: codeKey

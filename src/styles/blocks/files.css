@@ -222,7 +222,7 @@
   flex-grow: 1;
 }
 
-.tex-file-name {
+.tex-file-fileName {
   color: var(--tex-color);
   font-weight: 600;
 }

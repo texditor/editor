@@ -17,8 +17,7 @@ export default class DeleteAction
   }
 
   protected onClick(): void {
-    const { actions, blockManager } = this.editor;
+    const { blockManager } = this.editor;
     blockManager.removeBlock();
-    actions.hide();
   }
 }

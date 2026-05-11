@@ -25,7 +25,7 @@ import {
   SubscriptTool,
   SuperscriptTool,
   ClearFormattingTool
-} from "@/tools";
+} from "@/entities/tools";
 
 export default class Tools implements ToolsInterface {
   /** Reference to the editor instance */
@@ -90,7 +90,7 @@ export default class Tools implements ToolsInterface {
       executeMethodIfExists(tool, '__onMount', [node])
     })
 
-    addClass(toolsNode, cssName + "-fixed");
+    addClass(toolsNode, cssName + "-fixed tex-animate-fadeIn");
 
     const reposition = () => {
       const rect = selectionApi.getFirstLineBounds(),

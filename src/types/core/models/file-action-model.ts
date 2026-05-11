@@ -2,6 +2,7 @@ import type {
   BaseModelConfig,
   BaseModelInterface,
   BaseNode,
+  BlockNode,
   FileItemNode,
   ModelConstructor
 } from "@/types";
@@ -32,6 +33,11 @@ export interface FileActionModelConfig extends BaseModelConfig {
 }
 
 export interface FileActionModelInterface extends BaseModelInterface<FileActionNode> {
-  setItemNode(itemNode: FileItemNode): void
+  /**
+   * Get the parent block node associated with this action
+   * @returns The parent block node or null if not set
+   */
+  getBlockNode(): BlockNode | null;
+
   getItemNode(): FileItemNode | null;
 }

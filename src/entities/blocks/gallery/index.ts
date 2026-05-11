@@ -8,7 +8,7 @@ import type {
   SliderInterface,
   TexditorEvent
 } from "@/types";
-import { IconImage, IconMultipleGrid, IconSingleGrid, IconSlider } from "@/icons";
+import { IconImage, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from "@/icons";
 import {
   addClass,
   append,
@@ -24,11 +24,11 @@ import {
 } from "@/utils";
 import Slider from "@/core/ui/slider";
 import "@/styles/blocks/gallery.css";
-import "@/styles/core/ui/slider.css";
 
 export default class Gallery extends Files implements GalleryBlockModelInterface {
   private defaultStyles: string[] = ["grid", "slider", "single"];
-  private slider?: SliderInterface;
+  private slider?: SliderInterface | null = null;
+
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -67,13 +67,20 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
           "video/mpeg",
           "video/quicktime",
           "video/x-msvideo"
-        ]
+        ],
+        visibleFieldFileName: false,
+        requiredFieldFileName: false
       }
     };
   }
 
-  protected onMount(_node: BlockNode): void {
+  protected onMount(node: BlockNode): void {
+    super.onMount(node);
     this.initSlider();
+    this.addEvent('onChange.gallery', (evt: TexditorEvent) => {
+      const index = (evt?.targetIndex || 0) as number;
+      this.initSlider(index);
+    })
   }
 
   isAllowedStyles(): boolean {
@@ -96,7 +103,6 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
     const { blockManager, events, i18n } = this.editor,
       ltr = this.getConfig("stylesLtr", "left"),
       styles = this.getConfig("styles", []) as string[],
-      defaultStyle = this.getDefaultStyle(),
       blockNode = this.getNode();
 
     if (this.isAllowedStyles()) {
@@ -129,13 +135,17 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
             saveActiveItem(code);
             data(blockNode, 'optionsStyle', code);
             this.destroySlider();
+
             events.change({
+              modelCode: this.getModelCode(),
               type: "galleryStyle",
               index: blockManager.getIndex(),
               blockNode: blockNode,
               contentNode: this.getContentNode(),
             });
-            this.initSlider(code === "slider");
+
+            if (code === "slider")
+              this.initSlider();
           });
           html(
             item,
@@ -183,11 +193,10 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
     }
   }
 
-  protected onListCreate(_contentNode: HTMLElement): void {
+  protected onCreateList(_contentNode: HTMLElement): void {
     const styles = this.getStyles(),
       blockNode = this.getNode(),
       itemStyle = this.getOption('style', '');
-
 
     if (this.areStylesAllowed() && itemStyle) {
       if (styles.includes(itemStyle))
@@ -203,6 +212,33 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
       }
     );
 
+    this.setRenderCallback(
+      this.getConfig("videoMimeTypes", []) as string[],
+      (item: FileItem): HTMLElement => {
+        const videoContainer = make("div", (vc: HTMLDivElement) => {
+          const video = make("video", (video: HTMLVideoElement) => {
+            append(
+              video,
+              make("source", (source: HTMLSourceElement) => {
+                source.src = item.url;
+                attr(source, "type", item.type);
+              })
+            );
+          }),
+            playIcon = make("div", (div: HTMLDivElement) => {
+              addClass(div, "tex-gallery-item-play");
+              div.innerHTML = renderIcon(IconPlay, {
+                width: 18,
+                height: 18
+              });
+            });
+
+          append(vc, [video, playIcon]);
+        });
+
+        return videoContainer;
+      }
+    );
   }
 
   /** @see GalleryBlockModelInterface.getStyles */
@@ -219,40 +255,39 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
     );
   }
 
-  protected initSlider(
-    isSlider: boolean = false,
-    onChange?: (index: number) => void
-  ) {
-    const { events } = this.editor;
-    const node = this.getNode();
-    const isSliderBlock = node?.dataset?.optionsStyle === "slider" || isSlider;
+  protected initSlider(index: number = 0) {
+    const blockNode = this.getNode(),
+      contentNode = this.getContentNode();
 
-    if (node && isSliderBlock) {
-      query(
-        ".tex-files-list-container",
-        (cnt: HTMLDivElement) => {
-          this.slider = new Slider(cnt, {
-            infinite: this.getConfig("sliderInfinite", true) as boolean,
-            onChange: onChange
-          });
-        },
-        node
-      );
-      events.add("onChange.fileAction", (evt: TexditorEvent) => {
-        if (evt?.isFileAction) {
-          const lastIndex = typeof evt.index === 'number' ? evt.index : 0;
+    this.destroySlider();
 
-          this.destroySlider();
-          this.initSlider(true, onChange);
-          this.slider?.goToSlide(lastIndex);
+    if (blockNode && contentNode) {
+      const isSliderOption = data(blockNode, 'optionsStyle') === "slider";
+
+      if (isSliderOption) {
+        this.slider = new Slider(contentNode, {
+          infinite: this.getConfig("sliderInfinite", true) as boolean
+        });
+
+        if (index) {
+          this.slider.goToSlide(index);
         }
-      });
+      }
     }
   }
 
   private destroySlider() {
-    const { events } = this.editor;
-    this.slider?.destroy();
-    events.remove("onChange", "fileActionSlider");
+    if (this.slider) {
+      this.slider.destroy();
+      this.slider = null;
+    }
+  }
+
+  /**
+ * Clean up event listeners on destroy
+ */
+  destroy(): void {
+    this.destroySlider();
+    super.destroy();
   }
 }

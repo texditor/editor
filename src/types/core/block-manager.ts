@@ -135,6 +135,14 @@ export interface BlockManagerInterface {
   createBlock(name: string, index?: number, options?: BlockCreateSchema, skipEvents?: boolean): BlockNode | null;
 
   /**
+ * Move block to new position
+ * @param index - Item index
+ * @param targetIndex - Target item index 
+ * @param skipEvents - Skip events
+ */
+  moveBlock(index: number, targetIndex: number, skipEvents?: boolean): void
+
+  /**
    * Removes one or multiple blocks
    * @param index - Index of the block to delete (-1 to the current block)
    * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed

@@ -34,7 +34,7 @@ import {
   data
 } from "@/utils/dom";
 import { off, rebind } from "@/utils/events";
-import { Paragraph } from "@/blocks";
+import { Paragraph } from "@/entities/blocks";
 import VirtualSelection from "./ui/virtual-selection";
 import { VirtualSelectionInterface } from "@/types/core/ui/virtual-selection";
 import { globalStore } from "@/store/globalStore";
@@ -43,6 +43,7 @@ import {
   executeMethodIfExists,
   generateRandomString
 } from "@/utils";
+
 export default class BlockManager implements BlockManagerInterface {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
@@ -320,14 +321,13 @@ export default class BlockManager implements BlockManagerInterface {
    * @param index - Block index to set as active
    */
   use(index: number) {
-    const { actions, api } = this.editor,
+    const { api } = this.editor,
       cssName = 'tex-block',
       root = api.getRoot(),
       blockNode = this.getNode(index);
 
     this.blockIndex = index;
     this.clearVirtualSelection();
-
 
     if (root && blockNode) {
       globalStore.set('el', root);
@@ -343,7 +343,6 @@ export default class BlockManager implements BlockManagerInterface {
 
       addClass(blockNode, cssName + "-active");
 
-      actions.create(blockNode);
       rebind(document, 'dblclick.notActive' + this.eventId, () => {
         removeClass(blockNode, cssName + "-active");
       });
@@ -635,9 +634,6 @@ export default class BlockManager implements BlockManagerInterface {
             }
 
             if (block) {
-              if (!skipEvents)
-                this.focus(curIndex);
-
               executeMethodIfExists(blockInstance, '__onMount');
 
               if (!skipEvents) {
@@ -646,6 +642,8 @@ export default class BlockManager implements BlockManagerInterface {
                   index: curIndex,
                   blockNode: block
                 });
+
+                setTimeout(() => this.focus(curIndex), 5);
               }
             }
           }
@@ -657,6 +655,66 @@ export default class BlockManager implements BlockManagerInterface {
       events.refresh();
 
     return block;
+  }
+
+  /** @see BlockManagerInterface.moveBlock */
+  moveBlock(
+    index: number,
+    targetIndex: number,
+    skipEvents: boolean = false
+  ): void {
+    const { events } = this.editor,
+      blockContainer = this.getBlocksContainer(),
+      blockNode = this.getNode(),
+      length = this.count();
+
+    if (!blockContainer) return;
+
+    if (length === 0) return;
+
+    let realIndex = index;
+    if (realIndex < 0) realIndex = 0;
+    if (realIndex >= length) realIndex = length - 1;
+
+    let realTargetIndex = targetIndex;
+    if (realTargetIndex <= 0) {
+      realTargetIndex = 0;
+    } else if (realTargetIndex >= length) {
+      realTargetIndex = length - 1;
+    }
+
+    if (realIndex === realTargetIndex) return;
+
+    if (!blockNode) return;
+
+    blockNode.remove();
+
+    if (realTargetIndex === 0) {
+      prepend(blockContainer, blockNode);
+    } else {
+      if (realTargetIndex >= length - 1) {
+        append(blockContainer, blockNode);
+      } else {
+        const insertAfterIndex = realTargetIndex - 1;
+        const targetBlock = this.getNode(insertAfterIndex);
+
+        if (targetBlock) {
+          after(targetBlock, blockNode);
+        } else {
+          append(blockContainer, blockNode);
+        }
+      }
+    }
+
+    if (!skipEvents) {
+      this.focus(realTargetIndex);
+      events.change({
+        type: 'moveBlock',
+        blockNode: blockNode,
+        index: index,
+        targetIndex: realTargetIndex
+      });
+    }
   }
 
   /**

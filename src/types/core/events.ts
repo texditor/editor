@@ -1,17 +1,7 @@
-import type { BlockNode } from "..";
+import type { BaseEvent, BlockNode, EventManagerInterface } from "..";
 
 export type PasteMapItem = { type: string; node: Node };
 export type PasteMap = { schema: string; data: PasteMapItem[] };
-
-/**
- * Event trigger storage structure
- * Maps event names to collections of callback functions with unique IDs
- */
-export type EventTriggerObject = {
-  [name: string]: {
-    [id: string]: CallableFunction;
-  };
-};
 
 /**
  * Event data structure passed to callbacks
@@ -20,8 +10,11 @@ export interface TexditorEvent {
   /** Type of event */
   type?: string;
 
-  /** Block index related to the event */
+  /** Index related to the event */
   index?: number | number[];
+
+  /** Index of the target element related to the event */
+  targetIndex?: number | number[];
 
   /** Block node involved in the event */
   blockNode?: BlockNode | HTMLElement | null;
@@ -29,11 +22,14 @@ export interface TexditorEvent {
   /** The content node inside the block */
   contentNode?: HTMLElement | null;
 
-  /** Element involved in the event */
-  el?: Element;
+  /** Event-bound DOM node */
+  node?: Node | Element | HTMLElement | Node[] | Element[] | HTMLElement[] | null;
 
   /** Original DOM event */
-  domEvent?: Event;
+  domEvent?: Event | BaseEvent;
+
+  /** Model name */
+  modelCode?: string;
 
   /** Additional event data */
   [key: string]: unknown;
@@ -42,36 +38,7 @@ export interface TexditorEvent {
 /**
  * Events manager interface for handling editor events
  */
-export interface EventsInterface {
-  /**
-   * Adds an event listener with optional identifier
-   * @param name - Event name (can include .id suffix)
-   * @param callback - Function to call when event triggers
-   */
-  add(name: string, callback: CallableFunction): void;
-
-  /**
-   * Checks if an event listener exists
-   * @param name - Event name (can include .id suffix)
-   * @returns True if event exists
-   */
-  exists(name: string): boolean;
-
-  /**
-   * Removes an event listener
-   * @param name - Event name
-   * @param id - Optional specific event ID to remove
-   * @returns True if removal was successful
-   */
-  remove(name: string, id?: string): boolean;
-
-  /**
-   * Triggers all callbacks for an event
-   * @param name - Event name to trigger
-   * @param params - Parameters to pass to callbacks
-   */
-  trigger(name: string, params?: TexditorEvent): void;
-
+export interface EventsInterface extends EventManagerInterface {
   /**
    * Initializes editor when ready
    */

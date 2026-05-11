@@ -147,12 +147,12 @@ export default class API implements APIInterface {
     const { blockManager, events } = this.editor,
       root = this.getRoot();
 
-    events.trigger("save");
+    events.triggerEvent("save");
 
     if (!root) return [];
 
     blockManager.getBlockNodes().forEach((el) => {
-      events.trigger("saveEach", { blockNode: el });
+      events.triggerEvent("saveEach", { blockNode: el });
 
       const model = el.baseModel;
 
@@ -209,10 +209,10 @@ export default class API implements APIInterface {
         if (block.data.length) data.push(block);
       }
 
-      events.trigger("saveEachEnd", { blockNode: el });
+      events.triggerEvent("saveEachEnd", { blockNode: el });
     });
 
-    events.trigger("saveEnd");
+    events.triggerEvent("saveEnd");
 
     return data;
   }
@@ -222,7 +222,6 @@ export default class API implements APIInterface {
    */
   destroy(): void {
     const {
-      actions,
       blockManager,
       events,
       extensions,
@@ -230,7 +229,6 @@ export default class API implements APIInterface {
       tools
     } = this.editor;
     if (this.rootElement) this.rootElement.innerHTML = "";
-    actions.destroy();
     blockManager.destroy();
     events.destroy();
     extensions.destroy();

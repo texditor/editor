@@ -2,7 +2,7 @@ import {
   BlockModelConfig,
   BlockModelInterface,
   FileActionModelConstructor,
-} from "../core";
+} from "../../";
 
 import {
   AjaxConfig,
@@ -26,10 +26,10 @@ export interface FilesBlockModelConfig extends BlockModelConfig {
   ajaxConfig: AjaxConfig;
   maxItems: number;
   visibleCounter: boolean;
-  requiredFieldName: boolean;
+  requiredFieldFileName: boolean;
   requiredFieldCaption: boolean;
   requiredFieldDesc: boolean;
-  visibleFieldName: boolean;
+  visibleFieldFileName: boolean;
   visibleFieldCaption: boolean;
   visibleFieldDesc: boolean;
   renderImage: boolean;
@@ -155,7 +155,7 @@ export interface FilesBlockModelInterface extends BlockModelInterface {
    * Checks if the file name is required
    * @returns {boolean} `true` if required, `false` otherwise
    */
-  isRequiredFieldName(): boolean;
+  isRequiredFieldFileName(): boolean;
 
   /**
  * Checks if the caption is required
@@ -173,7 +173,7 @@ export interface FilesBlockModelInterface extends BlockModelInterface {
    * Checks if the file name is visible
    * @returns {boolean} `true` if visible, `false` otherwise
    */
-  isVisibleFieldName(): boolean;
+  isVisibleFieldFileName(): boolean;
 
   /**
  * Checks if the caption is visible

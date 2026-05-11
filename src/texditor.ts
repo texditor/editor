@@ -7,7 +7,6 @@ import type {
   APIInterface,
   EventsInterface,
   ToolsInterface,
-  ActionsInterface,
   I18NInterface,
   HistoryManagerInterface,
   ExtensionsInterface,
@@ -20,7 +19,6 @@ import Config from "@/core/config";
 import SelectionAPI from "@/core/selection-api";
 import Tools from "@/core/tools";
 import I18N from "@/core/i18n";
-import Actions from "@/core/actions";
 import API from "@/core/api";
 import Commands from "@/core/commands";
 import HistoryManager from "@/core/history-manager";
@@ -30,6 +28,7 @@ import "@/styles/animations.css";
 
 export * from "./types";
 export * from "./utils";
+
 export default class Texditor implements TexditorInterface {
   /** Editor configuration object containing settings, plugins, and behaviors */
   config: ConfigInterface;
@@ -48,9 +47,6 @@ export default class Texditor implements TexditorInterface {
 
   /** Tool management system for additional editor functionalities */
   tools: ToolsInterface;
-
-  /** Action handlers for user interactions (keyboard, mouse, touch) */
-  actions: ActionsInterface;
 
   /** Internationalization system for multi-language support */
   i18n: I18NInterface;
@@ -78,7 +74,6 @@ export default class Texditor implements TexditorInterface {
     this.selectionApi = new SelectionAPI(this);
     this.tools = new Tools(this);
     this.commands = new Commands(this);
-    this.actions = new Actions(this);
     this.extensions = new Extensions(this);
     this.events.ready();
   }

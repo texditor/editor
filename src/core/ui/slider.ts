@@ -2,6 +2,8 @@ import { IconArrowLeft, IconArrowRight } from "@/icons";
 import {
   addClass,
   append,
+  before,
+  css,
   html,
   make,
   on,
@@ -10,7 +12,7 @@ import {
   renderIcon
 } from "@/utils";
 import { SliderInterface, SliderOptions } from "@/types";
-
+import "@/styles/core/ui/slider.css";
 
 export default class Slider implements SliderInterface {
   private container: HTMLElement;
@@ -27,7 +29,7 @@ export default class Slider implements SliderInterface {
 
   /**
    * Creates a new Slider instance
-   * @param container - The DOM element containing the slider structure
+   * @param container - The DOM element containing the slides
    * @param options - Configuration options for the slider
    */
   constructor(container: HTMLElement, options: SliderOptions = {}) {
@@ -35,27 +37,39 @@ export default class Slider implements SliderInterface {
 
     this.container = container;
     this.options = { ...this.defaultOptions, ...options };
-    const slider = this.container.firstChild as HTMLElement;
+    this.slider = make("div");
+
+    before(this.container, this.slider);
+    append(this.slider, this.container);
+    addClass(this.slider, "tex-slider");
     addClass(this.container, "tex-slider-container");
-    addClass(slider, "tex-slider");
-    this.slider = slider;
 
     this.eachSlides((slide: HTMLElement) => {
       addClass(slide, "tex-slide");
       this.slides.push(slide);
     });
 
-    this.slideCount = this.slides.length;
+    const length = this.slides.length;
+
+    css(this.container, 'width', `${length * 100}%`)
+
+    this.slides.forEach((slide: HTMLElement) => {
+      css(slide, {
+        width: `${100 / length}%`,
+        flex: `0 0 ${100 / length}%`
+      })
+    });
+
     this.init();
   }
 
   /**
-   * Iterates through each slide element
+   * Iterates through each direct child element of the container
    * @param callback - Function to execute for each slide
    */
   private eachSlides(callback: CallableFunction): void {
     query(
-      ".tex-slider > *",
+      ":scope > *",
       (slide: HTMLElement, index: number) => {
         callback(slide, index);
       },
@@ -70,6 +84,7 @@ export default class Slider implements SliderInterface {
     this.createDots();
     this.createButtons();
     this.updateActiveDot();
+    this.updateSliderPosition();
   }
 
   /**
@@ -93,7 +108,7 @@ export default class Slider implements SliderInterface {
       on(btn, "click.sliderNext", () => this.next());
     });
 
-    append(this.container, [prevBtn, nextBtn]);
+    append(this.slider, [prevBtn, nextBtn]);
   }
 
   /**
@@ -104,12 +119,12 @@ export default class Slider implements SliderInterface {
       addClass(dotCnt, "tex-slider-dots");
     });
 
-    append(this.container, dotContainer);
+    append(this.slider, dotContainer);
 
     this.dotsContainer = dotContainer;
-    this.dotsContainer.innerHTML = "";
+    html(this.dotsContainer, "");
 
-    for (let i = 0; i < this.slideCount; i++) {
+    for (let i = 0; i < this.slides.length; i++) {
       const dot = make("button", (btn: HTMLButtonElement) => {
         addClass(btn, "tex-slider-dot");
         btn.setAttribute("aria-label", `Go to slide: ${i + 1}`);
@@ -141,8 +156,13 @@ export default class Slider implements SliderInterface {
    * Updates the slider's transform position for the current slide
    */
   private updateSliderPosition(): void {
-    if (this.slider)
-      this.slider.style.transform = `translateX(-${this.currentIndex * 100}%)`;
+    if (this.container) {
+      css(
+        this.container,
+        'transform',
+        `translateX(-${this.currentIndex * (100 / this.slides.length)}%)`
+      );
+    }
   }
 
   /**
@@ -150,12 +170,14 @@ export default class Slider implements SliderInterface {
    * @param index - Target slide index (0-based)
    */
   goToSlide(index: number): void {
+    const length = this.slides.length;
+
     if (!this.options.infinite) {
       if (index < 0) index = 0;
-      if (index >= this.slideCount) index = this.slideCount - 1;
+      if (index >= length) index = length - 1;
     } else {
-      if (index < 0) index = this.slideCount - 1;
-      if (index >= this.slideCount) index = 0;
+      if (index < 0) index = length - 1;
+      if (index >= length) index = 0;
     }
 
     this.currentIndex = index;
@@ -185,23 +207,20 @@ export default class Slider implements SliderInterface {
   destroy(): void {
     this.eachSlides((slide: HTMLElement) => {
       removeClass(slide, "tex-slide");
+      slide.removeAttribute("style");
     });
 
-    query(
-      ".tex-slider",
-      (slider: HTMLElement) => {
-        slider.removeAttribute("style");
-        removeClass(slider, "tex-slider");
-      },
-      this.container
-    );
-
+    this.container.removeAttribute("style");
+    removeClass(this.container, "tex-slider-container");
     query(
       ".tex-slider-dots, .tex-slider-btn",
       (nav: HTMLElement) => {
         nav.remove();
       },
-      this.container
+      this.slider
     );
+
+    before(this.slider, this.container)
+    this.slider.remove();
   }
 }

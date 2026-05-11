@@ -1,5 +1,5 @@
 import type { BaseEvent, EventHandler } from "@/types";
-import { eventStore } from "@/store/eventStore";
+import { domEventStore } from "@/store/domEventStore";
 
 /**
  * Registers an event listener on an element with automatic tracking for later removal
@@ -22,7 +22,7 @@ export function on(
   options?: AddEventListenerOptions | boolean
 ): void {
   const wrappedHandler = (event: BaseEvent) => {
-    event.el = element;
+    event.delegateTarget = element;
     handler(event);
   };
 
@@ -31,11 +31,11 @@ export function on(
       ? `${eventType}.${id}`
       : `${eventType}.${Math.random().toString(36).slice(2)}`;
 
-  let handlers = eventStore.get(element);
+  let handlers = domEventStore.get(element);
 
   if (!handlers) {
     handlers = new Map();
-    eventStore.set(element, handlers);
+    domEventStore.set(element, handlers);
   }
 
   if (handlers.has(storageKey)) {
@@ -60,7 +60,7 @@ export function off(
   options?: AddEventListenerOptions | boolean
 ): void {
   const [eventType, id] = eventName.split("."),
-    handlers = eventStore.get(element);
+    handlers = domEventStore.get(element);
 
   if (!handlers) return;
 
@@ -86,7 +86,7 @@ export function off(
     handlers.delete(storageKey);
   }
 
-  if (handlers.size === 0) eventStore.delete(element);
+  if (handlers.size === 0) domEventStore.delete(element);
 }
 
 /**

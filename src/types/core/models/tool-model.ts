@@ -1,5 +1,5 @@
 import type { BaseModelConfig, BaseNode, ModelConstructor } from "@/types";
-import { BaseModelInterface } from "./base-model";
+import { BaseModelInterface } from "../base/base-model";
 
 /**
  * Tool model constructor type

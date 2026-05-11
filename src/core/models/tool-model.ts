@@ -6,7 +6,7 @@ import type {
   ToolModelConstructor,
   ToolNode
 } from "@/types";
-import BaseModel from "./base-model";
+import BaseModel from "../base/base-model";
 
 export default class ToolModel extends BaseModel<ToolNode> implements ToolModelInterface {
   /**
@@ -24,7 +24,7 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
    * Parent model configuration
    * @returns Parent model configuration
    */
-  protected parentСonfig(): Partial<ToolModelConfig> {
+  protected parentConfig(): Partial<ToolModelConfig> {
     return {
       __modelCode: 'tool',
       tagName: "div"
@@ -56,6 +56,7 @@ export default class ToolModel extends BaseModel<ToolNode> implements ToolModelI
     this.onFormat(tags);
 
     events.change({
+      modelCode: this.getModelCode(),
       type: "format",
       name: this.getName()
     });

@@ -14,15 +14,16 @@ export default {
     lib: {
       entry: {
         main: path.resolve(__dirname, "src/texditor.ts"),
-        actions: path.resolve(__dirname, "src/actions/index.ts"),
-        blocks: path.resolve(__dirname, "src/blocks/index.ts"),
-        tools: path.resolve(__dirname, "src/tools/index.ts"),
         locales: path.resolve(__dirname, "src/locales/index.ts"),
-        extensions: path.resolve(__dirname, "src/extensions/index.ts"),
-        "core/models": path.resolve(__dirname, "src/core/models/index.ts")
+        'entities/actions': path.resolve(__dirname, "src/entities/actions/index.ts"),
+        'entities/blocks': path.resolve(__dirname, "src/entities/blocks/index.ts"),
+        'entities/tools': path.resolve(__dirname, "src/entities/tools/index.ts"),
+        'entities/extensions': path.resolve(__dirname, "src/entities/extensions/index.ts"),
+        "core/models": path.resolve(__dirname, "src/core/models/index.ts"),
+        "core/base": path.resolve(__dirname, "src/core/base/index.ts")
       },
       name: "Texditor",
-      fileName: (format: string, entryName: string) => {
+      fileName: (_format: string, entryName: string) => {
         if (entryName === "main") return "texditor.mjs";
         return `${entryName}.mjs`;
       },

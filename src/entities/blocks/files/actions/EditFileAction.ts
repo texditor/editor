@@ -77,12 +77,7 @@ export default class EditFileAction extends FileActionModel implements FileActio
             const formBody = make('div', (body: HTMLDivElement) => {
               addClass(body, cssForm + '-body');
 
-              /**
-               * Creates an input field if it's visible per model configuration
-               * @param name - Field name (name, caption, desc)
-               * @param translation - Translation key for placeholder
-               */
-              const createInput = (name: string, translation: string = ''): HTMLElement | null => {
+              const createInput = (name: string, code: string = ''): HTMLElement | null => {
                 const inputId = `name-${generateRandomString(12)}`,
                   upperName = name.charAt(0).toUpperCase() + name.slice(1);
                 const isRequired = executeMethodIfExists(model, 'isRequiredField' + upperName);
@@ -92,11 +87,11 @@ export default class EditFileAction extends FileActionModel implements FileActio
                     addClass(field, cssForm + '-field ' + cssForm + '-field-' + name);
 
                     const input = make("input", (input: HTMLInputElement) => {
-                      const prop = Object.getOwnPropertyDescriptor(itemNode, 'file' + upperName);
+                      const prop = Object.getOwnPropertyDescriptor(itemNode, code ? code : 'file' + upperName);
                       input.type = "text";
                       input.id = inputId;
                       input.value = prop?.value || '';
-                      attr(input, "placeholder", `${i18n.get(translation ? translation : name)}` + (isRequired ? '*' : ''));
+                      attr(input, "placeholder", `${i18n.get(name)}` + (isRequired ? '*' : ''));
                       addClass(input, 'tex-input ' + cssForm + '-input-' + name);
                     }) as HTMLInputElement;
 
@@ -119,7 +114,7 @@ export default class EditFileAction extends FileActionModel implements FileActio
               }
 
               // Create individual fields
-              const nameInput = createInput('name', 'fileName'),
+              const nameInput = createInput('fileName', 'fileName'),
                 captionInput = createInput('caption'),
                 descInput = createInput('desc');
 
@@ -143,7 +138,7 @@ export default class EditFileAction extends FileActionModel implements FileActio
               const cancelButton = make("button", (btn: HTMLButtonElement) => {
                 btn.type = "button";
                 addClass(btn, btnCss + " tex-btn-secondary");
-                btn.textContent = i18n.get("сancel", "Cancel");
+                btn.textContent = i18n.get("cancel", "Cancel");
                 on(btn, "click", () => this.removePopup());
               });
 
@@ -208,8 +203,9 @@ export default class EditFileAction extends FileActionModel implements FileActio
     const requiredStatus = (name: string): boolean => {
       const upperName = name.charAt(0).toUpperCase() + name.slice(1);
       const [field] = queryList('.' + formCss + '-field-' + name, popupNode) as HTMLInputElement[];
+      const isVisible = executeMethodIfExists(model, 'isVisibleField' + upperName);
 
-      if (!field) return false;
+      if (!field && isVisible) return false;
 
       const [input] = queryList('.' + formCss + '-input-' + name, field) as HTMLInputElement[];
 
@@ -232,10 +228,10 @@ export default class EditFileAction extends FileActionModel implements FileActio
       return true;
     }
 
-    const reqName = requiredStatus('name'),
+    const reqName = requiredStatus('fileName'),
       reqCaption = requiredStatus('caption'),
       reqDesc = requiredStatus('desc');
-
+      
     if (!reqName || !reqCaption || !reqDesc) return;
 
     const saveField = (name: string) => {
@@ -259,12 +255,13 @@ export default class EditFileAction extends FileActionModel implements FileActio
       }
     }
 
-    saveField('name');
+    saveField('fileName');
     saveField('caption');
     saveField('desc');
 
     this.removePopup();
     events.change({
+      modelCode: this.getModelCode(),
       type: "changeFileItem",
       blockNode: this.getBlockNode(),
       item: itemNode

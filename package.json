@@ -11,29 +11,33 @@
       "import": "./dist/texditor.mjs",
       "types": "./dist/types/texditor.d.ts"
     },
-    "./actions": {
-      "import": "./dist/actions.mjs",
-      "types": "./dist/types/actions.d.ts"
+    "./core/base": {
+      "import": "./dist/core/base.mjs",
+      "types": "./dist/types/core/base.d.ts"
     },
-    "./blocks": {
-      "import": "./dist/blocks.mjs",
-      "types": "./dist/types/blocks.d.ts"
+    "./core/models": {
+      "import": "./dist/core/models.mjs",
+      "types": "./dist/types/core/models.d.ts"
     },
-    "./tools": {
-      "import": "./dist/tools.mjs",
-      "types": "./dist/types/tools.d.ts"
+    "./entities/actions": {
+      "import": "./dist/entities/actions.mjs",
+      "types": "./dist/types/entities/actions.d.ts"
+    },
+    "./entities/blocks": {
+      "import": "./dist/entities/blocks.mjs",
+      "types": "./dist/types/entities/blocks.d.ts"
+    },
+    "./entities/tools": {
+      "import": "./dist/entities/tools.mjs",
+      "types": "./dist/types/entities/tools.d.ts"
     },
     "./locales": {
       "import": "./dist/locales.mjs",
       "types": "./dist/types/locales.d.ts"
     },
-    "./extensions": {
-      "import": "./dist/extensions.mjs",
-      "types": "./dist/types/extensions.d.ts"
-    },
-    "./core/models": {
-      "import": "./dist/core/models.mjs",
-      "types": "./dist/types/core/models.d.ts"
+    "./entities/extensions": {
+      "import": "./dist/entities/extensions.mjs",
+      "types": "./dist/types/entities/extensions.d.ts"
     },
     "./styles/*.css": {
       "default": "./dist/styles/*.css"
@@ -49,6 +53,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.12.2",
+    "@types/sortablejs": "^1.15.9",
     "eslint": "^9.29.0",
     "globals": "^16.3.0",
     "prettier": "^3.6.0",
@@ -63,5 +68,8 @@
   ],
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "sortablejs": "^1.15.7"
   }
 }

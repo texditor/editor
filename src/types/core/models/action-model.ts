@@ -2,6 +2,7 @@ import type {
   BaseModelConfig,
   BaseModelInterface,
   BaseNode,
+  BlockNode,
   ModelConstructor
 } from "@/types";
 
@@ -27,7 +28,7 @@ export interface ActionNode extends BaseNode {
  * @property confirm - Whether action requires confirmation before execution
  */
 export interface ActionModelConfig extends BaseModelConfig {
-  menu: boolean;
+  dropdown: boolean;
   confirm: boolean;
 }
 
@@ -37,24 +38,20 @@ export interface ActionModelConfig extends BaseModelConfig {
  */
 export interface ActionModelInterface extends BaseModelInterface<ActionNode> {
   /**
-   * Check if action shows a menu on click
-   * @returns True if action has a menu, false otherwise
+   * Get the parent block node associated with this action
+   * @returns The parent block node or null if not set
    */
-  isMenu(): boolean;
+  getBlockNode(): BlockNode | null;
+
+  /**
+   * Check if the drop-down list of actions is displayed when you click
+   * @returns True if the action has a dropdown menu, false otherwise.
+   */
+  isDropdown(): boolean;
 
   /**
    * Check if action requires confirmation before execution
    * @returns True if confirmation is required, false otherwise
    */
   isConfirm(): boolean;
-
-  /**
-   * Menu configuration
-   * @returns Menu configuration object with title and items
-   */
-  menuConfig(): {
-    title: string;
-    items: [] | HTMLElement[];
-    onCreate?: CallableFunction;
-  };
 }

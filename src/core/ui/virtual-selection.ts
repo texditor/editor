@@ -218,12 +218,12 @@ export default class VirtualSelection implements VirtualSelectionInterface {
     const eid = this.eventId;
     const zone = this.options.selectionZone;
 
-    on(zone, 'mousedown.' + eid, this.onMouseDown.bind(this));
-    on(window, 'mousemove.' + eid, this.onMouseMove.bind(this));
-    on(window, 'mouseup.' + eid, this.onMouseUp.bind(this));
-    on(zone, 'touchstart.' + eid, this.onTouchStart.bind(this), { passive: false });
-    on(zone, 'touchmove.' + eid, this.onTouchMove.bind(this), { passive: false });
-    on(window, 'touchend.' + eid, this.onTouchEnd.bind(this));
+    on(zone, 'mousedown.' + eid, (evt: MouseEvent) => this.onMouseDown(evt));
+    on(window, 'mousemove.' + eid, (evt: MouseEvent) => this.onMouseMove(evt));
+    on(window, 'mouseup.' + eid, () => this.onMouseUp());
+    on(zone, 'touchstart.' + eid, (evt: TouchEvent) => this.onTouchStart(evt), { passive: false });
+    on(zone, 'touchmove.' + eid, (evt: TouchEvent) => this.onTouchMove(evt), { passive: false });
+    on(window, 'touchend.' + eid, () => this.onTouchEnd());
   }
 
   /**
@@ -648,7 +648,7 @@ export default class VirtualSelection implements VirtualSelectionInterface {
    */
   clearSelection(): void {
     this.selectedIndices.clear();
-    this.updateBlocksVisuals();
+    this.updateBlocksVisuals(true);
   }
 
   /**
