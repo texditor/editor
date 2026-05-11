@@ -1,7 +1,7 @@
 import type {
   BaseModelConfig,
   BaseModelInterface,
-  BaseNode,
+  BaseElement,
   BlockNode,
   FileItemNode,
   ModelConstructor
@@ -18,7 +18,7 @@ export type FileActionModelConstructor = ModelConstructor<FileActionModelInterfa
  * File action DOM node interface
  * Extends HTMLElement with action model reference
  */
-export interface FileActionNode extends BaseNode {
+export interface FileActionNode extends BaseElement {
   /** Reference to the action model instance */
   baseModel: FileActionModelInterface;
 }

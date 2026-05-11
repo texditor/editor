@@ -2,7 +2,7 @@ import type {
   ModelConstructor,
   BaseModelInterface,
   BaseModelConfig,
-  BaseNode,
+  BaseElement,
   SanitizerConfig
 } from "@/types";
 
@@ -13,7 +13,7 @@ import type {
  */
 export type BlockModelConstructor = ModelConstructor<BlockModelInterface, BlockModelConfig>;
 
-export interface BlockNode extends BaseNode {
+export interface BlockNode extends BaseElement {
   baseModel: BlockModelInterface;
 }
 

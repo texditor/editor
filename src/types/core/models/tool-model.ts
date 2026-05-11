@@ -1,4 +1,4 @@
-import type { BaseModelConfig, BaseNode, ModelConstructor } from "@/types";
+import type { BaseModelConfig, BaseElement, ModelConstructor } from "@/types";
 import { BaseModelInterface } from "../base/base-model";
 
 /**
@@ -8,7 +8,7 @@ import { BaseModelInterface } from "../base/base-model";
  */
 export type ToolModelConstructor = ModelConstructor<ToolModelInterface, ToolModelConfig>;
 
-export interface ToolNode extends BaseNode {
+export interface ToolNode extends BaseElement {
   baseModel: ToolModelInterface;
 }
 

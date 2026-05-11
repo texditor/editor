@@ -1,7 +1,7 @@
 import type {
   BaseModelConfig,
   BaseModelInterface,
-  BaseNode,
+  BaseElement,
   ModelConstructor
 } from "@/types";
 
@@ -16,7 +16,7 @@ export type ExtensionModelConstructor = ModelConstructor<ExtensionModelInterface
  * Extension DOM node interface
  * Extends HTMLElement with extension model reference
  */
-export interface ExtensionNode extends BaseNode {
+export interface ExtensionNode extends BaseElement {
   /** Reference to the extension model instance */
   baseModel: ExtensionModelInterface;
 }

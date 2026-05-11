@@ -12,7 +12,7 @@ export default class DownloadFileAction extends FileActionModel implements FileA
     return {
       name: 'download',
       icon: IconDownload,
-      nodeTagName: 'a',
+      elementTagName: 'a',
       translation: 'downloadFile',
     }
   }

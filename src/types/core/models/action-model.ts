@@ -1,7 +1,7 @@
 import type {
   BaseModelConfig,
   BaseModelInterface,
-  BaseNode,
+  BaseElement,
   BlockNode,
   ModelConstructor
 } from "@/types";
@@ -17,7 +17,7 @@ export type ActionModelConstructor = ModelConstructor<ActionModelInterface, Acti
  * Action DOM node interface
  * Extends HTMLElement with action model reference
  */
-export interface ActionNode extends BaseNode {
+export interface ActionNode extends BaseElement {
   /** Reference to the action model instance */
   baseModel: ActionModelInterface;
 }

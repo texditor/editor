@@ -28,7 +28,7 @@ export interface ModelConstructor<
  * DOM node interface
  * Extends HTMLElement with base model reference
  */
-export interface BaseNode extends HTMLElement {
+export interface BaseElement extends HTMLElement {
   /** Reference to the base model instance */
   baseModel: BaseModelInterface;
 }
@@ -46,7 +46,7 @@ export interface BaseNode extends HTMLElement {
  */
 export interface BaseModelConfig {
   name: string;
-  nodeTagName: string;
+  elementTagName: string;
   translation: string;
   icon: RenderIconContent;
   visibleIcon: boolean;
@@ -68,7 +68,7 @@ export type BaseModelConstructor = ModelConstructor<BaseModelInterface, BaseMode
  * Base model behavior interface
  * Defines all public methods for model manipulation
  */
-export interface BaseModelInterface<TNode extends BaseNode = BaseNode> extends EventManagerInterface {
+export interface BaseModelInterface<TElement extends BaseElement = BaseElement> extends EventManagerInterface {
   /**
   * Returns the unique identifier for this event listener instance
   * @returns The unique event ID string used to identify and manage event listeners
@@ -85,7 +85,7 @@ export interface BaseModelInterface<TNode extends BaseNode = BaseNode> extends E
    * Get model node tag name
    * @returns Tag name string (default: 'div')
    */
-  getNodeTagName(): string
+  getElementTagName(): string
 
   /**
    * Get model ID
@@ -97,7 +97,7 @@ export interface BaseModelInterface<TNode extends BaseNode = BaseNode> extends E
    * Get model DOM node
    * @returns Model button element
    */
-  getNode(): TNode;
+  getNode(): TElement;
 
   /**
    * Get CSS class name

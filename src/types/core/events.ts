@@ -22,8 +22,8 @@ export interface TexditorEvent {
   /** The content node inside the block */
   contentNode?: HTMLElement | null;
 
-  /** Event-bound DOM node */
-  node?: Node | Element | HTMLElement | Node[] | Element[] | HTMLElement[] | null;
+  /** Event-bound DOM element */
+  element?: HTMLElement | HTMLElement[] | null;
 
   /** Original DOM event */
   domEvent?: Event | BaseEvent;

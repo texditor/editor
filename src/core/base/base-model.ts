@@ -1,7 +1,7 @@
 import {
   BaseModelConfig,
   BaseModelInterface,
-  BaseNode,
+  BaseElement,
   BaseEvent,
   RenderIconContent,
   TexditorInterface,
@@ -20,15 +20,15 @@ import {
 } from "@/utils";
 import EventManager from "./event-manager";
 
-export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventManager implements BaseModelInterface<TNode> {
+export default class BaseModel<TElement extends BaseElement = BaseElement> extends EventManager implements BaseModelInterface<TElement> {
   /** Global user configuration for all model instances */
   private static userConfig: Partial<BaseModelConfig> = {};
 
   /** Reference to the editor instance */
   protected editor: TexditorInterface;
 
-  /** DOM node representing the model button */
-  private node: TNode;
+  /** DOM element representing the model button */
+  private element: TElement;
 
   /** Model configuration settings */
   private config: BaseModelConfig;
@@ -53,7 +53,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
 
     this.config = {
       name: '',
-      nodeTagName: 'div',
+      elementTagName: 'div',
       translation: '',
       icon: '',
       visibleIcon: true,
@@ -68,7 +68,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
       ...(this.constructor as typeof BaseModel).userConfig
     };
 
-    this.node = this.createNode();
+    this.element = this.createElement();
     this.onLoad();
 
     this.triggerEvent('onLoad', {
@@ -85,15 +85,15 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
   }
 
   /**
-   * Create model DOM node
-   * @returns Created model node
+   * Create model DOM element
+   * @returns Created model element
    */
-  protected createNode(): TNode {
+  protected createElement(): TElement {
     const name = this.getName(),
       codeName = this.getModelCode(),
       cssName = this.getClassName();
 
-    return make(this.getNodeTagName(), (el: TNode) => {
+    return make(this.getElementTagName(), (el: TElement) => {
       el.id = `tex-${codeName}-${generateRandomString(12)}-${generateRandomString(12)}`;
       const customCss = cssName !== '' ? ' ' + cssName : "",
         namedCss = name.trim() !== '' ? ' tex-' + codeName + "-" + name : '';
@@ -134,15 +134,15 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
       }
 
       el.baseModel = this;
-      this.node = el;
+      this.element = el;
       this.parentOnCreateNode(el);
       this.onCreateNode(el);
       this.triggerEvent('onCreateNode', {
         type: 'onCreateNode',
         modelCode: this.getModelCode(),
-        node: el
+        element: el
       })
-    }) as TNode;
+    }) as TElement;
   }
 
   /**
@@ -154,16 +154,16 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
   }
 
   /**
-   * Hook called after model node creation
-   * @param _node - Created model node 
+   * Hook called after model element creation
+   * @param _el - Created model element 
    */
-  protected onCreateNode(_node: TNode): void { }
+  protected onCreateNode(_el: TElement): void { }
 
   /**
-   * Parent hook called after model node creation
-   * @param _node - Created model node 
+   * Parent hook called after model element creation
+   * @param _el - Created model element 
    */
-  protected parentOnCreateNode(_node: TNode): void { }
+  protected parentOnCreateNode(_el: TElement): void { }
 
   /**
    * Get configuration value by key
@@ -317,7 +317,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
   protected onClick(_evt: BaseEvent): void { }
 
   /**
-  * Parent hook called after model node clicked
+  * Parent hook called after model element clicked
   * @param evt - Custom event with element reference
   * @returns void
   */
@@ -341,28 +341,28 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
 
   /**
    * Performs initialization of the current class after mounting to the DOM tree
-   * @param node - The DOM node that was mounted
+   * @param _el - The DOM element that was mounted
    */
-  protected onMount(_node: TNode): void { }
+  protected onMount(_el: TElement): void { }
 
   /**
    * Performs initialization of the parent class after mounting to the DOM tree
-   * @param node - The DOM node that was mounted
+   * @param _el - The DOM element that was mounted
    */
-  protected parentOnMount(_node: TNode): void { }
+  protected parentOnMount(_el: TElement): void { }
 
   /**
    * Public wrapper that executes both parent and current class initialization
-   * @param node - The DOM node that was mounted
+   * @param el - The DOM element that was mounted
    */
-  __onMount(node: TNode): void {
-    this.parentOnMount(node);
-    this.onMount(node);
+  __onMount(el: TElement): void {
+    this.parentOnMount(el);
+    this.onMount(el);
 
     this.triggerEvent('onMount', {
       type: 'onMount',
       modelCode: this.getModelCode(),
-      node: node
+      element: el
     });
   }
 
@@ -373,39 +373,39 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
   protected onConstruct(_editor: TexditorInterface): void { }
 
   /**
-   * Check if model node is active
-   * @returns True if model node is active
+   * Check if model element is active
+   * @returns True if model element is active
    */
   isActive(): boolean {
     return true;
   }
 
   /**
-   * Check if model node is visible
-   * @returns True if model node should be displayed
+   * Check if model element is visible
+   * @returns True if model element should be displayed
    */
   isVisible(): boolean {
     return true;
   }
 
   /**
-   * Get node ID
+   * Get element ID
    * @returns Unique model identifier string
    */
   getId(): string {
-    return this.node.id;
+    return this.element.id;
   }
 
   /**
-   * Get model node
+   * Get model element
    * @returns Model button element
    */
-  getNode(): TNode {
-    return this.node;
+  getNode(): TElement {
+    return this.element;
   }
 
   /**
-   * Get model node name
+   * Get model name
    * @returns Model name string
    */
   getName(): string {
@@ -413,11 +413,11 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
   }
 
   /**
-   * Get model node tag name
+   * Get model element tag name
    * @returns Tag name string (default: 'div')
    */
-  getNodeTagName(): string {
-    return this.getConfig('nodeTagName', 'div');
+  getElementTagName(): string {
+    return this.getConfig('elementTagName', 'div');
   }
 
   /**
@@ -445,7 +445,7 @@ export default class BaseModel<TNode extends BaseNode = BaseNode> extends EventM
   }
 
   /**
-   * Get icon content for the model node button
+   * Get icon content for the model element button
    * @returns Icon content (HTML string, SVG element, or component)
    */
   getIcon(): RenderIconContent {
