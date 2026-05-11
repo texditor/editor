@@ -80,7 +80,7 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
   protected confirm(evt: BaseEvent) {
     const { events, i18n } = this.editor,
       cssName = "tex-action",
-      element = this.getNode(),
+      element = this.getElement(),
       icon = this.getIcon();
 
     if (element) {

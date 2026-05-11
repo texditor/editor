@@ -97,7 +97,7 @@ export interface BaseModelInterface<TElement extends BaseElement = BaseElement> 
    * Get model DOM node
    * @returns Model button element
    */
-  getNode(): TElement;
+  getElement(): TElement;
 
   /**
    * Get CSS class name

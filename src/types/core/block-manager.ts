@@ -45,7 +45,7 @@ export interface BlockManagerInterface {
    * @param index - Block index (defaults to current index)
    * @returns Block node or null if not found
    */
-  getNode(index?: number): BlockNode | null;
+  getElement(index?: number): BlockNode | null;
 
   /**
    * Gets the content node within a block

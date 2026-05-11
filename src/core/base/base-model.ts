@@ -400,7 +400,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Get model element
    * @returns Model button element
    */
-  getNode(): TElement {
+  getElement(): TElement {
     return this.element;
   }
 

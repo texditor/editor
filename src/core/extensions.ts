@@ -41,7 +41,7 @@ export default class Extensions implements ExtensionsInterface {
   refresh() {
     const cssName = 'tex-extension';
     this.getExtensions().forEach((extension) => {
-      const node = extension.getNode();
+      const node = extension.getElement();
       if (node) {
         if (!extension.isActive()) addClass(node, cssName + "-not-active");
         else removeClass(node, cssName + "-not-active");

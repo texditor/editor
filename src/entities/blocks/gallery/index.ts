@@ -103,7 +103,7 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
     const { blockManager, events, i18n } = this.editor,
       ltr = this.getConfig("stylesLtr", "left"),
       styles = this.getConfig("styles", []) as string[],
-      blockNode = this.getNode();
+      blockNode = this.getElement();
 
     if (this.isAllowedStyles()) {
       const saveActiveItem = (code: string) => {
@@ -195,7 +195,7 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
 
   protected onCreateList(_contentNode: HTMLElement): void {
     const styles = this.getStyles(),
-      blockNode = this.getNode(),
+      blockNode = this.getElement(),
       itemStyle = this.getOption('style', '');
 
     if (this.areStylesAllowed() && itemStyle) {
@@ -256,7 +256,7 @@ export default class Gallery extends Files implements GalleryBlockModelInterface
   }
 
   protected initSlider(index: number = 0) {
-    const blockNode = this.getNode(),
+    const blockNode = this.getElement(),
       contentNode = this.getContentNode();
 
     this.destroySlider();

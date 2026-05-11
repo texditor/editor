@@ -15,7 +15,7 @@ export default function ExtensionsView(
     addClass(el, cssName + " tex-" + ltr);
 
     extensionList.forEach((extension) => {
-      const element = extension.getNode(),
+      const element = extension.getElement(),
         groupName = extension.getGroupName
           ? extension.getGroupName()
           : "";

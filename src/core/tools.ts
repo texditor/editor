@@ -84,7 +84,7 @@ export default class Tools implements ToolsInterface {
       return;
 
     this.getTools().forEach((tool) => {
-      const node = tool.getNode();
+      const node = tool.getElement();
       append(toolsListNode, node);
       css(node, 'display', tool.isVisible() ? '' : 'none');
       executeMethodIfExists(tool, '__onMount', [node])

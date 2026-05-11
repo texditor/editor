@@ -59,7 +59,7 @@ export default class Code extends BlockModel implements BlockModelInterface {
   }
 
   protected onCompose(): void {
-    const blockNode = this.getNode();
+    const blockNode = this.getElement();
     this.init(blockNode);
   }
 

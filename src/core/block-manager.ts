@@ -162,7 +162,7 @@ export default class BlockManager implements BlockManagerInterface {
     endPos?: number,
     itemIndex?: number
   ): BlockNode | null {
-    const blockNode = this.getNode(index),
+    const blockNode = this.getElement(index),
       model = blockNode?.baseModel,
       { selectionApi } = this.editor;
 
@@ -237,7 +237,7 @@ export default class BlockManager implements BlockManagerInterface {
    * @param index - Block index (defaults to current index)
    * @returns Block node or null if not found
    */
-  getNode(index?: number): BlockNode | null {
+  getElement(index?: number): BlockNode | null {
     const realIndex = index !== undefined
       ? index
       : this.getIndex(),
@@ -264,7 +264,7 @@ export default class BlockManager implements BlockManagerInterface {
    * @returns Content element or null
    */
   getContentNode(blockNode?: BlockNode): HTMLElement | null {
-    const realBlockNode = blockNode || this.getNode();
+    const realBlockNode = blockNode || this.getElement();
 
     if (!realBlockNode)
       return null;
@@ -281,7 +281,7 @@ export default class BlockManager implements BlockManagerInterface {
   getNextBlockNode(): BlockNode | null {
     const currentIndex = this.getIndex();
 
-    return this.getNode(currentIndex + 1);
+    return this.getElement(currentIndex + 1);
   }
 
   /**
@@ -291,7 +291,7 @@ export default class BlockManager implements BlockManagerInterface {
   getPrevBlockNode(): BlockNode | null {
     const currentIndex = this.getIndex();
 
-    return this.getNode(currentIndex - 1);
+    return this.getElement(currentIndex - 1);
   }
 
   /**
@@ -324,7 +324,7 @@ export default class BlockManager implements BlockManagerInterface {
     const { api } = this.editor,
       cssName = 'tex-block',
       root = api.getRoot(),
-      blockNode = this.getNode(index);
+      blockNode = this.getElement(index);
 
     this.blockIndex = index;
     this.clearVirtualSelection();
@@ -476,7 +476,7 @@ export default class BlockManager implements BlockManagerInterface {
    */
   getModel(index?: number): BlockModelInterface | null {
     const outIndex = index === undefined ? this.getIndex() : index,
-      block = this.getNode(outIndex);
+      block = this.getElement(outIndex);
 
     if (!block) return null;
 
@@ -501,7 +501,7 @@ export default class BlockManager implements BlockManagerInterface {
       const sortedIndices = [...index].sort((a, b) => b - a);
 
       for (const currentIndex of sortedIndices) {
-        const node = this.getNode(currentIndex);
+        const node = this.getElement(currentIndex);
         if (node) {
           lastRemovedIndex = currentIndex;
           lastRemovedBlock = node;
@@ -513,10 +513,10 @@ export default class BlockManager implements BlockManagerInterface {
       let currentIndex: number | null = null;
 
       if (index !== -1) {
-        blockNode = this.getNode(index);
+        blockNode = this.getElement(index);
         currentIndex = index;
       } else {
-        blockNode = this.getNode();
+        blockNode = this.getElement();
         currentIndex = this.getIndex();
       }
 
@@ -618,7 +618,7 @@ export default class BlockManager implements BlockManagerInterface {
                   curIndex = 0;
                 } else {
 
-                  const curBlock = this.getNode(curIndex);
+                  const curBlock = this.getElement(curIndex);
                   block = executeMethodIfExists(blockInstance, '__compose', [options]) as BlockNode;
 
                   if (curBlock && block) {
@@ -665,7 +665,7 @@ export default class BlockManager implements BlockManagerInterface {
   ): void {
     const { events } = this.editor,
       blockContainer = this.getBlocksContainer(),
-      blockNode = this.getNode(),
+      blockNode = this.getElement(),
       length = this.count();
 
     if (!blockContainer) return;
@@ -696,7 +696,7 @@ export default class BlockManager implements BlockManagerInterface {
         append(blockContainer, blockNode);
       } else {
         const insertAfterIndex = realTargetIndex - 1;
-        const targetBlock = this.getNode(insertAfterIndex);
+        const targetBlock = this.getElement(insertAfterIndex);
 
         if (targetBlock) {
           after(targetBlock, blockNode);
@@ -732,8 +732,8 @@ export default class BlockManager implements BlockManagerInterface {
   ) {
     let itemIndex = 0;
     const { events } = this.editor;
-    const blockNode = this.getNode(index),
-      targetBlockNode = this.getNode(targetIndex);
+    const blockNode = this.getElement(index),
+      targetBlockNode = this.getElement(targetIndex);
 
     if (blockNode && targetBlockNode) {
       const model = blockNode.baseModel,

@@ -150,7 +150,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
    * Hook triggered after composition is complete
    */
   protected onCompose(): void {
-    const blockNode = this.getNode();
+    const blockNode = this.getElement();
     this.counterNode = this.createCounter();
     this.formNode = this.createForm();
     this.toastsNode = this.createToasts();
@@ -728,7 +728,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
     const methodName = this.getRenderCallback(item.type),
       className = this.getItemClassName(),
       fileCss = "tex-file",
-      blockNode = this.getNode();
+      blockNode = this.getElement();
 
     let itemNode = make("div") as FileItemNode;
 
@@ -774,7 +774,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
 
     const hideActions = () => {
       actionsConstructors.forEach((action) => {
-        const node = action.getNode();
+        const node = action.getElement();
         action.destroy();
         node.remove();
       });
@@ -842,9 +842,9 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
         executeMethodIfExists(
           action,
           '__setElements',
-          [this.getNode(), itemNode]
+          [this.getElement(), itemNode]
         );
-        const fileActionNode = action.getNode();
+        const fileActionNode = action.getElement();
         append(actionsNodeList, fileActionNode);
         executeMethodIfExists(action, "__onMount", [fileActionNode]);
         this.fileActions.push(action);
@@ -852,7 +852,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
 
       const reVisible = () => {
         this.getFileActions().forEach((action: FileActionModelInterface) => {
-          css(action.getNode(), "display", action.isVisible() ? "" : "none");
+          css(action.getElement(), "display", action.isVisible() ? "" : "none");
         })
       }
 
@@ -1086,7 +1086,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
    * @returns Updated block schema
    */
   protected save(block: BlockSchema, node?: BlockNode): BlockSchema {
-    const root = node || this.getNode();
+    const root = node || this.getElement();
     block.data = [];
 
     if (root) {

@@ -214,7 +214,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
     const { config } = this.editor,
       eid = this.getEventId(),
       cssName = '.tex-actions',
-      blockNode = this.getNode();
+      blockNode = this.getElement();
 
     const [actionsElement] = queryList(cssName, blockNode);
 
@@ -225,8 +225,8 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         if (contentBody) {
           blockActions.forEach((instance: ActionModelConstructor) => {
             const action = new instance(this.editor);
-            executeMethodIfExists(action, '__setBlockNode', [this.getNode()])
-            const actionEl = action.getNode(),
+            executeMethodIfExists(action, '__setBlockNode', [this.getElement()])
+            const actionEl = action.getElement(),
               isVisible = action.isVisible();
 
             append(contentBody, actionEl);
@@ -255,7 +255,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
   hideActions(): void {
     const eid = this.getEventId(),
       cssName = '.tex-actions',
-      blockNode = this.getNode();
+      blockNode = this.getElement();
 
     const [actionsElement] = queryList(cssName, blockNode);
 
@@ -318,7 +318,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
                 index: evt.newIndex,
                 targetIndex: evt.oldIndex
               }, {
-                blockNode: this.getNode(),
+                blockNode: this.getElement(),
                 contentNode: contentNode,
               });
 
@@ -373,7 +373,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       }
     }
 
-    return this.getNode();
+    return this.getElement();
   }
 
   /**
@@ -454,7 +454,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
 
   /** @see BlockModelInterface.getContentNode */
   getContentNode(): HTMLElement {
-    const block = this.getNode();
+    const block = this.getElement();
     const [contentNode] = queryList(".tex-block-content", block);
 
     return contentNode;
@@ -851,7 +851,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         index: newIndex
       }, {
         contentNode: contentNode,
-        blockNode: this.getNode(),
+        blockNode: this.getElement(),
       });
     }
 
@@ -915,7 +915,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
         targetIndex: realTargetIndex
       }, {
         contentNode: contentNode,
-        blockNode: this.getNode(),
+        blockNode: this.getElement(),
       });
     }
   }
@@ -934,7 +934,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
       index: realIndex
     }, {
       contentNode: this.getContentNode(),
-      blockNode: this.getNode(),
+      blockNode: this.getElement(),
     });
 
     return true;
