@@ -143,7 +143,7 @@ export default class BlockModel extends BaseModel<BlockNode> implements BlockMod
    * @param el - Created model node
    * @returns void
    */
-  protected parentOnCreateNode(el: BlockNode): void {
+  protected parentOnCreateElement(el: BlockNode): void {
     const { config, i18n } = this.editor,
       tagName = this.getTagName(),
       contentClassName = this.getContentClassName(),

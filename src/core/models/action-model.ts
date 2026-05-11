@@ -54,7 +54,7 @@ export default class ActionModel extends BaseModel<ActionNode> implements Action
    * @param el - Created model node
    * @returns void
    */
-  protected parentOnCreateNode(el: ActionNode): void {
+  protected parentOnCreateElement(el: ActionNode): void {
     const cssName = 'tex-action';
 
     if (this.isConfirm())

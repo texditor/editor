@@ -140,7 +140,7 @@ export default class Files extends BlockModel implements FilesBlockModelInterfac
     * Hook called after model node creation
     * @param node - Created model node 
     */
-  protected onCreateNode(node: BlockNode): void {
+  protected onCreateElement(node: BlockNode): void {
     const contentNode = node.baseModel.getContentNode();
 
     if (contentNode) css(contentNode, "display", "none");

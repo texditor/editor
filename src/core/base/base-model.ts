@@ -101,7 +101,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
       addClass(el, 'tex-' + codeName + namedCss + customCss);
       rebind(
         el,
-        "click.baseNode",
+        "click.baseElement",
         (evt: BaseEvent) => this.handleClick(evt)
       );
 
@@ -135,10 +135,10 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
 
       el.baseModel = this;
       this.element = el;
-      this.parentOnCreateNode(el);
-      this.onCreateNode(el);
-      this.triggerEvent('onCreateNode', {
-        type: 'onCreateNode',
+      this.parentOnCreateElement(el);
+      this.onCreateElement(el);
+      this.triggerEvent('onCreateElement', {
+        type: 'onCreateElement',
         modelCode: this.getModelCode(),
         element: el
       })
@@ -157,13 +157,13 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Hook called after model element creation
    * @param _el - Created model element 
    */
-  protected onCreateNode(_el: TElement): void { }
+  protected onCreateElement(_el: TElement): void { }
 
   /**
    * Parent hook called after model element creation
    * @param _el - Created model element 
    */
-  protected parentOnCreateNode(_el: TElement): void { }
+  protected parentOnCreateElement(_el: TElement): void { }
 
   /**
    * Get configuration value by key
