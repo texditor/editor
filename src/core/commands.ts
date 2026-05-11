@@ -1,6 +1,6 @@
 import type {
-  CommandsInterface,
-  SelectionAPIInterface,
+  Commands,
+  SelectionAPI,
   TexditorInterface
 } from "@/types";
 import { isEmptyString } from "@/utils/string";
@@ -192,7 +192,7 @@ export default class Commands  {
    */
   createFormat(tagName: string) {
     this.selection(
-      ({ selectionApi }: { selectionApi: SelectionAPIInterface }) => {
+      ({ selectionApi }: { selectionApi: SelectionAPI }) => {
         const { element, position } = selectionApi.current();
         if (element) {
           this.formatTextRange(tagName, position.start, position.end, element);
@@ -217,7 +217,7 @@ export default class Commands  {
         selectionApi
       }: {
         range: Range;
-        selectionApi: SelectionAPIInterface;
+        selectionApi: SelectionAPI;
       }) => {
         const elements = this.findTags(tagName),
           direction = this.getSelectionDirection(tagName),
@@ -415,7 +415,7 @@ export default class Commands  {
     const tagsNotChilds = this.findTags(element.localName, false);
 
     this.selection(
-      ({ range }: { range: Range; selectionApi: SelectionAPIInterface }) => {
+      ({ range }: { range: Range; selectionApi: SelectionAPI }) => {
         const { startContainer, endContainer } = range;
 
         const isFullSelection = (): boolean => {

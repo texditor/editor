@@ -25,7 +25,7 @@ export interface CurrentSelectionData {
  * Defines the complete API for managing text selection, cursor operations,
  * and range manipulations within the editor
  */
-export interface SelectionAPIInterface {
+export interface SelectionAPI {
   /**
    * Sets the current selection data
    * @param el - HTML element containing the selection

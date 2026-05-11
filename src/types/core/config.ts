@@ -9,7 +9,7 @@ import type {
 /**
  * Configuration store interface defining all available configuration options
  */
-export interface ConfigStoreInterface {
+export interface ConfigOptions {
   /** Unique identifier for the editor instance */
   handle?: string;
 
@@ -85,21 +85,21 @@ export type ConfigGetFunction = {
 
   /**
    * Gets a typed configuration value
-   * @param key - Configuration key from ConfigStoreInterface
+   * @param key - Configuration key from ConfigOptions
    * @returns Configuration value with proper type
    */
-  <K extends keyof ConfigStoreInterface>(key: K): ConfigStoreInterface[K];
+  <K extends keyof ConfigOptions>(key: K): ConfigOptions[K];
 
   /**
    * Gets a typed configuration value with default
-   * @param key - Configuration key from ConfigStoreInterface
+   * @param key - Configuration key from ConfigOptions
    * @param defaultValue - Default value of the same type
    * @returns Configuration value or default
    */
-  <K extends keyof ConfigStoreInterface>(
+  <K extends keyof ConfigOptions>(
     key: K,
-    defaultValue: ConfigStoreInterface[K]
-  ): ConfigStoreInterface[K];
+    defaultValue: ConfigOptions[K]
+  ): ConfigOptions[K];
 
   /**
    * Gets any configuration value (fallback)
@@ -113,7 +113,7 @@ export type ConfigGetFunction = {
 /**
  * Configuration manager interface
  */
-export interface ConfigInterface {
+export interface Config {
   /** Method to retrieve configuration values */
   get: ConfigGetFunction;
 }

@@ -27,7 +27,7 @@ import {
   ClearFormattingTool
 } from "@/entities/tools";
 
-export default class Tools  {
+export default class Tools {
   /** Reference to the editor instance */
   private editor: TexditorInterface;
   /** Collection of tool models available in the toolbar */
@@ -69,8 +69,7 @@ export default class Tools  {
    * Show the toolbar at the current selection position
    */
   show(): void {
-    const { api, selectionApi } = this.editor;
-    const root = api.getRoot(),
+    const root = this.editor.getRoot(),
       cssName = 'tex-tools';
 
     if (!root)
@@ -93,7 +92,7 @@ export default class Tools  {
     addClass(toolsNode, cssName + "-fixed tex-animate-fadeIn");
 
     const reposition = () => {
-      const rect = selectionApi.getFirstLineBounds(),
+      const rect = this.editor.selectionApi.getFirstLineBounds(),
         contextMenuRect = getCaretPosition(),
         mobileDevice = detectMobileOS(),
         rootRect = root.getBoundingClientRect();
@@ -141,10 +140,10 @@ export default class Tools  {
    * Synchronize active state highlighting for tools based on current selection 
    */
   syncHighlight() {
-    const { api, selectionApi } = this.editor,
+    const { selectionApi } = this.editor,
       cssName = ".tex-tool",
       curElement = selectionApi.current()?.element,
-      root = api.getRoot();
+      root = this.editor.getRoot();
 
     if (!root) return;
 
@@ -181,7 +180,7 @@ export default class Tools  {
    * Hide the toolbar 
    */
   hide() {
-    const root = this.editor.api.getRoot();
+    const root = this.editor.getRoot();
 
     if (root) {
       query(

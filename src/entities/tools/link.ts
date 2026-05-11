@@ -24,7 +24,7 @@ import "@/styles/tools/link.css";
 import { off, on, rebind } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
-export default class LinkTool extends ToolModel  {
+export default class LinkTool extends ToolModel {
   /**
    * Get tool configuration
    * @returns Partial tool configuration
@@ -82,8 +82,7 @@ export default class LinkTool extends ToolModel  {
    * Remove link form from the toolbar 
    */
   private removeForm() {
-    const { api } = this.editor,
-      root = api.getRoot();
+    const root = this.editor.getRoot();
 
     if (root) {
       query('.tex-tools-content', (content: HTMLElement) => css(content, 'display', 'none'), root);
@@ -98,9 +97,9 @@ export default class LinkTool extends ToolModel  {
    * @param targetBlank - Whether the link should open in a new tab 
    */
   private createForm(link: string = "", targetBlank: boolean = false) {
-    const { api, commands, selectionApi, i18n } = this.editor,
+    const { commands, selectionApi, i18n } = this.editor,
       uniqueId = this.getEventId(),
-      root = api.getRoot();
+      root = this.editor.getRoot();
 
     const linkForm = make("div", (el: HTMLElement) => {
       el.id = "form-link-" + uniqueId;

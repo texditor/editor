@@ -1,7 +1,7 @@
 import type {
   CurrentSelectionData,
   CursorPosition,
-  SelectionAPIInterface,
+  SelectionAPI,
   TexditorInterface
 } from "@/types";
 import { getChildNodes, make, html } from "@/utils";

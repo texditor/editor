@@ -1,5 +1,5 @@
 import type {
-  BlockManagerInterface,
+  BlockManager as IBlockManager,
   BlockElement,
   TexditorInterface,
   BlockModelConstructor,
@@ -44,7 +44,7 @@ import {
   generateRandomString
 } from "@/utils";
 
-export default class BlockManager  {
+export default class BlockManager {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 
@@ -72,13 +72,13 @@ export default class BlockManager  {
   refreshVirtualSelection(): VirtualSelectionInterface | null {
     this.destroyVirtualSelection();
 
-    const { api, config, events, tools } = this.editor
+    const { config, events, tools } = this.editor
     const blocksContainer = this.getBlocksContainer();
 
     if (blocksContainer) {
       const selectionZone = config.get(
         'selectionZoneElement',
-        api.getRoot() || document.body
+        this.editor.getRoot() || document.body
       );
 
       this.virtualSelection = new VirtualSelection({
@@ -138,7 +138,7 @@ export default class BlockManager  {
    * @returns The blocks container element or null if not found
    */
   getBlocksContainer(): HTMLElement | null {
-    const root = this.editor.api.getRoot();
+    const root = this.editor.getRoot();
 
     if (!root)
       return null;
@@ -321,9 +321,8 @@ export default class BlockManager  {
    * @param index - Block index to set as active
    */
   use(index: number) {
-    const { api } = this.editor,
-      cssName = 'tex-block',
-      root = api.getRoot(),
+    const cssName = 'tex-block',
+      root = this.editor.getRoot(),
       blockElement = this.getElement(index);
 
     this.blockIndex = index;
@@ -657,7 +656,7 @@ export default class BlockManager  {
     return block;
   }
 
-  /** @see BlockManagerInterface.moveBlock */
+  /** @see IBlockManager#moveBlock */
   moveBlock(
     index: number,
     targetIndex: number,

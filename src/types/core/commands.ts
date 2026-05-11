@@ -1,4 +1,4 @@
-export interface CommandsInterface {
+export interface Commands {
   /**
    * Formats a specific text range within a container with the given HTML tag
    * @param tagName - HTML tag name to apply (e.g., 'strong', 'em')

@@ -7,7 +7,7 @@ export default abstract class EventManager  {
     private triggers: EventTriggerObject = {};
 
     /**
-     * @see EventManagerInterface.addEvent
+     * @see EventManagerInterface#addEvent
      */
     addEvent(name: string, callback: CallableFunction) {
         const nameOrId = name.split(".");

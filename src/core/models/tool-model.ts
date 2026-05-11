@@ -1,5 +1,5 @@
 import type {
-  CommandsInterface,
+  Commands,
   BaseEvent,
   ToolModelInterface,
   ToolModelConfig,
@@ -67,7 +67,7 @@ export default class ToolModel extends BaseModel<ToolElement>  {
    * @param onlyRemove - If true, only remove format; if false, toggle format 
    */
   format(onlyRemove: boolean = false): void {
-    this.formatAction((tagName: string, commands: CommandsInterface) => {
+    this.formatAction((tagName: string, commands: Commands) => {
       if (onlyRemove) commands.removeFormat(tagName);
       else commands.format(tagName);
     });
@@ -77,7 +77,7 @@ export default class ToolModel extends BaseModel<ToolElement>  {
    * Force create format on selected content (without toggling) 
    */
   forcedFormat(): void {
-    this.formatAction((tagName: string, commands: CommandsInterface) => {
+    this.formatAction((tagName: string, commands: Commands) => {
       commands.createFormat(tagName);
     });
   }

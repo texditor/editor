@@ -1,7 +1,6 @@
 import type {
   BlockCreateItemSchema,
   BlockElement,
-  EventsInterface,
   PasteMap,
   PasteMapItem,
   TexditorEvent,
@@ -29,7 +28,7 @@ import { isEmptyString } from "@/utils/string";
 import { globalStore } from "@/store/globalStore";
 import EventManager from "./base/event-manager";
 
-export default class Events extends EventManager  {
+export default class Events extends EventManager {
   /** Reference to the main editor instance */
   private editor: TexditorInterface;
 
@@ -107,34 +106,6 @@ export default class Events extends EventManager  {
       "selectionchange.e" + this.eventId,
       this.onSelectionChangeHandle
     );
-  }
-
-  /**
-   * Initializes editor when ready
-   */
-  ready() {
-    const {
-      api,
-      blockManager,
-      config,
-      extensions,
-      historyManager
-    } = this.editor;
-
-    setTimeout(() => {
-      executeMethodIfExists(api, '__mount');
-      historyManager.save();
-      extensions.apply();
-
-      const readyCallback = config.get("onReady", false);
-
-      if (typeof readyCallback === "function")
-        readyCallback(this);
-
-      blockManager.detectEmpty();
-      blockManager.normalize();
-      this.refresh();
-    }, 10);
   }
 
   /**
@@ -290,8 +261,8 @@ export default class Events extends EventManager  {
    * @param evt - Keyboard event
    */
   private onDocumentKeyDownHandle(evt: KeyboardEvent): void {
-    const { api, blockManager } = this.editor,
-      root = api.getRoot();
+    const { blockManager } = this.editor,
+      root = this.editor.getRoot();
 
     if (!root)
       return;
@@ -329,7 +300,7 @@ export default class Events extends EventManager  {
    * @param evt - Keyboard event
    */
   private onKeyDownHandle(evt: KeyboardEvent) {
-    const { blockManager, historyManager, selectionApi, config, api } = this.editor;
+    const { blockManager, historyManager, selectionApi, config } = this.editor;
 
     this.triggerEvent("keydown", { domEvent: evt });
 
@@ -375,7 +346,7 @@ export default class Events extends EventManager  {
       cursorEnd = end < 0 ? 0 : end;
 
     if (blocksContainer && contentElement) {
-      if (api.isEmpty() && blockManager.count() == 0) blockManager.createBlock(defBlock);
+      if (this.editor.isEmpty() && blockManager.count() == 0) blockManager.createBlock(defBlock);
 
       if (evt.key == "Enter") {
         this.triggerEvent("keydownEnterKey", { domEvent: evt });
@@ -896,11 +867,11 @@ export default class Events extends EventManager  {
    */
   private onSelectionChangeHandle(evt: Event) {
     const {
-      api,
       blockManager,
       selectionApi
-    } = this.editor,
-      root = api.getRoot();
+    } = this.editor;
+    
+    const root = this.editor.getRoot();
 
     if (root) {
       this.triggerEvent("onSelectionChange", { domEvent: evt });
@@ -952,8 +923,7 @@ export default class Events extends EventManager  {
    * Destroys the events manager and cleans up all listeners
    */
   destroy(): void {
-    const { api } = this.editor;
-    const root = api.getRoot(),
+    const root = this.editor.getRoot(),
       eid = this.eventId;
 
     off(document, 'dblclick.docEvt' + eid, true);

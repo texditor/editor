@@ -58,8 +58,8 @@ export default class Extensions  {
    * Makes extensions bar sticky when scrolling past editor
    */
   apply() {
-    const { api, config } = this.editor;
-    const root = api.getRoot(),
+    const { config } = this.editor;
+    const root = this.editor.getRoot(),
       extCss = 'tex-extension',
       className = extCss + 's';
 

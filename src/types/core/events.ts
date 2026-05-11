@@ -38,12 +38,7 @@ export interface TexditorEvent {
 /**
  * Events manager interface for handling editor events
  */
-export interface EventsInterface extends EventManagerInterface {
-  /**
-   * Initializes editor when ready
-   */
-  ready(): void;
-
+export interface Events extends EventManagerInterface {
   /**
    * Handles content change events
    * @param event - Change event data

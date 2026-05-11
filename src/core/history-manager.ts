@@ -5,7 +5,7 @@ import type {
   TexditorInterface
 } from "@/types";
 
-export default class HistoryManager  {
+export default class HistoryManager {
   private editor: TexditorInterface;
   private history: HistoryState[] = [];
   private future: HistoryState[] = [];
@@ -54,10 +54,10 @@ export default class HistoryManager  {
    * Perform the actual state saving operation
    */
   private doSave(): void {
-    const { api, blockManager, events } = this.editor;
+    const { blockManager, events } = this.editor;
 
     try {
-      const content = api.getContent(),
+      const content = this.editor.getContent(),
         selection = this.getEditorSelection(),
         blockIndex = blockManager.getIndex(),
         model = blockManager.getModel();
@@ -245,10 +245,7 @@ export default class HistoryManager  {
    * @param state - Current state of history
    */
   private restoreState(type: string, state: HistoryState): void {
-    const { api } = this.editor;
-
-    api.setContent(state.content, state.selection.index || 0);
-
+    this.editor.setContent(state.content, state.selection.index || 0);
     this.isRestoring = false;
     this.editor.events.change({
       type: type,

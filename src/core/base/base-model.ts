@@ -1,6 +1,5 @@
 import {
   BaseModelConfig,
-  BaseModelInterface,
   BaseElement,
   BaseEvent,
   RenderIconContent,

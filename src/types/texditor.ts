@@ -1,12 +1,11 @@
 import type {
-  BlockManagerInterface,
-  ConfigInterface,
-  EventsInterface,
-  SelectionAPIInterface,
+  BlockManager,
+  Config,
+  Events,
+  SelectionAPI,
   ToolsInterface,
-  APIInterface,
   I18NInterface,
-  CommandsInterface,
+  Commands,
   HistoryManagerInterface,
   ExtensionsInterface,
   BlockSchema
@@ -18,19 +17,16 @@ import type {
  */
 export interface TexditorInterface {
   /** Editor configuration object containing settings, plugins, and behaviors */
-  config: ConfigInterface;
+  config: Config;
 
   /** Manages all editor blocks (creation, deletion, manipulation, ordering) */
-  blockManager: BlockManagerInterface;
+  blockManager: BlockManager;
 
   /** Handles text selection, cursor position, and range management operations */
-  selectionApi: SelectionAPIInterface;
-
-  /** Public API for external editor interaction (save, load, destroy, content manipulation) */
-  api: APIInterface;
+  selectionApi: SelectionAPI;
 
   /** Event system for editor lifecycle and user action notifications and subscriptions */
-  events: EventsInterface;
+  events: Events;
 
   /** Tool management system for additional editor functionalities and UI components */
   tools: ToolsInterface;
@@ -39,7 +35,7 @@ export interface TexditorInterface {
   i18n: I18NInterface;
 
   /** Command execution system for complex editor operations and batch manipulations */
-  commands: CommandsInterface;
+  commands: Commands;
 
   /** Undo/redo history manager for state tracking, restoration, and time travel */
   historyManager: HistoryManagerInterface;
@@ -48,17 +44,36 @@ export interface TexditorInterface {
   extensions: ExtensionsInterface;
 
   /**
+   * Gets the root element of the editor
+   * @returns Root element or null if not found
+   * @throws Error if root element is not found
+   */
+  getRoot(): HTMLElement | null;
+
+  /**
+   * Checks if the editor is empty (no content)
+   * @returns True if editor is empty
+   */
+  isEmpty(): boolean;
+
+  /**
+   * Gets the current editor content
+   * @returns Array of block outputs
+   */
+  getContent(): BlockSchema[];
+
+  /**
    * Saves the current editor state to a serializable format
    * @returns Array of block output objects ready for storage or transmission
    */
   save(): BlockSchema[] | [];
 
   /**
-  * Sets the editor content
-  * @param content - JSON string or array of block schemas
-  * @param index - Optional block index to set as active (default: 0)
-  * @param focusDelay - Focus delay in milliseconds (default: 0)
-  */
+   * Sets the editor content
+   * @param content - JSON string or array of block schemas
+   * @param index - Optional block index to set as active (default: 0)
+   * @param focusDelay - Focus delay in milliseconds (default: 0)
+   */
   setContent(content: string | BlockSchema[], index?: number, focusDelay?: number): void;
 
   /**
@@ -66,4 +81,10 @@ export interface TexditorInterface {
    * Cleans up all resources, event listeners, and DOM elements
    */
   destroy(): void;
+
+  /**
+   * Renders the editor in the DOM
+   * @throws Error if editor ID is not found
+   */
+  __mount(): void;
 }

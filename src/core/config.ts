@@ -1,11 +1,11 @@
-import type { ConfigInterface, ConfigStoreInterface } from "@/types";
-export default class Config  {
+import type { ConfigOptions } from "@/types";
+export default class Config {
   /** Internal storage for configuration values */
-  private store: ConfigStoreInterface;
+  private options: ConfigOptions;
 
-  constructor(config: ConfigStoreInterface) {
-    this.store = {};
-    Object.assign(this.store, config);
+  constructor(config: ConfigOptions) {
+    this.options = {};
+    Object.assign(this.options, config);
   }
 
   /**
@@ -21,7 +21,7 @@ export default class Config  {
    * @param key - Configuration key to retrieve
    * @returns Configuration value
    */
-  get<K extends keyof ConfigStoreInterface>(key: K): ConfigStoreInterface[K];
+  get<K extends keyof ConfigOptions>(key: K): ConfigOptions[K];
 
   /**
    * Gets a configuration value with type safety and default
@@ -29,10 +29,10 @@ export default class Config  {
    * @param defaultValue - Default value if key doesn't exist
    * @returns Configuration value or default
    */
-  get<K extends keyof ConfigStoreInterface>(
+  get<K extends keyof ConfigOptions>(
     key: K,
-    defaultValue: ConfigStoreInterface[K]
-  ): ConfigStoreInterface[K];
+    defaultValue: ConfigOptions[K]
+  ): ConfigOptions[K];
 
   /**
    * Gets a configuration value (fallback for unknown keys)
@@ -49,10 +49,10 @@ export default class Config  {
    * @returns Configuration value or default
    */
   get(
-    key: keyof ConfigStoreInterface | string,
+    key: keyof ConfigOptions | string,
     defaultValue: unknown = ""
   ): unknown {
-    const value = (this.store as Record<string, unknown>)[key];
+    const value = (this.options as Record<string, unknown>)[key];
 
     if (value !== undefined) {
       return value;

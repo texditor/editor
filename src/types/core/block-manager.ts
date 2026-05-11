@@ -1,7 +1,7 @@
 import type { BlockChildSchema, BlockCreateSchema, BlockModelInterface, BlockModelSchema, BlockElement, BlockSchema } from ".";
 import { VirtualSelectionInterface } from "./ui/virtual-selection";
 
-export interface BlockManagerInterface {
+export interface BlockManager {
   /**
    * Creates or recreates the VirtualSelection instance with current options
    * If an instance already exists, it will be destroyed first
