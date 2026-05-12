@@ -1,9 +1,9 @@
 import type {
-  BlockModelInterface,
   BlockSchema,
   BlockElement,
   BlockModelConfig,
-  BlockCreateSchema
+  BlockCreateSchema,
+  CodeLanguages as ICodeLanguages
 } from "@/types";
 import {
   addClass,
@@ -29,7 +29,7 @@ import {
   renderIcon
 } from "@/utils";
 import BlockModel from "@/core/models/block-model";
-import CodeLanguages, { CodeLanguagesInterface } from './languages';
+import CodeLanguages from './languages';
 import "@/styles/blocks/code.css";
 
 export default class Code extends BlockModel  {
@@ -74,7 +74,7 @@ export default class Code extends BlockModel  {
         notSpecified = i18n.get('notSpecified', 'Not specified');
 
       if (blockElement) {
-        const languages = this.getConfig('languages', {}) as CodeLanguagesInterface;
+        const languages = this.getConfig('languages', {}) as ICodeLanguages;
 
         const getLanguageName = (key: string): string => {
           return languages[key] || notSpecified;
@@ -260,7 +260,7 @@ export default class Code extends BlockModel  {
   }
 
   protected parse(item: BlockSchema): BlockCreateSchema {
-    const languages = this.getConfig('languages', {}) as CodeLanguagesInterface;
+    const languages = this.getConfig('languages', {}) as ICodeLanguages;
     let lang = (item?.lang || '') as string;
 
     if (lang && !languages[lang])

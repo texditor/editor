@@ -1,7 +1,6 @@
 import type {
   BaseEvent,
-  FileActionModelConfig,
-  FileActionModelInterface
+  FileActionModelConfig
 } from "@/types";
 import { IconTrash } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
@@ -19,10 +18,10 @@ export default class DeleteFileAction extends FileActionModel  {
     const { blockManager } = this.editor;
     const blockElement = this.getBlockElement();
     const model = blockElement?.baseModel;
-    const itemNode = this.getItemNode();
+    const itemElement = this.getItemElement();
 
-    if (blockElement && model && itemNode) {
-      const itemIndex = model.getItemIndex(itemNode);
+    if (blockElement && model && itemElement) {
+      const itemIndex = model.getItemIndex(itemElement);
       const index = blockManager.getIndex();
 
       model.removeItem(itemIndex);

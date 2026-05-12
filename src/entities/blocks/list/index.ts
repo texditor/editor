@@ -1,4 +1,4 @@
-import type { BlockModelConfig, BlockModelInterface } from "@/types";
+import type { BlockModelConfig } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/list.css";
 import { IconList } from "@/icons";

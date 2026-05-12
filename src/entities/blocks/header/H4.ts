@@ -1,4 +1,4 @@
-import type { BlockModelConfig, BlockModelInterface } from "@/types";
+import type { BlockModelConfig, BlockModel } from "@/types";
 import { IconHeader4 } from "@/icons";
 import Header from ".";
 

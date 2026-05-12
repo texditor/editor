@@ -1,7 +1,11 @@
-import type { I18N, Texditor } from "@/types";
+import type {
+  I18N as II18N,
+  LocaleMapData,
+  Texditor
+} from "@/types";
 import { EnLocale } from "@/locales";
 
-export default class I18N  {
+export default class I18N implements II18N {
   /** Reference to the editor instance */
   private editor: Texditor;
   /** Current active locale code */
@@ -9,7 +13,7 @@ export default class I18N  {
   /** Default fallback locale code */
   private defaultLocale: string = 'en';
   /** Collection of translation dictionaries keyed by locale code */
-  private translations: Record<string, Record<string, string>> = {};
+  private translations: LocaleMapData = {};
 
   /**
    * Create a new i18n instance
@@ -33,40 +37,32 @@ export default class I18N  {
   }
 
   /**
-   * Get current active locale
-   * @returns Current locale code string
+   * @see II18N.getLocale
    */
   getLocale(): string {
     return this.locale;
   }
 
   /**
-   * Get default fallback locale
-   * @returns Default locale code string
+   * @see II18N.getDefaultLocale
    */
   getDefaultLocale(): string {
     return this.defaultLocale;
   }
 
   /**
-   * Get translation for a key
-   * @param key - Translation key to look up
-   * @param def - Default value if translation not found
-   * @returns Translated string or default value
+   * @see II18N.get
    */
   get(key: string, def: string = ""): string {
     const locale = this.getLocale(),
       defaultLocale = this.getDefaultLocale();
 
-    if (this.translations[locale]) {
-      return (
-        this.translations[locale][key] ||
-        this.translations[defaultLocale][key] ||
-        def ||
-        ""
-      );
-    }
+    const tLocale = this.translations[locale],
+      tDefaultLocale = this.translations[defaultLocale];
 
-    return this.translations[defaultLocale][key] || def || "";
+    if (tLocale) 
+      return (tLocale[key] || tDefaultLocale[key] || def || "");
+
+    return tDefaultLocale[key] || def || "";
   }
 }

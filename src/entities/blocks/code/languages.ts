@@ -1,8 +1,6 @@
-export interface CodeLanguagesInterface {
-    [key: string]: string;
-}
+import { CodeLanguages } from "@/types";
 
-const CodeLanguages: CodeLanguagesInterface = {
+const CodeLanguages: CodeLanguages = {
     "1c": "1C",
     "4d": "4D",
     "abnf": "ABNF",

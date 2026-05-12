@@ -1,9 +1,9 @@
-import type { ActionModelConfig, ActionModelInterface } from "@/types";
+import type { ActionModelConfig } from "@/types";
 import { IconArrowUp } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 
 /** Move the block up */
-export default class MoveUpAction extends ActionModel  {
+export default class MoveUpAction extends ActionModel {
   protected configure(): Partial<ActionModelConfig> {
     return {
       name: 'moveUpAction',

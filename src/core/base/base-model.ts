@@ -4,7 +4,8 @@ import {
   BaseEvent,
   RenderIconContent,
   Texditor,
-  ModelConstructor
+  ModelConstructor,
+  BaseModel as IBaseModel
 } from "@/types";
 
 import {
@@ -19,7 +20,7 @@ import {
 } from "@/utils";
 import EventManager from "./event-manager";
 
-export default class BaseModel<TElement extends BaseElement = BaseElement> extends EventManager {
+export default class BaseModel<TElement extends BaseElement = BaseElement> extends EventManager implements IBaseModel {
   /** Global user configuration for all model instances */
   private static userConfig: Partial<BaseModelConfig> = {};
 
@@ -144,10 +145,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
     }) as TElement;
   }
 
-  /**
- * Returns the unique identifier for this event listener instance
- * @returns The unique event ID string used to identify and manage event listeners
- */
+  /** @see IBaseModel.getEventId */
   getEventId(): string {
     return this.eventId;
   }
@@ -164,13 +162,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    */
   protected parentOnCreateElement(_el: TElement): void { }
 
-  /**
-   * Get configuration value by key
-   * @param key - Configuration key
-   * @param defaultValue - Default value
-   * @returns Configuration value
-   */
-  // base-model.ts
+  /** @see IBaseModel.getConfig */
   getConfig(key: string, defaultValue: boolean): boolean;
   getConfig(key: string, defaultValue: string): string;
   getConfig(key: string, defaultValue: number): number;
@@ -193,12 +185,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
     return defaultValue !== undefined ? defaultValue : "";
   }
 
-  /**
-   * Get option value by key
-   * @param key - Configuration key
-   * @param defaultValue - Default value (optional)
-   * @returns Configuration value or null if not found
-   */
+  /** @see IBaseModel.getOption */
   getOption<T = unknown>(key: string, defaultValue?: T): T | null {
     const value = this.options[key];
 
@@ -209,36 +196,22 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
     return defaultValue ?? null;
   }
 
-  /**
-   * Set single option value
-   * @param key - Configuration key
-   * @param value - Value to set
-   */
+  /** @see IBaseModel.setOption */
   setOption(key: string, value: unknown): void {
     this.options[key] = value;
   }
 
-  /**
-   * Set multiple options (merges with existing options)
-   * @param options - Object with options to merge
-   */
+  /** @see IBaseModel.setOptions */
   setOptions(options: Record<string, unknown>): void {
     this.options = { ...this.options, ...options };
   }
 
-  /**
-   * Get all options
-   * @returns Copy of all options
-   */
+  /** @see IBaseModel.getOptions */
   getOptions(): Record<string, unknown> {
     return { ...this.options };
   }
 
-  /**
- * Remove single option by key
- * @param key - Configuration key to remove
- * @returns True if option existed and was deleted, false otherwise
- */
+  /** @see IBaseModel.removeOption */
   removeOption(key: string): boolean {
     const existed = key in this.options;
 
@@ -249,9 +222,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
     return existed;
   }
 
-  /**
-   * Clear all options (resets to empty object)
-   */
+  /** @see IBaseModel.clearOptions */
   clearOptions(): void {
     this.options = {};
   }
@@ -283,23 +254,14 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
     return {};
   }
 
-  /**
-   * Set the value in the store
-   * @param key - Storage key
-   * @param value - Value to store
-   * @returns Current instance for chaining
-   */
+  /** @see IBaseModel.setStore */
   setStore(key: string, value: unknown): this {
     this.store[key] = value;
 
     return this;
   }
 
-  /**
-   * Get the value in the store
-   * @param key - Storage key (null for all)
-   * @returns Stored value or null
-   */
+  /** @see IBaseModel.getStore */
   getStore(key: string | null): unknown {
     return key === null ? this.store : this.store[key] || null;
   }
@@ -316,10 +278,10 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   protected onClick(_evt: BaseEvent): void { }
 
   /**
-  * Parent hook called after model element clicked
-  * @param evt - Custom event with element reference
-  * @returns void
-  */
+   * Parent hook called after model element clicked
+   * @param evt - Custom event with element reference
+   * @returns void
+   */
   protected parentOnClick(evt: BaseEvent): void {
     this.onClick(evt);
   }
@@ -350,10 +312,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    */
   protected parentOnMount(_el: TElement): void { }
 
-  /**
-   * Public wrapper that executes both parent and current class initialization
-   * @param el - The DOM element that was mounted
-   */
+  /** @see IBaseModel.__onMount */
   __onMount(el: TElement): void {
     this.parentOnMount(el);
     this.onMount(el);
@@ -371,66 +330,42 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    */
   protected onConstruct(_editor: Texditor): void { }
 
-  /**
-   * Check if model element is active
-   * @returns True if model element is active
-   */
+  /** @see IBaseModel.isActive */
   isActive(): boolean {
     return true;
   }
 
-  /**
-   * Check if model element is visible
-   * @returns True if model element should be displayed
-   */
+  /** @see IBaseModel.isVisible */
   isVisible(): boolean {
     return true;
   }
 
-  /**
-   * Get element ID
-   * @returns Unique model identifier string
-   */
+  /** @see IBaseModel.getId */
   getId(): string {
     return this.element.id;
   }
 
-  /**
-   * Get model element
-   * @returns Model button element
-   */
+  /** @see IBaseModel.getElement */
   getElement(): TElement {
     return this.element;
   }
 
-  /**
-   * Get model name
-   * @returns Model name string
-   */
+  /** @see IBaseModel.getName */
   getName(): string {
     return this.getConfig('name', '');
   }
 
-  /**
-   * Get model element tag name
-   * @returns Tag name string (default: 'div')
-   */
+  /** @see IBaseModel.getElementTagName */
   getElementTagName(): string {
     return this.getConfig('elementTagName', 'div');
   }
 
-  /**
-   * Get CSS class name
-   * @returns CSS class name string
-   */
+  /** @see IBaseModel.getClassName */
   getClassName(): string {
     return this.getConfig('className', '');
   }
 
-  /**
-   * Get translation key for localization
-   * @returns Translated string
-   */
+  /** @see IBaseModel.getTranslation */
   getTranslation(): string {
     const { i18n } = this.editor,
       name = this.getName();
@@ -443,65 +378,42 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
     return i18n.get(translationCode, name);
   }
 
-  /**
-   * Get icon content for the model element button
-   * @returns Icon content (HTML string, SVG element, or component)
-   */
+  /** @see IBaseModel.getIcon */
   getIcon(): RenderIconContent {
     return this.getConfig('icon');
   }
 
-  /**
-   * Get icon width
-   * @returns Icon width in pixels
-   */
+  /** @see IBaseModel.getIconWidth */
   getIconWidth(): number {
     return this.getConfig('iconWidth', 16);
   }
 
-  /**
-   * Get icon height
-   * @returns {number} Icon height in pixels
-   */
+  /** @see IBaseModel.getIconHeight */
   getIconHeight(): number {
     return this.getConfig('iconHeight', 16);
   }
 
-  /**
-   * Get model code identifier
-   * @returns Model code string
-   */
+  /** @see IBaseModel.getModelCode */
   getModelCode(): string {
     return this.getConfig('__modelCode', 'baseModel');
   }
 
-  /**
-   * Check if title is always visible
-   * @returns {boolean} True if title should be always visible
-   */
+  /** @see IBaseModel.isVisibleTitle */
   isVisibleTitle(): boolean {
     return this.getConfig('visibleTitle', false);
   }
 
-  /**
-   * Checks if the attribute title is configured to be always visible.
-   * @returns {boolean} True if the 'attributeTitle' config option is enabled, false otherwise.
-   */
+  /** @see IBaseModel.isAttributeTitle */
   isAttributeTitle(): boolean {
     return this.getConfig('attributeTitle', false);
   }
 
-  /**
-   * Check if icon is always visible
-   * @returns {boolean} True if icon should be always visible
-   */
+  /** @see IBaseModel.isVisibleIcon */
   isVisibleIcon(): boolean {
     return this.getConfig('visibleIcon', false);
   }
 
-  /**
-   * Destroy instance and clean up resources 
-   */
+  /** @see IBaseModel.destroy */
   destroy(): void { }
 
   /** Base class cleanup logic. */

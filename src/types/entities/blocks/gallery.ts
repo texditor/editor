@@ -1,4 +1,4 @@
-import { FilesBlockModelConfig, FilesBlockModelInterface } from "./files";
+import { FilesBlockModelConfig, FilesBlockModel } from "./files";
 
 export interface GalleryBlockModelConfig extends FilesBlockModelConfig {
     styles: string[];
@@ -9,7 +9,7 @@ export interface GalleryBlockModelConfig extends FilesBlockModelConfig {
     videoMimeTypes: string[];
 }
 
-export interface GalleryBlockModelInterface extends FilesBlockModelInterface {
+export interface GalleryBlockModel extends FilesBlockModel {
     getStyles(): string[];
     areStylesAllowed(): boolean;
 }

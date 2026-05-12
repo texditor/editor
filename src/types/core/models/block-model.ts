@@ -1,6 +1,6 @@
 import type {
   ModelConstructor,
-  BaseModelInterface,
+  BaseModel,
   BaseModelConfig,
   BaseElement,
   SanitizerConfig
@@ -8,13 +8,13 @@ import type {
 
 /**
  * Block model constructor type
- * Specialized constructor that creates ActionModelInterface instances
+ * Specialized constructor that creates ActionModel instances
  * with ActionModelConfig
  */
-export type BlockModelConstructor = ModelConstructor<BlockModelInterface, BlockModelConfig>;
+export type BlockModelConstructor = ModelConstructor<BlockModel, BlockModelConfig>;
 
 export interface BlockElement extends BaseElement {
-  baseModel: BlockModelInterface;
+  baseModel: BlockModel;
 }
 
 /**
@@ -24,7 +24,7 @@ export interface BlockElement extends BaseElement {
  */
 export interface BlockModelSchema {
   constructor: BlockModelConstructor;
-  model: BlockModelInterface;
+  model: BlockModel;
 }
 
 /**
@@ -95,7 +95,7 @@ export interface BlockModelConfig extends BaseModelConfig {
  * Block model behavior interface
  * Defines all public methods for block manipulation
  */
-export interface BlockModelInterface extends BaseModelInterface<BlockElement> {
+export interface BlockModel extends BaseModel<BlockElement> {
   /**
    * Check if Enter creates new block
    * @returns True if Enter creates block
@@ -206,10 +206,10 @@ export interface BlockModelInterface extends BaseModelInterface<BlockElement> {
 
   /**
    * Get item index
-   * @param itemNode - Item element
+   * @param itemElement - Item element
    * @returns Item index
    */
-  getItemIndex(itemNode?: HTMLElement): number;
+  getItemIndex(itemElement?: HTMLElement): number;
 
   /** Show actions */
   showActions(): void;
@@ -380,7 +380,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockElement> {
   * Protected methods for understanding the block model structure
   * 
   * Create
-  * protected makeItemNode(content?: string | unknown): HTMLElement;
+  * protected makeItemElement(content?: string | unknown): HTMLElement;
   * protected compose(createSchema?: BlockCreateSchema): BlockElement;
   * 
   * Parse
@@ -408,7 +408,7 @@ export interface BlockModelInterface extends BaseModelInterface<BlockElement> {
   * protected onDrop(evt: DragEvent): boolean;
   * 
   * Convert
-  * protected beforeConvert(blockElement: BlockElement, targetModel: BlockModelInterface): [BlockElement, BlockModelInterface];
+  * protected beforeConvert(blockElement: BlockElement, targetModel: BlockModel): [BlockElement, BlockModel];
   * protected afterConvert(newBlockElement: BlockElement): BlockElement;
   */
 }

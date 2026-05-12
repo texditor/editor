@@ -1,6 +1,5 @@
 import type {
   ActionModelConfig,
-  ActionModelInterface,
   BlockModelSchema
 } from "@/types";
 import { IconConvert } from "@/icons";

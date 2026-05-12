@@ -1,5 +1,4 @@
 import type {
-  ExtensionModelInterface,
   ExtensionModelConfig,
   BaseEvent
 } from "@/types";

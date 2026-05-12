@@ -1,6 +1,5 @@
 import type {
   FileActionModelConfig,
-  FileActionModelInterface,
   FileActionElement
 } from "@/types";
 import { IconDownload } from "@/icons";
@@ -24,18 +23,18 @@ export default class DownloadFileAction extends FileActionModel  {
     const model = blockElement?.baseModel;
 
     if (blockElement && model) {
-      const itemNode = this.getItemNode();
+      const itemElement = this.getItemElement();
 
-      if (itemNode) {
+      if (itemElement) {
         const contentElement = model.getContentElement(),
-          index = model.getItemIndex(itemNode)
+          index = model.getItemIndex(itemElement)
 
         events.change({
           modelCode: this.getModelCode(),
           type: "download",
           contentElement: contentElement,
           blockElement: blockElement,
-          item: itemNode,
+          item: itemElement,
           index: index,
         });
       }
@@ -43,11 +42,11 @@ export default class DownloadFileAction extends FileActionModel  {
   }
 
   protected onMount(node: FileActionElement): void {
-    const itemNode = this.getItemNode();
+    const itemElement = this.getItemElement();
 
-    if (itemNode) {
-      const url = itemNode.fileUrl;
-      const name = itemNode.fileName || "";
+    if (itemElement) {
+      const url = itemElement.fileUrl;
+      const name = itemElement.fileName || "";
 
       if (url) {
         attr(node, {

@@ -1,7 +1,6 @@
 import type {
   FileActionModelConfig,
-  FileActionModelInterface,
-  FilesBlockModelInterface
+  FilesBlockModel
 } from "@/types";
 import { IconPencil } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
@@ -54,10 +53,10 @@ export default class EditFileAction extends FileActionModel  {
       cssName = 'tex-files-edit-popup',
       cssForm = 'tex-files-edit-form',
       blockElement = this.getBlockElement(),
-      itemNode = this.getItemNode(),
-      model = blockElement?.baseModel as FilesBlockModelInterface;
+      itemElement = this.getItemElement(),
+      model = blockElement?.baseModel as FilesBlockModel;
 
-    if (blockElement && itemNode && model) {
+    if (blockElement && itemElement && model) {
       this.popupNode = make('div', (popup: HTMLDivElement) => {
         addClass(popup, cssName);
 
@@ -87,7 +86,7 @@ export default class EditFileAction extends FileActionModel  {
                     addClass(field, cssForm + '-field ' + cssForm + '-field-' + name);
 
                     const input = make("input", (input: HTMLInputElement) => {
-                      const prop = Object.getOwnPropertyDescriptor(itemNode, code ? code : 'file' + upperName);
+                      const prop = Object.getOwnPropertyDescriptor(itemElement, code ? code : 'file' + upperName);
                       input.type = "text";
                       input.id = inputId;
                       input.value = prop?.value || '';
@@ -152,11 +151,11 @@ export default class EditFileAction extends FileActionModel  {
               setTimeout(() => {
                 if (
                   blockElement.offsetHeight <
-                  content.offsetHeight + itemNode.offsetTop
+                  content.offsetHeight + itemElement.offsetTop
                 ) {
-                  css(content, "top", blockElement.offsetHeight - content.offsetHeight + itemNode.offsetHeight / 2);
+                  css(content, "top", blockElement.offsetHeight - content.offsetHeight + itemElement.offsetHeight / 2);
                 } else {
-                  css(content, "top", itemNode.offsetTop);
+                  css(content, "top", itemElement.offsetTop);
                 }
               }, 1);
             };
@@ -191,11 +190,11 @@ export default class EditFileAction extends FileActionModel  {
     const { events } = this.editor,
       blockElement = this.getBlockElement(),
       popupNode = this.popupNode,
-      itemNode = this.getItemNode(),
+      itemElement = this.getItemElement(),
       formCss = 'tex-files-edit-form',
-      model = blockElement?.baseModel as FilesBlockModelInterface;
+      model = blockElement?.baseModel as FilesBlockModel;
 
-    if (!blockElement || !itemNode || !popupNode || !model) {
+    if (!blockElement || !itemElement || !popupNode || !model) {
       this.removePopup();
       return;
     }
@@ -246,11 +245,11 @@ export default class EditFileAction extends FileActionModel  {
           query(".tex-file-" + name, (el: HTMLElement) => {
             el.textContent = value;
 
-            Object.defineProperty(itemNode, "file" + name.charAt(0).toUpperCase() + name.slice(1), {
+            Object.defineProperty(itemElement, "file" + name.charAt(0).toUpperCase() + name.slice(1), {
               value: value,
               writable: true,
             });
-          }, itemNode);
+          }, itemElement);
         }
       }
     }
@@ -264,7 +263,7 @@ export default class EditFileAction extends FileActionModel  {
       modelCode: this.getModelCode(),
       type: "changeFileItem",
       blockElement: this.getBlockElement(),
-      item: itemNode
+      item: itemElement
     });
   }
 

@@ -11,7 +11,7 @@ import {
   removeClass,
   renderIcon
 } from "@/utils";
-import { SliderInterface, SliderOptions } from "@/types";
+import { Slider, SliderOptions } from "@/types";
 import "@/styles/core/ui/slider.css";
 
 export default class Slider  {

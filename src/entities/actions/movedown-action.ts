@@ -1,4 +1,4 @@
-import type { ActionModelConfig, ActionModelInterface } from "@/types";
+import type { ActionModelConfig } from "@/types";
 import { IconArrowDown } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 /** Move the block down */

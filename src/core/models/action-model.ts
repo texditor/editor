@@ -1,6 +1,6 @@
 import type {
   ActionModelConfig,
-  ActionModelInterface,
+  ActionModel as IActionModel,
   BaseEvent,
   ActionModelConstructor,
   ActionElement,
@@ -12,7 +12,7 @@ import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 import BaseModel from "../base/base-model";
 
-export default class ActionModel extends BaseModel<ActionElement>  {
+export default class ActionModel extends BaseModel<ActionElement> implements IActionModel  {
   /**
    * Reference to the parent block node that contains this action
    */
@@ -30,7 +30,7 @@ export default class ActionModel extends BaseModel<ActionElement>  {
   }
 
   /**
-   * @see ActionModelInterface.getBlockElement
+   * @see IActionModel.getBlockElement
    */
   getBlockElement(): BlockElement | null {
     return this.blockElement || null;
@@ -163,7 +163,7 @@ export default class ActionModel extends BaseModel<ActionElement>  {
   }
 
   /**
-   * @see ActionModelInterface.isConfirm
+   * @see IActionModel.isConfirm
    */
   isConfirm(): boolean {
     return this.getConfig('confirm', false);

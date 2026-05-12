@@ -1,4 +1,4 @@
-import type { ExtensionModelInterface, ExtensionModelConfig, BaseEvent } from "@/types";
+import type { ExtensionModelConfig, BaseEvent } from "@/types";
 import ExtensionModel from "@/core/models/extension-model";
 import { IconRedo } from "@/icons";
 

@@ -1,14 +1,14 @@
 import type {
   Commands,
   BaseEvent,
-  ToolModelInterface,
+  ToolModel as IToolModel,
   ToolModelConfig,
   ToolModelConstructor,
   ToolElement
 } from "@/types";
 import BaseModel from "../base/base-model";
 
-export default class ToolModel extends BaseModel<ToolElement>  {
+export default class ToolModel extends BaseModel<ToolElement> implements IToolModel {
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -32,8 +32,7 @@ export default class ToolModel extends BaseModel<ToolElement>  {
   }
 
   /**
-   * Get tool tag name
-   * @returns Tag name string
+   * @see IToolModel.getTagName
    */
   getTagName(): string {
     return this.getConfig('tagName', '');
@@ -63,8 +62,7 @@ export default class ToolModel extends BaseModel<ToolElement>  {
   }
 
   /**
-   * Apply format to selected content
-   * @param onlyRemove - If true, only remove format; if false, toggle format 
+   * @see IToolModel.format
    */
   format(onlyRemove: boolean = false): void {
     this.formatAction((tagName: string, commands: Commands) => {
@@ -74,7 +72,7 @@ export default class ToolModel extends BaseModel<ToolElement>  {
   }
 
   /**
-   * Force create format on selected content (without toggling) 
+   * @see IToolModel.forcedFormat
    */
   forcedFormat(): void {
     this.formatAction((tagName: string, commands: Commands) => {
@@ -83,16 +81,15 @@ export default class ToolModel extends BaseModel<ToolElement>  {
   }
 
   /**
-   * Remove format from selected content 
-   */
+  * @see IToolModel.removeFormat
+  */
   removeFormat(): void {
     this.format(true);
   }
 
   /**
-   * Clear and separate tags outside the formatting area
-     * @returns boolean
-   */
+  * @see IToolModel.isSeparate
+  */
   isSeparate(): boolean {
     return this.getConfig('separate', false) as boolean;
   }
@@ -122,7 +119,11 @@ export default class ToolModel extends BaseModel<ToolElement>  {
 
     this.format();
   }
-
+  
+  /**
+    * Check if model element is visible
+    * @returns True if model element should be displayed
+    */
   isVisible(): boolean {
     const { blockManager } = this.editor;
     const blockModel = blockManager.getModel();

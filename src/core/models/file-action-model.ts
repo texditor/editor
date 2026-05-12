@@ -1,16 +1,15 @@
 import type {
-  FileActionModelInterface,
+  FileActionModel as IFileActionModel,
   FileActionModelConfig,
-  FileItemNode,
+  FileItemElement,
   FileActionModelConstructor,
   FileActionElement,
   BlockElement
 } from "@/types";
 import BaseModel from "../base/base-model";
 
-// TODO: отказ от постфикса Interface и implements в классах
-export default class FileActionModel extends BaseModel<FileActionElement>  {
-  private itemNode?: FileItemNode;
+export default class FileActionModel extends BaseModel<FileActionElement>  implements IFileActionModel {
+  private itemElement?: FileItemElement;
   private blockElement?: BlockElement;
   /**
   * Set up global configuration
@@ -23,13 +22,13 @@ export default class FileActionModel extends BaseModel<FileActionElement>  {
     return super.setup(config) as FileActionModelConstructor;
   }
 
-  getItemNode(): FileItemNode | null {
-    return this.itemNode || null;
+  getItemElement(): FileItemElement | null {
+    return this.itemElement || null;
   }
 
-  __setElements(blockElement: BlockElement, itemNode: FileItemNode): void {
+  __setElements(blockElement: BlockElement, itemElement: FileItemElement): void {
     this.blockElement = blockElement;
-    this.itemNode = itemNode;
+    this.itemElement = itemElement;
   }
 
   getBlockElement(): BlockElement | null {

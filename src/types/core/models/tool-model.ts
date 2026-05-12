@@ -1,15 +1,15 @@
 import type { BaseModelConfig, BaseElement, ModelConstructor } from "@/types";
-import { BaseModelInterface } from "../base/base-model";
+import { BaseModel } from "../base/base-model";
 
 /**
  * Tool model constructor type
- * Specialized constructor that creates ToolModelInterface instances
+ * Specialized constructor that creates ToolModel instances
  * with ToolModelConfig
  */
-export type ToolModelConstructor = ModelConstructor<ToolModelInterface, ToolModelConfig>;
+export type ToolModelConstructor = ModelConstructor<ToolModel, ToolModelConfig>;
 
 export interface ToolElement extends BaseElement {
-  baseModel: ToolModelInterface;
+  baseModel: ToolModel;
 }
 
 /**
@@ -27,7 +27,7 @@ export interface ToolModelConfig extends BaseModelConfig {
  * Tool model behavior interface
  * Defines all public methods for tool manipulation
  */
-export interface ToolModelInterface extends BaseModelInterface<ToolElement> {
+export interface ToolModel extends BaseModel<ToolElement> {
   /**
    * Get tool tag name
    * @returns Tag name string
@@ -55,10 +55,4 @@ export interface ToolModelInterface extends BaseModelInterface<ToolElement> {
    * @returns boolean
  */
   isSeparate(): boolean
-
-  /**
-   * Protected methods for understanding the tool model structure
-   * Hooks
-   * protected onFormat(tags: HTMLElement[]): void;
-   */
 }

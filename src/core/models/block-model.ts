@@ -3,7 +3,7 @@ import type {
   BlockSchema,
   SanitizerConfig,
   BlockModelConfig,
-  BlockModelInterface,
+  BlockModel as IBlockModel,
   BlockCreateSchema,
   BlockCreateItemSchema,
   PasteMap,
@@ -11,7 +11,7 @@ import type {
   BlockModelConstructor,
   TexditorEvent,
   ActionModelConstructor,
-  ToolModelInterface,
+  ToolModel,
 } from "@/types";
 import {
   addClass,
@@ -48,12 +48,12 @@ import Sortable from "sortablejs";
  * Base block model class - manages block behavior, content, and lifecycle
  */
 // TODO: BlockModel<TConfig>
-export default class BlockModel extends BaseModel<BlockElement> {
+export default class BlockModel extends BaseModel<BlockElement> implements IBlockModel {
   /** Sortable items manager instance */
   private sortableItems: Sortable | null = null;
 
   /** Collection of tool models available in the toolbar */
-  private tools: ToolModelInterface[] = [];
+  private tools: ToolModel[] = [];
 
   /**
   * Set up global configuration
@@ -211,7 +211,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     append(el, elements);
   }
 
-  /** @see BlockModelInterface.showActions */
+  /** @see IBlockModel.showActions */
   showActions(): void {
     this.hideActions();
 
@@ -255,7 +255,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     }
   }
 
-  /** @see BlockModelInterface.hideActions */
+  /** @see IBlockModel.hideActions */
   hideActions(): void {
     const eid = this.getEventId(),
       cssName = '.tex-actions',
@@ -357,11 +357,11 @@ export default class BlockModel extends BaseModel<BlockElement> {
       const content = createSchema?.data || {};
 
       if (!Object.keys(content).length) {
-        append(contentElement, this.__makeItemNode());
+        append(contentElement, this.__makeItemElement());
       } else if (Array.isArray(content) && content.length) {
         content.forEach((item: BlockCreateItemSchema) => {
           if (!isEmptyString(item.data)) {
-            append(contentElement, [this.__makeItemNode(item.data)]);
+            append(contentElement, [this.__makeItemElement(item.data)]);
           }
         })
       }
@@ -436,27 +436,27 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return createSchema;
   }
 
-  /** @see BlockModelInterface.getTagName */
+  /** @see IBlockModel.getTagName */
   getTagName(): string {
     return this.getConfig("tagName", '');
   }
 
-  /** @see BlockModelInterface.getPlaceholder */
+  /** @see IBlockModel.getPlaceholder */
   getPlaceholder(): string {
     return this.getConfig('placeholder', '');
   }
 
-  /** @see BlockModelInterface.getGroupCode */
+  /** @see IBlockModel.getGroupCode */
   getGroupCode(): string {
     return this.getConfig("groupCode", 'block');
   }
 
-  /** @see BlockModelInterface.getContentClassName */
+  /** @see IBlockModel.getContentClassName */
   getContentClassName(): string {
     return this.getConfig("contentClassName", '');
   }
 
-  /** @see BlockModelInterface.getContentElement */
+  /** @see IBlockModel.getContentElement */
   getContentElement(): HTMLElement {
     const block = this.getElement();
     const [contentElement] = queryList(".tex-block-content", block);
@@ -464,22 +464,22 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return contentElement;
   }
 
-  /** @see BlockModelInterface.isAutoMerge */
+  /** @see IBlockModel.isAutoMerge */
   isAutoMerge(): boolean {
     return this.getConfig("autoMerge", true);
   }
 
-  /** @see BlockModelInterface.isAutoParse */
+  /** @see IBlockModel.isAutoParse */
   isAutoParse(): boolean {
     return this.getConfig("autoParse", true);
   }
 
-  /** @see BlockModelInterface.isEnterCreate */
+  /** @see IBlockModel.isEnterCreate */
   isEnterCreate(): boolean {
     return this.getConfig("enterCreate", true);
   }
 
-  /** @see BlockModelInterface.isEmpty */
+  /** @see IBlockModel.isEmpty */
   isEmpty(): boolean {
     const contentElement = this.getContentElement();
 
@@ -510,7 +510,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     );
   }
 
-  /** @see BlockModelInterface.isEmptyItem */
+  /** @see IBlockModel.isEmptyItem */
   isEmptyItem(index: number): boolean {
     const itemBody = this.getItemBody(index);
 
@@ -526,67 +526,67 @@ export default class BlockModel extends BaseModel<BlockElement> {
     );
   }
 
-  /** @see BlockModelInterface.isEmptyDetect */
+  /** @see IBlockModel.isEmptyDetect */
   isEmptyDetect(): boolean {
     return this.getConfig("emptyDetect", false);
   }
 
-  /** @see BlockModelInterface.isBackspaceRemove */
+  /** @see IBlockModel.isBackspaceRemove */
   isBackspaceRemove(): boolean {
     return this.getConfig("backspaceRemove", true);
   }
 
-  /** @see BlockModelInterface.isEditable */
+  /** @see IBlockModel.isEditable */
   isEditable(): boolean {
     return this.getConfig("editable", false);
   }
 
-  /** @see BlockModelInterface.isEditableItems */
+  /** @see IBlockModel.isEditableItems */
   isEditableItems(): boolean {
     return this.getConfig("editableItems", false);
   }
 
-  /** @see BlockModelInterface.isSingleItem */
+  /** @see IBlockModel.isSingleItem */
   isSingleItem(): boolean {
     return this.getConfig("singleItem", false);
   }
 
-  /** @see BlockModelInterface.isRaw */
+  /** @see IBlockModel.isRaw */
   isRaw(): boolean {
     return this.getConfig("raw", false);
   }
 
-  /** @see BlockModelInterface.isNormalize */
+  /** @see IBlockModel.isNormalize */
   isNormalize(): boolean {
     return this.getConfig("normalize", false);
   }
 
-  /** @see BlockModelInterface.isConvertible */
+  /** @see IBlockModel.isConvertible */
   isConvertible(): boolean {
     return this.getConfig("convertible", false);
   }
 
-  /** @see BlockModelInterface.isCustomSave */
+  /** @see IBlockModel.isCustomSave */
   isCustomSave(): boolean {
     return this.getConfig("customSave", false);
   }
 
-  /** @see BlockModelInterface.isVisibleTools */
+  /** @see IBlockModel.isVisibleTools */
   isVisibleTools(): boolean {
     return this.getConfig("visibleTools", false);
   }
 
-  /** @see BlockModelInterface.getAvailableTools */
+  /** @see IBlockModel.getAvailableTools */
   getAvailableTools(): string[] {
     return this.getConfig("availableTools", []) as string[];
   }
 
-  /** @see BlockModelInterface.getRelatedNames */
+  /** @see IBlockModel.getRelatedNames */
   getRelatedNames(): string[] {
     return this.getConfig("relatedNames", []) as string[];
   }
 
-  /** @see BlockModelInterface.getSupportedNames */
+  /** @see IBlockModel.getSupportedNames */
   getSupportedNames(): string[] {
     return [this.getName(), ...this.getRelatedNames()];
   }
@@ -613,7 +613,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return node;
   }
 
-  /** @see BlockModelInterface.sanitize */
+  /** @see IBlockModel.sanitize */
   sanitize(): void {
     if (this.getConfig("sanitizer", false)) {
       const container = this.toSanitize();
@@ -637,7 +637,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     }
   }
 
-  /** @see BlockModelInterface.toSanitize */
+  /** @see IBlockModel.toSanitize */
   toSanitize(): BlockElement | HTMLElement | HTMLElement[] | null {
     if (this.isEditableItems()) {
       const bodyNodes: HTMLElement[] = [];
@@ -658,7 +658,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return this.getContentElement();
   }
 
-  /** @see BlockModelInterface.getSanitizerConfig */
+  /** @see IBlockModel.getSanitizerConfig */
   getSanitizerConfig(): SanitizerConfig {
     return this.getConfig(
       "sanitizerConfig",
@@ -666,52 +666,52 @@ export default class BlockModel extends BaseModel<BlockElement> {
     ) as SanitizerConfig
   }
 
-  /** @see BlockModelInterface.toNormalize */
+  /** @see IBlockModel.toNormalize */
   toNormalize(): BlockElement | HTMLElement | HTMLElement[] | null {
     return this.toSanitize();
   }
 
-  /** @see BlockModelInterface.getItemTagName */
+  /** @see IBlockModel.getItemTagName */
   getItemTagName(): string {
     return this.getConfig("itemTagName", "li");
   }
 
-  /** @see BlockModelInterface.getItemClassName */
+  /** @see IBlockModel.getItemClassName */
   getItemClassName(): string {
     return this.getConfig("itemClassName", "");
   }
 
-  /** @see BlockModelInterface.getItemBodyClassName */
+  /** @see IBlockModel.getItemBodyClassName */
   getItemBodyClassName(): string {
     return this.getConfig("itemBodyClassName", "");
   }
 
-  /** @see BlockModelInterface.getItemName */
+  /** @see IBlockModel.getItemName */
   getItemName(): string {
     return this.getConfig("itemName", "li");
   }
 
-  /** @see BlockModelInterface.getItemRelatedNames */
+  /** @see IBlockModel.getItemRelatedNames */
   getItemRelatedNames(): string[] {
     return this.getConfig("itemRelatedNames", []) as string[];
   }
 
-  /** @see BlockModelInterface.getItemSupportedNames */
+  /** @see IBlockModel.getItemSupportedNames */
   getItemSupportedNames(): string[] {
     return [this.getItemName(), ...this.getItemRelatedNames()];
   }
 
-  /** @see BlockModelInterface.isSortableItems */
+  /** @see IBlockModel.isSortableItems */
   isSortableItems(): boolean {
     return this.getConfig("sortableItems", false);
   }
 
-  /** @see BlockModelInterface.getDragZoneClassName */
+  /** @see IBlockModel.getDragZoneClassName */
   getDragZoneClassName(): string {
     return this.getConfig('dragZoneClassName', 'tex-item-drag-zone-default');
   }
 
-  /** @see BlockModelInterface.getItems */
+  /** @see IBlockModel.getItems */
   getItems(): HTMLElement[] {
     const contentElement = this.getContentElement();
 
@@ -720,7 +720,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return queryList(':scope > *', contentElement);
   }
 
-  /** @see BlockModelInterface.getItemsLength */
+  /** @see IBlockModel.getItemsLength */
   getItemsLength(): number {
     return this.getItems().length;
   }
@@ -749,7 +749,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
    * @param content - Item content
    * @returns Item element
    */
-  protected makeItemNode(content: string | unknown = ''): HTMLElement {
+  protected makeItemElement(content: string | unknown = ''): HTMLElement {
     const tagName = this.getItemTagName(),
       type = this.getItemName(),
       className = this.getItemClassName(),
@@ -786,14 +786,14 @@ export default class BlockModel extends BaseModel<BlockElement> {
   }
 
   /**
-   * Public wrapper for makeItemNode
+   * Public wrapper for makeItemElement
    * @param content - Item content
    * @returns Item element
    */
-  __makeItemNode(content: string | unknown = ''): HTMLElement {
-    const node = this.makeItemNode(content);
+  __makeItemElement(content: string | unknown = ''): HTMLElement {
+    const node = this.makeItemElement(content);
 
-    this.change('makeItemNode', {
+    this.change('makeItemElement', {
       node: node,
       content: content
     });
@@ -801,7 +801,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return node;
   }
 
-  /** @see BlockModelInterface.createItem */
+  /** @see IBlockModel.createItem */
   createItem(
     content?: string | unknown,
     index: number = -1,
@@ -812,35 +812,35 @@ export default class BlockModel extends BaseModel<BlockElement> {
     if (!contentElement)
       return false;
 
-    const itemNode = this.__makeItemNode(content);
+    const itemElement = this.__makeItemElement(content);
 
     if (index === 0) {
-      prepend(contentElement, itemNode)
+      prepend(contentElement, itemElement)
     } else if (index === -1) {
       const item = this.getItem(-1);
 
       if (item)
-        after(item, itemNode);
+        after(item, itemElement);
       else
-        append(contentElement, itemNode);
+        append(contentElement, itemElement);
     } else {
       const prevIndex = index - 1;
       if (prevIndex < 0) {
-        prepend(contentElement, itemNode);
+        prepend(contentElement, itemElement);
       } else {
         const item = this.getItem(prevIndex);
 
         if (item)
-          after(item, itemNode);
+          after(item, itemElement);
         else {
-          append(contentElement, itemNode);
+          append(contentElement, itemElement);
         }
       }
     }
 
     this.refreshSortableItems();
 
-    const newIndex = this.getItemIndex(itemNode);
+    const newIndex = this.getItemIndex(itemElement);
     const itemBody = this.getItemBody(newIndex);
 
     if (!skipEvents) {
@@ -862,7 +862,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return true;
   }
 
-  /** @see BlockModelInterface.moveItem */
+  /** @see IBlockModel.moveItem */
   moveItem(
     index: number,
     targetIndex: number,
@@ -889,32 +889,32 @@ export default class BlockModel extends BaseModel<BlockElement> {
 
     if (realIndex === realTargetIndex) return;
 
-    const itemNode = this.getItem(realIndex);
+    const itemElement = this.getItem(realIndex);
 
-    if (!itemNode) return;
+    if (!itemElement) return;
 
-    itemNode.remove();
+    itemElement.remove();
 
     if (realTargetIndex === 0) {
-      prepend(contentElement, itemNode);
+      prepend(contentElement, itemElement);
     } else {
       if (realTargetIndex >= itemsLength - 1) {
-        append(contentElement, itemNode);
+        append(contentElement, itemElement);
       } else {
         const insertAfterIndex = realTargetIndex - 1;
-        const targetItemNode = this.getItem(insertAfterIndex);
+        const targetItemElement = this.getItem(insertAfterIndex);
 
-        if (targetItemNode) {
-          after(targetItemNode, itemNode);
+        if (targetItemElement) {
+          after(targetItemElement, itemElement);
         } else {
-          append(contentElement, itemNode);
+          append(contentElement, itemElement);
         }
       }
     }
 
     if (!skipEvents) {
       this.change('moveItem', {
-        item: itemNode,
+        item: itemElement,
         index: index,
         targetIndex: realTargetIndex
       }, {
@@ -924,7 +924,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     }
   }
 
-  /** @see BlockModelInterface.removeItem */
+  /** @see IBlockModel.removeItem */
   removeItem(index: number = -1): boolean {
     const item = this.getItem(index) as HTMLElement;
     const realIndex = this.getItemIndex(item) || 0;
@@ -944,7 +944,7 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return true;
   }
 
-  /** @see BlockModelInterface.getItem */
+  /** @see IBlockModel.getItem */
   getItem(
     index: number
   ): HTMLElement | null {
@@ -954,24 +954,24 @@ export default class BlockModel extends BaseModel<BlockElement> {
       return null;
 
     if (index === -1) {
-      let itemNode = null;
+      let itemElement = null;
       const selection = this.editor.selectionApi.getRange();
 
       if (!selection) return items[0] || null;
 
       items.forEach((item: HTMLElement) => {
         if (selection.intersectsNode(item)) {
-          itemNode = item;
+          itemElement = item;
         }
       });
 
-      return itemNode;
+      return itemElement;
     }
 
     return items[index] || null;
   }
 
-  /** @see BlockModelInterface.getItemBody */
+  /** @see IBlockModel.getItemBody */
   getItemBody(
     index: number
   ): HTMLElement | null {
@@ -984,11 +984,11 @@ export default class BlockModel extends BaseModel<BlockElement> {
     return itemBody || null;
   }
 
-  /** @see BlockModelInterface.getItemIndex */
-  getItemIndex(itemNode?: HTMLElement): number {
+  /** @see IBlockModel.getItemIndex */
+  getItemIndex(itemElement?: HTMLElement): number {
     let index = 0;
     const items = this.getItems(),
-      node = itemNode || this.getItem(-1);
+      node = itemElement || this.getItem(-1);
 
     if (items.length && node) {
       items.forEach((
@@ -1317,8 +1317,8 @@ export default class BlockModel extends BaseModel<BlockElement> {
    */
   protected beforeConvert(
     blockElement: BlockElement,
-    targetModel: BlockModelInterface
-  ): [BlockElement, BlockModelInterface] {
+    targetModel: BlockModel
+  ): [BlockElement, BlockModel] {
     return [blockElement, targetModel];
   }
 
@@ -1330,8 +1330,8 @@ export default class BlockModel extends BaseModel<BlockElement> {
    */
   __beforeConvert(
     blockElement: BlockElement,
-    targetModel: BlockModelInterface
-  ): [BlockElement, BlockModelInterface] {
+    targetModel: BlockModel
+  ): [BlockElement, BlockModel] {
     return this.beforeConvert(blockElement, targetModel);
   }
 

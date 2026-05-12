@@ -1,6 +1,6 @@
 import type {
   ExtensionModelConstructor,
-  ExtensionModelInterface,
+  ExtensionModel,
   Extensions,
   Texditor
 } from "@/types";
@@ -18,7 +18,7 @@ export default class Extensions  {
   private editor: Texditor;
 
   /** Collection of extensions models */
-  private extensions: ExtensionModelInterface[] = [];
+  private extensions: ExtensionModel[] = [];
 
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = '.ext' + generateRandomString(12);
@@ -34,7 +34,7 @@ export default class Extensions  {
     }
   }
 
-  getExtensions(): ExtensionModelInterface[] {
+  getExtensions(): ExtensionModel[] {
     return this.extensions;
   }
 

@@ -20,7 +20,7 @@ export interface SliderOptions {
  * Public API interface for the Slider class
  * Defines all methods and properties available for external use
  */
-export interface SliderInterface {
+export interface Slider {
   /**
    * Navigates to a specific slide by index
    * @param index - Target slide index (0-based)

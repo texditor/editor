@@ -1,5 +1,4 @@
 import type {
-  ActionModelInterface,
   BlockModelSchema,
   ActionModelConfig,
   BaseEvent

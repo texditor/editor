@@ -2,14 +2,14 @@ import type {
   BaseEvent,
   ExtensionModelConfig,
   ExtensionModelConstructor,
-  ExtensionModelInterface,
+  ExtensionModel as IExtensionModel,
   ExtensionElement,
 } from "@/types";
 
 import { toggleClass } from "@/utils/dom";
 import BaseModel from "../base/base-model";
 
-export default class ExtensionModel extends BaseModel<ExtensionElement>  {
+export default class ExtensionModel extends BaseModel<ExtensionElement> implements IExtensionModel {
   /**
    * Set up global configuration
    * @param config - Partial configuration

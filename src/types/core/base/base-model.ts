@@ -2,11 +2,11 @@ import type { EventManager, RenderIconContent, Texditor } from "@/texditor";
 
 /**
  * Generic model constructor interface
- * @template T - Model interface type that extends BaseModelInterface
+ * @template T - Model interface type that extends BaseModel
  * @template C - Model config type that extends BaseModelConfig
  */
 export interface ModelConstructor<
-  T extends BaseModelInterface = BaseModelInterface,
+  T extends BaseModel = BaseModel,
   C extends BaseModelConfig = BaseModelConfig
 > {
   /**
@@ -30,7 +30,7 @@ export interface ModelConstructor<
  */
 export interface BaseElement extends HTMLElement {
   /** Reference to the base model instance */
-  baseModel: BaseModelInterface;
+  baseModel: BaseModel;
 }
 
 /**
@@ -62,13 +62,13 @@ export interface BaseModelConfig {
 /**
  * Base model constructor type alias
  */
-export type BaseModelConstructor = ModelConstructor<BaseModelInterface, BaseModelConfig>;
+export type BaseModelConstructor = ModelConstructor<BaseModel, BaseModelConfig>;
 
 /**
  * Base model behavior interface
  * Defines all public methods for model manipulation
  */
-export interface BaseModelInterface<TElement extends BaseElement = BaseElement> extends EventManager {
+export interface BaseModel<TElement extends BaseElement = BaseElement> extends EventManager {
   /**
   * Returns the unique identifier for this event listener instance
   * @returns The unique event ID string used to identify and manage event listeners

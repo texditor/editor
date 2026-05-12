@@ -1,4 +1,4 @@
-import type { ToolModelInterface, ToolModelConfig } from "@/types";
+import type { ToolModelConfig } from "@/types";
 import { IconClearFormatting } from "@/icons";
 import ToolModel from "@/core/models/tool-model";
 

@@ -1,6 +1,6 @@
 import type {
   BaseModelConfig,
-  BaseModelInterface,
+  BaseModel,
   BaseElement,
   BlockElement,
   ModelConstructor
@@ -8,10 +8,10 @@ import type {
 
 /**
  * Action model constructor type
- * Specialized constructor that creates ActionModelInterface instances
+ * Specialized constructor that creates ActionModel instances
  * with ActionModelConfig
  */
-export type ActionModelConstructor = ModelConstructor<ActionModelInterface, ActionModelConfig>;
+export type ActionModelConstructor = ModelConstructor<ActionModel, ActionModelConfig>;
 
 /**
  * Action DOM node interface
@@ -19,7 +19,7 @@ export type ActionModelConstructor = ModelConstructor<ActionModelInterface, Acti
  */
 export interface ActionElement extends BaseElement {
   /** Reference to the action model instance */
-  baseModel: ActionModelInterface;
+  baseModel: ActionModel;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface ActionModelConfig extends BaseModelConfig {
  * Action model behavior interface
  * Defines all public methods for action manipulation
  */
-export interface ActionModelInterface extends BaseModelInterface<ActionElement> {
+export interface ActionModel extends BaseModel<ActionElement> {
   /**
    * Get the parent block node associated with this action
    * @returns The parent block node or null if not set

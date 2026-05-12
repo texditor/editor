@@ -1,11 +1,9 @@
-import type { BlockModelConfig, BlockModelInterface } from "@/types";
+import type { BlockModelConfig } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import "@/styles/blocks/paragraph.css";
 import { IconParagraph } from "@/icons";
 
-export default class Paragraph
-  extends BlockModel
-   {
+export default class Paragraph extends BlockModel {
   protected configure(): Partial<BlockModelConfig> {
     return {
       name: "p",

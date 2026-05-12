@@ -3,7 +3,7 @@ import type {
   BlockElement,
   Texditor,
   BlockModelConstructor,
-  BlockModelInterface,
+  BlockModel,
   BlockModelSchema,
   BlockCreateSchema,
   BlockSchema,
@@ -36,7 +36,7 @@ import {
 import { off, rebind } from "@/utils/events";
 import { Paragraph } from "@/entities/blocks";
 import VirtualSelection from "./ui/virtual-selection";
-import { VirtualSelectionInterface } from "@/types/core/ui/virtual-selection";
+import { VirtualSelection as IVirtualSelection } from "@/types/core/ui/virtual-selection";
 import { globalStore } from "@/store/globalStore";
 import {
   decodeHtmlSpecialChars,
@@ -55,7 +55,7 @@ export default class BlockManager {
   private blockSchemas: BlockModelSchema[] = [];
 
   /** VirtualSelection */
-  private virtualSelection: VirtualSelectionInterface | null = null;
+  private virtualSelection: IVirtualSelection | null = null;
 
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = generateRandomString(16);
@@ -67,9 +67,9 @@ export default class BlockManager {
   /**
  * Creates or recreates the VirtualSelection instance with current options
  * If an instance already exists, it will be destroyed first
- * @returns {VirtualSelectionInterface | null}
+ * @returns {IVirtualSelection | null}
  */
-  refreshVirtualSelection(): VirtualSelectionInterface | null {
+  refreshVirtualSelection(): IVirtualSelection | null {
     this.destroyVirtualSelection();
 
     const { config, events } = this.editor
@@ -105,9 +105,9 @@ export default class BlockManager {
 
   /**
  * Returns the current VirtualSelection instance if it exists
- * @returns {VirtualSelectionInterface | null} 
+ * @returns {IVirtualSelection | null} 
  */
-  getVirtualSelection(): VirtualSelectionInterface | null {
+  getVirtualSelection(): IVirtualSelection | null {
     return this.virtualSelection || this.refreshVirtualSelection();
   }
 
@@ -296,10 +296,10 @@ export default class BlockManager {
 
   /**
    * Finds parent block of a target element
-   * @param targetNode - Target element or event target
+   * @param targetElement - Target element or event target
    * @returns Parent block node or null
    */
-  findParent(targetNode: EventTarget | BlockElement | HTMLElement): BlockElement | null {
+  findParent(targetElement: EventTarget | BlockElement | HTMLElement): BlockElement | null {
     let node = null;
     const container = this.getBlocksContainer();
 
@@ -307,7 +307,7 @@ export default class BlockManager {
       query(
         '.tex-block',
         (el: HTMLElement) => {
-          if (closest(targetNode, el)) node = el;
+          if (closest(targetElement, el)) node = el;
         },
         container
       );
@@ -473,7 +473,7 @@ export default class BlockManager {
    * @param index - Block index (defaults to current block)
    * @returns Block model or null
    */
-  getModel(index?: number): BlockModelInterface | null {
+  getModel(index?: number): BlockModel | null {
     const outIndex = index === undefined ? this.getIndex() : index,
       block = this.getElement(outIndex);
 
@@ -586,7 +586,7 @@ export default class BlockManager {
       (schema: BlockModelSchema) => {
         const names = schema.model.getSupportedNames();
         if (names.length && names.includes(name)) {
-          const blockInstance: BlockModelInterface = new schema.constructor(this.editor);
+          const blockInstance: BlockModel = new schema.constructor(this.editor);
           const createBlock = (to: string = 'end') => {
             const blockContainer = this.getBlocksContainer();
 
@@ -970,7 +970,7 @@ export default class BlockManager {
    * @param blockElement - Block to convert
    * @param targetModel - Target block model
    */
-  convert(blockElement: BlockElement, targetModel: BlockModelInterface): boolean {
+  convert(blockElement: BlockElement, targetModel: BlockModel): boolean {
     const { events } = this.editor;
     const model = blockElement.baseModel,
       curIndex = this.getIndex(blockElement);
@@ -979,7 +979,7 @@ export default class BlockManager {
       model,
       '__beforeConvert',
       [blockElement, targetModel]
-    ) as [BlockElement, BlockModelInterface];
+    ) as [BlockElement, BlockModel];
 
     if (model.isConvertible() && beforeTargetModel.isConvertible()) {
       if (!beforeBlockElement)
@@ -988,7 +988,7 @@ export default class BlockManager {
       const targetBlockElement = executeMethodIfExists(beforeTargetModel, '__compose') as BlockElement;
 
       const createItem = (target: HTMLElement, content: string) => {
-        const newItem = executeMethodIfExists(beforeTargetModel, '__makeItemNode', [content]) as HTMLElement
+        const newItem = executeMethodIfExists(beforeTargetModel, '__makeItemElement', [content]) as HTMLElement
         append(target, newItem);
       }
 
@@ -1097,13 +1097,13 @@ export default class BlockManager {
    * Retrieves a list of block models based on nodes
    * @returns List of block models
    */
-  getModels(): BlockModelInterface[] {
+  getModels(): BlockModel[] {
     const nodes = this.getBlockElements();
 
     if (!nodes.length)
       return []
 
-    const models: BlockModelInterface[] = [];
+    const models: BlockModel[] = [];
 
     nodes.forEach((node: BlockElement) => models.push(node.baseModel));
 

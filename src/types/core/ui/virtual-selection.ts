@@ -66,7 +66,7 @@ export interface VirtualSelectionOptions {
     onLassoEnd?: () => void;
 }
 
-export interface VirtualSelectionInterface {
+export interface VirtualSelection {
     /**
      * Returns array of indices of currently selected blocks.
      * @returns {number[]} Array of selected block indices

@@ -1,8 +1,8 @@
-import type { ExtensionModelInterface, ExtensionModelConfig, BaseEvent } from "@/types";
+import type { ExtensionModelConfig, BaseEvent } from "@/types";
 import ExtensionModel from "@/core/models/extension-model";
 import { IconUndo } from "@/icons";
 
-export default class Undo extends ExtensionModel  {
+export default class Undo extends ExtensionModel {
   protected configure(): Partial<ExtensionModelConfig> {
     return {
       name: 'undo',

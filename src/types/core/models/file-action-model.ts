@@ -1,18 +1,18 @@
 import type {
   BaseModelConfig,
-  BaseModelInterface,
+  BaseModel,
   BaseElement,
   BlockElement,
-  FileItemNode,
+  FileItemElement,
   ModelConstructor
 } from "@/types";
 
 /**
  * Block model constructor type
- * Specialized constructor that creates ActionModelInterface instances
+ * Specialized constructor that creates ActionModel instances
  * with ActionModelConfig
  */
-export type FileActionModelConstructor = ModelConstructor<FileActionModelInterface, FileActionModelConfig>;
+export type FileActionModelConstructor = ModelConstructor<FileActionModel, FileActionModelConfig>;
 
 /**
  * File action DOM node interface
@@ -20,7 +20,7 @@ export type FileActionModelConstructor = ModelConstructor<FileActionModelInterfa
  */
 export interface FileActionElement extends BaseElement {
   /** Reference to the action model instance */
-  baseModel: FileActionModelInterface;
+  baseModel: FileActionModel;
 }
 
 /**
@@ -29,15 +29,15 @@ export interface FileActionElement extends BaseElement {
  * @property confirm - Whether action requires confirmation before execution
  */
 export interface FileActionModelConfig extends BaseModelConfig {
-  actions: FileActionModelInterface[]
+  actions: FileActionModel[]
 }
 
-export interface FileActionModelInterface extends BaseModelInterface<FileActionElement> {
+export interface FileActionModel extends BaseModel<FileActionElement> {
   /**
    * Get the parent block node associated with this action
    * @returns The parent block node or null if not set
    */
   getBlockElement(): BlockElement | null;
 
-  getItemNode(): FileItemNode | null;
+  getItemElement(): FileItemElement | null;
 }

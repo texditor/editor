@@ -4,8 +4,7 @@ import type {
   BlockElement,
   FileItem,
   GalleryBlockModelConfig,
-  GalleryBlockModelInterface,
-  SliderInterface,
+  Slider as ISlider,
   TexditorEvent
 } from "@/types";
 import { IconImage, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from "@/icons";
@@ -25,9 +24,9 @@ import {
 import Slider from "@/core/ui/slider";
 import "@/styles/blocks/gallery.css";
 
-export default class Gallery extends Files  {
+export default class Gallery extends Files {
   private defaultStyles: string[] = ["grid", "slider", "single"];
-  private slider?: SliderInterface | null = null;
+  private slider?: ISlider | null = null;
 
   /**
   * Set up global configuration
@@ -241,12 +240,12 @@ export default class Gallery extends Files  {
     );
   }
 
-  /** @see GalleryBlockModelInterface.getStyles */
+  /** @see GalleryBlockModel.getStyles */
   getStyles(): string[] {
     return this.getConfig('styles', []) as string[];
   }
 
-  /** @see GalleryBlockModelInterface.areStylesAllowed */
+  /** @see GalleryBlockModel.areStylesAllowed */
   areStylesAllowed(): boolean {
     const styles = this.getStyles();
 

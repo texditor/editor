@@ -1,19 +1,19 @@
-import type { BlockChildSchema, BlockCreateSchema, BlockModelInterface, BlockModelSchema, BlockElement, BlockSchema } from ".";
-import { VirtualSelectionInterface } from "./ui/virtual-selection";
+import type { BlockChildSchema, BlockCreateSchema, BlockModel, BlockModelSchema, BlockElement, BlockSchema } from ".";
+import { VirtualSelection } from "./ui/virtual-selection";
 
 export interface BlockManager {
   /**
    * Creates or recreates the VirtualSelection instance with current options
    * If an instance already exists, it will be destroyed first
-   * @returns {VirtualSelectionInterface | null}
+   * @returns {VirtualSelection | null}
    */
-  refreshVirtualSelection(): VirtualSelectionInterface | null;
+  refreshVirtualSelection(): VirtualSelection | null;
 
   /**
    * Returns the current VirtualSelection instance if it exists
-   * @returns {VirtualSelectionInterface | null} 
+   * @returns {VirtualSelection | null} 
    */
-  getVirtualSelection(): VirtualSelectionInterface | null;
+  getVirtualSelection(): VirtualSelection | null;
 
   /**
   * Clear Selection UI
@@ -68,10 +68,10 @@ export interface BlockManager {
 
   /**
    * Finds parent block of a target element
-   * @param targetNode - Target element or event target
+   * @param targetElement - Target element or event target
    * @returns Parent block node or null
    */
-  findParent(targetNode: EventTarget | BlockElement | HTMLElement): BlockElement | null;
+  findParent(targetElement: EventTarget | BlockElement | HTMLElement): BlockElement | null;
 
   /**
    * Gets the index of a block
@@ -104,7 +104,7 @@ export interface BlockManager {
    * @param index - Block index (defaults to current block)
    * @returns Block model or null
    */
-  getModel(index?: number): BlockModelInterface | null;
+  getModel(index?: number): BlockModel | null;
 
   /**
    * Sets focus to a specific block by index
@@ -165,7 +165,7 @@ export interface BlockManager {
    * @param targetModel - Target block model
    * @returns Convert status
    */
-  convert(block: BlockElement, targetModel: BlockModelInterface): boolean;
+  convert(block: BlockElement, targetModel: BlockModel): boolean;
 
   /**
    * Updates empty state data attributes on blocks
@@ -182,7 +182,7 @@ export interface BlockManager {
  * Retrieves a list of block models based on nodes
  * @returns List of block models
  */
-  getModels(): BlockModelInterface[];
+  getModels(): BlockModel[];
 
   /**
    * Gets all registered block models

@@ -1,6 +1,6 @@
 import {
   BlockModelConfig,
-  BlockModelInterface,
+  BlockModel,
   FileActionModelConstructor,
 } from "../../";
 
@@ -55,7 +55,7 @@ export interface FileItem {
   [key: string]: unknown;
 }
 
-export interface FileItemNode extends HTMLElement {
+export interface FileItemElement extends HTMLElement {
   fileType: string;
   fileUrl: string;
   fileSize?: number;
@@ -70,7 +70,7 @@ export interface FilesCreateOptions {
   [key: string]: unknown;
 }
 
-export interface FilesBlockModelInterface extends BlockModelInterface {
+export interface FilesBlockModel extends BlockModel {
   /**
    * Get render callback function for a specific MIME type
    * @param mimeType - MIME type string

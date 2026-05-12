@@ -3,15 +3,14 @@ import type {
   FileItem,
   BlockModelConstructor,
   FilesBlockModelConfig,
-  FileItemNode,
+  FileItemElement,
   BlockSchema,
   AjaxConfig,
   BaseEvent,
   AjaxOptions,
   FilesAjaxResponse,
-  FilesBlockModelInterface,
   FileActionModelConstructor,
-  FileActionModelInterface
+  FileActionModel
 } from "@/types";
 import {
   IconClose,
@@ -49,7 +48,7 @@ import {
   queryList,
   rebind
 } from "@/utils";
-import FileActionModel from "@/core/models/file-action-model";
+
 
 export {
   MoveRightFileAction,
@@ -71,9 +70,9 @@ export default class Files extends BlockModel  {
   /** Custom render functions mapped by MIME type */
   private renderCallbacks: Record<string, CallableFunction> = {};
 
-  private fileActions: FileActionModelInterface[] = [];
+  private fileActions: FileActionModel[] = [];
 
-  /** @see FilesBlockModelInterface.setup */
+  /** @see FilesBlockModel.setup */
   public static setup(config: Partial<FilesBlockModelConfig>): BlockModelConstructor {
     return super.setup(config);
   }
@@ -161,12 +160,12 @@ export default class Files extends BlockModel  {
     this.refresh();
   }
 
-  /** @see FilesBlockModelInterface.getRenderCallback */
+  /** @see FilesBlockModel.getRenderCallback */
   getRenderCallback(mimeType: string): CallableFunction {
     return this.renderCallbacks[mimeType] || this.renderCallbacks["default"];
   }
 
-  /** @see FilesBlockModelInterface.setRenderCallback */
+  /** @see FilesBlockModel.setRenderCallback */
   setRenderCallback(
     mimeType: string | string[],
     callback: CallableFunction
@@ -271,7 +270,7 @@ export default class Files extends BlockModel  {
     });
   }
 
-  /** @see FilesBlockModelInterface.refresh */
+  /** @see FilesBlockModel.refresh */
   refresh(): void {
     const contentElement = this.getContentElement(),
       formNode = this.getFormNode(),
@@ -299,7 +298,7 @@ export default class Files extends BlockModel  {
     }
   }
 
-  /** @see FilesBlockModelInterface.refreshCount */
+  /** @see FilesBlockModel.refreshCount */
   refreshCount(count?: number): void {
     const realCount = count || typeof count == "number"
       ? count
@@ -356,12 +355,12 @@ export default class Files extends BlockModel  {
     });
   }
 
-  /** @see FilesBlockModelInterface.getToastsNode */
+  /** @see FilesBlockModel.getToastsNode */
   getToastsNode(): HTMLElement | null {
     return this.toastsNode;
   }
 
-  /** @see FilesBlockModelInterface.clearToasts */
+  /** @see FilesBlockModel.clearToasts */
   clearToasts(): void {
     const toasts = this.getToastsNode();
 
@@ -371,7 +370,7 @@ export default class Files extends BlockModel  {
     }
   }
 
-  /** @see FilesBlockModelInterface.addToast */
+  /** @see FilesBlockModel.addToast */
   addToast(message: string, status: string = "error"): void {
     const toasts = this.getToastsNode(),
       hideTimeout = this.getMessageTimeout();
@@ -399,7 +398,7 @@ export default class Files extends BlockModel  {
     }
   }
 
-  /** @see FilesBlockModelInterface.getFormNode */
+  /** @see FilesBlockModel.getFormNode */
   getFormNode(): HTMLElement | null {
     return this.formNode;
   }
@@ -506,77 +505,77 @@ export default class Files extends BlockModel  {
     }
   }
 
-  /** @see FilesBlockModelInterface.getMaxItems */
+  /** @see FilesBlockModel.getMaxItems */
   getMaxItems(): number {
     return this.getConfig("maxItems", 10);
   }
 
-  /** @see FilesBlockModelInterface.isVisibleCounter */
+  /** @see FilesBlockModel.isVisibleCounter */
   isVisibleCounter(): boolean {
     return this.getConfig("visibleCounter", true);
   }
 
-  /** @see FilesBlockModelInterface.getMessageTimeout */
+  /** @see FilesBlockModel.getMessageTimeout */
   getMessageTimeout(): number {
     return this.getConfig("messageTimeout", 7000);
   }
 
-  /** @see FilesBlockModelInterface.getMimeTypes */
+  /** @see FilesBlockModel.getMimeTypes */
   getMimeTypes(): string[] {
     return this.getConfig("mimeTypes", []) as string[];
   }
 
-  /** @see FilesBlockModelInterface.isMultiple */
+  /** @see FilesBlockModel.isMultiple */
   isMultiple(): boolean {
     return this.getConfig("multiple", true);
   }
 
-  /** @see FilesBlockModelInterface.getAjaxConfig */
+  /** @see FilesBlockModel.getAjaxConfig */
   getAjaxConfig(): AjaxConfig {
     return this.getConfig("ajaxConfig", { url: "" }) as AjaxConfig;
   }
 
-  /** @see FilesBlockModelInterface.getInputName */
+  /** @see FilesBlockModel.getInputName */
   getInputName(): string {
     return this.getConfig("inputName", "files");
   }
 
-  /** @see FilesBlockModelInterface.isRequiredFieldName */
+  /** @see FilesBlockModel.isRequiredFieldName */
   isRequiredFieldFileName(): boolean {
     return this.getConfig("requiredFieldFileName", true);
   }
 
-  /** @see FilesBlockModelInterface.isRequiredFieldCaption */
+  /** @see FilesBlockModel.isRequiredFieldCaption */
   isRequiredFieldCaption(): boolean {
     return this.getConfig("requiredFieldCaption", true);
   }
 
-  /** @see FilesBlockModelInterface.isRequiredFieldDesc */
+  /** @see FilesBlockModel.isRequiredFieldDesc */
   isRequiredFieldDesc(): boolean {
     return this.getConfig("requiredFieldDesc", true);
   }
 
-  /** @see FilesBlockModelInterface.isVisibleFieldName */
+  /** @see FilesBlockModel.isVisibleFieldName */
   isVisibleFieldFileName(): boolean {
     return this.getConfig("visibleFieldFileName", true);
   }
 
-  /** @see FilesBlockModelInterface.isVisibleFieldCaption */
+  /** @see FilesBlockModel.isVisibleFieldCaption */
   isVisibleFieldCaption(): boolean {
     return this.getConfig("visibleFieldCaption", true);
   }
 
-  /** @see FilesBlockModelInterface.isVisibleFieldDesc */
+  /** @see FilesBlockModel.isVisibleFieldDesc */
   isVisibleFieldDesc(): boolean {
     return this.getConfig("visibleFieldDesc", true);
   }
 
-  /** @see FilesBlockModelInterface.isRenderImage */
+  /** @see FilesBlockModel.isRenderImage */
   isRenderImage(): boolean {
     return this.getConfig('renderImage', true);
   }
 
-  /** @see BlockModelInterface.removeItem */
+  /** @see BlockModel.removeItem */
   removeItem(index?: number): boolean {
     const status = super.removeItem(index);
     this.refresh();
@@ -724,16 +723,16 @@ export default class Files extends BlockModel  {
    * @param item - File item data
    * @returns Item element
    */
-  protected makeItemNode(item: FileItem): HTMLElement {
+  protected makeItemElement(item: FileItem): HTMLElement {
     const methodName = this.getRenderCallback(item.type),
       className = this.getItemClassName(),
       fileCss = "tex-file",
       blockElement = this.getElement();
 
-    let itemNode = make("div") as FileItemNode;
+    let itemElement = make("div") as FileItemElement;
 
     if (typeof methodName === "function" && blockElement) {
-      itemNode = make("div", (el: FileItemNode) => {
+      itemElement = make("div", (el: FileItemElement) => {
         addClass(el, "tex-item  " + fileCss + " " + className);
         el.id = blockElement.id + "-" + generateRandomString(12);
         el.fileType = item.type;
@@ -753,19 +752,19 @@ export default class Files extends BlockModel  {
         });
 
         append(el, wrapper);
-      }) as FileItemNode;
+      }) as FileItemElement;
     }
 
-    this.createActions(itemNode);
+    this.createActions(itemElement);
 
-    return itemNode;
+    return itemElement;
   }
 
   /**
    * Create action buttons for a file item
-   * @param itemNode - File item element
+   * @param itemElement - File item element
    */
-  protected createActions(itemNode: FileItemNode): void {
+  protected createActions(itemElement: FileItemElement): void {
     let actionsConstructors: FileActionModel[] = [];
     const { i18n } = this.editor;
     const cssName = "tex-files-actions",
@@ -831,10 +830,10 @@ export default class Files extends BlockModel  {
       append(div, [actionsWrap, actionButtons]);
     });
 
-    append(itemNode, actionsNode);
+    append(itemElement, actionsNode);
 
     const actionConstructors = this.getConfig("actions", []) as FileActionModelConstructor[],
-      [actionsNodeList] = queryList('.' + cssName + '-list', itemNode);
+      [actionsNodeList] = queryList('.' + cssName + '-list', itemElement);
 
     if (actionsNodeList) {
       actionConstructors.forEach((instance: FileActionModelConstructor) => {
@@ -842,7 +841,7 @@ export default class Files extends BlockModel  {
         executeMethodIfExists(
           action,
           '__setElements',
-          [this.getElement(), itemNode]
+          [this.getElement(), itemElement]
         );
         const fileActionElement = action.getElement();
         append(actionsNodeList, fileActionElement);
@@ -851,7 +850,7 @@ export default class Files extends BlockModel  {
       });
 
       const reVisible = () => {
-        this.getFileActions().forEach((action: FileActionModelInterface) => {
+        this.getFileActions().forEach((action: FileActionModel) => {
           css(action.getElement(), "display", action.isVisible() ? "" : "none");
         })
       }
@@ -860,7 +859,7 @@ export default class Files extends BlockModel  {
 
       this.addEvent('onChange.fileAction', () => reVisible());
 
-      rebind(itemNode, "click.cab", () => {
+      rebind(itemElement, "click.cab", () => {
         hideActions();
         css(actionsNode, "display", "block");
 
@@ -868,7 +867,7 @@ export default class Files extends BlockModel  {
           document,
           "click.cab" + eid,
           (evt: MouseEvent) => {
-            if (!closest(evt.target, itemNode)) {
+            if (!closest(evt.target, itemElement)) {
               hideActions();
               off(document, 'click.cab' + eid, true);
             };
@@ -879,7 +878,7 @@ export default class Files extends BlockModel  {
     }
   }
 
-  getFileActions(): FileActionModelInterface[] {
+  getFileActions(): FileActionModel[] {
     return this.fileActions;
   }
 
@@ -910,12 +909,12 @@ export default class Files extends BlockModel  {
     }
   }
 
-  /** @see FilesBlockModelInterface.getProgressNode */
+  /** @see FilesBlockModel.getProgressNode */
   getProgressNode(): HTMLElement | null {
     return this.progressNode;
   }
 
-  /** @see FilesBlockModelInterface.progress */
+  /** @see FilesBlockModel.progress */
   progress(percent: number): void {
     this.createProgress();
 
@@ -936,7 +935,7 @@ export default class Files extends BlockModel  {
     }
   }
 
-  /** @see FilesBlockModelInterface.removeProgress */
+  /** @see FilesBlockModel.removeProgress */
   removeProgress(): void {
     const progressNode = this.getProgressNode();
 
@@ -1092,7 +1091,7 @@ export default class Files extends BlockModel  {
     if (root) {
       query(
         ".tex-file",
-        (el: FileItemNode) => {
+        (el: FileItemElement) => {
           const preparedItem = {
             url: el.fileUrl || '',
             type: el.fileType || "",

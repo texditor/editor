@@ -1,4 +1,4 @@
-import { ToolModelInterface } from "./models";
+import { ToolModel } from "./models";
 
 /**
  * Tools manager interface
@@ -24,7 +24,7 @@ export interface Tools {
    * Get all registered tools
    * @returns Array of tool models
    */
-  getTools(): ToolModelInterface[];
+  getTools(): ToolModel[];
 
   /**
    * Destroy tools manager and clean up resources 

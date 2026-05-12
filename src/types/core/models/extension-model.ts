@@ -1,16 +1,16 @@
 import type {
   BaseModelConfig,
-  BaseModelInterface,
+  BaseModel,
   BaseElement,
   ModelConstructor
 } from "@/types";
 
 /**
  * Extension model constructor type
- * Specialized constructor that creates ExtensionModelInterface instances
+ * Specialized constructor that creates ExtensionModel instances
  * with ExtensionModelConfig
  */
-export type ExtensionModelConstructor = ModelConstructor<ExtensionModelInterface, ExtensionModelConfig>;
+export type ExtensionModelConstructor = ModelConstructor<ExtensionModel, ExtensionModelConfig>;
 
 /**
  * Extension DOM node interface
@@ -18,7 +18,7 @@ export type ExtensionModelConstructor = ModelConstructor<ExtensionModelInterface
  */
 export interface ExtensionElement extends BaseElement {
   /** Reference to the extension model instance */
-  baseModel: ExtensionModelInterface;
+  baseModel: ExtensionModel;
 }
 
 /**
@@ -35,7 +35,7 @@ export interface ExtensionModelConfig extends BaseModelConfig {
  * Extension model behavior interface
  * Defines all public methods for extension manipulation
  */
-export interface ExtensionModelInterface extends BaseModelInterface<ExtensionElement> {
+export interface ExtensionModel extends BaseModel<ExtensionElement> {
   /**
    * Get group name for categorization
    * @returns Group name string

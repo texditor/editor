@@ -1,5 +1,5 @@
 import '@/styles/core/ui/selection.css';
-import { VirtualSelectionInterface, VirtualSelectionOptions } from '@/types/core/ui/virtual-selection';
+import { VirtualSelection, VirtualSelectionOptions } from '@/types/core/ui/virtual-selection';
 import {
   addClass,
   append,

@@ -1,7 +1,7 @@
 import type {
   Texditor,
   ToolModelConstructor,
-  ToolModelInterface,
+  ToolModel,
   ToolElement
 } from "@/types";
 import {
@@ -30,7 +30,7 @@ export default class Tools {
   /** Reference to the editor instance */
   private editor: Texditor;
   /** Collection of tool models available in the toolbar */
-  private tools: ToolModelInterface[] = [];
+  private tools: ToolModel[] = [];
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = '.tool' + generateRandomString(12);
 
@@ -196,7 +196,7 @@ export default class Tools {
    * Get all registered tools
    * @returns Array of tool models
    */
-  getTools(): ToolModelInterface[] {
+  getTools(): ToolModel[] {
     return this.tools;
   }
 
