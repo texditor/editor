@@ -35,20 +35,20 @@ export interface BlockManager {
   getBlocksContainer(): HTMLElement | null;
 
   /**
-   * Gets all block nodes in the editor
-   * @returns Array of block nodes
+   * Gets all block elements in the editor.
+   * @returns Array of block elements.
    */
-  getBlockElements(): BlockElement[];
+  getBlocks(): BlockElement[];
 
   /**
-   * Gets a specific block node by index
+   * Gets a specific block element by index
    * @param index - Block index (defaults to current index)
-   * @returns Block node or null if not found
+   * @returns Block element or null if not found
    */
   getElement(index?: number): BlockElement | null;
 
   /**
-   * Gets the content node within a block
+   * Gets the content element within a block
    * @param blockElement - Block node (defaults to current block)
    * @returns Content element or null
    */
@@ -75,10 +75,10 @@ export interface BlockManager {
 
   /**
    * Gets the index of a block
-   * @param node - Target node (defaults to current block)
+   * @param el - Target node (defaults to current block)
    * @returns Block index
    */
-  getIndex(node?: BlockElement | HTMLElement | EventTarget): number;
+  getIndex(el?: BlockElement | HTMLElement | EventTarget): number;
 
   /**
    * Sets the active block index and updates UI
@@ -238,7 +238,7 @@ export interface BlockManager {
    * @param returnElement - Internal parameter to track if this is a recursive call
    * @returns An array of DOM Nodes
    */
-  parseChilds(schema: BlockSchema | BlockChildSchema, skipDecode?: boolean, returnElement?: boolean): Node[];
+  parseChildren(schema: BlockSchema | BlockChildSchema, skipDecode?: boolean, returnElement?: boolean): Node[];
 
   /**
    * Cleans up event listeners

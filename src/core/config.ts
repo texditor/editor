@@ -1,5 +1,5 @@
-import type { ConfigOptions } from "@/types";
-export default class Config {
+import type { ConfigOptions, Config as IConfig } from "@/types";
+export default class Config implements IConfig {
   /** Internal storage for configuration values */
   private options: ConfigOptions;
 

@@ -1,4 +1,4 @@
-import type { ToolModelConfig } from "@/types";
+import type { BaseEvent, ToolModelConfig } from "@/types";
 import { IconItalic } from "@/icons";
 import ToolModel from "@/core/models/tool-model";
 

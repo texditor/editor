@@ -16,7 +16,7 @@ export default class ClearFormattingTool extends ToolModel  {
   protected onClick(): void {
     const { selectionApi, commands } = this.editor;
 
-    selectionApi.selectCurrent();
+    selectionApi.applyState();
     commands.clearAllFormatting();
   }
 }

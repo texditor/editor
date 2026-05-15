@@ -138,6 +138,23 @@ export function make(name: string, callback?: CallableFunction): HTMLElement {
 }
 
 /**
+ * Creates a new text node.
+ * @param content - The text content.
+ * @returns The created text node.
+ */
+export function makeText(content: string = ''): Text {
+  return document.createTextNode(content);
+}
+
+/**
+ * Removes an element from the DOM.
+ * @param element - The element to remove.
+ */
+export function remove(element: Element | HTMLElement): void {
+  element.parentNode?.removeChild(element);
+}
+
+/**
  * Queries DOM elements matching a selector and executes a callback for each
  * @param selector - CSS selector
  * @param callback - Function called for each matching element
@@ -335,7 +352,7 @@ export function after(
  * @param value - Attribute value (if provided, sets the attribute)
  * @returns Attribute value when getting, undefined when setting
  */
-export function attr(el: HTMLElement, key: string | Record<string, string>, value?: string) {
+export function attr(el: Element | HTMLElement, key: string | Record<string, string>, value?: string) {
   if (typeof key === 'object' && key !== null) {
     Object.entries(key).forEach(([attrKey, attrValue]) => {
       attr(el, attrKey, attrValue);

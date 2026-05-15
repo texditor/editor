@@ -1,7 +1,7 @@
 import type {
   ExtensionModelConstructor,
   ExtensionModel,
-  Extensions,
+  Extensions as IExtensions,
   Texditor
 } from "@/types";
 import { generateRandomString } from "@/utils";
@@ -13,7 +13,7 @@ import {
 } from "@/utils/dom";
 import { off, rebind } from "@/utils/events";
 
-export default class Extensions  {
+export default class Extensions implements IExtensions {
   /** Reference to the main editor instance */
   private editor: Texditor;
 
@@ -34,11 +34,13 @@ export default class Extensions  {
     }
   }
 
+  /** @see IExtensions.getExtensions */
   getExtensions(): ExtensionModel[] {
     return this.extensions;
   }
 
-  refresh() {
+  /** @see IExtensions.refresh */
+  refresh(): void {
     const cssName = 'tex-extension';
     this.getExtensions().forEach((extension) => {
       const node = extension.getElement();
@@ -53,11 +55,11 @@ export default class Extensions  {
   }
 
   /**
-   * Sets up fixed positioning behavior for extensions bar
-   * Attaches scroll, load, and resize event listeners
-   * Makes extensions bar sticky when scrolling past editor
+   * Sets up fixed positioning behavior for extensions bar.
+   * Attaches scroll, load, and resize event listeners.
+   * Makes extensions bar sticky when scrolling past editor.
    */
-  apply() {
+  __apply(): void {
     const { config } = this.editor;
     const root = this.editor.getRoot(),
       extCss = 'tex-extension',
@@ -105,10 +107,7 @@ export default class Extensions  {
     }
   }
 
-  /**
-   * Destroys the extensions manager
-   * Removes all event listeners and cleans up
-   */
+  /** @see IExtensions.destroy */
   destroy() {
     this.extensions.forEach((ext) => ext.destroy());
     const eid = this.eventId;

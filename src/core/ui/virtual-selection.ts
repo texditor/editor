@@ -1,5 +1,5 @@
 import '@/styles/core/ui/selection.css';
-import { VirtualSelection, VirtualSelectionOptions } from '@/types/core/ui/virtual-selection';
+import { VirtualSelection as IVirtualSelection, VirtualSelectionOptions } from '@/types/core/ui/virtual-selection';
 import {
   addClass,
   append,
@@ -12,7 +12,7 @@ import {
   removeClass
 } from '@/utils';
 
-export default class VirtualSelection  {
+export default class VirtualSelection implements IVirtualSelection {
   private options: Required<VirtualSelectionOptions>;
   private blocks: HTMLElement[] = [];
   private isDragging = false;
@@ -54,9 +54,8 @@ export default class VirtualSelection  {
   /**
    * Sets the CSS touch-action property on the selection zone.
    * @param value - The touch-action CSS value (e.g., 'none', 'pan-y')
-   * @private
    */
-  private setTouchAction(value: string) {
+  private setTouchAction(value: string): void {
     css(
       this.options.selectionZone,
       'touch-action',
@@ -66,8 +65,7 @@ export default class VirtualSelection  {
 
   /**
    * Initializes the VirtualSelection instance.
-   * Refreshes blocks, creates DOM elements, attaches event listeners, and sets initial touch behavior.
-   * @private
+   * Refreshes blocks, creates DOM elements, attaches event listeners, and sets initial touch behavior
    */
   private init(): void {
     this.refreshBlocks();
@@ -80,7 +78,6 @@ export default class VirtualSelection  {
    * Checks if an element or any of its ancestors is inside a contentEditable container.
    * @param el - The DOM element to check
    * @returns True if the element is inside contentEditable, false otherwise
-   * @private
    */
   private isInsideContentEditable(el: HTMLElement): boolean {
     let current: HTMLElement | null = el;
@@ -95,7 +92,6 @@ export default class VirtualSelection  {
    * Gets the full bounding rectangle of a block including its visual boundaries.
    * @param block - The block element
    * @returns DOMRect with full block dimensions in document coordinates
-   * @private
    */
   private getFullBlockRect(block: HTMLElement): DOMRect {
     const rect = block.getBoundingClientRect();
@@ -120,9 +116,11 @@ export default class VirtualSelection  {
    * @param currentPoint - Current cursor point
    * @param startBlock - The block where selection started
    * @returns True if cursor is outside block boundaries by at least exitTolerance
-   * @private
    */
-  private hasExitedBlockBoundaries(currentPoint: { x: number; y: number }, startBlock: HTMLElement): boolean {
+  private hasExitedBlockBoundaries(
+    currentPoint: { x: number; y: number },
+    startBlock: HTMLElement
+  ): boolean {
     const fullRect = this.getFullBlockRect(startBlock);
 
     // Calculate distance to each edge
@@ -155,33 +153,7 @@ export default class VirtualSelection  {
     return false;
   }
 
-  /**
-   * Determines if lasso should be activated for mouse interactions.
-   * @param currentPoint - Current cursor point
-   * @param target - Target element
-   * @returns True if lasso should be activated
-   * @private
-   */
-  private shouldActivateLassoForMouse(currentPoint: { x: number; y: number }): boolean {
-    if (!this.startedInContentEditable) return false;
-
-    // Find the block that contains the starting point
-    const startBlock = this.getBlockAtPoint(
-      this.contentEditableStartPoint.x,
-      this.contentEditableStartPoint.y
-    );
-
-    if (!startBlock) return false;
-
-    // Check if we've completely exited the block's visual boundaries
-    return this.hasExitedBlockBoundaries(currentPoint, startBlock);
-  }
-
-  /**
-   * Refreshes internal blocks cache by querying DOM for current blocks.
-   * Updates indices and reapplies selection state.
-   * @returns {void}
-   */
+  /** @see IVirtualSelection.refreshBlocks */
   refreshBlocks(): void {
     this.blocks = [];
 
@@ -198,7 +170,6 @@ export default class VirtualSelection  {
 
   /**
    * Creates the visual selection rectangle element for lasso selection.
-   * @private
    */
   private createElements(): void {
     this.selectionRect = make(
@@ -212,7 +183,6 @@ export default class VirtualSelection  {
 
   /**
    * Attaches event listeners for mouse and touch interactions.
-   * @private
    */
   private attachEvents(): void {
     const eid = this.eventId;
@@ -231,9 +201,11 @@ export default class VirtualSelection  {
    * @param x - X coordinate relative to viewport
    * @param y - Y coordinate relative to viewport
    * @returns Object with x and y coordinates relative to document
-   * @private
    */
-  private viewportToDocument(x: number, y: number) {
+  private viewportToDocument(
+    x: number,
+    y: number
+  ): { x: number, y: number } {
     return { x: x + window.scrollX, y: y + window.scrollY };
   }
 
@@ -242,9 +214,11 @@ export default class VirtualSelection  {
    * @param x - X coordinate relative to document
    * @param y - Y coordinate relative to document
    * @returns Object with x and y coordinates relative to viewport
-   * @private
    */
-  private documentToViewport(x: number, y: number) {
+  private documentToViewport(
+    x: number,
+    y: number
+  ): { x: number, y: number } {
     return { x: x - window.scrollX, y: y - window.scrollY };
   }
 
@@ -253,7 +227,6 @@ export default class VirtualSelection  {
    * @param x - X coordinate in document
    * @param y - Y coordinate in document
    * @returns The block element or null
-   * @private
    */
   private getBlockAtPoint(x: number, y: number): HTMLElement | null {
     for (const block of this.blocks) {
@@ -267,9 +240,8 @@ export default class VirtualSelection  {
 
   /**
    * Starts automatic scrolling when cursor approaches viewport edges during lasso selection.
-   * @private
    */
-  private startAutoScroll() {
+  private startAutoScroll(): void {
     if (this.autoScrollInterval) return;
 
     this.autoScrollInterval = window.setInterval(() => {
@@ -296,9 +268,8 @@ export default class VirtualSelection  {
 
   /**
    * Stops the auto-scroll interval.
-   * @private
    */
-  private stopAutoScroll() {
+  private stopAutoScroll(): void {
     if (this.autoScrollInterval) {
       clearInterval(this.autoScrollInterval);
       this.autoScrollInterval = null;
@@ -308,9 +279,8 @@ export default class VirtualSelection  {
   /**
    * Activates lasso selection mode.
    * Prevents scrolling, disables touch actions, and triggers onLassoStart callback.
-   * @private
    */
-  private startLassoMode() {
+  private startLassoMode(): void {
     if (this.isLassoActive) return;
 
     this.isLassoActive = true;
@@ -324,11 +294,10 @@ export default class VirtualSelection  {
   }
 
   /**
-   * Deactivates lasso selection mode.
-   * Restores touch actions, stops auto-scroll, hides selection rectangle, and triggers onLassoEnd.
-   * @private
+   * Deactivates lasso selection mode
+   * Restores touch actions, stops auto-scroll, hides selection rectangle, and triggers onLassoEnd
    */
-  private stopLassoMode() {
+  private stopLassoMode(): void {
     if (!this.isLassoActive) return;
 
     this.isLassoActive = false;
@@ -344,9 +313,8 @@ export default class VirtualSelection  {
 
   /**
    * Updates the position and size of the selection rectangle based on drag points.
-   * @private
    */
-  private updateSelectionRect() {
+  private updateSelectionRect(): void {
     if (!this.selectionRect || !this.isLassoActive) return;
 
     const start = this.documentToViewport(
@@ -371,9 +339,8 @@ export default class VirtualSelection  {
   /**
    * Calculates which blocks intersect with the lasso selection rectangle.
    * Updates selected indexes and visual states.
-   * @private
    */
-  private updateLassoSelection() {
+  private updateLassoSelection(): void {
     if (!this.isLassoActive) return;
 
     const rect = new DOMRect(
@@ -402,9 +369,8 @@ export default class VirtualSelection  {
   /**
    * Applies or removes the selected class on blocks based on current selection.
    * Triggers onSelectionChange callback with updated selection data.
-   * @private
    */
-  private updateBlocksVisuals(skipEvents: boolean = false) {
+  private updateBlocksVisuals(skipEvents: boolean = false): void {
     const cls = this.options.selectedBlockClass;
 
     this.blocks.forEach((b, i) => {
@@ -443,9 +409,8 @@ export default class VirtualSelection  {
   /**
    * Handles mouse move event for lasso selection.
    * @param e - The mouse event
-   * @private
    */
-  private onMouseMove(e: MouseEvent) {
+  private onMouseMove(e: MouseEvent): void {
     if (!this.isDragging) return;
 
     const p = this.viewportToDocument(e.clientX, e.clientY);
@@ -475,9 +440,8 @@ export default class VirtualSelection  {
 
   /**
    *  Handles mouse up event to finalize selection.
-   * @private
    */
-  private onMouseUp() {
+  private onMouseUp(): void {
     if (!this.isDragging) return;
 
     if (this.isLassoActive) {
@@ -499,9 +463,8 @@ export default class VirtualSelection  {
   /**
    * Handles touch start event for mobile selection.
    * @param e - The touch event
-   * @private
    */
-  private onTouchStart(e: TouchEvent) {
+  private onTouchStart(e: TouchEvent): void {
     const touch = e.touches[0];
     if (!touch) return;
 
@@ -531,9 +494,8 @@ export default class VirtualSelection  {
   /**
    * Handles touch move event for lasso selection on mobile devices.
    * @param e - The touch event
-   * @private
    */
-  private onTouchMove(e: TouchEvent) {
+  private onTouchMove(e: TouchEvent): void {
     if (!this.isDragging) return;
 
     const touch = e.touches[0];
@@ -599,9 +561,8 @@ export default class VirtualSelection  {
 
   /**
    * Handles touch end event to finalize selection on mobile devices.
-   * @private
    */
-  private onTouchEnd() {
+  private onTouchEnd(): void {
     if (this.touchDelayTimeout) {
       clearTimeout(this.touchDelayTimeout);
       this.touchDelayTimeout = null;
@@ -624,39 +585,25 @@ export default class VirtualSelection  {
     this.setTouchAction('pan-y');
   }
 
-  /**
-   * Returns array of indices of currently selected blocks.
-   * @returns {number[]} Array of selected block indices
-   */
+  /** @see IVirtualSelection.getSelectedIndices */
   getSelectedIndices(): number[] {
     return Array.from(this.selectedIndices);
   }
 
-  /**
-   * Returns array of DOM elements that are currently selected.
-   * @returns {HTMLElement[]} Array of selected block elements
-   */
+  /** @see IVirtualSelection.getSelectedBlocks */
   getSelectedBlocks(): HTMLElement[] {
     return Array.from(this.selectedIndices)
       .map(i => this.blocks[i])
       .filter(Boolean);
   }
 
-  /**
-   * Clears current selection, removes all selected blocks.
-   * @returns {void}
-   */
+  /** @see IVirtualSelection.clearSelection */
   clearSelection(): void {
     this.selectedIndices.clear();
     this.updateBlocksVisuals(true);
   }
 
-  /**
-   * Destroys the VirtualSelection instance.
-   * Removes all event listeners, DOM elements, and observers.
-   * Performs cleanup to prevent memory leaks.
-   * @returns {void}
-   */
+  /** @see IVirtualSelection.destroy */
   destroy(): void {
     this.stopAutoScroll();
 

@@ -11,7 +11,6 @@ import type {
   BlockModelConstructor,
   TexditorEvent,
   ActionModelConstructor,
-  ToolModel,
 } from "@/types";
 import {
   addClass,
@@ -47,13 +46,9 @@ import Sortable from "sortablejs";
 /**
  * Base block model class - manages block behavior, content, and lifecycle
  */
-// TODO: BlockModel<TConfig>
 export default class BlockModel extends BaseModel<BlockElement> implements IBlockModel {
   /** Sortable items manager instance */
   private sortableItems: Sortable | null = null;
-
-  /** Collection of tool models available in the toolbar */
-  private tools: ToolModel[] = [];
 
   /**
   * Set up global configuration
@@ -129,7 +124,6 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
         }
       },
       tagName: "div",
-      type: "",
       relatedNames: [],
       emptyDetect: false,
       customSave: false,
@@ -290,58 +284,55 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   protected refreshSortableItems(): void {
     const { blockManager, selectionApi } = this.editor;
     if (this.isSortableItems()) {
-      setTimeout(() => {
-        if (this.sortableItems) {
-          this.sortableItems.destroy();
-        }
 
-        const contentElement = this.getContentElement();
+      if (this.sortableItems) {
+        this.sortableItems.destroy();
+      }
 
-        if (contentElement) {
-          this.sortableItems = new Sortable(contentElement, {
-            handle: '.tex-item-drag-zone',
-            ghostClass: 'tex-sortable-item',
-            chosenClass: 'tex-sortable-chosen',
-            forceFallback: true,
-            swap: false,
-            delay: 0,
-            dragoverBubble: false,
-            animation: 250,
-            sort: true,
-            direction: 'vertical',
+      const contentElement = this.getContentElement();
 
-            onStart: () => {
-              blockManager.destroyVirtualSelection();
-            },
+      if (contentElement) {
+        this.sortableItems = new Sortable(contentElement, {
+          handle: '.tex-item-drag-zone',
+          ghostClass: 'tex-sortable-item',
+          chosenClass: 'tex-sortable-chosen',
+          forceFallback: true,
+          swap: false,
+          delay: 0,
+          dragoverBubble: false,
+          animation: 250,
+          sort: true,
+          direction: 'vertical',
+          onStart: () => {
+            blockManager.destroyVirtualSelection();
+          },
+          onEnd: (evt) => {
+            blockManager.refreshVirtualSelection();
 
-            onEnd: (evt) => {
+            this.change('moveListItem', {
+              item: evt.item,
+              index: evt.newIndex,
+              targetIndex: evt.oldIndex
+            }, {
+              blockElement: this.getElement(),
+              contentElement: contentElement,
+            });
+
+            setTimeout(() => {
               blockManager.refreshVirtualSelection();
-
-              this.change('moveListItem', {
-                item: evt.item,
-                index: evt.newIndex,
-                targetIndex: evt.oldIndex
-              }, {
-                blockElement: this.getElement(),
-                contentElement: contentElement,
-              });
-
-              setTimeout(() => {
-                blockManager.refreshVirtualSelection();
-                const itemBody = this.getItemBody(evt.newIndex || 0);
-                if (itemBody) {
-                  if (attr(itemBody, 'contentEditable') == 'true') {
-                    const length = getLength(itemBody);
-                    selectionApi.select(length, length, itemBody);
-                  } else {
-                    itemBody.click();
-                  }
+              const itemBody = this.getItemBody(evt.newIndex || 0);
+              if (itemBody) {
+                if (attr(itemBody, 'contentEditable') == 'true') {
+                  const length = getLength(itemBody);
+                  selectionApi.select(length, length, itemBody);
+                } else {
+                  itemBody.click();
                 }
-              }, 5);
-            }
-          });
-        }
-      }, 5);
+              }
+            }, 5);
+          }
+        });
+      }
     }
   }
 
@@ -387,8 +378,8 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   protected onCompose(_createSchema?: BlockCreateSchema): void { }
 
   /**
-   * Prepares and composes block content with sanitization and option merging
-   * @param composeSchema - Composition schema (options will be merged with existing)
+   * Prepares the unit before mounting
+   * @param composeSchema - Composition schema
    * @returns Composed block node
    */
   __compose(createSchema?: BlockCreateSchema): BlockElement {
@@ -398,7 +389,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       typeof createSchema === 'object' &&
       Object.keys(createSchema).length
     ) {
-      this.setOptions(createSchema)
+      this.setOptions(createSchema);
     }
 
     const blockElement = this.compose(createSchema);
@@ -423,7 +414,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /**
    * Public wrapper for parse method
-   * @param item - Block creation schema
+   * @param item - Block schema
    * @returns Composition schema
    */
   __parse(item: BlockSchema): BlockCreateSchema {
@@ -518,11 +509,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       return true;
     }
 
-    const html = itemBody.innerHTML.trim();
+    const htmlText = html(itemBody).trim();
 
     return (
-      isEmptyString(html) ||
-      html == "<br>"
+      isEmptyString(htmlText) ||
+      htmlText == "<br>"
     );
   }
 
@@ -592,7 +583,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   }
 
   /**
-   * Merge block with adjacent block
+   * Merge block
    * @returns Merged element or null
    */
   protected merge(): HTMLElement | null {
@@ -727,7 +718,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /**
    * Create drag zone element for sorting
-   * @returns Drag zone span element
+   * @returns Drag zone element
    */
   protected makeItemDragZone(): HTMLSpanElement {
     return make('span', (span: HTMLSpanElement) => {
@@ -745,9 +736,9 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   }
 
   /**
-   * Create item DOM node
-   * @param content - Item content
-   * @returns Item element
+   * Creates an item element.
+   * @param content - Item content.
+   * @returns The item element.
    */
   protected makeItemElement(content: string | unknown = ''): HTMLElement {
     const tagName = this.getItemTagName(),
@@ -1005,10 +996,10 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   }
 
   /**
-   * Save block data to output format
-   * @param block - Block output object
-   * @param _blockElement - Block node (optional)
-   * @returns Modified block output
+   * Saves block data to output format.
+   * @param block - Block output object.
+   * @param _blockElement - Block node (unused).
+   * @returns The modified block output.
    */
   protected save(
     block: BlockSchema,
@@ -1075,7 +1066,13 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     return status;
   }
 
-  private defEvent(name: string, evt: Event): boolean {
+  /**
+   * Handles a DOM event by executing the corresponding handler if present
+   * @param name - Event name
+   * @param evt - The DOM event object
+   * @returns Whether a handler was executed
+   */
+  private defEvent(name: string, evt: Event | BaseEvent): boolean {
     const __name = 'on' + name;
     const status = !!executeMethodIfExists(this, __name, [evt]);
 
@@ -1343,7 +1340,6 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   protected afterConvert(
     newBlockElement: BlockElement
   ): BlockElement {
-
     return newBlockElement;
   }
 

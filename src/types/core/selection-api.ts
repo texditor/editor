@@ -13,7 +13,7 @@ export interface CursorPosition {
  * Current selection data interface
  * Stores the active selection state including position and containing element
  */
-export interface CurrentSelectionData {
+export interface SelectionState {
   /** Cursor position with start and end offsets */
   position: CursorPosition;
   /** HTML element containing the selection, or null if no selection */
@@ -27,27 +27,26 @@ export interface CurrentSelectionData {
  */
 export interface SelectionAPI {
   /**
-   * Sets the current selection data
-   * @param el - HTML element containing the selection
-   * @param position - Cursor position with start and end offsets
+   * Saves the current selection state.
+   * @param state - selection state containing element and cursor position.
    */
-  setCurrent(el: HTMLElement, position: CursorPosition): void;
+  setState(state: SelectionState): void;
 
   /**
-   * Gets the current selection data
-   * @returns Current selection data containing element and position
+   * Gets the saved selection state.
+   * @returns the current selection state.
    */
-  current(): CurrentSelectionData;
+  getState(): SelectionState;
 
   /**
-   * Clears the current selection data
+   * Clears the saved selection state.
    */
-  cleanCurrent(): void;
+  clearState(): void;
 
   /**
-   * Applies the stored current selection to the DOM
+   * Restores the saved selection state.
    */
-  selectCurrent(): void;
+  applyState(): void;
 
   /**
    * Selects text within a container from start to end positions
@@ -90,12 +89,12 @@ export interface SelectionAPI {
   /**
    * Finds all HTML tags that intersect with the current selection
    * @param container - Container element to search within
-   * @param childrens - Whether to search children recursively
+   * @param children - Whether to search children recursively
    * @returns Array of HTML elements that intersect the selection
    */
   findTags(
     container: Element | HTMLElement,
-    childrens?: boolean
+    children?: boolean
   ): HTMLElement[];
 
   /**

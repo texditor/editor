@@ -34,10 +34,14 @@ export interface FileActionModelConfig extends BaseModelConfig {
 
 export interface FileActionModel extends BaseModel<FileActionElement> {
   /**
-   * Get the parent block node associated with this action
-   * @returns The parent block node or null if not set
+   * Returns the parent block node associated with this action.
+   * @returns The parent block node or null if not set.
    */
   getBlockElement(): BlockElement | null;
 
+  /**
+   * Returns the file item element.
+   * @returns The file item element or null if not set.
+   */
   getItemElement(): FileItemElement | null;
 }

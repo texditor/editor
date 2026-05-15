@@ -6,10 +6,8 @@ export default abstract class EventManager implements IEventManager {
     /** Storage for registered event callbacks */
     private triggers: EventTriggerObject = {};
 
-    /**
-     * @see IEventManager.addEvent
-     */
-    addEvent(name: string, callback: CallableFunction) {
+    /** @see IEventManager.addEvent */
+    addEvent(name: string, callback: CallableFunction): void {
         const nameOrId = name.split(".");
         const [eventName, eventId] = nameOrId;
 
@@ -21,10 +19,8 @@ export default abstract class EventManager implements IEventManager {
         }
     }
 
-    /**
-     * @see IEventManager.isEventExists
-     */
-    isEventExists(name: string) {
+    /** @see IEventManager.isEventExists */
+    isEventExists(name: string): boolean {
         const nameOrId = name.split(".");
         const [eventName, eventId] = nameOrId;
 
@@ -37,9 +33,7 @@ export default abstract class EventManager implements IEventManager {
         return true;
     }
 
-    /**
-     * @see IEventManager.removeEvent
-     */
+    /** @see IEventManager.removeEvent */
     removeEvent(name: string, id?: string): boolean {
         if (!this.triggers[name]) return false;
 
@@ -56,10 +50,8 @@ export default abstract class EventManager implements IEventManager {
         return true;
     }
 
-    /**
-     * @see IEventManager.triggerEvent
-     */
-    triggerEvent(name: string, params: TexditorEvent = {}) {
+    /** @see IEventManager.triggerEvent */
+    triggerEvent(name: string, params: TexditorEvent = {}): void {
         if (!this.triggers[name]) return;
 
         const trigger = this.triggers[name];

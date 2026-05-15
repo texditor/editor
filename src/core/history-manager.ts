@@ -1,11 +1,11 @@
 import type {
   HistoryState,
   HistoryStateSelectionData,
-  HistoryManager,
+  HistoryManager as IHistoryManager,
   Texditor
 } from "@/types";
 
-export default class HistoryManager {
+export default class HistoryManager implements IHistoryManager {
   private editor: Texditor;
   private history: HistoryState[] = [];
   private future: HistoryState[] = [];
@@ -228,7 +228,7 @@ export default class HistoryManager {
   private getEditorSelection(): { start: number; end: number } {
     const { selectionApi } = this.editor;
     try {
-      const { position } = selectionApi.current();
+      const { position } = selectionApi.getState();
       return {
         start: position.start < 0 ? 0 : position.start,
         end: position.end < 0 ? 0 : position.end
@@ -253,17 +253,6 @@ export default class HistoryManager {
       history: this.history,
       future: this.future
     });
-  }
-
-  /**
-   * Get history information for debugging purposes
-   * @returns Object with history and future state counts
-   */
-  getHistoryInfo(): { history: number; future: number } {
-    return {
-      history: this.history.length,
-      future: this.future.length
-    };
   }
 
   /**

@@ -46,9 +46,6 @@ export interface ConfigOptions {
   /** Array of extension model instances */
   extensions?: ExtensionModelConstructor[];
 
-  /** Extension panel alignment (left, right, or center) */
-  extensionsLtr?: "left" | "right" | "center";
-
   /** Whether extensions panel is fixed position */
   extensionsFixed?: boolean;
 

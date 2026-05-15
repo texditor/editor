@@ -1,4 +1,4 @@
-import type { BaseModelConfig, BaseElement, ModelConstructor } from "@/types";
+import type { BaseModelConfig, BaseElement, ModelConstructor, BlockElement } from "@/types";
 import { BaseModel } from "../base/base-model";
 
 /**
@@ -15,12 +15,11 @@ export interface ToolElement extends BaseElement {
 /**
  * Tool model configuration interface
  * @property tagName - Tool HTML tag name for formatting
+ * @property override - Overriding tag
  */
 export interface ToolModelConfig extends BaseModelConfig {
-  /** HTML tag name used for formatting */
   tagName: string;
-  /** Clear and separate tags outside the formatting area */
-  separate: boolean;
+  override: boolean;
 }
 
 /**
@@ -35,8 +34,13 @@ export interface ToolModel extends BaseModel<ToolElement> {
   getTagName(): string;
 
   /**
+   * Get the parent block node associated with this action
+   * @returns The parent block node or null if not set
+   */
+  getBlockElement(): BlockElement | null;
+
+  /**
    * Apply format to selected content
-   * @param onlyRemove - If true, only remove format; if false, toggle format 
    */
   format(onlyRemove?: boolean): void;
 
@@ -51,8 +55,8 @@ export interface ToolModel extends BaseModel<ToolElement> {
   removeFormat(): void;
 
   /**
- * Clear and separate tags outside the formatting area
+   * Overriding tag
    * @returns boolean
  */
-  isSeparate(): boolean
+  isOverride(): boolean
 }

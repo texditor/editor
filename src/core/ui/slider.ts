@@ -11,16 +11,15 @@ import {
   removeClass,
   renderIcon
 } from "@/utils";
-import { Slider, SliderOptions } from "@/types";
+import { Slider as ISlider, SliderOptions } from "@/types";
 import "@/styles/core/ui/slider.css";
 
-export default class Slider  {
+export default class Slider implements ISlider {
   private container: HTMLElement;
   private slider: HTMLElement;
   private slides: HTMLElement[] = [];
   private dotsContainer?: HTMLElement;
   private currentIndex: number = 0;
-  private slideCount: number = 0;
   private options: SliderOptions;
 
   private defaultOptions: SliderOptions = {
@@ -165,10 +164,7 @@ export default class Slider  {
     }
   }
 
-  /**
-   * Navigates to a specific slide index
-   * @param index - Target slide index (0-based)
-   */
+  /** @see ISlider.goToSlide */
   goToSlide(index: number): void {
     const length = this.slides.length;
 
@@ -187,23 +183,17 @@ export default class Slider  {
     if (this.options?.onChange) this.options?.onChange(index);
   }
 
-  /**
-   * Navigates to the next slide
-   */
+  /** @see ISlider.next */
   next(): void {
     this.goToSlide(this.currentIndex + 1);
   }
 
-  /**
-   * Navigates to the previous slide
-   */
+  /** @see ISlider.prev */
   prev(): void {
     this.goToSlide(this.currentIndex - 1);
   }
 
-  /**
-   * Destroys the slider instance and cleans up all modifications
-   */
+  /** @see ISlider.destroy */
   destroy(): void {
     this.eachSlides((slide: HTMLElement) => {
       removeClass(slide, "tex-slide");
@@ -220,7 +210,7 @@ export default class Slider  {
       this.slider
     );
 
-    before(this.slider, this.container)
+    before(this.slider, this.container);
     this.slider.remove();
   }
 }

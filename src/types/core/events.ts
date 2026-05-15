@@ -50,7 +50,6 @@ export interface Events extends EventManager {
    */
   refresh(): void;
 
-  // Cleanup method
   /**
    * Destroys the events manager and cleans up all listeners
    */

@@ -32,8 +32,8 @@ export default class ExtensionModel extends BaseModel<ExtensionElement> implemen
     return {
       __modelCode: 'extension',
       visibleTitle: config.get("extensionVisibleTitle", false),
-      menu: false,
-      confirm: false
+      toggleActive: false,
+      groupName: ''
     }
   }
 
@@ -54,18 +54,12 @@ export default class ExtensionModel extends BaseModel<ExtensionElement> implemen
     this.onClick(evt);
   }
 
-  /**
-   * Check if extension toggles active state on click
-   * @returns True if toggle active is enabled
-   */
+  /** @see IExtensionModel.isToggleActive */
   isToggleActive(): boolean {
     return this.getConfig('toggleActive', false);
   }
 
-  /**
-   * Get group name for categorization
-   * @returns Group name string
-   */
+  /** @see IExtensionModel.getGroupName */
   getGroupName(): string {
     return this.getConfig('groupName', '');
   }

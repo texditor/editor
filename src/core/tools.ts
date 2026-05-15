@@ -2,7 +2,8 @@ import type {
   Texditor,
   ToolModelConstructor,
   ToolModel,
-  ToolElement
+  ToolElement,
+  Tools as ITools
 } from "@/types";
 import {
   addClass,
@@ -14,7 +15,12 @@ import {
 } from "@/utils/dom";
 import { off, rebind } from "@/utils/events";
 import { isEmptyString } from "@/utils/string";
-import { detectMobileOS, executeMethodIfExists, generateRandomString, getCaretPosition } from "@/utils/common";
+import {
+  detectMobileOS,
+  executeMethodIfExists,
+  generateRandomString,
+  getCaretPosition
+} from "@/utils/common";
 import {
   BoldTool,
   ItalicTool,
@@ -26,7 +32,7 @@ import {
   ClearFormattingTool
 } from "@/entities/tools";
 
-export default class Tools {
+export default class Tools implements ITools {
   /** Reference to the editor instance */
   private editor: Texditor;
   /** Collection of tool models available in the toolbar */
@@ -40,8 +46,6 @@ export default class Tools {
    */
   constructor(editor: Texditor) {
     this.editor = editor;
-
-    this.show = this.show.bind(this);
 
     const tools = this.editor.config.get(
       "tools",
@@ -64,14 +68,14 @@ export default class Tools {
     });
   }
 
-  /**
-   * Show the toolbar at the current selection position
-   */
+  /** @see ITools.show */
   show(): void {
+    const { blockManager, selectionApi } = this.editor;
     const root = this.editor.getRoot(),
-      cssName = 'tex-tools';
+      cssName = 'tex-tools',
+      blockElement = blockManager.getElement();
 
-    if (!root)
+    if (!root || !blockElement)
       return;
 
     const [toolsNode] = queryList('.' + cssName, root),
@@ -82,16 +86,20 @@ export default class Tools {
       return;
 
     this.getTools().forEach((tool) => {
+      executeMethodIfExists(tool, '__setBlockElement', [blockElement]);
       const node = tool.getElement();
       append(toolsListNode, node);
-      css(node, 'display', tool.isVisible() ? '' : 'none');
+
+      if (!tool.isVisible())
+        node.remove();
+
       executeMethodIfExists(tool, '__onMount', [node])
     })
 
     addClass(toolsNode, cssName + "-fixed tex-animate-fadeIn");
 
     const reposition = () => {
-      const rect = this.editor.selectionApi.getFirstLineBounds(),
+      const rect = selectionApi.getFirstLineBounds(),
         contextMenuRect = getCaretPosition(),
         mobileDevice = detectMobileOS(),
         rootRect = root.getBoundingClientRect();
@@ -116,11 +124,10 @@ export default class Tools {
             rect.top +
             contextMenuRect.y -
             rect.top +
-            rect.height / 2 -
-            10;
+            rect.height / 2 - 10;
         } else
           toolsTop =
-            rect.top - (toolsNode.clientHeight / 2 + 10) - rect.height;
+            rect.top - (toolsNode.clientHeight) - rect.height / 2;
 
         css(toolsNode, {
           top: toolsTop,
@@ -135,13 +142,26 @@ export default class Tools {
     rebind(window, "scroll" + eid, () => reposition());
   }
 
-  /**
-   * Synchronize active state highlighting for tools based on current selection 
-   */
-  syncHighlight() {
+  /** @see ITools.hide */
+  hide(): void {
+    const root = this.editor.getRoot();
+
+    if (root) {
+      query(
+        '.tex-tools',
+        (el: HTMLElement) => {
+          removeClass(el, "tex-tools-fixed");
+        },
+        root
+      );
+    }
+  }
+
+  /** @see ITools.syncHighlight */
+  syncHighlight(): void {
     const { selectionApi } = this.editor,
       cssName = ".tex-tool",
-      curElement = selectionApi.current()?.element,
+      curElement = selectionApi.getState()?.element,
       root = this.editor.getRoot();
 
     if (!root) return;
@@ -175,34 +195,24 @@ export default class Tools {
     }
   }
 
-  /**
-   * Hide the toolbar 
-   */
-  hide() {
-    const root = this.editor.getRoot();
-
-    if (root) {
-      query(
-        '.tex-tools',
-        (el: HTMLElement) => {
-          removeClass(el, "tex-tools-fixed");
-        },
-        root
-      );
-    }
-  }
-
-  /**
-   * Get all registered tools
-   * @returns Array of tool models
-   */
+  /** @see ITools.getTools */
   getTools(): ToolModel[] {
     return this.tools;
   }
 
-  /**
-   * Destroy tools manager and clean up resources 
-   */
+  /** @see ITools.getModelByTagName */
+  getModelByTagName(tagName: string): ToolModel | null {
+    let model = null;
+    this.getTools().forEach((tool) => {
+      if (tool.getTagName() === tagName) {
+        model = tool;
+      }
+    })
+
+    return model;
+  }
+
+  /** @see ITools.destroy */
   destroy() {
     this.tools.forEach((tool) => tool.destroy());
     const eid = this.eventId;

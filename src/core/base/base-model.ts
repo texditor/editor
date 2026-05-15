@@ -78,6 +78,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
     });
 
     const childDestroy = this.destroy;
+
     this.destroy = () => {
       this.originalDestroy();
       childDestroy.call(this);

@@ -74,12 +74,6 @@ export interface HistoryManager {
   clear(): void;
 
   /**
-   * Get information about current history state
-   * @returns Object with count of past and future states
-   */
-  getHistoryInfo(): { history: number; future: number };
-
-  /**
    * Set the delayed save interval
    * @param interval - interval in milliseconds
    */

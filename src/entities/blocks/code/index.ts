@@ -12,6 +12,7 @@ import {
   closest,
   css,
   data,
+  getText,
   html,
   make,
   prepend,
@@ -32,7 +33,11 @@ import BlockModel from "@/core/models/block-model";
 import CodeLanguages from './languages';
 import "@/styles/blocks/code.css";
 
-export default class Code extends BlockModel  {
+export default class Code extends BlockModel {
+  /**
+   * Configure block model
+   * @returns Partial configuration object
+   */
   protected configure(): Partial<BlockModelConfig> {
     return {
       name: "code",
@@ -58,11 +63,18 @@ export default class Code extends BlockModel  {
     };
   }
 
+  /**
+   * Composes the code block UI
+   */
   protected onCompose(): void {
     const blockElement = this.getElement();
     this.init(blockElement);
   }
 
+  /**
+   * Initializes the code block UI — language selector and line break info
+   * @param blockElement - block DOM element
+   */
   private init(blockElement: BlockElement): void {
     if (!blockElement)
       return;
@@ -167,9 +179,10 @@ export default class Code extends BlockModel  {
               );
             }
           });
+          const eid = this.getEventId();
 
           const closeMenu = () => {
-            off(document, "click.codeMenu");
+            off(document, "click.codeMenu" + eid);
             css(menu, 'display', '');
           }
 
@@ -191,7 +204,7 @@ export default class Code extends BlockModel  {
 
             on(link, 'click.codeLink', () => {
               css(menu, 'display', 'block');
-              on(document, "click.codeMenu", (evt: MouseEvent) => {
+              on(document, "click.codeMenu" + eid, (evt: MouseEvent) => {
                 if (!closest(evt.target, menu)) {
                   closeMenu();
                 }
@@ -231,6 +244,11 @@ export default class Code extends BlockModel  {
     }
   }
 
+  /**
+   * Handles keydown events. Creates a new block on Ctrl+Enter.
+   * @param evt - Keyboard event
+   * @returns False if handled, true otherwise
+   */
   protected onKeyDown(evt: KeyboardEvent): boolean {
     const { blockManager } = this.editor;
 
@@ -243,12 +261,18 @@ export default class Code extends BlockModel  {
     return true;
   }
 
+  /**
+   * Saves code block data to schema
+   * @param block - Block schema
+   * @param blockElement - Block DOM element
+   * @returns Populated block schema
+   */
   protected save(block: BlockSchema, blockElement?: BlockElement): BlockSchema {
     const { blockManager } = this.editor;
-    const contnetNode = blockManager.getContentElement(blockElement);
+    const contentElement = blockManager.getContentElement(blockElement);
 
-    if (contnetNode?.textContent && !isEmptyString(contnetNode?.textContent)) {
-      block.data = [contnetNode.textContent];
+    if (contentElement && !isEmptyString(getText(contentElement))) {
+      block.data = [getText(contentElement)];
 
       const lang = this.getOption('lang', '');
 
@@ -259,6 +283,11 @@ export default class Code extends BlockModel  {
     return block;
   }
 
+  /**
+   * Parses block schema into create schema
+   * @param item - Raw block schema
+   * @returns Parsed create schema
+   */
   protected parse(item: BlockSchema): BlockCreateSchema {
     const languages = this.getConfig('languages', {}) as ICodeLanguages;
     let lang = (item?.lang || '') as string;
@@ -275,9 +304,22 @@ export default class Code extends BlockModel  {
     }
   }
 
+  /**
+   * Re-initializes the block after conversion
+   * @param newBlockElement - New block DOM element
+   * @returns The initialized block element
+   */
   afterConvert(newBlockElement: BlockElement): BlockElement {
     this.init(newBlockElement);
 
     return newBlockElement;
+  }
+
+  /**
+   * Destroy the model instance and clean up the resources
+   */
+  destroy(): void {
+    const eid = this.getEventId();
+    off(document, "click.codeMenu" + eid);
   }
 }

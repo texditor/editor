@@ -8,12 +8,15 @@ import { EnLocale } from "@/locales";
 export default class I18N implements II18N {
   /** Reference to the editor instance */
   private editor: Texditor;
+
   /** Current active locale code */
   private locale: string = 'en';
+
   /** Default fallback locale code */
   private defaultLocale: string = 'en';
+  
   /** Collection of translation dictionaries keyed by locale code */
-  private translations: LocaleMapData = {};
+  private translations: LocaleMapData = {} as LocaleMapData;
 
   /**
    * Create a new i18n instance
@@ -57,12 +60,12 @@ export default class I18N implements II18N {
     const locale = this.getLocale(),
       defaultLocale = this.getDefaultLocale();
 
-    const tLocale = this.translations[locale],
-      tDefaultLocale = this.translations[defaultLocale];
+    const tLocale = this.translations[locale] as Record<string, string> | undefined,
+      tDefaultLocale = this.translations[defaultLocale] as Record<string, string> | undefined;
 
-    if (tLocale) 
-      return (tLocale[key] || tDefaultLocale[key] || def || "");
+    if (tLocale)
+      return (tLocale[key] || tDefaultLocale?.[key] || def || "");
 
-    return tDefaultLocale[key] || def || "";
+    return tDefaultLocale?.[key] || def || "";
   }
 }

@@ -21,7 +21,7 @@ export default class DeleteSelected extends ExtensionModel  {
     const virtualSelection = blockManager.getVirtualSelection();
 
     if (!virtualSelection)
-      return []
+      return [];
 
     return virtualSelection.getSelectedIndices();
   }

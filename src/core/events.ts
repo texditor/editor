@@ -4,9 +4,14 @@ import type {
   PasteMap,
   PasteMapItem,
   TexditorEvent,
-  Texditor
+  Texditor,
+  Events as IEvents
 } from "@/types";
-import { encodeHtmlSpecialChars, executeMethodIfExists, generateRandomString } from "@/utils/common";
+import {
+  encodeHtmlSpecialChars,
+  executeMethodIfExists,
+  generateRandomString
+} from "@/utils/common";
 import {
   addClass,
   append,
@@ -28,7 +33,7 @@ import { isEmptyString } from "@/utils/string";
 import { globalStore } from "@/store/globalStore";
 import EventManager from "./base/event-manager";
 
-export default class Events extends EventManager {
+export default class Events extends EventManager implements IEvents {
   /** Reference to the main editor instance */
   private editor: Texditor;
 
@@ -55,11 +60,9 @@ export default class Events extends EventManager {
     this.onDragEnd = this.onDragEnd.bind(this);
   }
 
-  /**
-   * Refreshes event listeners on all blocks
-   */
-  refresh() {
-    const { blockManager } = this.editor,
+  /** @see IEvents.refresh */
+  refresh(): void {
+    const { blockManager, extensions } = this.editor,
       eid = this.eventId,
       blockContainer = blockManager.getBlocksContainer();
 
@@ -72,6 +75,13 @@ export default class Events extends EventManager {
       document,
       'dblclick.docEvt' + eid,
       () => blockManager.clearVirtualSelection(),
+      true
+    );
+
+    rebind(
+      document,
+      'click.docEvt' + eid,
+      () => extensions.refresh(),
       true
     );
 
@@ -108,11 +118,8 @@ export default class Events extends EventManager {
     );
   }
 
-  /**
-   * Handles content change events
-   * @param event - Change event data
-   */
-  change(event: TexditorEvent) {
+  /** @see IEvents.change */
+  change(event: TexditorEvent): void {
     const {
       blockManager,
       config,
@@ -148,7 +155,7 @@ export default class Events extends EventManager {
    * Handles focus events on blocks
    * @param evt - Focus event
    */
-  private onFocusHandle(evt: FocusEvent) {
+  private onFocusHandle(evt: FocusEvent): void {
     this.triggerEvent("focus", { domEvent: evt });
     this.setIndexByTarget(evt.target);
     const model = this.editor.blockManager.getModel();
@@ -163,7 +170,7 @@ export default class Events extends EventManager {
    * Handles click events on blocks
    * @param evt - Mouse event
    */
-  private onClickHandle(evt: MouseEvent) {
+  private onClickHandle(evt: MouseEvent): void {
     this.triggerEvent("click", { domEvent: evt });
     this.setIndexByTarget(evt.target);
 
@@ -179,7 +186,7 @@ export default class Events extends EventManager {
    * Handles blur events on blocks
    * @param evt - Focus event
    */
-  private onBlurHandle(evt: FocusEvent) {
+  private onBlurHandle(evt: FocusEvent): void {
     const model = this.editor.blockManager.getModel();
 
     if (model && executeMethodIfExists(model, '__onBlur', [evt]))
@@ -192,7 +199,7 @@ export default class Events extends EventManager {
    * Handles keyup events on blocks
    * @param evt - Keyboard event
    */
-  private onKeyUpHandle(evt: KeyboardEvent) {
+  private onKeyUpHandle(evt: KeyboardEvent): void {
     const { blockManager, historyManager } = this.editor;
 
     this.triggerEvent("keyup", { domEvent: evt });
@@ -216,7 +223,7 @@ export default class Events extends EventManager {
    * Sets the current block index based on target
    * @param target - Event target
    */
-  private setIndexByTarget(target?: EventTarget | null) {
+  private setIndexByTarget(target?: EventTarget | null): void {
     const { blockManager } = this.editor;
 
     if (target) {
@@ -233,7 +240,7 @@ export default class Events extends EventManager {
    * Sets the current block index and updates active item styling
    * @param index - Block index to set as current
    */
-  private setIndex(index: number) {
+  private setIndex(index: number): void {
     const { blockManager } = this.editor;
 
     const model = blockManager.getModel(index);
@@ -299,7 +306,7 @@ export default class Events extends EventManager {
    * Handles keydown events with special behavior for Enter, Backspace, etc.
    * @param evt - Keyboard event
    */
-  private onKeyDownHandle(evt: KeyboardEvent) {
+  private onKeyDownHandle(evt: KeyboardEvent): void {
     const { blockManager, historyManager, selectionApi, config } = this.editor;
 
     this.triggerEvent("keydown", { domEvent: evt });
@@ -410,7 +417,7 @@ export default class Events extends EventManager {
             cursorEnd == 0
           ) {
             breakEvent();
-            const itemChilds = getChildNodes(focusedNode),
+            const itemChild = getChildNodes(focusedNode),
               itemIndex = model.getItemIndex();
 
             const prevItemBody = model.getItemBody(itemIndex - 1);
@@ -420,7 +427,7 @@ export default class Events extends EventManager {
 
               if (prevLength) {
                 appendText(prevItemBody, ' ');
-                append(prevItemBody, itemChilds);
+                append(prevItemBody, itemChild);
                 blockManager.focus(
                   index,
                   prevLength,
@@ -613,8 +620,8 @@ export default class Events extends EventManager {
             appendText(targetNode, item.node.textContent || '');
 
           } else {
-            const childs = getChildNodes(item.node);
-            append(targetNode, childs);
+            const childNodes = getChildNodes(item.node);
+            append(targetNode, childNodes);
           }
         };
 
@@ -636,7 +643,7 @@ export default class Events extends EventManager {
    * Handles paste events with smart content parsing
    * @param evt - Clipboard event
    */
-  private onPasteHandle(evt: ClipboardEvent) {
+  private onPasteHandle(evt: ClipboardEvent): void {
     const {
       config,
       blockManager,
@@ -792,12 +799,16 @@ export default class Events extends EventManager {
         });
       }
 
-      // TODO: Тригеры без on
       this.triggerEvent("onPasteEnd", { domEvent: evt });
     }
   }
 
-  private defEvent(name: string, evt: Event) {
+  /**
+   * The basic DOM event
+   * @param name - Event Name
+   * @param evt - The DOM event object.
+   */
+  private defEvent(name: string, evt: Event): void {
     const { blockManager } = this.editor;
     const model = blockManager.getModel(),
       __name = '__' + name;
@@ -823,7 +834,7 @@ export default class Events extends EventManager {
    * Prevents default drag leave behavior
    * @param evt - Drag event
    */
-  private onDragLeave(evt: DragEvent) {
+  private onDragLeave(evt: DragEvent): void {
     this.defEvent('onDragLeave', evt);
   }
 
@@ -831,7 +842,7 @@ export default class Events extends EventManager {
    * Prevents default drag over behavior
    * @param evt - Drag event
    */
-  private onDragOver(evt: DragEvent) {
+  private onDragOver(evt: DragEvent): void {
     this.defEvent('onDragOver', evt);
   }
 
@@ -839,7 +850,7 @@ export default class Events extends EventManager {
    * Prevents default drag behavior
    * @param evt - Drag event
    */
-  private onDrag(evt: DragEvent) {
+  private onDrag(evt: DragEvent): void {
     this.defEvent('onDrag', evt);
   }
 
@@ -856,7 +867,7 @@ export default class Events extends EventManager {
    * Prevents default drop behavior
    * @param evt - Drag event
    */
-  private onDrop(evt: DragEvent) {
+  private onDrop(evt: DragEvent): void {
     this.defEvent('onDrop', evt);
   }
 
@@ -865,7 +876,7 @@ export default class Events extends EventManager {
    * Updates tools and actions based on current selection
    * @param evt - Event
    */
-  private onSelectionChangeHandle(evt: Event) {
+  private onSelectionChangeHandle(evt: Event): void {
     const {
       blockManager,
       selectionApi,
@@ -876,6 +887,8 @@ export default class Events extends EventManager {
 
     if (root) {
       this.triggerEvent("onSelectionChange", { domEvent: evt });
+
+      blockManager.clearVirtualSelection();
 
       query(
         '.tex-block',
@@ -901,9 +914,12 @@ export default class Events extends EventManager {
                   [start, end] = selectionApi.getOffset(element);
 
                 if (element) {
-                  selectionApi.setCurrent(element, {
-                    start: start,
-                    end: end
+                  selectionApi.setState({
+                    element: element,
+                    position: {
+                      start: start,
+                      end: end
+                    }
                   });
                 }
 
@@ -928,13 +944,12 @@ export default class Events extends EventManager {
     }
   }
 
-  /**
-   * Destroys the events manager and cleans up all listeners
-   */
+  /** @see IEvents.destroy */
   destroy(): void {
     const root = this.editor.getRoot(),
       eid = this.eventId;
 
+    off(document, 'click.docEvt' + eid, true);
     off(document, 'dblclick.docEvt' + eid, true);
     off(document, "keydown.docEvt" + eid, true);
 

@@ -45,7 +45,7 @@ export default class LinkTool extends ToolModel {
    */
   protected onClick(): void {
     const { selectionApi, commands } = this.editor;
-    selectionApi.selectCurrent();
+    selectionApi.applyState();
     const [linkTag] = commands.findTags(this.getTagName());
 
     if (linkTag) {
@@ -168,7 +168,7 @@ export default class LinkTool extends ToolModel {
           )
           btn.title = i18n.get("delete", "Delete");
           on(btn, "click.link", () => {
-            selectionApi.selectCurrent();
+            selectionApi.applyState();
             const [linkTag] = commands.findTags(this.getTagName());
 
             if (linkTag)

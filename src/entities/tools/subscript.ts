@@ -8,7 +8,7 @@ export default class SubscriptTool extends ToolModel  {
       name: "subscript",
       tagName: 'sub',
       icon: IconSubscript,
-      separate: true,
+      override: false,
       iconWidth: 16,
       iconHeight: 16
     }

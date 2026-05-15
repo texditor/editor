@@ -147,33 +147,33 @@ export default class Sanitizer {
       );
 
       for (let i = 0; i < allowed_attributes.length; i++) {
-        const attr_name = allowed_attributes[i];
-        const attr = elem.attributes.getNamedItem(attr_name);
+        const attrName = allowed_attributes[i];
+        const attr = elem.attributes.getNamedItem(attrName);
         if (attr) {
-          let attr_ok = true;
-          if (this.config.protocols?.[name]?.[attr_name]) {
-            const protocols = this.config.protocols[name][attr_name];
+          let attrOk = true;
+          if (this.config.protocols?.[name]?.[attrName]) {
+            const protocols = this.config.protocols[name][attrName];
             const del = attr.value
               .toLowerCase()
               .match(Sanitizer.REGEX_PROTOCOL);
             if (del) {
-              attr_ok = protocols.indexOf(del[1]) !== -1;
+              attrOk = protocols.indexOf(del[1]) !== -1;
             } else {
-              attr_ok = protocols.indexOf(Sanitizer.RELATIVE) !== -1;
+              attrOk = protocols.indexOf(Sanitizer.RELATIVE) !== -1;
             }
           }
-          if (attr_ok) {
-            const attr_node = document.createAttribute(attr_name);
-            attr_node.value = attr.value;
-            (this.currentElement as Element).setAttributeNode(attr_node);
+          if (attrOk) {
+            const attrNode = document.createAttribute(attrName);
+            attrNode.value = attr.value;
+            (this.currentElement as Element).setAttributeNode(attrNode);
           }
         }
       }
 
       if (this.config.addAttributes?.[name]) {
-        for (const attr_name in this.config.addAttributes[name]) {
-          const attr_node = document.createAttribute(attr_name);
-          attr_node.value = this.config.addAttributes[name][attr_name];
+        for (const attrName in this.config.addAttributes[name]) {
+          const attr_node = document.createAttribute(attrName);
+          attr_node.value = this.config.addAttributes[name][attrName];
           (this.currentElement as Element).setAttributeNode(attr_node);
         }
       }

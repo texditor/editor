@@ -65,7 +65,7 @@ export interface BlockModelConfig extends BaseModelConfig {
   groupCode?: string;
   backspaceRemove: boolean;
   visibleTools: boolean;
-  tools: unknown[];
+  availableTools: string[];
   editable: boolean;
   editableItems: boolean;
   singleItem: boolean;
@@ -213,7 +213,7 @@ export interface BlockModel extends BaseModel<BlockElement> {
 
   /** Show actions */
   showActions(): void;
-  
+
   /** Hide actions */
   hideActions(): void;
 
@@ -375,48 +375,10 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @returns BlockModel class
    */
   setup?(config: Partial<BlockModelConfig>): BlockModelConstructor
-
-  /**
-  * Protected methods for understanding the block model structure
-  * 
-  * Create
-  * protected makeItemElement(content?: string | unknown): HTMLElement;
-  * protected compose(createSchema?: BlockCreateSchema): BlockElement;
-  * 
-  * Parse
-  * protected parse(_item: BlockCreateSchema): BlockCreateSchema
-  * 
-  * Merge
-  * protected merge(): HTMLElement | null;
-  * 
-  * Save
-  * protected save(block: BlockSchema, blockElement?: BlockElement): BlockSchema;
-  * 
-  * Events
-  * protected onCompose(createSchema?: BlockCreateSchema): void
-  * protected onPaste(evt: Event, map: PasteMap): boolean;
-  * protected onKeyDown(evt: KeyboardEvent): boolean;
-  * protected onKeyUp(evt: KeyboardEvent): boolean;
-  * protected onFocus(evt: FocusEvent): boolean;
-  * protected onBlur(evt: FocusEvent): boolean
-  * protected onSelectionChange(evt: Event, range: Range): boolean;
-  * protected onDragStart(evt: DragEvent): boolean;
-  * protected onDragLeave(evt: DragEvent): boolean;
-  * protected onDragOver(evt: DragEvent): boolean;
-  * protected onDrag(evt: DragEvent): boolean;
-  * protected onDragEnd(evt: DragEvent): boolean;
-  * protected onDrop(evt: DragEvent): boolean;
-  * 
-  * Convert
-  * protected beforeConvert(blockElement: BlockElement, targetModel: BlockModel): [BlockElement, BlockModel];
-  * protected afterConvert(newBlockElement: BlockElement): BlockElement;
-  */
 }
 
 export type BlockSchemaData = string | string[] | BlockChildSchema[];
 export type BlockSchemaAttr = Record<string, string>;
-
-
 export interface BlockSchema {
   type: string;
   data: BlockSchemaData;

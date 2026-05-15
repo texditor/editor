@@ -1,8 +1,8 @@
 import ConvertAction from "./convert-action";
 import CreateAction from "./create-action";
 import DeleteAction from "./delete-action";
-import MoveDownAction from "./movedown-action";
-import MoveUpAction from "./moveup-action";
+import MoveDownAction from "./move-down-action";
+import MoveUpAction from "./move-up-action";
 
 export {
   ConvertAction,

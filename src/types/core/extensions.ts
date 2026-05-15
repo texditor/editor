@@ -1,20 +1,21 @@
 import { ExtensionModel } from "./models";
 
 export interface Extensions {
+  /**
+   * Gets all registered extension models.
+   * @returns array of extension models.
+   */
   getExtensions(): ExtensionModel[];
+
+  /**
+   * Refreshes the extensions UI.
+   */
   refresh(): void;
 
   /**
-   * Sets up fixed positioning behavior for extensions bar
-   * Attaches scroll, load, and resize event listeners
-   * Makes extensions bar sticky when scrolling past editor
-   */
-  apply(): void;
-
-  /**
-   * Destroys the extensions manager
-   * Removes all event listeners and cleans up
-   * Should be called when editor is being destroyed
+   * Destroys the extensions manager.
+   * Removes all event listeners and cleans up.
+   * Should be called when editor is being destroyed.
    */
   destroy(): void;
 }

@@ -1,17 +1,15 @@
 import type {
-  Commands,
+  Commands as ICommands,
   SelectionAPI,
   Texditor
 } from "@/types";
 import { isEmptyString } from "@/utils/string";
-import { closest, mergeAdjacentTextNodes, query } from "@/utils/dom";
+import { append, attr, before, closest, getLength, getText, make, makeText, mergeAdjacentTextNodes, query, remove } from "@/utils/dom";
 
 /**
- * Commands class handles text formatting operations, selection manipulation,
- * and DOM normalization for the editor. Provides methods for applying and
- * removing HTML tags, managing text ranges, and cleaning up the document structure.
+ * The Commands class handles text formatting operations
  */
-export default class Commands  {
+export default class Commands implements ICommands {
   /** Reference to the main editor instance */
   private editor: Texditor;
 
@@ -39,13 +37,7 @@ export default class Commands  {
     this.editor = editor;
   }
 
-  /**
-   * Formats a specific text range within a container with the given HTML tag
-   * @param tagName - HTML tag name to apply (e.g., 'strong', 'em')
-   * @param startOffset - Starting character offset in the container
-   * @param endOffset - Ending character offset in the container
-   * @param container - Container element containing the text
-   */
+  /** @see ICommands.formatTextRange */
   formatTextRange(
     tagName: string,
     startOffset: number,
@@ -55,8 +47,8 @@ export default class Commands  {
     let pos = 0;
     const nodes: { node: Text; start: number; end: number }[] = [],
       collectNodes = (node: Node) => {
-        if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
-          const length = node.textContent.length;
+        if (node.nodeType === Node.TEXT_NODE && getText(node).trim()) {
+          const length = getLength(node);
           nodes.push({
             node: node as Text,
             start: pos,
@@ -92,15 +84,15 @@ export default class Commands  {
     }
 
     const content = range.extractContents(),
-      wrapper = document.createElement(tagName),
+      wrapper = make(tagName),
       innerTags = content.querySelectorAll(tagName);
 
     innerTags.forEach((tag) => {
       while (tag.firstChild) {
-        tag.parentNode?.insertBefore(tag.firstChild, tag);
+        before(tag, tag.firstChild);
       }
 
-      tag.parentNode?.removeChild(tag);
+      remove(tag);
     });
 
     wrapper.appendChild(content);
@@ -108,12 +100,8 @@ export default class Commands  {
     this.normalize();
   }
 
-  /**
-   * Applies or removes formatting based on current selection context
-   * @param tagName - HTML tag name to format with
-   * @param focus - Whether to restore focus after formatting
-   */
-  format(tagName: string, focus: boolean = false) {
+  /** @see ICommands.format */
+  format(tagName: string, focus: boolean = false): void {
     this.selection(() => {
       const dir = this.getSelectionDirection(tagName),
         isRemove =
@@ -153,13 +141,10 @@ export default class Commands  {
     }, focus);
   }
 
-  /**
-   * Normalizes the DOM structure by removing empty tags and merging adjacent elements
-   * @param container - Optional container to normalize (defaults to current selection element)
-   */
-  normalize(container?: HTMLElement) {
+  /** @see ICommands.normalize */
+  normalize(container?: HTMLElement): void {
     const { selectionApi } = this.editor,
-      { element } = selectionApi.current();
+      { element } = selectionApi.getState();
 
     const elem = container ? container : element;
 
@@ -171,7 +156,7 @@ export default class Commands  {
         (el: HTMLElement) => {
           elements.push(el);
           this.removeEmptyTags(elem, el.localName);
-          this.flattenNestedSimilarTags(el);
+          this.flattenNestedTags(el);
         },
         elem
       );
@@ -186,27 +171,24 @@ export default class Commands  {
     }
   }
 
-  /**
-   * Creates a new format around the current selection
-   * @param tagName - HTML tag name to apply
-   */
-  createFormat(tagName: string) {
+  /** @see ICommands.createFormat */
+  createFormat(tagName: string): void {
     this.selection(
       ({ selectionApi }: { selectionApi: SelectionAPI }) => {
-        const { element, position } = selectionApi.current();
+        const { element, position } = selectionApi.getState();
         if (element) {
-          this.formatTextRange(tagName, position.start, position.end, element);
+          this.formatTextRange(
+            tagName,
+            position.start,
+            position.end,
+            element
+          );
         }
       }
     );
   }
 
-  /**
-   * Removes formatting tags from the current selection
-   * @param tagName - HTML tag name to remove
-   * @param focus - Whether to restore focus after removal
-   * @param normalize - Whether to normalize after removal
-   */
+  /** @see ICommands.removeFormat */
   removeFormat(
     tagName: string,
     focus: boolean = false,
@@ -230,47 +212,39 @@ export default class Commands  {
             if (Array.isArray(el))
               el.forEach((item: HTMLElement) => clearFull(item));
             else {
-              const splited = this.splitElement(
-                el,
-                0,
-                el?.textContent?.length || 0
-              );
-              el.parentNode?.insertBefore(splited[1], el);
-              el.parentElement?.removeChild(el);
+              const splitElement = this.splitElement(el, 0, getLength(el));
+              before(el, splitElement[1]);
+              remove(el);
             }
           },
           clearLeft = (el: HTMLElement) => {
             const { isEmptyLastChar, lastChar } = this.getEdgeChars(
-              el?.textContent || ""
+              el.textContent || ""
             );
 
             if (isEmptyLastChar && lastChar.length) {
-              el?.insertAdjacentText("afterend", " ");
+              el.insertAdjacentText("afterend", " ");
             }
 
             const offset = selectionApi.getOffset(el),
-              splited = this.splitElement(el, 0, offset[1]);
+              splitElement = this.splitElement(el, 0, offset[1]);
 
-            el.parentNode?.insertBefore(splited[1], el);
+            before(el, splitElement[1]);
 
-            if (!isEmptyString(splited[2].textContent || ""))
-              el.parentNode?.insertBefore(splited[2], el);
+            if (!isEmptyString(splitElement[2].textContent || ""))
+              before(el, splitElement[2]);
 
-            el.parentElement?.removeChild(el);
+            remove(el);
           },
           clearRight = (el: HTMLElement) => {
             const [start] = selectionApi.getOffset(el),
-              splited = this.splitElement(
-                el,
-                start,
-                el?.textContent?.length || 0
-              );
+              splitElement = this.splitElement(el, start, getLength(el) || 0);
 
-            if (!isEmptyString(splited[0].textContent || ""))
-              el.parentNode?.insertBefore(splited[0], el);
+            if (!isEmptyString(splitElement[0].textContent || ""))
+              before(el, splitElement[0]);
 
-            el.parentNode?.insertBefore(splited[1], el);
-            el.parentElement?.removeChild(el);
+            before(el, splitElement[1]);
+            remove(el);
           };
 
         if (elements.length === 1 && !isMultiple) {
@@ -296,22 +270,18 @@ export default class Commands  {
             clearRight(element);
           } else if (direction === Commands.DIR_INSIDE) {
             const [start, end] = selectionApi.getOffset(element),
-              splited = this.splitElement(element, start, end);
+              splitElement = this.splitElement(element, start, end);
 
-            splited.forEach((item: HTMLElement | DocumentFragment) => {
+            splitElement.forEach((item: HTMLElement | DocumentFragment) => {
               if (!isEmptyString(item?.textContent || "")) {
                 element.parentNode?.insertBefore(item, element);
               } else {
                 if ((item?.textContent || "").length > 0) {
-                  element.parentNode?.insertBefore(
-                    document.createTextNode(" "),
-                    element
-                  );
+                  before(element, makeText(" "));
                 }
               }
             });
-
-            element.parentElement?.removeChild(element);
+            remove(element);
           }
         } else if (elements.length > 1 && isMultiple) {
           if (direction === Commands.DIR_MULTIPLE_OUTSIDE) {
@@ -346,59 +316,51 @@ export default class Commands  {
     );
   }
 
-  /**
-   * Replaces empty edges with space characters
-   * @param el - Parent element
-   * @param item - Optional item to check edges for
-   */
-  replaceEmptyEdges(el: HTMLElement, item?: HTMLElement | Node) {
+  /** @see ICommands.replaceEmptyEdges */
+  replaceEmptyEdges(el: HTMLElement, item?: HTMLElement | Node): void {
     const { isEmptyFirstChar, isEmptyLastChar } = this.getEdgeChars(
       (item || el)?.textContent || ""
     );
 
     if (isEmptyFirstChar) {
-      el.parentNode?.insertBefore(document.createTextNode(" "), el);
+      before(el, makeText(" "));
     }
 
     if (isEmptyLastChar) {
-      el.parentNode?.insertBefore(document.createTextNode(" "), el);
+      before(el, makeText(" "));
     }
   }
 
-  /**
-   * Removes all formatting tags from the document
-   * @param normalize - Whether to normalize after clearing
-   */
+  /** @see ICommands.clearAllFormatting */
   clearAllFormatting(normalize: boolean = true): void {
     this.findTags().forEach((el: HTMLElement) => {
       this.removeFormat(el.localName, true, normalize);
     });
   }
 
-  /**
-   * Finds all tags matching the criteria within the current selection
-   * @param tagName - Tag name to find (false for all tags)
-   * @param childrens - Whether to search in child elements
-   * @returns Array of matching HTML elements
-   */
-  findTags(tagName: string | boolean = false, childrens: boolean = true) {
+  /** @see ICommands.findTags */
+  findTags(
+    tagName: string | boolean = false,
+    children: boolean = true
+  ): HTMLElement[] {
     const { selectionApi } = this.editor,
-      current = selectionApi.current();
+      current = selectionApi.getState();
 
     if (!current?.element) return [];
 
-    const selectedTags = selectionApi.findTags(current?.element, childrens);
+    const selectedTags = selectionApi.findTags(
+      current?.element,
+      children
+    );
 
     if (tagName === false) return selectedTags || [];
 
-    return selectedTags.filter((el: HTMLElement) => el.localName === tagName);
+    return selectedTags.filter(
+      (el: HTMLElement) => el.localName === tagName
+    );
   }
 
-  /**
-   * Determines the direction of selection relative to formatting tags
-   * @param tagName - Tag name or element to check direction for
-   * @returns Direction constant or null
-   */
+  /** @see ICommands.getSelectionDirection */
   getSelectionDirection(tagName: string | HTMLElement): string | null {
     let direction = Commands.DIR_IGNORE,
       element: HTMLElement | null = null,
@@ -412,7 +374,7 @@ export default class Commands  {
 
     if (!element) return Commands.DIR_NONE;
 
-    const tagsNotChilds = this.findTags(element.localName, false);
+    const tagsNotChild = this.findTags(element.localName, false);
 
     this.selection(
       ({ range }: { range: Range; selectionApi: SelectionAPI }) => {
@@ -468,7 +430,7 @@ export default class Commands  {
               multipleType = Commands.DIR_MULTIPLE_INSIDE_TO_RIGHT;
             } else {
               multipleType =
-                tagsNotChilds.length > 1
+                tagsNotChild.length > 1
                   ? Commands.DIR_MULTIPLE_INSIDE_TO_INSIDE
                   : Commands.DIR_MULTIPLE_INSIDE_TO_PARENT_INSIDE;
             }
@@ -499,11 +461,8 @@ export default class Commands  {
     return direction;
   }
 
-  /**
-   * Flattens nested tags of the same type (e.g., <strong><strong>text</strong></strong>)
-   * @param parentElement - Element to process
-   */
-  flattenNestedSimilarTags(parentElement: HTMLElement): void {
+  /** @see ICommands.flattenNestedTags */
+  flattenNestedTags(parentElement: HTMLElement): void {
     const parentTag = parentElement.tagName.toLowerCase(),
       processChildren = (element: HTMLElement) => {
         Array.from(element.children).forEach((child) => {
@@ -523,13 +482,7 @@ export default class Commands  {
     processChildren(parentElement);
   }
 
-  /**
-   * Splits an element at specified text positions
-   * @param element - Element to split
-   * @param startIndex - Start index for split
-   * @param endIndex - End index for split
-   * @returns Tuple of [before element, middle fragment, after element]
-   */
+  /** @see ICommands.splitElement */
   splitElement(
     element: HTMLElement,
     startIndex: number,
@@ -547,13 +500,14 @@ export default class Commands  {
         nodeLength = nodeText.length;
 
       if (globalIndex + nodeLength <= startIndex) {
-        beforeElement.appendChild(node.cloneNode(true));
+        append(beforeElement, node.cloneNode(true))
+
         globalIndex += nodeLength;
         continue;
       }
 
       if (globalIndex >= endIndex) {
-        afterElement.appendChild(node.cloneNode(true));
+        append(afterElement, node.cloneNode(true))
         globalIndex += nodeLength;
         continue;
       }
@@ -566,32 +520,33 @@ export default class Commands  {
             remainingNode,
             splitPos
           );
-        beforeElement.appendChild(beforePart);
+
+        append(beforeElement, beforePart);
         remainingNode = middlePart;
         globalIndex = startIndex;
       }
 
       const remainingLength = endIndex - globalIndex;
       if (remainingLength > 0 && remainingNode) {
-        if (this.getNodeTextLength(remainingNode) <= remainingLength) {
+        if (getLength(remainingNode) <= remainingLength) {
           middleFragment.appendChild(remainingNode);
-          globalIndex += this.getNodeTextLength(remainingNode);
+          globalIndex += getLength(remainingNode);
           remainingNode = null;
         } else {
           const [middlePart, afterPart] = this.splitNodeAtTextPosition(
             remainingNode,
             remainingLength
           );
-          middleFragment.appendChild(middlePart);
-          afterElement.appendChild(afterPart);
+          append(middleFragment, middlePart);
+          append(afterElement, afterPart);
           globalIndex = endIndex;
           remainingNode = null;
         }
       }
 
       if (remainingNode) {
-        afterElement.appendChild(remainingNode);
-        globalIndex += this.getNodeTextLength(remainingNode);
+        append(afterElement, remainingNode);
+        globalIndex += getLength(remainingNode);
       }
     }
 
@@ -606,19 +561,26 @@ export default class Commands  {
    */
   private splitNodeAtTextPosition(node: Node, position: number): [Node, Node] {
     if (position <= 0)
-      return [document.createDocumentFragment(), node.cloneNode(true)];
+      return [
+        document.createDocumentFragment(),
+        node.cloneNode(true)
+      ];
 
     const nodeText = node.textContent || "";
     if (position >= nodeText.length)
-      return [node.cloneNode(true), document.createDocumentFragment()];
+      return [
+        node.cloneNode(true),
+        document.createDocumentFragment()
+      ];
 
     if (node.nodeType === Node.TEXT_NODE) {
-      const textNode = node as Text;
-      const beforeText = textNode.textContent?.substring(0, position) || "";
-      const afterText = textNode.textContent?.substring(position) || "";
+      const text = getText(node);
+      const beforeText = text.substring(0, position) || "";
+      const afterText = text.substring(position) || "";
+
       return [
-        document.createTextNode(beforeText),
-        document.createTextNode(afterText)
+        makeText(beforeText),
+        makeText(afterText)
       ];
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as HTMLElement;
@@ -628,21 +590,21 @@ export default class Commands  {
       let remainingPosition = position;
       for (const child of Array.from(element.childNodes)) {
         if (remainingPosition <= 0) {
-          afterElement.appendChild(child.cloneNode(true));
+          append(afterElement, child.cloneNode(true));
           continue;
         }
 
-        const childLength = this.getNodeTextLength(child);
+        const childLength = getLength(child);
         if (childLength <= remainingPosition) {
-          beforeElement.appendChild(child.cloneNode(true));
+          append(beforeElement, child.cloneNode(true));
           remainingPosition -= childLength;
         } else {
           const [beforePart, afterPart] = this.splitNodeAtTextPosition(
             child,
             remainingPosition
           );
-          beforeElement.appendChild(beforePart);
-          afterElement.appendChild(afterPart);
+          append(beforeElement, beforePart);
+          append(afterElement, afterPart);
           remainingPosition = 0;
         }
       }
@@ -650,27 +612,13 @@ export default class Commands  {
       return [beforeElement, afterElement];
     }
 
-    return [node.cloneNode(true), document.createDocumentFragment()];
+    return [
+      node.cloneNode(true),
+      document.createDocumentFragment()
+    ];
   }
 
-  /**
-   * Calculates the text length of a node
-   * @param node - Node to calculate length for
-   * @returns Text length
-   */
-  private getNodeTextLength(node: Node): number {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return (node as Text).textContent?.length || 0;
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      return (node as HTMLElement).textContent?.length || 0;
-    }
-    return 0;
-  }
-
-  /**
-   * Merges adjacent tags of the same type
-   * @param root - Root element to process
-   */
+  /** @see ICommands.mergeAdjacentTags */
   mergeAdjacentTags(root: HTMLElement | Element): void {
     const processNode = (node: HTMLElement | Element) => {
       const children = Array.from(node.childNodes);
@@ -694,7 +642,7 @@ export default class Commands  {
             if (attributesMatch) {
               for (let a = 0; a < attrs1.length; a++) {
                 const attrName = attrs1[a].name;
-                if (currentEl.getAttribute(attrName) !== nextEl.getAttribute(attrName)) {
+                if (attr(currentEl, attrName) !== attr(nextEl, attrName)) {
                   attributesMatch = false;
                   break;
                 }
@@ -717,11 +665,11 @@ export default class Commands  {
               }
 
               if (hasSignificantTextBetween) {
-                currentEl.appendChild(document.createTextNode(' '));
+                append(currentEl, makeText(' '));
               }
 
               while (nextEl.firstChild) {
-                currentEl.appendChild(nextEl.firstChild);
+                append(currentEl, nextEl.firstChild);
               }
 
               node.removeChild(nextEl);
@@ -741,12 +689,16 @@ export default class Commands  {
 
     processNode(root);
   }
+
   /**
    * Internal method to handle selection operations
    * @param callback - Function to execute with selection context
    * @param select - Whether to reselect after operation
    */
-  private selection(callback: CallableFunction, select: boolean = false) {
+  private selection(
+    callback: CallableFunction,
+    select: boolean = false
+  ): void {
     const { selectionApi } = this.editor,
       range = selectionApi.getRange(),
       selection = selectionApi.getSelection();
@@ -755,14 +707,10 @@ export default class Commands  {
 
     callback({ range, selection, selectionApi });
 
-    if (select) selectionApi.selectCurrent();
+    if (select) selectionApi.applyState();
   }
 
-  /**
-   * Removes empty tags of specified type from an element
-   * @param element - Parent element to check
-   * @param tagName - Tag name to remove if empty
-   */
+  /** @see ICommands.removeEmptyTags */
   removeEmptyTags(element: HTMLElement, tagName: string): void {
     const tags = element.getElementsByTagName(tagName);
     const tagsArray = Array.from(tags).reverse();
@@ -774,11 +722,7 @@ export default class Commands  {
     });
   }
 
-  /**
-   * Gets the first and last characters of a string with their emptiness status
-   * @param str - Input string
-   * @returns Object containing edge characters and their emptiness status
-   */
+  /** @see ICommands.getEdgeChars */
   getEdgeChars(str: string): {
     firstChar: string;
     lastChar: string;
@@ -791,8 +735,8 @@ export default class Commands  {
     return {
       firstChar,
       lastChar,
-      isEmptyFirstChar: firstChar.trim() === "",
-      isEmptyLastChar: lastChar.trim() === ""
+      isEmptyFirstChar: isEmptyString(firstChar),
+      isEmptyLastChar: isEmptyString(lastChar)
     };
   }
 }

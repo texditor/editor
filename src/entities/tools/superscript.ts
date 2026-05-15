@@ -8,7 +8,7 @@ export default class SuperscriptTool extends ToolModel  {
       name: "superscript",
       tagName: 'sup',
       icon: IconSuperscript,
-      separate: true,
+      override: false,
       iconWidth: 16,
       iconHeight: 16
     }

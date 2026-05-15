@@ -44,7 +44,7 @@ import {
   generateRandomString
 } from "@/utils";
 
-export default class BlockManager {
+export default class BlockManager implements IBlockManager {
   /** Reference to the main editor instance */
   private editor: Texditor;
 
@@ -64,15 +64,11 @@ export default class BlockManager {
     this.editor = editor;
   }
 
-  /**
- * Creates or recreates the VirtualSelection instance with current options
- * If an instance already exists, it will be destroyed first
- * @returns {IVirtualSelection | null}
- */
+  /** @see IBlockManager.refreshVirtualSelection */
   refreshVirtualSelection(): IVirtualSelection | null {
     this.destroyVirtualSelection();
 
-    const { config, events } = this.editor
+    const { config, events, tools } = this.editor
     const blocksContainer = this.getBlocksContainer();
 
     if (blocksContainer) {
@@ -89,7 +85,7 @@ export default class BlockManager {
         touchActivationDelay: 250,
         selectedBlockClass: 'tex-ui-vs-selected',
         onLassoStart: () => {
-          // tools.hide();
+          tools.hide();
         },
         onSelectionChange: (indices) => {
           events.change({
@@ -103,29 +99,20 @@ export default class BlockManager {
     return this.virtualSelection;
   }
 
-  /**
- * Returns the current VirtualSelection instance if it exists
- * @returns {IVirtualSelection | null} 
- */
+  /** @see IBlockManager.getVirtualSelection */
   getVirtualSelection(): IVirtualSelection | null {
     return this.virtualSelection || this.refreshVirtualSelection();
   }
 
-  /**
-  * Clear Selection UI
-  * @returns {void}
-  */
+  /** @see IBlockManager.clearVirtualSelection */
   clearVirtualSelection(): void {
     const virtualSelection = this.getVirtualSelection();
 
-    if (virtualSelection && virtualSelection.getSelectedIndices())
+    if (virtualSelection) 
       virtualSelection.clearSelection();
   }
 
-  /**
- * Gets the container element that holds all blocks
- * @returns The blocks container element or null if not found
- */
+  /** @see IBlockManager.destroyVirtualSelection */
   destroyVirtualSelection(): void {
     if (this.virtualSelection) {
       this.virtualSelection.destroy();
@@ -133,10 +120,7 @@ export default class BlockManager {
     }
   }
 
-  /**
-   * Gets the container element that holds all blocks
-   * @returns The blocks container element or null if not found
-   */
+  /** @see IBlockManager.getBlocksContainer */
   getBlocksContainer(): HTMLElement | null {
     const root = this.editor.getRoot();
 
@@ -148,14 +132,7 @@ export default class BlockManager {
     return container || null;
   }
 
-  /**
-   * Sets focus to a specific block by index
-   * @param index - Block index to focus
-   * @param startPos - Starting the selection position
-   * @param endPos - End of selection position
-   * @param itemIndex - Item index
-   * @returns The focused block node or null if focus failed
-   */
+  /** @see IBlockManager.focus */
   focus(
     index: number,
     startPos?: number,
@@ -204,7 +181,11 @@ export default class BlockManager {
       } else {
         contentElement.click();
 
-        if (!model?.isEditableItems() && model.getItemsLength() > 0 && typeof itemIndex === 'number') {
+        if (
+          !model?.isEditableItems() &&
+          model.getItemsLength() > 0 &&
+          typeof itemIndex === 'number'
+        ) {
           model.getItemBody(itemIndex)?.click();
         }
       }
@@ -213,30 +194,23 @@ export default class BlockManager {
     return blockElement;
   }
 
-  /**
-   * Gets all block nodes in the editor
-   * @returns Array of block nodes
-   */
-  getBlockElements(): BlockElement[] {
-    const nodes: BlockElement[] = [],
+  /** @see IBlockManager.getBlocks */
+  getBlocks(): BlockElement[] {
+    const elements: BlockElement[] = [],
       blockContainer = this.getBlocksContainer();
 
     if (blockContainer) {
       query(
         '.tex-block',
-        (el: BlockElement) => nodes.push(el),
+        (el: BlockElement) => elements.push(el),
         blockContainer
       );
     }
 
-    return nodes;
+    return elements;
   }
 
-  /**
-   * Gets a specific block node by index
-   * @param index - Block index (defaults to current index)
-   * @returns Block node or null if not found
-   */
+  /** @see IBlockManager.getElement */
   getElement(index?: number): BlockElement | null {
     const realIndex = index !== undefined
       ? index
@@ -258,12 +232,10 @@ export default class BlockManager {
     return block;
   }
 
-  /**
-   * Gets the content node within a block
-   * @param blockElement - Block node (defaults to current block)
-   * @returns Content element or null
-   */
-  getContentElement(blockElement?: BlockElement): HTMLElement | null {
+  /** @see IBlockManager.getContentElement */
+  getContentElement(
+    blockElement?: BlockElement
+  ): HTMLElement | null {
     const realBlockElement = blockElement || this.getElement();
 
     if (!realBlockElement)
@@ -274,54 +246,44 @@ export default class BlockManager {
     return content || null;
   }
 
-  /**
-   * Gets the next block node after current active block
-   * @returns Next block node or null
-   */
+  /** @see IBlockManager.getNextBlockElement */
   getNextBlockElement(): BlockElement | null {
     const currentIndex = this.getIndex();
 
     return this.getElement(currentIndex + 1);
   }
 
-  /**
-   * Gets the previous block node before current active block
-   * @returns Previous block node or null
-   */
+  /** @see IBlockManager.getPrevBlockElement */
   getPrevBlockElement(): BlockElement | null {
     const currentIndex = this.getIndex();
 
     return this.getElement(currentIndex - 1);
   }
 
-  /**
-   * Finds parent block of a target element
-   * @param targetElement - Target element or event target
-   * @returns Parent block node or null
-   */
-  findParent(targetElement: EventTarget | BlockElement | HTMLElement): BlockElement | null {
-    let node = null;
+  /** @see IBlockManager.findParent */
+  findParent(
+    targetElement: EventTarget | BlockElement | HTMLElement
+  ): BlockElement | null {
+    let element = null;
     const container = this.getBlocksContainer();
 
     if (container) {
       query(
         '.tex-block',
         (el: HTMLElement) => {
-          if (closest(targetElement, el)) node = el;
+          if (closest(targetElement, el)) element = el;
         },
         container
       );
     }
 
-    return node;
+    return element;
   }
 
-  /**
-   * Sets the active block index and updates UI
-   * @param index - Block index to set as active
-   */
-  use(index: number) {
-    const cssName = 'tex-block',
+  /** @see IBlockManager.use */
+  use(index: number): void {
+    const { tools } = this.editor,
+      cssName = 'tex-block',
       root = this.editor.getRoot(),
       blockElement = this.getElement(index);
 
@@ -342,22 +304,20 @@ export default class BlockManager {
 
       addClass(blockElement, cssName + "-active");
 
-      rebind(document, 'dblclick.notActive' + this.eventId, () => {
-        removeClass(blockElement, cssName + "-active");
+      rebind(document, 'click.notActive' + this.eventId, (evt: Event) => {
+        if (!closest(evt.target, root)) {
+          removeClass(blockElement, cssName + "-active");
+          tools.hide();
+        }
       });
     }
   }
 
-  /**
-   * Gets the index of a block
-   * @param node - Target node (defaults to current block)
-   * @param findParent - Whether to find parent block of the node
-   * @returns Block index
-   */
+  /** @see IBlockManager.getIndex */
   getIndex(
-    node?: BlockElement | HTMLElement | EventTarget,
+    el?: BlockElement | HTMLElement | EventTarget,
   ): number {
-    if (!node)
+    if (!el)
       return this.blockIndex;
 
     let index = 0;
@@ -367,8 +327,8 @@ export default class BlockManager {
     if (container) {
       query(
         '.tex-block',
-        (el: HTMLElement, i: number) => {
-          if (node === el) index = i;
+        (blockEl: HTMLElement, i: number) => {
+          if (el === blockEl) index = i;
         },
         container
       );
@@ -377,10 +337,7 @@ export default class BlockManager {
     return index;
   }
 
-  /**
-   * Gets the total number of blocks
-   * @returns Block count
-   */
+  /** @see IBlockManager.count */
   count(): number {
     const blocksContainer = this.getBlocksContainer();
 
@@ -390,11 +347,7 @@ export default class BlockManager {
     return queryLength('.tex-block', blocksContainer);
   }
 
-  /**
-   * Checks if a block is empty
-   * @param index - Block index (defaults to current block)
-   * @returns True if block is empty
-   */
+  /** @see IBlockManager.isEmpty */
   isEmpty(index?: number): boolean {
     const model = this.getModel(index);
 
@@ -404,11 +357,8 @@ export default class BlockManager {
     return model.isEmpty();
   }
 
-  /**
-   * Updates empty state data attributes on blocks
-   * @param emptyAttr - Whether to set empty attribute
-   */
-  detectEmpty(emptyAttr: boolean = true) {
+  /** @see IBlockManager.detectEmpty */
+  detectEmpty(emptyAttr: boolean = true): void {
     const container = this.getBlocksContainer();
 
     if (container) {
@@ -438,11 +388,9 @@ export default class BlockManager {
     }
   }
 
-  /**
-   * Normalizes all blocks that require normalization
-   */
-  normalize() {
-    const items = this.getBlockElements(),
+  /** @see IBlockManager.normalize */
+  normalize(): void {
+    const items = this.getBlocks(),
       { commands } = this.editor;
 
     items.forEach((blockElement: BlockElement) => {
@@ -468,27 +416,24 @@ export default class BlockManager {
     });
   }
 
-  /**
-   * Gets the block model for a specific block
-   * @param index - Block index (defaults to current block)
-   * @returns Block model or null
-   */
+  /** @see IBlockManager.getModel */
   getModel(index?: number): BlockModel | null {
-    const outIndex = index === undefined ? this.getIndex() : index,
-      block = this.getElement(outIndex);
+    const outIndex = index === undefined
+      ? this.getIndex()
+      : index;
 
-    if (!block) return null;
+    const el = this.getElement(outIndex);
 
-    return block.baseModel;
+    if (!el) return null;
+
+    return el.baseModel;
   }
 
-  /**
-   * Removes one or multiple blocks
-   * @param index - Index of the block to delete (-1 to the current block)
-   * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
-   * @returns Index of last removed block or null
-   */
-  removeBlock(index: number | number[] = -1, skipEvents: boolean = false): number | null {
+  /** @see IBlockManager.removeBlock */
+  removeBlock(
+    index: number | number[] = -1,
+    skipEvents: boolean = false
+  ): number | null {
     const { config, events } = this.editor;
 
     let lastRemovedIndex: number = 0;
@@ -500,11 +445,11 @@ export default class BlockManager {
       const sortedIndices = [...index].sort((a, b) => b - a);
 
       for (const currentIndex of sortedIndices) {
-        const node = this.getElement(currentIndex);
-        if (node) {
+        const el = this.getElement(currentIndex);
+        if (el) {
           lastRemovedIndex = currentIndex;
-          lastRemovedBlock = node;
-          node.remove();
+          lastRemovedBlock = el;
+          el.remove();
         }
       }
     } else {
@@ -548,12 +493,7 @@ export default class BlockManager {
     return lastRemovedIndex;
   }
 
-  /**
-   * Creates a default block based on editor configuration
-    * @param index - Index of the block to create (-1 after the current block)
-    * @param options - Block Options
-    * @returns Created block node or null
-   */
+  /** @see IBlockManager.createDefaultBlock */
   createDefaultBlock(
     index: number = -1,
     options?: BlockCreateSchema): BlockElement | null {
@@ -564,14 +504,7 @@ export default class BlockManager {
     );
   }
 
-  /**
-   * Creates a new block of specified type
-   * @param name - Block type name
-   * @param index - Index of the block to create (-1 after the current block)
-   * @param options - Block Options
-   * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
-   * @returns Created block node or null
-   */
+  /** @see IBlockManager.createBlock */
   createBlock(
     name: string,
     index: number = -1,
@@ -656,7 +589,7 @@ export default class BlockManager {
     return block;
   }
 
-  /** @see IBlockManager#moveBlock */
+  /** @see IBlockManager.moveBlock */
   moveBlock(
     index: number,
     targetIndex: number,
@@ -716,19 +649,13 @@ export default class BlockManager {
     }
   }
 
-  /**
-   * Merges two blocks together
-   * @param index - Block index
-   * @param targetIndex - Target block index
-   * @param focus - The index of the focus block
-   * @param useItems - Use all the contents of the editable child elements
-   */
+  /** @see IBlockManager.merge */
   merge(
     index: number,
     targetIndex: number,
     focus?: number,
     useItems?: boolean
-  ) {
+  ): void {
     let itemIndex = 0;
     const { events } = this.editor;
     const blockElement = this.getElement(index),
@@ -751,7 +678,7 @@ export default class BlockManager {
       }
 
       if (contentElement && targetContentElement) {
-        const mergeTextToChild = (node: HTMLElement) => {
+        const mergeTextToChild = (child: HTMLElement) => {
           const itemsLength = targetModel.getItemsLength();
 
           if (itemsLength) {
@@ -759,7 +686,7 @@ export default class BlockManager {
             const itemBodyNode = targetModel.getItemBody(itemsLength - 1);
 
             if (itemBodyNode) {
-              appendChildNodes(itemBodyNode, node);
+              appendChildNodes(itemBodyNode, child);
             }
 
             if (model.isEmpty()) {
@@ -770,7 +697,7 @@ export default class BlockManager {
           }
         };
 
-        const mergeChildToText = (node: HTMLElement) => {
+        const mergeChildToText = (child: HTMLElement) => {
           if (useItems) {
             const allItems = model.getItems();
 
@@ -780,7 +707,7 @@ export default class BlockManager {
                 const itemBodyNode = model.getItemBody(i);
 
                 if (itemBodyNode)
-                  appendChildNodes(node, itemBodyNode);
+                  appendChildNodes(child, itemBodyNode);
 
                 i++;
               });
@@ -791,7 +718,7 @@ export default class BlockManager {
             const itemBodyNode = model.getItemBody(0);
 
             if (itemBodyNode) {
-              appendChildNodes(node, itemBodyNode);
+              appendChildNodes(child, itemBodyNode);
               model.removeItem(0);
             }
           }
@@ -965,11 +892,7 @@ export default class BlockManager {
     events.refresh();
   }
 
-  /**
-   * Converts a block to a different type
-   * @param blockElement - Block to convert
-   * @param targetModel - Target block model
-   */
+  /** @see IBlockManager.convert */
   convert(blockElement: BlockElement, targetModel: BlockModel): boolean {
     const { events } = this.editor;
     const model = blockElement.baseModel,
@@ -996,7 +919,7 @@ export default class BlockManager {
         const contentElement = this.getContentElement(beforeBlockElement),
           targetContentElement = this.getContentElement(targetBlockElement),
           editableItems = model.isEditableItems(),
-          isTargetEditableChilds = beforeTargetModel.isEditableItems(),
+          isTargetEditableItems = beforeTargetModel.isEditableItems(),
           sanitizerConfig = beforeTargetModel.getSanitizerConfig(),
           isSanitize = Object.keys(sanitizerConfig).length,
           isRaw = beforeTargetModel.isRaw();
@@ -1011,12 +934,12 @@ export default class BlockManager {
           };
 
           // Case 1: text -> text (both not editable child)
-          if (!editableItems && !isTargetEditableChilds) {
+          if (!editableItems && !isTargetEditableItems) {
             appendContent(targetContentElement, contentElement);
           }
 
           // Case 2: list/child -> text
-          else if (editableItems && !isTargetEditableChilds) {
+          else if (editableItems && !isTargetEditableItems) {
             const items = model.getItems();
 
             if (items && items.length) {
@@ -1032,36 +955,36 @@ export default class BlockManager {
           }
 
           // Case 3: text -> list/child
-          else if (!editableItems && isTargetEditableChilds) {
+          else if (!editableItems && isTargetEditableItems) {
             html(targetContentElement, '');
             createItem(targetContentElement, html(contentElement));
           }
 
           // Case 4: list/child -> list/child
-          else if (editableItems && isTargetEditableChilds) {
+          else if (editableItems && isTargetEditableItems) {
             const items = model.getItems(),
               isSingleItem = beforeTargetModel.isSingleItem();
 
             if (items && items.length) {
               html(targetContentElement, '');
-              const childs: Node[] = [];
+              const childNodes: Node[] = [];
 
               items.forEach((_item: HTMLElement, index: number) => {
                 const itemBodyNode = model.getItemBody(index);
                 if (itemBodyNode) {
                   if (isSingleItem) {
                     getChildNodes(itemBodyNode).forEach((child) => {
-                      childs.push(child);
+                      childNodes.push(child);
                     });
                   } else
                     createItem(targetContentElement, html(itemBodyNode));
                 }
               });
 
-              if (isSingleItem && childs.length) {
+              if (isSingleItem && childNodes.length) {
                 const temp = make(
                   'div',
-                  (div: HTMLDivElement) => append(div, childs)
+                  (div: HTMLDivElement) => append(div, childNodes)
                 );
                 createItem(targetContentElement, html(temp));
               }
@@ -1093,27 +1016,23 @@ export default class BlockManager {
     return true;
   }
 
-  /**
-   * Retrieves a list of block models based on nodes
-   * @returns List of block models
-   */
+  /** @see IBlockManager.getModels */
   getModels(): BlockModel[] {
-    const nodes = this.getBlockElements();
+    const elements = this.getBlocks();
 
-    if (!nodes.length)
+    if (!elements.length)
       return []
 
     const models: BlockModel[] = [];
 
-    nodes.forEach((node: BlockElement) => models.push(node.baseModel));
+    elements.forEach(
+      (el: BlockElement) => models.push(el.baseModel)
+    );
 
     return models;
   }
 
-  /**
-   * Gets all registered block model schemas
-   * @returns Array of block model schemas
-   */
+  /** @see IBlockManager.getSchemas */
   getSchemas(): BlockModelSchema[] {
     if (this.blockSchemas.length > 0) return this.blockSchemas;
 
@@ -1138,11 +1057,7 @@ export default class BlockManager {
     return this.blockSchemas;
   }
 
-  /**
-   * Gets the block model schema by supported type name
-   * @param name - Supported type name or alias
-   * @returns Block model schema, or null if not found
-   */
+  /** @see IBlockManager.getSchema */
   getSchema(name: string): BlockModelSchema | null {
     let schema = null;
 
@@ -1158,11 +1073,7 @@ export default class BlockManager {
     return schema;
   }
 
-  /**
-   * Gets the real block type name from a related type alias
-   * @param name - Supported type name or alias
-   * @returns Real block type name, or null if not found
-   */
+  /** @see IBlockManager.getRealName */
   getRealName(name: string): string | null {
     const schema = this.getSchema(name);
 
@@ -1172,12 +1083,7 @@ export default class BlockManager {
     return schema.model.getName();
   }
 
-  /**
-   * Converts HTML string to an array of BlockSchema objects or text strings.
-   * 
-   * @param html - HTML string to parse
-   * @returns Array of BlockSchema for elements or strings for text nodes
-   */
+  /** @see IBlockManager.htmlToData */
   htmlToData(html: string): Array<BlockSchema | string> {
     const nodes = parseHtml(html);
 
@@ -1236,12 +1142,7 @@ export default class BlockManager {
     return result;
   }
 
-  /**
-   * Parses a block schema into a BlockElement instance
-   * @param blockSchema - Block schema object containing type and data
-   * @param skipDecode - Whether to skip decoding of child content (default: false)
-   * @returns Parsed BlockElement instance, or null if parsing failed
-   */
+  /** @see IBlockManager.parseBlock */
   parseBlock(
     blockSchema: BlockSchema,
     skipDecode: boolean = false
@@ -1273,7 +1174,7 @@ export default class BlockManager {
               supportedItemNames.includes(item.type) &&
               item.data.length
             ) {
-              const nodes = this.parseChilds(item),
+              const nodes = this.parseChildren(item),
                 itemData: BlockCreateItemSchema = {
                   type: item.type,
                   data: toHtml(nodes)
@@ -1289,15 +1190,22 @@ export default class BlockManager {
 
           if (items.length) {
             newSchema.data = items;
-            blockElement = executeMethodIfExists(blockModel, '__compose', [newSchema]) as BlockElement
+            blockElement = executeMethodIfExists(
+              blockModel, '__compose',
+              [newSchema]
+            ) as BlockElement
           }
         }
       } else {
-        const nodes = this.parseChilds(blockSchema, skipDecode);
+        const nodes = this.parseChildren(blockSchema, skipDecode);
         if (nodes) {
           newSchema.data = toHtml(nodes);
 
-          blockElement = executeMethodIfExists(blockModel, '__compose', [newSchema]) as BlockElement;
+          blockElement = executeMethodIfExists(
+            blockModel,
+            '__compose',
+            [newSchema]
+          ) as BlockElement;
         }
 
       }
@@ -1309,20 +1217,18 @@ export default class BlockManager {
           [blockSchema]
         ) as BlockCreateSchema;
 
-        blockElement = executeMethodIfExists(blockModel, '__compose', [parsedSchema]) as BlockElement;
+        blockElement = executeMethodIfExists(
+          blockModel,
+          '__compose',
+          [parsedSchema]
+        ) as BlockElement;
       }
     }
 
     return blockElement;
   }
 
-  /**
-   * Converts an array of BlockSchema objects into an array of BlockElement objects.
-   * 
-   * @param data - Array of BlockSchema objects to be parsed
-   * @param skipDecode - If true, skips HTML entity decoding for text content
-   * @returns An array of parsed BlockElement objects
-   */
+  /** @see IBlockManager.parseBlocks */
   parseBlocks(
     data: BlockSchema[],
     skipDecode: boolean = false
@@ -1339,16 +1245,8 @@ export default class BlockManager {
     return blockElements;
   }
 
-  /**
-   * Recursively parses a BlockSchema structure and converts it into an array of DOM Nodes.
-   * For root call returns children nodes, for recursive calls returns the element itself.
-   * 
-   * @param schema - The BlockSchema or BlockChildSchema object containing type, data, and optional attributes
-   * @param skipDecode - If true, skips HTML entity decoding for text content
-   * @param returnElement - Internal parameter to track if this is a recursive call
-   * @returns An array of DOM Nodes
-   */
-  parseChilds(
+  /** @see IBlockManager.parseChildren */
+  parseChildren(
     schema: BlockSchema | BlockChildSchema,
     skipDecode: boolean = false,
     returnElement: boolean = false
@@ -1365,7 +1263,7 @@ export default class BlockManager {
           const text = skipDecode ? item : decodeHtmlSpecialChars(item);
           appendText(element, text);
         } else {
-          const childElements = this.parseChilds(item, skipDecode, true);
+          const childElements = this.parseChildren(item, skipDecode, true);
           childElements.forEach((childNode) => {
             append(element, childNode as HTMLElement);
           });
@@ -1393,21 +1291,12 @@ export default class BlockManager {
     return returnElement ? [element] : getChildNodes(element);
   }
 
-  /**
-   * Cleans up event listeners
-   */
-  destroy() {
-    const modelsStructure = this.getSchemas();
+  /** @see IBlockManager.destroy */
+  destroy(): void {
+    this.getModels().forEach((model) => model.destroy());
+    this.getSchemas().forEach((schema) => schema.model.destroy());
 
-    this.getModels().forEach((model) => {
-      if (model.destroy) model.destroy();
-    })
-
-    modelsStructure.forEach((modelStruct) => {
-      if (modelStruct.model.destroy) modelStruct.model.destroy();
-    });
-
-    off(document, 'dblclick.notActive' + this.eventId);
+    off(document, 'click.notActive' + this.eventId);
     this.destroyVirtualSelection();
   }
 }

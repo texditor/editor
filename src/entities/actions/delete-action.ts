@@ -3,9 +3,7 @@ import { IconTrash } from "@/icons";
 import ActionModel from "@/core/models/action-model";
 
 /** Delete a block */
-export default class DeleteAction
-  extends ActionModel
-   {
+export default class DeleteAction extends ActionModel {
 
   protected configure(): Partial<ActionModelConfig> {
     return {

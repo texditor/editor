@@ -1,7 +1,6 @@
 import type {
   BlockModelSchema,
-  ActionModelConfig,
-  BaseEvent
+  ActionModelConfig
 } from "@/types";
 import { IconPlus } from "@/icons";
 import ActionModel from "@/core/models/action-model";
@@ -10,9 +9,7 @@ import { rebind } from "@/utils/events";
 import { renderIcon } from "@/utils";
 
 /** Create a block */
-export default class CreateAction
-  extends ActionModel
-   {
+export default class CreateAction extends ActionModel {
   protected configure(): Partial<ActionModelConfig> {
     return {
       name: 'createAction',

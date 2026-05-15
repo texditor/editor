@@ -93,7 +93,7 @@ export default class Texditor implements ITexditor {
     setTimeout(() => {
       executeMethodIfExists(this, '__mount');
       this.historyManager.save();
-      this.extensions.apply();
+      executeMethodIfExists(this.extensions, '__apply');
 
       const readyCallback = this.config.get("onReady", false);
 
@@ -229,7 +229,7 @@ export default class Texditor implements ITexditor {
 
     if (!root) return [];
 
-    blockManager.getBlockElements().forEach((el) => {
+    blockManager.getBlocks().forEach((el) => {
       events.triggerEvent("saveEach", { blockElement: el });
 
       const model = el.baseModel;

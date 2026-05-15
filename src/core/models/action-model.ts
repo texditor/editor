@@ -7,12 +7,20 @@ import type {
   BlockElement
 } from "@/types";
 import { IconArrowRight } from "@/icons";
-import { addClass, append, before, css, html, make, query } from "@/utils/dom";
+import {
+  addClass,
+  append,
+  before,
+  css,
+  html,
+  make,
+  query
+} from "@/utils/dom";
 import { on } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 import BaseModel from "../base/base-model";
 
-export default class ActionModel extends BaseModel<ActionElement> implements IActionModel  {
+export default class ActionModel extends BaseModel<ActionElement> implements IActionModel {
   /**
    * Reference to the parent block node that contains this action
    */
@@ -77,7 +85,7 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
    * Handle confirmation flow for actions that require user verification
    * @param evt - Basic event
    */
-  protected confirm(evt: BaseEvent) {
+  protected confirm(evt: BaseEvent): void {
     const { events, i18n } = this.editor,
       cssName = "tex-action",
       element = this.getElement(),
@@ -90,7 +98,8 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
         make("div", (cfm: HTMLElement) => {
           addClass(
             cfm,
-            cssName + " " + cssName + "-confirm " + cssName + "-" + this.getName() + "-confirm"
+            cssName + " " + cssName + "-confirm " +
+            cssName + "-" + this.getName() + "-confirm"
           );
 
           if (icon) {

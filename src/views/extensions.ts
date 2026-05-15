@@ -11,8 +11,8 @@ export default function ExtensionsView(
   if (!extensionList.length) return document.createTextNode("");
 
   const bar = make("div", (el: HTMLDivElement) => {
-    const ltr = config.get("extensionsLtr", "left");
-    addClass(el, cssName + " tex-" + ltr);
+
+    addClass(el, cssName);
 
     extensionList.forEach((extension) => {
       const element = extension.getElement(),

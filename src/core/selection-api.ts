@@ -1,16 +1,23 @@
 import type {
-  CurrentSelectionData,
-  CursorPosition,
-  SelectionAPI,
+  SelectionState,
+  SelectionAPI as ISelectionAPI,
   Texditor
 } from "@/types";
-import { getChildNodes, make, html } from "@/utils";
-export default class SelectionAPI  {
+import {
+  getChildNodes,
+  make,
+  html,
+  getText,
+  getLength,
+  makeText,
+  append
+} from "@/utils";
+export default class SelectionAPI implements ISelectionAPI {
   /** Reference to the main editor instance */
   private editor: Texditor;
 
   /** Currently stored selection data (element and cursor position) */
-  private currentData: CurrentSelectionData = {
+  private state: SelectionState = {
     position: {
       start: 0,
       end: 0
@@ -26,71 +33,51 @@ export default class SelectionAPI  {
     this.editor = editor;
   }
 
-  /**
-   * Sets the current selection data
-   * @param el - HTML element containing the selection
-   * @param position - Cursor position with start and end offsets
-   */
-  setCurrent(el: HTMLElement, position: CursorPosition): void {
-    this.currentData = {
-      element: el,
-      position: position
-    };
+  /** @see ISelectionAPI.setState */
+  setState(
+    state: SelectionState
+  ): void {
+    this.state = state;
   }
 
-  /**
-   * Gets the current selection data
-   * @returns Current selection data containing element and position
-   */
-  current(): CurrentSelectionData {
-    return this.currentData;
+  /** @see ISelectionAPI.getState */
+  getState(): SelectionState {
+    return this.state;
   }
 
-  /**
-   * Clears the current selection data
-   * Resets position to (0,0) and element to null
-   */
-  cleanCurrent(): void {
-    this.currentData = {
+  /** @see ISelectionAPI.clearState */
+  clearState(): void {
+    this.setState({
+      element: null,
       position: {
         start: 0,
         end: 0
-      },
-      element: null
-    };
+      }
+    });
   }
 
-  /**
-   * Applies the stored current selection to the DOM
-   * Restores the saved cursor position and selection range
-   */
-  selectCurrent() {
-    const { element, position } = this.current(),
-      { start, end } = position;
+  /** @see ISelectionAPI.selectCurrent */
+  applyState(): void {
+    const { element, position } = this.getState();
+    const { start, end } = position;
 
-    if (element) this.select(start, end, element);
+    if (element)
+      this.select(start, end, element);
   }
 
-  /**
-   * Selects text within a container from start to end positions
-   * @param startPos - Starting position offset
-   * @param endPos - Ending position offset
-   * @param container - Container element (uses current element if not provided)
-   * @param scrollToContainer - Whether to scroll to the container
-   */
+  /** @see ISelectionAPI.select */
   select(
     startPos: number,
     endPos: number,
     container?: Element,
     scrollToContainer: boolean = false
   ): void {
-    const { element } = this.current();
+    const { element } = this.getState();
     const wrapContainer = container || element || null;
 
     if (!wrapContainer) return;
 
-    const textContent = wrapContainer.textContent || "";
-    const totalLength = textContent.length;
+    const totalLength = getLength(wrapContainer);
     const validStartPos = Math.max(0, Math.min(startPos, totalLength));
     const validEndPos = Math.max(validStartPos, Math.min(endPos, totalLength));
     const range = document.createRange();
@@ -127,7 +114,7 @@ export default class SelectionAPI  {
 
     // Find start and end nodes based on positions
     for (const textNode of textNodes) {
-      const nodeLength = textNode.textContent?.length || 0;
+      const nodeLength = getLength(textNode);
 
       if (!startNode && currentPos + nodeLength > validStartPos) {
         startNode = textNode;
@@ -148,7 +135,7 @@ export default class SelectionAPI  {
       const lastNode = textNodes[textNodes.length - 1];
       if (lastNode) {
         startNode = lastNode;
-        startOffset = lastNode.textContent?.length || 0;
+        startOffset = getLength(lastNode);
       }
     }
 
@@ -157,15 +144,28 @@ export default class SelectionAPI  {
       const lastNode = textNodes[textNodes.length - 1];
       if (lastNode) {
         endNode = lastNode;
-        endOffset = lastNode.textContent?.length || 0;
+        endOffset = getLength(lastNode);
       }
     }
 
     // Set the range if both nodes are found
     if (startNode && endNode) {
       try {
-        range.setStart(startNode, Math.min(startOffset, startNode.textContent?.length || 0));
-        range.setEnd(endNode, Math.min(endOffset, endNode.textContent?.length || 0));
+        range.setStart(
+          startNode,
+          Math.min(
+            startOffset,
+            getLength(startNode)
+          )
+        );
+
+        range.setEnd(
+          endNode,
+          Math.min(
+            endOffset,
+            getLength(endNode)
+          )
+        );
       } catch (e) {
         console.warn('Error setting range:', e);
         return;
@@ -183,13 +183,7 @@ export default class SelectionAPI  {
     selection.addRange(range);
   }
 
-  /**
-   * Inserts content at the current cursor position
-   * @param content - Content to insert (HTML or text)
-   * @param isHtml - Whether content is HTML (true) or plain text (false)
-   * @param strip - Whether to strip HTML tags when isHtml is false
-   * @returns True if insertion was successful
-   */
+  /** @see ISelectionAPI.insert */
   insert(
     content: string,
     isHtml = true,
@@ -222,7 +216,7 @@ export default class SelectionAPI  {
         range.insertNode(
           document.createTextNode(
             strip
-              ? div.textContent || ""
+              ? getText(div)
               : content
           )
         );
@@ -234,22 +228,12 @@ export default class SelectionAPI  {
     return false;
   }
 
-  /**
-   * Inserts plain text at the current cursor position
-   * @param content - Text content to insert
-   * @param stripTags - Whether to strip HTML tags from content
-   * @returns True if insertion was successful
-   */
+  /** @see ISelectionAPI.insertText */
   insertText(content: string, stripTags = true): boolean {
     return this.insert(content, false, stripTags);
   }
 
-  /**
-   * Splits content at the current cursor position
-   * Creates new block with content after the cursor
-   * @param container - Container element to split (optional)
-   * @returns HTML string of the content after the split
-   */
+  /** @see ISelectionAPI.splitContent */
   splitContent(container?: HTMLElement | null): string {
     const selection = this.getSelection();
 
@@ -267,10 +251,12 @@ export default class SelectionAPI  {
 
     // Handle split within text node
     if (range.startContainer.nodeType === Node.TEXT_NODE) {
-      const textNode = range.startContainer,
-        parent = textNode.parentNode!,
-        textContent = textNode.textContent || "",
-        beforeText = textContent.substring(0, range.startOffset),
+      const textNode = range.startContainer;
+
+      const parent = textNode.parentNode!,
+        textContent = getText(textNode);
+
+      const beforeText = textContent.substring(0, range.startOffset),
         afterText = textContent.substring(range.startOffset);
 
       // Update original text node with text before cursor
@@ -292,20 +278,20 @@ export default class SelectionAPI  {
         }
 
         // Build new structure for after-text
-        let newStructure: Node = document.createTextNode(afterText);
+        let newStructure: Node = makeText(afterText);
 
         parents.forEach((p) => {
           const newParent = p.cloneNode(false);
-          newParent.appendChild(newStructure);
+          append(newParent, newStructure);
           newStructure = newParent;
         });
 
-        newBlock.appendChild(newStructure);
+        append(newBlock, newStructure)
 
         // Move remaining siblings
         let nextSibling = parent.nextSibling;
         while (nextSibling) {
-          newBlock.appendChild(nextSibling.cloneNode(true));
+          append(newBlock, nextSibling.cloneNode(true));
           parent.parentNode?.removeChild(nextSibling);
           nextSibling = parent.nextSibling;
         }
@@ -317,7 +303,7 @@ export default class SelectionAPI  {
 
         let nextSibling = textNode.nextSibling;
         while (nextSibling) {
-          newBlock.appendChild(nextSibling.cloneNode(true));
+          append(newBlock, nextSibling.cloneNode(true));
           currentParagraph.removeChild(nextSibling);
           nextSibling = textNode.nextSibling;
         }
@@ -332,21 +318,16 @@ export default class SelectionAPI  {
         node = range.startContainer.childNodes[range.startOffset];
       }
 
-      nodesToMove.forEach((node) => newBlock.appendChild(node));
+      nodesToMove.forEach((node) => append(newBlock, node));
     }
 
-    return newBlock?.innerHTML.trim();
+    return html(newBlock).trim();
   }
 
-  /**
-   * Finds all HTML tags that intersect with the current selection
-   * @param container - Container element to search within
-   * @param childrens - Whether to search children recursively
-   * @returns Array of HTML elements that intersect the selection
-   */
+  /** @see ISelectionAPI.findTags */
   findTags(
     container: Element | HTMLElement,
-    childrens: boolean = true
+    children: boolean = true
   ): HTMLElement[] {
     const selection = this.getSelection();
 
@@ -377,7 +358,7 @@ export default class SelectionAPI  {
         selectedTags.push(element);
       }
 
-      if (childrens) {
+      if (children) {
         for (const child of Array.from(element.children)) {
           checkElement(child as HTMLElement);
         }
@@ -391,19 +372,12 @@ export default class SelectionAPI  {
     return selectedTags;
   }
 
-  /**
-   * Gets the current window selection object
-   * @returns Selection object or null if not available
-   */
+  /** @see ISelectionAPI.getSelection */
   getSelection(): Selection | null {
     return window.getSelection() || null;
   }
 
-  /**
-   * Gets a specific range from the current selection
-   * @param index - Index of the range to retrieve (default: 0)
-   * @returns Range object or null if not available
-   */
+  /** @see ISelectionAPI.getRange */
   getRange(index: number = 0): Range | null {
     const selection: Selection | null = this.getSelection();
 
@@ -414,12 +388,7 @@ export default class SelectionAPI  {
     return selection.getRangeAt(index);
   }
 
-  /**
-   * Calculates absolute character offset within a container
-   * @param container - Container node
-   * @param offset - Relative offset
-   * @returns Absolute offset position
-   */
+  /** @see ISelectionAPI.getAbsoluteOffset */
   getAbsoluteOffset(container: Node, offset: number) {
     if (container.nodeType === Node.TEXT_NODE) {
       return offset;
@@ -495,14 +464,10 @@ export default class SelectionAPI  {
     return false;
   }
 
-  /**
-   * Gets the start and end offsets of the current selection
-   * @param container - Container element (uses current element if not provided)
-   * @returns Tuple of [start, end] offsets, or [-1, -1] if invalid
-   */
+  /** @see ISelectionAPI.getOffset */
   getOffset(container?: Node | HTMLElement | null): [number, number] {
     const range = this.getRange();
-    const { element } = this.current();
+    const { element } = this.getState();
     const wrapContainer = container || element || null;
 
     // Validate range and container
@@ -514,8 +479,7 @@ export default class SelectionAPI  {
       return [-1, -1];
     }
 
-    const containerText = wrapContainer.textContent || "",
-      containerLength = containerText.length,
+    const containerLength = getLength(wrapContainer),
       containerRange = document.createRange();
 
     containerRange.selectNodeContents(wrapContainer);
@@ -575,10 +539,7 @@ export default class SelectionAPI  {
     return [start, end];
   }
 
-  /**
-   * Gets the bounding rectangle of the current selection
-   * @returns DOMRect of the selection or null if not available
-   */
+  /** @see ISelectionAPI.getBounds */
   getBounds(): DOMRect | null {
     const range = this.getRange();
 
@@ -587,20 +548,19 @@ export default class SelectionAPI  {
     return range.getBoundingClientRect();
   }
 
-  /**
-   * Gets the bounding rectangle of the first line of selection
-   * Useful for positioning popups and toolbars
-   * @returns DOMRect of the first line or null if not available
-   */
+  /** @see ISelectionAPI.getFirstLineBounds */
   getFirstLineBounds(): DOMRect | null {
     const originalRange = this.getRange();
 
     if (!originalRange) return null;
 
     // Create temporary range for first line
-    const tempRange = document.createRange();
-    tempRange.setStart(originalRange.startContainer, originalRange.startOffset);
-    tempRange.setEnd(originalRange.startContainer, originalRange.startOffset);
+    const tempRange = document.createRange(),
+      start = originalRange.startContainer,
+      end = originalRange.startOffset;
+
+    tempRange.setStart(start, end);
+    tempRange.setEnd(start, end);
 
     const rect = tempRange.getBoundingClientRect();
 

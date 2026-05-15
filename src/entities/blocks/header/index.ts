@@ -18,7 +18,7 @@ export default class Header extends BlockModel  {
       ),
       editable: true,
       visibleTools: true,
-      tools: ["link", "subscript", "superscript", "clearFormatting"],
+      availableTools: ["link", "subscript", "superscript", "clearFormatting"],
       enterCreate: true,
       emptyDetect: true,
       normalize: true,

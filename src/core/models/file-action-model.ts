@@ -8,7 +8,7 @@ import type {
 } from "@/types";
 import BaseModel from "../base/base-model";
 
-export default class FileActionModel extends BaseModel<FileActionElement>  implements IFileActionModel {
+export default class FileActionModel extends BaseModel<FileActionElement> implements IFileActionModel {
   private itemElement?: FileItemElement;
   private blockElement?: BlockElement;
   /**
@@ -22,17 +22,27 @@ export default class FileActionModel extends BaseModel<FileActionElement>  imple
     return super.setup(config) as FileActionModelConstructor;
   }
 
+  /** @see IFileActionModel.getItemElement */
   getItemElement(): FileItemElement | null {
     return this.itemElement || null;
   }
 
-  __setElements(blockElement: BlockElement, itemElement: FileItemElement): void {
-    this.blockElement = blockElement;
-    this.itemElement = itemElement;
-  }
-
+  /** @see IFileActionModel.getItemElement */
   getBlockElement(): BlockElement | null {
     return this.blockElement || null;
+  }
+
+  /**
+   * Sets the block and item elements.
+   * @param blockElement - The block element to set.
+   * @param itemElement - The file item element to set.
+   */
+  __setElements(
+    blockElement: BlockElement,
+    itemElement: FileItemElement
+  ): void {
+    this.blockElement = blockElement;
+    this.itemElement = itemElement;
   }
 
   /**

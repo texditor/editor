@@ -50,7 +50,7 @@ export interface Commands {
    * Flattens nested tags of the same type (e.g., <strong><strong>text</strong></strong>)
    * @param parentElement - Element to process
    */
-  flattenNestedSimilarTags(parentElement: HTMLElement): void;
+  flattenNestedTags(parentElement: HTMLElement): void;
 
   /**
    * Merges adjacent tags of the same type
@@ -88,10 +88,10 @@ export interface Commands {
   /**
    * Finds all tags matching the criteria within the current selection
    * @param tagName - Tag name to find (false for all tags)
-   * @param childrens - Whether to search in child elements
+   * @param children - Whether to search in child elements
    * @returns Array of matching HTML elements
    */
-  findTags(tagName?: string | boolean, childrens?: boolean): HTMLElement[];
+  findTags(tagName?: string | boolean, children?: boolean): HTMLElement[];
 
   /**
    * Determines the direction of selection relative to formatting tags

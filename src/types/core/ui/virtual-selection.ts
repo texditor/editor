@@ -69,34 +69,29 @@ export interface VirtualSelectionOptions {
 export interface VirtualSelection {
     /**
      * Returns array of indices of currently selected blocks.
-     * @returns {number[]} Array of selected block indices
+     * @returns Array of selected block indices
      */
     getSelectedIndices(): number[]
 
     /**
      * Returns array of DOM elements that are currently selected
-     * @returns {HTMLElement[]} Array of selected block elements
+     * @returns Array of selected block elements
      */
     getSelectedBlocks(): HTMLElement[];
 
     /**
      * Clears current selection, removes all selected blocks
-     * @returns {void}
      */
     clearSelection(): void;
 
     /**
      * Refreshes internal blocks cache by querying DOM for current blocks
      * Updates indices and reapplies selection state
-     * @returns {void}
      */
     refreshBlocks(): void;
 
     /**
      * Destroys the VirtualSelection instance
-     * Removes all event listeners, DOM elements, and observers
-     * Performs cleanup to prevent memory leaks
-     * @returns {void}
      */
     destroy(): void;
 }

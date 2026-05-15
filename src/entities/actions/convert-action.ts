@@ -9,9 +9,7 @@ import { rebind } from "@/utils/events";
 import { renderIcon } from "@/utils";
 
 /** Convert a block */
-export default class ConvertAction
-  extends ActionModel
-   {
+export default class ConvertAction extends ActionModel {
   protected configure(): Partial<ActionModelConfig> {
     return {
       name: 'convertAction',
@@ -20,6 +18,7 @@ export default class ConvertAction
       dropdown: true
     }
   }
+
   protected dropdown(): HTMLElement {
     const { blockManager } = this.editor;
     const blockElement = this.getBlockElement(),
