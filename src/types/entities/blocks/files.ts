@@ -2,6 +2,7 @@ import {
   BlockModelConfig,
   BlockModel,
   FileActionModelConstructor,
+  FileActionModel,
 } from "../../";
 
 import {
@@ -153,43 +154,43 @@ export interface FilesBlockModel extends BlockModel {
 
   /**
    * Checks if the file name is required
-   * @returns {boolean} `true` if required, `false` otherwise
+   * @returns True if required, `false` otherwise
    */
   isRequiredFieldFileName(): boolean;
 
   /**
  * Checks if the caption is required
- * @returns {boolean} `true` if required, `false` otherwise
+ * @returns True if required, `false` otherwise
  */
   isRequiredFieldCaption(): boolean;
 
   /**
   *Checks if the description is required
-  * @returns {boolean} `true` if required, `false` otherwise
+  * @returns True if required, `false` otherwise
   */
   isRequiredFieldDesc(): boolean;
 
   /**
    * Checks if the file name is visible
-   * @returns {boolean} `true` if visible, `false` otherwise
+   * @returns True if visible, `false` otherwise
    */
   isVisibleFieldFileName(): boolean;
 
   /**
  * Checks if the caption is visible
- * @returns {boolean} `true` if visible, `false` otherwise
+ * @returns True if visible, `false` otherwise
  */
   isVisibleFieldCaption(): boolean;
 
   /**
   *Checks if the description is visible
-  * @returns {boolean} `true` if visible, `false` otherwise
+  * @returns True if visible, `false` otherwise
   */
   isVisibleFieldDesc(): boolean;
 
   /**
    * Checks if the image should be rendered.
-   * @returns {boolean} True if ready, false otherwise.
+   * @returns True if ready, false otherwise.
    */
   isRenderImage(): boolean;
 
@@ -220,4 +221,16 @@ export interface FilesBlockModel extends BlockModel {
    * @param count - Optional count override
    */
   refreshCount(count?: number): void;
+
+  /**
+   * Get the counter DOM element
+   * @returns Counter element or null
+   */
+  getCounterNode(): HTMLElement | null;
+
+  /** 
+   * Get action models with a file.
+   * @returns List of file action models
+   */
+  getFileActions(): FileActionModel[];
 }

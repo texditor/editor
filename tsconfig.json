@@ -7,32 +7,18 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "declaration": true,
-    "emitDeclarationOnly": true,
-    "declarationDir": "./dist/types",
-    "lib": [
-      "dom",
-      "es2017",
-      "es2018",
-      "es2019"
-    ],
+    "declarationMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "types": [
-      "vite/client"
-    ]
+    "types": ["vite/client"],
+    "ignoreDeprecations": "5.0"
   },
-  "include": [
-    "src/**/*",
-    "demo/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "demo"]
 }

@@ -20,7 +20,7 @@ export interface ConfigOptions {
   onChange?: CallableFunction;
 
   /** Initial data to populate the editor */
-  initalData?: object[] | string;
+  content?: object[] | string;
 
   /** Array of block model instances available in the editor */
   blocks?: BlockModelConstructor[];

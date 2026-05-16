@@ -124,7 +124,7 @@ export default class Tools implements ITools {
             rect.top +
             contextMenuRect.y -
             rect.top +
-            rect.height / 2 - 10;
+            rect.height / 2;
         } else
           toolsTop =
             rect.top - (toolsNode.clientHeight) - rect.height / 2;

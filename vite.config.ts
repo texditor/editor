@@ -1,14 +1,9 @@
 import path from "path";
+import { defineConfig } from 'vite';
 import dts from "vite-plugin-dts";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
-type AssetInfo = {
-  name: string;
-  source: string | Uint8Array;
-  type: "asset";
-};
-
-export default {
+export default defineConfig({
   build: {
     copyPublicDir: false,
     lib: {
@@ -36,7 +31,7 @@ export default {
         entryFileNames: ({ name }: { name: string }) => {
           return name === "main" ? "texditor.mjs" : `${name}.mjs`;
         },
-        assetFileNames: (assetInfo: AssetInfo) => {
+        assetFileNames: (assetInfo: { name?: string }) => {
           if (assetInfo.name?.endsWith(".css")) {
             return `styles/[name][extname]`;
           }
@@ -50,7 +45,6 @@ export default {
       "@": path.resolve(__dirname, "src")
     }
   },
-
   plugins: [
     viteStaticCopy({
       targets: [
@@ -63,16 +57,16 @@ export default {
     dts({
       insertTypesEntry: true,
       include: ["src"],
-      outDir: "dist/types",
+      outDir: "dist",
       entryRoot: "src",
       rollupTypes: false,
-      copyDtsFiles: true
+      copyDtsFiles: true,
+      staticImport: true
     })
   ],
-
   server: {
     port: 3232,
     cors: true,
     host: true
   }
-};
+});

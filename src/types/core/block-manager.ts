@@ -3,28 +3,24 @@ import { VirtualSelection } from "./ui/virtual-selection";
 
 export interface BlockManager {
   /**
-   * Creates or recreates the VirtualSelection instance with current options
-   * If an instance already exists, it will be destroyed first
-   * @returns {VirtualSelection | null}
+   * Recreates the VirtualSelection instance with current options.
+   * @returns The new VirtualSelection instance, or null.
    */
   refreshVirtualSelection(): VirtualSelection | null;
 
   /**
    * Returns the current VirtualSelection instance if it exists
-   * @returns {VirtualSelection | null} 
+   * @returns The new VirtualSelection instance, or null.
    */
   getVirtualSelection(): VirtualSelection | null;
 
   /**
   * Clear Selection UI
-   * @returns {void}
   */
   clearVirtualSelection(): void
 
   /**
    * Destroys the current VirtualSelection instance if it exists
-   * Removes all event listeners and performs cleanup
-   * @returns {void}
    */
   destroyVirtualSelection(): void;
 

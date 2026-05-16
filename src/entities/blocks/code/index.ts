@@ -262,25 +262,25 @@ export default class Code extends BlockModel {
   }
 
   /**
-   * Saves code block data to schema
-   * @param block - Block schema
-   * @param blockElement - Block DOM element
-   * @returns Populated block schema
+   * Saves block data to output format
+   * @param blockSchema - Block schema
+   * @param _blockElement - Block element
+   * @returns The modified block output.
    */
-  protected save(block: BlockSchema, blockElement?: BlockElement): BlockSchema {
+  protected save(blockSchema: BlockSchema, blockElement?: BlockElement): BlockSchema {
     const { blockManager } = this.editor;
     const contentElement = blockManager.getContentElement(blockElement);
 
     if (contentElement && !isEmptyString(getText(contentElement))) {
-      block.data = [getText(contentElement)];
+      blockSchema.data = [getText(contentElement)];
 
       const lang = this.getOption('lang', '');
 
       if (lang)
-        block.lang = lang;
+        blockSchema.lang = lang;
     }
 
-    return block;
+    return blockSchema;
   }
 
   /**

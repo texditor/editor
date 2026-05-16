@@ -107,7 +107,6 @@ export default class Texditor implements ITexditor {
   }
 
   /**
-   * Gets the root element of the editor
    * @see ITexditor.getRoot
    */
   getRoot(): HTMLElement | null {
@@ -119,7 +118,6 @@ export default class Texditor implements ITexditor {
   }
 
   /**
-   * Checks if the editor is empty (no content)
    * @see ITexditor.isEmpty
    */
   isEmpty(): boolean {
@@ -134,7 +132,6 @@ export default class Texditor implements ITexditor {
   }
 
   /**
-   * Sets the editor content
    * @see ITexditor.setContent
    */
   setContent(
@@ -208,7 +205,6 @@ export default class Texditor implements ITexditor {
   }
 
   /**
-   * Gets the current editor content
    * @see ITexditor.getContent
    */
   getContent(): BlockSchema[] {
@@ -216,8 +212,6 @@ export default class Texditor implements ITexditor {
   }
 
   /**
-   * Saves the current editor state to a serializable format
-   * Triggers 'save', 'saveEach', 'saveEachEnd', and 'saveEnd' events
    * @see ITexditor.save
    */
   save(): BlockSchema[] {
@@ -296,9 +290,6 @@ export default class Texditor implements ITexditor {
   }
 
   /**
-   * Completely destroys the editor instance
-   * Cleans up all event listeners, removes DOM elements,
-   * and destroys all sub-components (actions, blocks, tools, etc.)
    * @see ITexditor.destroy
    */
   destroy(): void {
@@ -336,9 +327,9 @@ export default class Texditor implements ITexditor {
     });
 
     if (editorElement) {
-      const initalData = config.get('initalData', []) as string | BlockSchema[];
+      const content = config.get('content', []) as string | BlockSchema[];
       this.setContent(
-        initalData,
+        content,
         config.get("autofocus", true) ? 0 : -1,
         config.get('autofocusDelay', 10)
       );

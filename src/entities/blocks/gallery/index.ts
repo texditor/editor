@@ -5,9 +5,18 @@ import type {
   FileItem,
   GalleryBlockModelConfig,
   Slider as ISlider,
-  TexditorEvent
+  TexditorEvent,
+  GalleryBlockModel,
+  BlockSchema,
+  BlockSchemaData
 } from "@/types";
-import { IconImage, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from "@/icons";
+import {
+  IconImage,
+  IconMultipleGrid,
+  IconPlay,
+  IconSingleGrid,
+  IconSlider
+} from "@/icons";
 import {
   addClass,
   append,
@@ -24,7 +33,7 @@ import {
 import Slider from "@/core/ui/slider";
 import "@/styles/blocks/gallery.css";
 
-export default class Gallery extends Files {
+export default class Gallery extends Files implements GalleryBlockModel {
   private defaultStyles: string[] = ["grid", "slider", "single"];
   private slider?: ISlider | null = null;
 
@@ -39,6 +48,10 @@ export default class Gallery extends Files {
     return super.setup(config);
   }
 
+  /**
+   * Configure block model
+   * @returns Partial configuration object
+   */
   protected configure(): Partial<GalleryBlockModelConfig> {
     return {
       ...super.configure(),
@@ -73,8 +86,12 @@ export default class Gallery extends Files {
     };
   }
 
-  protected onMount(node: BlockElement): void {
-    super.onMount(node);
+  /**
+   * Hook called after mounting to the DOM
+   * @param _el - The mounted DOM element
+   */
+  protected onMount(el: BlockElement): void {
+    super.onMount(el);
     this.initSlider();
     this.addEvent('onChange.gallery', (evt: TexditorEvent) => {
       const index = (evt?.targetIndex || 0) as number;
@@ -82,14 +99,7 @@ export default class Gallery extends Files {
     })
   }
 
-  isAllowedStyles(): boolean {
-    const styles = this.getConfig("styles", []) as string[];
-
-    return (styles).every((key: string) =>
-      this.defaultStyles.includes(key)
-    );
-  }
-
+  /** @see GalleryBlockModel.getDefaultStyle */
   getDefaultStyle(): string {
     const defaultStyle = this.getConfig("defaultStyle", []) as string;
 
@@ -98,13 +108,31 @@ export default class Gallery extends Files {
     return defaultStyle;
   }
 
+  /** @see GalleryBlockModel.getStyles */
+  getStyles(): string[] {
+    return this.getConfig('styles', []) as string[];
+  }
+
+  /** @see GalleryBlockModel.areStylesAllowed */
+  areStylesAllowed(): boolean {
+    const styles = this.getStyles();
+
+    return (styles).every((key: string) =>
+      this.defaultStyles.includes(key)
+    );
+  }
+
+  /**
+ * Hook called after form element creation
+  * @param form - Form element
+  */
   protected onFormCreate(form: HTMLElement): void {
     const { blockManager, events, i18n } = this.editor,
       ltr = this.getConfig("stylesLtr", "left"),
       styles = this.getConfig("styles", []) as string[],
       blockElement = this.getElement();
 
-    if (this.isAllowedStyles()) {
+    if (this.areStylesAllowed()) {
       const saveActiveItem = (code: string) => {
         if (styles.includes(code)) {
           query(
@@ -192,6 +220,10 @@ export default class Gallery extends Files {
     }
   }
 
+  /**
+   * Hook called before list element creation
+   * @param _contentElement - Content node element
+   */
   protected onCreateList(_contentElement: HTMLElement): void {
     const styles = this.getStyles(),
       blockElement = this.getElement(),
@@ -240,20 +272,37 @@ export default class Gallery extends Files {
     );
   }
 
-  /** @see GalleryBlockModel.getStyles */
-  getStyles(): string[] {
-    return this.getConfig('styles', []) as string[];
+  /**
+   * Saves block data to output format
+   * @param blockSchema - Block schema
+   * @param blockElement - Block element
+   * @returns The modified block output
+   */
+  protected save(blockSchema: BlockSchema, blockElement?: BlockElement): BlockSchema {
+    blockSchema = super.save(blockSchema, blockElement);
+    const data = (blockSchema?.data as FileItem[]),
+      resultData: FileItem[] = [];
+
+    if (data.length && Array.isArray(data)) {
+      data.forEach((item: FileItem) => {
+        if (item.size)
+          delete item.size;
+
+        if (item.id)
+          delete item.id;
+        resultData.push(item);
+      });
+
+      blockSchema.data = resultData as BlockSchemaData;
+    }
+    return blockSchema;
   }
 
-  /** @see GalleryBlockModel.areStylesAllowed */
-  areStylesAllowed(): boolean {
-    const styles = this.getStyles();
-
-    return (styles).every((key: string) =>
-      this.defaultStyles.includes(key)
-    );
-  }
-
+  /**
+   * Initialize the slider
+   * 
+   * @param index - Starting slide index (default: 0)
+   */
   protected initSlider(index: number = 0) {
     const blockElement = this.getElement(),
       contentElement = this.getContentElement();
@@ -275,6 +324,9 @@ export default class Gallery extends Files {
     }
   }
 
+  /**
+   * Destroys the current slider instance
+   */
   private destroySlider() {
     if (this.slider) {
       this.slider.destroy();

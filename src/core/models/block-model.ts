@@ -284,7 +284,6 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   protected refreshSortableItems(): void {
     const { blockManager, selectionApi } = this.editor;
     if (this.isSortableItems()) {
-
       if (this.sortableItems) {
         this.sortableItems.destroy();
       }
@@ -604,9 +603,14 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     return node;
   }
 
+  /** @see IBlockModel.isSanitizer */
+  isSanitizer(): boolean {
+    return this.getConfig("sanitizer", false);
+  }
+
   /** @see IBlockModel.sanitize */
   sanitize(): void {
-    if (this.getConfig("sanitizer", false)) {
+    if (this.isSanitizer()) {
       const container = this.toSanitize();
 
       if (container || Array.isArray(container)) {
@@ -997,15 +1001,15 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /**
    * Saves block data to output format.
-   * @param block - Block output object.
-   * @param _blockElement - Block node (unused).
+   * @param blockSchema - Block schema
+   * @param _blockElement - Block element
    * @returns The modified block output.
    */
   protected save(
-    block: BlockSchema,
+    blockSchema: BlockSchema,
     _blockElement?: BlockElement
   ): BlockSchema {
-    return block;
+    return blockSchema;
   }
 
   /**
@@ -1029,7 +1033,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   }
 
   /**
-   * Performs post-creation initialization
+   * Parent hook called after mounting to the DOM
    */
   protected parentOnMount(): void {
     this.refreshSortableItems();
@@ -1354,7 +1358,14 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     return this.afterConvert(newBlockElement);
   }
 
+  /**
+   * Parent hook called before the element is destroyed
+   */
   protected parentDestroy(): void {
+    if (this.sortableItems) {
+      this.sortableItems.destroy();
+      this.sortableItems = null
+    }
     const eid = this.getEventId();
     off(document, "click.actions" + eid);
   }

@@ -143,7 +143,7 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
 
   /**
    * Checks if the attribute title is configured to be always visible.
-   * @returns {boolean} True if the 'attributeTitle' config option is enabled, false otherwise.
+   * @returns True if the 'attributeTitle' config option is enabled, false otherwise.
    */
   isAttributeTitle(): boolean
 

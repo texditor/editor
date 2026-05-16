@@ -200,7 +200,7 @@ export interface BlockModel extends BaseModel<BlockElement> {
 
   /**
  * Get the name of the drag zone class
- * @returns {string} Name of the drag zone class
+ * @returns Name of the drag zone class
  */
   getDragZoneClassName(): string
 
@@ -346,6 +346,11 @@ export interface BlockModel extends BaseModel<BlockElement> {
    */
   getAvailableTools(): string[];
 
+  /**
+   * Checks if the sanitizer is enabled
+   * @returns True if the sanitizer is enabled
+   */
+  isSanitizer(): boolean;
   /**
    * Sanitize block content 
    */

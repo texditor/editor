@@ -9,6 +9,7 @@ import {
   off,
   on,
   query,
+  remove,
   removeClass
 } from '@/utils';
 
@@ -32,6 +33,12 @@ export default class VirtualSelection implements IVirtualSelection {
   // Touch delay
   private touchDelayTimeout: number | null = null;
   private pendingLassoActivation = false;
+
+  // Optimization: requestAnimationFrame
+  private rafId: number | null = null;
+  private needsUpdate = false;
+  private cachedLassoRect: DOMRect | null = null;
+  private cachedSelectedIndices: Set<number> = new Set();
 
   constructor(options: VirtualSelectionOptions) {
     this.options = {
@@ -155,8 +162,9 @@ export default class VirtualSelection implements IVirtualSelection {
 
   /** @see IVirtualSelection.refreshBlocks */
   refreshBlocks(): void {
-    this.blocks = [];
-
+    // Clear old references
+    this.blocks.length = 0;
+    
     query(
       this.options.blockSelector,
       (block: HTMLElement) => {
@@ -172,10 +180,20 @@ export default class VirtualSelection implements IVirtualSelection {
    * Creates the visual selection rectangle element for lasso selection.
    */
   private createElements(): void {
+    if (this.selectionRect) {
+      if (this.selectionRect.parentNode) {
+        remove(this.selectionRect)
+      }
+      this.selectionRect = null;
+    }
+
     this.selectionRect = make(
       'div',
-      (div: HTMLDivElement) =>
-        addClass(div, 'tex-ui-vs-rect')
+      (div: HTMLDivElement) => {
+        addClass(div, 'tex-ui-vs-rect');
+        // Initialize with display none
+        css(div, { display: 'none' });
+      }
     );
 
     append(document.body, this.selectionRect);
@@ -261,7 +279,7 @@ export default class VirtualSelection implements IVirtualSelection {
       if (scrollY !== 0) {
         window.scrollBy(0, scrollY);
         this.currentPointInDocument.y += scrollY;
-        this.updateLassoSelection();
+        this.scheduleUpdate();
       }
     }, 16);
   }
@@ -303,12 +321,94 @@ export default class VirtualSelection implements IVirtualSelection {
     this.isLassoActive = false;
 
     this.stopAutoScroll();
+    this.cancelRAF();
 
     this.options.onLassoEnd();
 
     if (this.selectionRect) {
       css(this.selectionRect, 'display', 'none');
     }
+
+    // Clear cached data
+    this.cachedLassoRect = null;
+    this.cachedSelectedIndices.clear();
+  }
+
+  /**
+   * Schedules an update via requestAnimationFrame to batch DOM changes
+   */
+  private scheduleUpdate(): void {
+    if (this.needsUpdate) return;
+    
+    this.needsUpdate = true;
+    
+    if (this.rafId === null) {
+      this.rafId = requestAnimationFrame(() => {
+        this.rafId = null;
+        this.needsUpdate = false;
+        this.performUpdate();
+      });
+    }
+  }
+
+  /**
+   * Performs the actual DOM update (batched via RAF)
+   */
+  private performUpdate(): void {
+    if (!this.isLassoActive) return;
+
+    // Reuse the same rect object to reduce garbage collection
+    if (!this.cachedLassoRect) {
+      this.cachedLassoRect = new DOMRect();
+    }
+
+    const rect = this.cachedLassoRect;
+    rect.x = Math.min(this.startPointInDocument.x, this.currentPointInDocument.x);
+    rect.y = Math.min(this.startPointInDocument.y, this.currentPointInDocument.y);
+    rect.width = Math.abs(this.currentPointInDocument.x - this.startPointInDocument.x);
+    rect.height = Math.abs(this.currentPointInDocument.y - this.startPointInDocument.y);
+
+    // Reuse the same set to reduce garbage collection
+    this.cachedSelectedIndices.clear();
+
+    this.blocks.forEach((b, i) => {
+      const fullRect = this.getFullBlockRect(b);
+
+      if (!(rect.right < fullRect.left || rect.left > fullRect.right ||
+        rect.bottom < fullRect.top || rect.top > fullRect.bottom)) {
+        this.cachedSelectedIndices.add(i);
+      }
+    });
+
+    // Only update if selection changed
+    if (!this.areSetsEqual(this.selectedIndices, this.cachedSelectedIndices)) {
+      this.selectedIndices = new Set(this.cachedSelectedIndices);
+      this.updateBlocksVisuals();
+    }
+
+    this.updateSelectionRect();
+  }
+
+  /**
+   * Compares two sets for equality
+   */
+  private areSetsEqual(a: Set<number>, b: Set<number>): boolean {
+    if (a.size !== b.size) return false;
+    for (const item of a) {
+      if (!b.has(item)) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Cancels pending requestAnimationFrame
+   */
+  private cancelRAF(): void {
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    this.needsUpdate = false;
   }
 
   /**
@@ -327,6 +427,7 @@ export default class VirtualSelection implements IVirtualSelection {
       this.currentPointInDocument.y
     );
 
+    // Batch CSS changes to reduce reflows
     css(this.selectionRect, {
       display: 'block',
       left: Math.min(start.x, current.x) + 'px',
@@ -343,27 +444,7 @@ export default class VirtualSelection implements IVirtualSelection {
   private updateLassoSelection(): void {
     if (!this.isLassoActive) return;
 
-    const rect = new DOMRect(
-      Math.min(this.startPointInDocument.x, this.currentPointInDocument.x),
-      Math.min(this.startPointInDocument.y, this.currentPointInDocument.y),
-      Math.abs(this.currentPointInDocument.x - this.startPointInDocument.x),
-      Math.abs(this.currentPointInDocument.y - this.startPointInDocument.y)
-    );
-
-    const selected = new Set<number>();
-
-    this.blocks.forEach((b, i) => {
-      const fullRect = this.getFullBlockRect(b);
-
-      if (!(rect.right < fullRect.left || rect.left > fullRect.right ||
-        rect.bottom < fullRect.top || rect.top > fullRect.bottom)) {
-        selected.add(i);
-      }
-    });
-
-    this.selectedIndices = selected;
-    this.updateBlocksVisuals();
-    this.updateSelectionRect();
+    this.scheduleUpdate();
   }
 
   /**
@@ -374,8 +455,15 @@ export default class VirtualSelection implements IVirtualSelection {
     const cls = this.options.selectedBlockClass;
 
     this.blocks.forEach((b, i) => {
-      if (this.selectedIndices.has(i)) addClass(b, cls);
-      else removeClass(b, cls);
+      if (this.selectedIndices.has(i)) {
+        if (!b.classList.contains(cls)) {
+          addClass(b, cls);
+        }
+      } else {
+        if (b.classList.contains(cls)) {
+          removeClass(b, cls);
+        }
+      }
     });
 
     if (!skipEvents) {
@@ -458,6 +546,8 @@ export default class VirtualSelection implements IVirtualSelection {
       clearTimeout(this.touchDelayTimeout);
       this.touchDelayTimeout = null;
     }
+
+    this.cancelRAF();
   }
 
   /**
@@ -583,6 +673,7 @@ export default class VirtualSelection implements IVirtualSelection {
     this.startBlock = null;
 
     this.setTouchAction('pan-y');
+    this.cancelRAF();
   }
 
   /** @see IVirtualSelection.getSelectedIndices */
@@ -606,6 +697,7 @@ export default class VirtualSelection implements IVirtualSelection {
   /** @see IVirtualSelection.destroy */
   destroy(): void {
     this.stopAutoScroll();
+    this.cancelRAF();
 
     if (this.touchDelayTimeout) {
       clearTimeout(this.touchDelayTimeout);
@@ -625,6 +717,14 @@ export default class VirtualSelection implements IVirtualSelection {
     if (this.selectionRect?.parentNode) {
       this.selectionRect.parentNode.removeChild(this.selectionRect);
     }
+    this.selectionRect = null;
+
+    // Clear all references to help garbage collection
+    this.blocks.length = 0;
+    this.selectedIndices.clear();
+    this.cachedSelectedIndices.clear();
+    this.cachedLassoRect = null;
+    this.startBlock = null;
 
     // Restore touch-action on destroy
     this.setTouchAction('pan-y');

@@ -108,7 +108,7 @@ export default class BlockManager implements IBlockManager {
   clearVirtualSelection(): void {
     const virtualSelection = this.getVirtualSelection();
 
-    if (virtualSelection) 
+    if (virtualSelection)
       virtualSelection.clearSelection();
   }
 
@@ -309,7 +309,7 @@ export default class BlockManager implements IBlockManager {
           removeClass(blockElement, cssName + "-active");
           tools.hide();
         }
-      });
+      }, true);
     }
   }
 
@@ -1296,7 +1296,7 @@ export default class BlockManager implements IBlockManager {
     this.getModels().forEach((model) => model.destroy());
     this.getSchemas().forEach((schema) => schema.model.destroy());
 
-    off(document, 'click.notActive' + this.eventId);
+    off(document, 'click.notActive' + this.eventId, true);
     this.destroyVirtualSelection();
   }
 }

@@ -6,7 +6,7 @@ import { IconDownload } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
 import { attr } from "@/utils";
 
-export default class DownloadFileAction extends FileActionModel  {
+export default class DownloadFileAction extends FileActionModel {
   protected configure(): Partial<FileActionModelConfig> {
     return {
       name: 'download',
@@ -41,6 +41,10 @@ export default class DownloadFileAction extends FileActionModel  {
     }
   }
 
+  /**
+   * Hook called after mounting to the DOM
+   * @param _el - The mounted DOM element
+   */
   protected onMount(node: FileActionElement): void {
     const itemElement = this.getItemElement();
 

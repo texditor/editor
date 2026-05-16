@@ -170,8 +170,7 @@
 }
 
 .tex-files-actions-wrap {
-  backdrop-filter: blur(8px);
-  background: var(--tex-background-blur);
+  background: var(--tex-background-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -181,7 +180,6 @@
 }
 
 .tex-files-actions-list {
-  backdrop-filter: blur(18px);
   background: var(--tex-background);
   border-radius: 6px;
   display: flex;
@@ -284,8 +282,7 @@
 }
 
 .tex-files-edit-popup-overlay {
-  background: var(--tex-background-blur);
-  backdrop-filter: blur(10px);
+  background: var(--tex-background-overlay);
   padding: 16px;
   display: flex;
   justify-content: center;

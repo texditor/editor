@@ -194,6 +194,7 @@
   position: fixed;
   top: 0;
   left: 0;
+  z-index: 1000;
 }
 
 .tex-tools-list {
@@ -318,7 +319,6 @@
   z-index: 1000;
   margin-top: 12px;
   background: var(--tex-extensions-fixed-bg);
-  backdrop-filter: blur(var(--tex-extensions-fixed-blur));
   box-shadow: 0 2px 5px var(--tex-shadow-color);
   padding: 10px 12px;
   border-radius: 6px;

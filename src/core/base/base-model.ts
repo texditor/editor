@@ -20,6 +20,9 @@ import {
 } from "@/utils";
 import EventManager from "./event-manager";
 
+/**
+ * Base model class providing core functionality, event management and lifecycle hooks
+ */
 export default class BaseModel<TElement extends BaseElement = BaseElement> extends EventManager implements IBaseModel {
   /** Global user configuration for all model instances */
   private static userConfig: Partial<BaseModelConfig> = {};
@@ -302,14 +305,14 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   }
 
   /**
-   * Performs initialization of the current class after mounting to the DOM tree
-   * @param _el - The DOM element that was mounted
+   * Hook called after mounting to the DOM
+   * @param _el - The mounted DOM element
    */
   protected onMount(_el: TElement): void { }
 
   /**
-   * Performs initialization of the parent class after mounting to the DOM tree
-   * @param _el - The DOM element that was mounted
+   * Parent hook called after mounting to the DOM
+   * @param _el - The mounted DOM element
    */
   protected parentOnMount(_el: TElement): void { }
 
@@ -417,7 +420,9 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   /** @see IBaseModel.destroy */
   destroy(): void { }
 
-  /** Base class cleanup logic. */
+  /**
+   * Parent hook called before the element is destroyed
+   */
   protected parentDestroy(): void { }
 
   /** Internal destroy routine: cleans up parent, then fires the destroy event. */

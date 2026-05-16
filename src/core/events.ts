@@ -528,9 +528,9 @@ export default class Events extends EventManager implements IEvents {
   }
 
   /**
-   * Preparing a data map for text insertion.
-   * @param childNodes 
-   * @returns {PasteMap}
+   * Builds a structured paste map from child nodes, classifying them as blocks, text nodes, or generic nodes.
+   * @param childNodes - The child nodes to process.
+   * @returns A paste map with the determined schema and classified items.
    */
   private createPasteMap(childNodes: Node[]): PasteMap {
     const { blockManager } = this.editor;

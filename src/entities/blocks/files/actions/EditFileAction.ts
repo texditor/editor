@@ -23,7 +23,7 @@ import { executeMethodIfExists, generateRandomString } from "@/utils";
  * Handles the "edit" action for file items.
  * Creates a popup form to edit file name, caption, and description.
  */
-export default class EditFileAction extends FileActionModel  {
+export default class EditFileAction extends FileActionModel {
   /** Reference to the popup DOM element */
   private popupNode: HTMLElement | null = null;
   /** Stores timeout IDs for error message hiding */
@@ -172,7 +172,7 @@ export default class EditFileAction extends FileActionModel  {
         // Close popup when clicking outside
         on(document, 'click.efa' + eid, (evt: MouseEvent) => {
           if (!closest(evt.target, popup)) {
-            off(document, 'click.efa' + eid);
+            off(document, 'click.efa' + eid, true);
             this.removePopup();
           }
         }, true)
@@ -230,7 +230,7 @@ export default class EditFileAction extends FileActionModel  {
     const reqName = requiredStatus('fileName'),
       reqCaption = requiredStatus('caption'),
       reqDesc = requiredStatus('desc');
-      
+
     if (!reqName || !reqCaption || !reqDesc) return;
 
     const saveField = (name: string) => {
@@ -242,13 +242,13 @@ export default class EditFileAction extends FileActionModel  {
         if (input) {
           const value = input.value || '';
 
+          Object.defineProperty(itemElement, "file" + name.charAt(0).toUpperCase() + name.slice(1), {
+            value: value,
+            writable: true,
+          });
+
           query(".tex-file-" + name, (el: HTMLElement) => {
             el.textContent = value;
-
-            Object.defineProperty(itemElement, "file" + name.charAt(0).toUpperCase() + name.slice(1), {
-              value: value,
-              writable: true,
-            });
           }, itemElement);
         }
       }
@@ -270,7 +270,7 @@ export default class EditFileAction extends FileActionModel  {
   /** Removes the popup and cleans up event listeners */
   private removePopup(): void {
     const eid = this.getEventId();
-    off(document, "click.efa" + eid);
+    off(document, "click.efa" + eid, true);
     off(window, "resize.efa" + eid);
     this.popupNode?.remove();
     this.popupNode = null;

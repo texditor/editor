@@ -4,7 +4,7 @@ import { addClass, append, executeMethodIfExists, make, query, queryLength } fro
 export default function ExtensionsView(
   editor: Texditor
 ): HTMLElement | Node {
-  const { config, extensions } = editor,
+  const { extensions } = editor,
     cssName = 'tex-extensions',
     extensionList = extensions.getExtensions();
 

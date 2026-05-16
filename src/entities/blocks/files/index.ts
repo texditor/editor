@@ -10,7 +10,8 @@ import type {
   AjaxOptions,
   FilesAjaxResponse,
   FileActionModelConstructor,
-  FileActionModel
+  FileActionModel,
+  FilesBlockModel
 } from "@/types";
 import {
   IconClose,
@@ -58,7 +59,7 @@ export {
   EditFileAction
 };
 
-export default class Files extends BlockModel  {
+export default class Files extends BlockModel implements FilesBlockModel {
   /** Form container element */
   private formNode: HTMLElement | null = null;
   /** Toast notifications container */
@@ -331,6 +332,7 @@ export default class Files extends BlockModel  {
    * Get the counter DOM element
    * @returns Counter element or null
    */
+  /** @see FilesBlockModel.getCounterNode */
   getCounterNode(): HTMLElement | null {
     return this.counterNode;
   }
@@ -408,8 +410,7 @@ export default class Files extends BlockModel  {
    * @returns Form element
    */
   protected createForm(): HTMLElement {
-    const isMultiple = this.getConfig("multiple", true),
-      id = generateRandomString(16),
+    const id = generateRandomString(16),
       itemsLength = this.getOption("data", [])?.length || 0;
 
     return make("div", (form: HTMLElement) => {
@@ -878,6 +879,7 @@ export default class Files extends BlockModel  {
     }
   }
 
+  /** @see FilesBlockModel.getFileActions */
   getFileActions(): FileActionModel[] {
     return this.fileActions;
   }
@@ -1079,14 +1081,14 @@ export default class Files extends BlockModel  {
   }
 
   /**
-   * Save block data to schema
-   * @param block - Block schema object
-   * @param node - Optional block node
-   * @returns Updated block schema
+   * Saves block data to output format
+   * @param blockSchema - Block schema
+   * @param blockElement - Block element
+   * @returns The modified block output.
    */
-  protected save(block: BlockSchema, node?: BlockElement): BlockSchema {
-    const root = node || this.getElement();
-    block.data = [];
+  protected save(blockSchema: BlockSchema, blockElement?: BlockElement): BlockSchema {
+    const root = blockElement || this.getElement();
+    blockSchema.data = [];
 
     if (root) {
       query(
@@ -1107,13 +1109,13 @@ export default class Files extends BlockModel  {
           const fileItem = preparedItem;
 
           if (fileItem.url && fileItem.type) {
-            (block?.data as FileItem[])?.push(fileItem);
+            (blockSchema?.data as FileItem[])?.push(fileItem);
           }
         },
         root
       );
     }
-    return block;
+    return blockSchema;
   }
 
   /**
