@@ -83,14 +83,16 @@ export function hasClass(
 export function setClass(
   el: HTMLElement,
   className: string,
-  active: boolean | number = true
+  active: boolean = true
 ) {
   let name = el?.className || '';
 
   if (el) {
     if (active) {
       if (!hasClass(el, className)) name += " " + className;
-    } else if (hasClass(el, className)) name = replacement(className, "", name);
+    } else if (hasClass(el, className)) {
+      name = replacement(className, "", name);
+    }
 
     el.className = name.trim();
   }
@@ -111,7 +113,7 @@ export function addClass(el: HTMLElement, className: string) {
  * @param className - CSS class name
  */
 export function removeClass(el: HTMLElement, className: string) {
-  setClass(el, className, 0);
+  setClass(el, className, false);
 }
 
 /**
@@ -571,11 +573,11 @@ export function parseHtml(html: string, stripFragment: boolean = false): Node[] 
     input = stripFragment ? stripFragmentTags(html) : html;
 
   const doc = parser.parseFromString(
-    `<parser-rawblock>${input}</parser-rawblock>`,
+    `<parser-raw-block>${input}</parser-raw-block>`,
     "text/html"
   );
 
-  const node = doc.querySelector("parser-rawblock");
+  const node = doc.querySelector("parser-raw-block");
 
   if (!node)
     return [];

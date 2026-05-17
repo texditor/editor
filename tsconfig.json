@@ -9,7 +9,8 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
@@ -17,8 +18,8 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "types": ["vite/client"],
-    "ignoreDeprecations": "5.0"
+    "ignoreDeprecations": "6.0"
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "demo"]
+  "include": ["src/**/*", "app/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

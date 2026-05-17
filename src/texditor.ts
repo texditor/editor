@@ -11,7 +11,8 @@ import type {
   BlockSchema,
   BlockSchemaData,
   ConfigOptions,
-  Texditor as ITexditor
+  Texditor as ITexditor,
+  TexditorRootElement
 } from "./types";
 import Events from "@/core/events";
 import BlockManager from "@/core/block-manager";
@@ -67,7 +68,7 @@ export default class Texditor implements ITexditor {
   extensions: IExtensions;
 
   /** Root HTML element where the editor is mounted */
-  private rootElement?: HTMLElement;
+  private rootElement?: TexditorRootElement;
 
   /**
    * Creates a new Texditor instance
@@ -91,7 +92,7 @@ export default class Texditor implements ITexditor {
    */
   private ready() {
     setTimeout(() => {
-      executeMethodIfExists(this, '__mount');
+      this.mount()
       this.historyManager.save();
       executeMethodIfExists(this.extensions, '__apply');
 
@@ -109,10 +110,11 @@ export default class Texditor implements ITexditor {
   /**
    * @see ITexditor.getRoot
    */
-  getRoot(): HTMLElement | null {
+  getRoot(): TexditorRootElement | null {
     const root = this.rootElement || null;
 
-    if (!root) throw new Error("The root element of the editor was not found.");
+    if (!root)
+      throw new Error("The root element of the editor was not found.");
 
     return root;
   }
@@ -300,7 +302,9 @@ export default class Texditor implements ITexditor {
       historyManager,
       tools
     } = this;
-    if (this.rootElement) this.rootElement.innerHTML = "";
+    if (this.rootElement)
+      html(this.rootElement, "");
+
     blockManager.destroy();
     events.destroy();
     extensions.destroy();
@@ -312,22 +316,33 @@ export default class Texditor implements ITexditor {
    * Renders the editor in the DOM
    * @throws Error if editor ID is not found
    */
-  __mount(): void {
+  private mount(): void {
     const { config } = this;
     const editorId = this.config.get("handle", "texditor");
 
     if (!queryLength("#" + editorId))
       throw new Error("The editor's ID was not found.");
 
-    let editorElement = null;
     query("#" + editorId, (el: HTMLElement) => {
-      this.rootElement = el;
+      const texditorElement = el as TexditorRootElement;
+
+      if (texditorElement?.texditor) {
+        texditorElement.texditor.destroy();
+      }
+
       append(el, MainView(this));
-      editorElement = el;
+
+      Object.defineProperty(texditorElement, "texditor", {
+        value: this,
+        writable: true,
+      });
+
+      this.rootElement = texditorElement;
     });
 
-    if (editorElement) {
+    if (this.getRoot()) {
       const content = config.get('content', []) as string | BlockSchema[];
+
       this.setContent(
         content,
         config.get("autofocus", true) ? 0 : -1,

@@ -11,6 +11,10 @@ import type {
   BlockSchema
 } from ".";
 
+export interface TexditorRootElement extends HTMLElement {
+  texditor: Texditor;
+}
+
 /**
  * Main Texditor editor interface
  * Defines the public API and core component accessors for the editor instance
@@ -48,7 +52,7 @@ export interface Texditor {
    * @returns Root element or null if not found
    * @throws Error if root element is not found
    */
-  getRoot(): HTMLElement | null;
+  getRoot(): TexditorRootElement | null;
 
   /**
    * Checks if the editor is empty (no content)
@@ -81,10 +85,4 @@ export interface Texditor {
    * Cleans up all resources, event listeners, and DOM elements
    */
   destroy(): void;
-
-  /**
-   * Renders the editor in the DOM
-   * @throws Error if editor ID is not found
-   */
-  __mount(): void;
 }

@@ -67,6 +67,7 @@ export default defineConfig({
   server: {
     port: 3232,
     cors: true,
-    host: true
+    host: true,
+    open: '/app/index.html'
   }
 });

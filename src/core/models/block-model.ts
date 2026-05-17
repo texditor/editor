@@ -41,8 +41,7 @@ import {
 } from "@/utils";
 import { IconBars, IconMove } from "@/icons";
 import BaseModel from "../base/base-model";
-import Sortable from "sortablejs";
-
+import Sortable from "../ui/sortable";
 /**
  * Base block model class - manages block behavior, content, and lifecycle
  */
@@ -292,43 +291,15 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
       if (contentElement) {
         this.sortableItems = new Sortable(contentElement, {
-          handle: '.tex-item-drag-zone',
-          ghostClass: 'tex-sortable-item',
-          chosenClass: 'tex-sortable-chosen',
-          forceFallback: true,
-          swap: false,
-          delay: 0,
-          dragoverBubble: false,
-          animation: 250,
-          sort: true,
-          direction: 'vertical',
-          onStart: () => {
-            blockManager.destroyVirtualSelection();
+          selectorHandler: '.tex-item-drag-zone',
+          group: this.getGroupCode(),
+          // swap: true,
+          classTarget: 'tex-sortable-item',
+          onBeforeDrop: () => {
+            console.log(5555)
           },
-          onEnd: (evt) => {
-            blockManager.refreshVirtualSelection();
-
-            this.change('moveListItem', {
-              item: evt.item,
-              index: evt.newIndex,
-              targetIndex: evt.oldIndex
-            }, {
-              blockElement: this.getElement(),
-              contentElement: contentElement,
-            });
-
-            setTimeout(() => {
-              blockManager.refreshVirtualSelection();
-              const itemBody = this.getItemBody(evt.newIndex || 0);
-              if (itemBody) {
-                if (attr(itemBody, 'contentEditable') == 'true') {
-                  const length = getLength(itemBody);
-                  selectionApi.select(length, length, itemBody);
-                } else {
-                  itemBody.click();
-                }
-              }
-            }, 5);
+          onDrop: () => {
+            console.log(333)
           }
         });
       }

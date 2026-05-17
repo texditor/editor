@@ -63,6 +63,7 @@ export default class Gallery extends Files implements GalleryBlockModel {
         styles: ["grid", "slider", "single"],
         stylesLtr: "right",
         defaultStyle: "single",
+        groupCode: 'gallery',
         sliderInfinite: true,
         imageMimeTypes: [
           "image/jpeg",

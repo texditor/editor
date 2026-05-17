@@ -1,7 +1,7 @@
 {
   "name": "@texditor/editor",
   "version": "2.0.0",
-  "description": "Texditor is a modern, block-based text editor",
+  "description": "Texditor is a modern, block-based text editor written in TypeScript. It has a clean architecture and an extensible design that allows users to customize the content blocks",
   "type": "module",
   "main": "./dist/texditor.mjs",
   "module": "./dist/texditor.mjs",
@@ -39,14 +39,34 @@
       "import": "./dist/entities/extensions.mjs",
       "types": "./dist/entities/extensions.d.ts"
     },
-    "./styles/*": "./dist/styles/*"
+    "./styles/*.css": {
+      "default": "./dist/styles/*.css"
+    }
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
     "prepare": "npm run build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix",
     "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.2",
+    "eslint": "^10.0.1",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.3",
+    "vite": "^8.0.3",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-static-copy": "^3.1.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
   }
 }
