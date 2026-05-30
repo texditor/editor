@@ -8,8 +8,8 @@ import type {
   Commands,
   HistoryManager,
   Extensions,
-  BlockSchema
-} from ".";
+  BlockSchema,
+} from '.';
 
 export interface TexditorRootElement extends HTMLElement {
   texditor: Texditor;

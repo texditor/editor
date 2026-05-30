@@ -1,19 +1,6 @@
-import type {
-  ExtensionModelConstructor,
-  ExtensionModel,
-  Extensions as IExtensions,
-  Texditor
-} from "@/types";
+import type { ExtensionModelConstructor, ExtensionModel, Extensions as IExtensions, Texditor } from '@/types';
 
-import {
-  randString,
-  addClass,
-  css,
-  query,
-  removeClass,
-  off,
-  rebind
-} from "snappykit";
+import { randString, addClass, css, query, removeClass, off, rebind } from 'snappykit';
 
 export default class Extensions implements IExtensions {
   /** Reference to the main editor instance */
@@ -27,7 +14,7 @@ export default class Extensions implements IExtensions {
 
   constructor(editor: Texditor) {
     this.editor = editor;
-    const extModels = this.editor.config.get("extensions", []);
+    const extModels = this.editor.config.get('extensions', []);
 
     if (extModels && extModels.length) {
       extModels.forEach((instance: ExtensionModelConstructor) => {
@@ -47,13 +34,13 @@ export default class Extensions implements IExtensions {
     this.getExtensions().forEach((extension) => {
       const node = extension.getElement();
       if (node) {
-        if (!extension.isActive()) addClass(node, cssName + "-not-active");
-        else removeClass(node, cssName + "-not-active");
+        if (!extension.isActive()) addClass(node, cssName + '-not-active');
+        else removeClass(node, cssName + '-not-active');
 
         if (!extension.isVisible()) css(node, 'display', 'none');
-        else css(node, 'display', '')
+        else css(node, 'display', '');
       }
-    })
+    });
   }
 
   /**
@@ -67,45 +54,44 @@ export default class Extensions implements IExtensions {
       extCss = 'tex-extension',
       className = extCss + 's';
 
-    if (config.get("extensionsFixed", true)) {
+    if (config.get('extensionsFixed', true)) {
       const fixedExtensions = () => {
         if (!root) return;
 
         query(
           '.tex',
           (rootEditor: HTMLElement) => {
-            const scrollTop =
-              window.pageYOffset || document.documentElement.scrollTop,
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop,
               editorRect = rootEditor.getBoundingClientRect(),
               editorLeft = editorRect.left,
               editorWidth = rootEditor.offsetWidth;
 
             query(
-              "." + className,
+              '.' + className,
               (extEl: HTMLElement) => {
                 if (scrollTop >= editorRect.top + scrollTop) {
-                  addClass(extEl, className + "-fixed");
+                  addClass(extEl, className + '-fixed');
                   css(extEl, { left: editorLeft, width: editorWidth });
-                  const extCss = config.get("extensionsFixedStyle", false);
+                  const extCss = config.get('extensionsFixedStyle', false);
 
                   if (extCss) css(extEl, extCss);
                 } else {
-                  removeClass(extEl, className + "-fixed");
-                  extEl.removeAttribute("style");
+                  removeClass(extEl, className + '-fixed');
+                  extEl.removeAttribute('style');
                 }
               },
-              rootEditor
+              rootEditor,
             );
           },
-          root
+          root,
         );
       };
 
       const eid = this.eventId;
 
-      rebind(window, "scroll" + eid, fixedExtensions);
-      rebind(window, "load" + eid, fixedExtensions);
-      rebind(window, "resize" + eid, fixedExtensions);
+      rebind(window, 'scroll' + eid, fixedExtensions);
+      rebind(window, 'load' + eid, fixedExtensions);
+      rebind(window, 'resize' + eid, fixedExtensions);
     }
   }
 
@@ -114,8 +100,8 @@ export default class Extensions implements IExtensions {
     this.extensions.forEach((ext) => ext.destroy());
     const eid = this.eventId;
 
-    off(window, "scroll" + eid);
-    off(window, "load" + eid);
-    off(window, "resize" + eid);
+    off(window, 'scroll' + eid);
+    off(window, 'load' + eid);
+    off(window, 'resize' + eid);
   }
 }

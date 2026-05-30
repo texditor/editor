@@ -10,7 +10,7 @@ import type {
   BlockModelConstructor,
   TexditorEvent,
   ActionModelConstructor,
-} from "@/types";
+} from '@/types';
 import {
   addClass,
   after,
@@ -31,15 +31,16 @@ import {
   off,
   on,
   rebind,
-  getLength
-} from "snappykit";
-import Sanitizer from "../security/sanitizer";
-import { renderIcon } from "@/utils/icon";
-import { executeMethodIfExists } from "@/utils";
-import { IconBars, IconMove } from "@/icons";
-import BaseModel from "../base/base-model";
-import Sortum, { Sortum as ISortum } from "sortum";
-import { currentStore } from "@/store/currentStore";
+  getLength,
+} from 'snappykit';
+import Sanitizer from '../security/sanitizer';
+import { renderIcon } from '@/utils/icon';
+import { executeMethodIfExists } from '@/utils';
+import { IconBars, IconMove } from '@/icons';
+import BaseModel from '../base/base-model';
+import Sortum, { Sortum as ISortum } from 'sortum';
+import { mainStore } from '@/store/mainStore';
+
 /**
  * Base block model class - manages block behavior, content, and lifecycle
  */
@@ -47,60 +48,51 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   /** Sortable items manager instance */
   private sortableItems: ISortum | null = null;
 
-  /**
-  * Set up global configuration
-  * @param config - Partial configuration
-  * @returns Model constructor
-  */
-  public static setup(
-    config: Partial<BlockModelConfig>
-  ): BlockModelConstructor {
+  /** @see IBlockModel.setup */
+  public static setup(config: Partial<BlockModelConfig>): BlockModelConstructor {
     return super.setup(config) as BlockModelConstructor;
   }
 
-  protected change(
-    name: string,
-    params: TexditorEvent = {},
-    globalParams: TexditorEvent = {}
-  ): void {
+  /** @see BlockModel.change */
+  change(name: string, params: TexditorEvent = {}, globalParams: TexditorEvent = {}): void {
     const { events } = this.editor;
     const finallyParams = {
       ...{
         type: name,
         modelCode: this.getModelCode(),
       },
-      ...params
+      ...params,
     };
 
     if (Object.keys(globalParams).length) {
       events.change({ ...finallyParams, ...globalParams });
     }
 
-    this.triggerEvent(name, finallyParams);
-    this.triggerEvent("onChange", finallyParams);
+    this.trigger(name, finallyParams);
+    this.trigger('onChange', finallyParams);
   }
 
   /**
-  * Parent model configuration
-  * @returns Parent model configuration
-  */
+   * Parent model configuration
+   * @returns Parent model configuration
+   */
   protected parentConfig(): Partial<BlockModelConfig> {
     return {
       __modelCode: 'block',
       autoMerge: true,
       autoParse: true,
-      icon: "",
+      icon: '',
       visibleIcon: false,
-      translation: "",
+      translation: '',
       groupCode: '',
       contentClassName: '',
       itemTagName: 'li',
       itemName: 'li',
       itemRelatedNames: [],
-      itemClassName: "",
-      itemBodyClassName: "",
+      itemClassName: '',
+      itemBodyClassName: '',
       backspaceRemove: true,
-      className: "",
+      className: '',
       visibleTools: false,
       availableTools: [],
       editable: false,
@@ -110,17 +102,17 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       raw: false,
       sanitizer: false,
       sanitizerConfig: {
-        elements: ["b", "a", "i", "s", "u", "sup", "sub", "mark", "code"],
+        elements: ['b', 'a', 'i', 's', 'u', 'sup', 'sub', 'mark', 'code'],
         attributes: {
-          a: ["href", "target"]
+          a: ['href', 'target'],
         },
         protocols: {
           a: {
-            href: ["https", "ftp", "http", "mailto"]
-          }
-        }
+            href: ['https', 'ftp', 'http', 'mailto'],
+          },
+        },
       },
-      tagName: "div",
+      tagName: 'div',
       relatedNames: [],
       emptyDetect: false,
       customSave: false,
@@ -129,14 +121,13 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       sortableItems: false,
       dragZoneClassName: 'tex-item-drag-zone-default',
       visibleTitle: false,
-      attributeTitle: false
-    }
+      attributeTitle: false,
+    };
   }
 
   /**
    * Parent hook called after model node creation
    * @param el - Created model node
-   * @returns void
    */
   protected parentOnCreateElement(el: BlockElement): void {
     const { config, i18n } = this.editor,
@@ -144,7 +135,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       contentClassName = this.getContentClassName(),
       elements = [];
 
-    const blockActions = config.get("actions", []) as ActionModelConstructor[];
+    const blockActions = config.get('actions', []) as ActionModelConstructor[];
 
     if (blockActions.length) {
       const actionsElement = make('div', (actions: HTMLDivElement) => {
@@ -152,7 +143,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
         addClass(actions, cssName);
 
         const contentElement = make('div', (content: HTMLDivElement) => {
-          const contentCss = cssName + "-content";
+          const contentCss = cssName + '-content';
           addClass(content, contentCss + ' tex-animate-fadeIn');
 
           const contentBody = make('div', (body: HTMLDivElement) => {
@@ -167,18 +158,18 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
         });
 
         const openBtn = make('div', (btn: HTMLDivElement) => {
-          addClass(btn, cssName + "-btn tex-animate-fadeIn");
+          addClass(btn, cssName + '-btn tex-animate-fadeIn');
           attr(btn, 'title', i18n.get('actions', 'Actions'));
           html(
             btn,
             renderIcon(IconBars, {
               width: 14,
-              height: 14
-            })
+              height: 14,
+            }),
           );
 
           on(btn, 'click.open', () => this.showActions());
-        })
+        });
 
         append(actions, [openBtn, contentElement]);
       });
@@ -189,12 +180,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const contentElement = make(tagName, (content: HTMLDivElement) => {
       addClass(content, 'tex-block-content' + (contentClassName ? ' ' + contentClassName : ''));
       if (this.isEmptyDetect()) data(content, 'empty', 'true');
-      if (this.isEditable()) content.contentEditable = "true";
+      if (this.isEditable()) content.contentEditable = 'true';
 
-      const placeholder = this.getPlaceholder()
+      const placeholder = this.getPlaceholder();
 
-      if (placeholder && !isEmptyString(placeholder))
-        data(content, 'placeholder', placeholder);
+      if (placeholder && !isEmptyString(placeholder)) data(content, 'placeholder', placeholder);
     });
 
     elements.push(contentElement);
@@ -214,33 +204,37 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const [actionsElement] = queryList<HTMLElement>(cssName, blockElement);
 
     if (actionsElement) {
-      const blockActions = config.get("actions", []) as ActionModelConstructor[];
-      query(cssName + '-content', (content: HTMLDivElement) => {
-        const [contentBody] = queryList<HTMLElement>(cssName + '-content-body', content);
-        if (contentBody) {
-          blockActions.forEach((instance: ActionModelConstructor) => {
-            const action = new instance(this.editor);
-            const actionEl = action.getElement(),
-              isVisible = action.isVisible();
+      const blockActions = config.get('actions', []) as ActionModelConstructor[];
+      query(
+        cssName + '-content',
+        (content: HTMLDivElement) => {
+          const [contentBody] = queryList<HTMLElement>(cssName + '-content-body', content);
+          if (contentBody) {
+            blockActions.forEach((instance: ActionModelConstructor) => {
+              const action = new instance(this.editor);
+              const actionEl = action.getElement(),
+                isVisible = action.isVisible();
 
-            append(contentBody, actionEl);
-            css(actionEl, 'display', isVisible ? "" : "none");
-            executeMethodIfExists(action, '__onMount', [actionEl]);
-          });
+              append(contentBody, actionEl);
+              css(actionEl, 'display', isVisible ? '' : 'none');
+              executeMethodIfExists(action, '__onMount', [actionEl]);
+            });
 
-          css(content, "display", "block");
-        }
-      }, blockElement);
+            css(content, 'display', 'block');
+          }
+        },
+        blockElement,
+      );
 
       rebind(
         document,
-        "click.actions" + eid,
+        'click.actions' + eid,
         (evt) => {
           if (!closest(evt.target, actionsElement)) {
             this.hideActions();
           }
         },
-        true
+        true,
       );
     }
   }
@@ -254,89 +248,106 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const [actionsElement] = queryList<HTMLElement>(cssName, blockElement);
 
     if (actionsElement) {
-      off(document, "click.actions" + eid);
-      query(cssName + '-content', (content: HTMLDivElement) => {
-        query(
-          cssName + '-content-body',
-          (contentBody: HTMLDivElement) => html(contentBody, ''),
-          content
-        );
-        query(
-          cssName + '-content-dropdown',
-          (contentDropdown: HTMLDivElement) => {
-            html(contentDropdown, '');
-            removeClass(contentDropdown, 'tex-active');
-          },
-          content
-        );
-        css(content, "display", "");
-      }, blockElement);
+      off(document, 'click.actions' + eid);
+      query(
+        cssName + '-content',
+        (content: HTMLDivElement) => {
+          query(cssName + '-content-body', (contentBody: HTMLDivElement) => html(contentBody, ''), content);
+          query(
+            cssName + '-content-dropdown',
+            (contentDropdown: HTMLDivElement) => {
+              html(contentDropdown, '');
+              removeClass(contentDropdown, 'tex-active');
+            },
+            content,
+          );
+          css(content, 'display', '');
+        },
+        blockElement,
+      );
     }
   }
 
   /**
-   * Refresh sortable items functionality 
+   * Refresh sortable items functionality
    */
   protected refreshSortableItems(): void {
     const { blockManager } = this.editor;
-    if (this.isSortableItems()) {
-      if (this.sortableItems) {
-        this.sortableItems.destroy();
-      }
+    if (!this.isSortableItems()) return;
 
-      const contentElement = this.getContentElement();
+    this.sortableItems?.destroy();
 
-      if (contentElement) {
-        this.sortableItems = new Sortum(contentElement, {
-          handleSelector: ".tex-item-drag-zone",
-          group: this.getGroupCode(),
-          targetClass: 'tex-sortable-item',
-          invalidClass: "tex-sortable-invalid",
-          ghostClass: 'tex-sortable-ghost',
-          pressDuration: 10,
-          edgeThreshold: 200,
-          onStart: () => {
-            blockManager.destroyVirtualSelection();
-          },
-          onEnd: (data) => {
-            blockManager.refreshVirtualSelection();
+    const contentElement = this.getContentElement();
+    const root = this.editor.getRoot();
 
-            const targetBlock = blockManager.findParent(data.destination!)!;
-            const targetModel = targetBlock?.baseModel;
-            const isCrossGroup = targetBlock != this.getElement();
-            const targetIndex = blockManager.getIndex(targetBlock);
-            const currentIndex = blockManager.getIndex(this.getElement())
+    if (!contentElement || !root) return;
 
-            if (isCrossGroup) {
-              blockManager.rebuild(currentIndex);
-              blockManager.rebuild(targetIndex);
-            }
+    this.sortableItems = new Sortum(contentElement, {
+      handleSelector: '.tex-item-drag-zone',
+      group: this.getGroupCode(),
+      targetClass: 'tex-sortable-item',
+      invalidClass: 'tex-sortable-invalid',
+      ghostClass: 'tex-sortable-ghost',
+      pressDuration: 10,
+      edgeThreshold: 200,
 
-            this.change('moveListItem', {
+      onStart: () => {
+        blockManager.destroyVirtualSelection();
+      },
+
+      onEnd: (data) => {
+        blockManager.refreshVirtualSelection();
+
+        const editors = mainStore.get('editors');
+        const [targetEditor] = editors.filter((editor) => closest(data.destination, editor));
+        const isAnotherEditor = targetEditor && targetEditor !== root;
+        const targetBlockManager = isAnotherEditor ? targetEditor.texditor.blockManager : blockManager;
+        const targetBlock = targetBlockManager.findParent(data.destination!)!;
+        const targetModel = targetBlock?.baseModel;
+        const isCrossGroup = targetBlock !== this.getElement();
+        const targetIndex = targetBlockManager.getIndex(targetBlock);
+        const currentIndex = blockManager.getIndex(this.getElement());
+
+        if (isCrossGroup) {
+          blockManager.rebuild(currentIndex);
+
+          if (isAnotherEditor) {
+            targetBlockManager.rebuild(targetIndex);
+          } else {
+            blockManager.rebuild(targetIndex);
+          }
+        }
+
+        const currentBlock = blockManager.getBlock(currentIndex);
+        if (currentBlock?.baseModel) {
+          currentBlock.baseModel?.change(
+            'moveListItem',
+            {
               item: data.item,
               index: data.fromIndex,
               targetIndex: data.toIndex,
               source: data.source,
               destination: data.destination,
-            }, {
-              blockElement: this.getElement(),
+            },
+            {
+              blockElement: currentBlock.baseModel.getElement(),
               contentElement: contentElement,
-            });
+            },
+          );
+        }
 
-            console.log(this.editor.getBody(), 33)
-            const itemBody = targetModel.getItemBody(data.toIndex || 0);
+        if (targetModel) {
+          const itemBody = targetModel.getItemBody(data.toIndex || 0);
+          if (itemBody) {
+            const length = getLength(itemBody);
+            const isEditable = attr(itemBody, 'contentEditable') === 'true';
+            const pos = isEditable ? length : 0;
 
-            if (targetModel && itemBody) {
-              const length = getLength(itemBody);
-              const isEditable = attr(itemBody, 'contentEditable') == 'true';
-              const pos = isEditable ? length : 0;
-
-              blockManager.focus(targetIndex, pos, pos, data.toIndex);
-            }
+            targetBlockManager.focus(targetIndex, pos, pos, data.toIndex);
           }
-        })
-      }
-    }
+        }
+      },
+    });
   }
 
   /**
@@ -357,7 +368,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
           if (!isEmptyString(item.data)) {
             append(contentElement, [this.__makeItemElement(item.data)]);
           }
-        })
+        });
       }
     } else {
       const content = createSchema?.data || '';
@@ -378,7 +389,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Hook triggered after composition is complete
    * @param _createSchema - Composition schema used for composition
    */
-  protected onCompose(_createSchema?: BlockCreateSchema): void { }
+  protected onCompose(_createSchema?: BlockCreateSchema): void {}
 
   /**
    * Prepares the unit before mounting
@@ -388,10 +399,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   __compose(createSchema?: BlockCreateSchema): BlockElement {
     this.sanitize();
 
-    if (
-      typeof createSchema === 'object' &&
-      Object.keys(createSchema).length
-    ) {
+    if (typeof createSchema === 'object' && Object.keys(createSchema).length) {
       this.setOptions(createSchema);
     }
 
@@ -400,7 +408,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     this.onCompose(createSchema);
 
     this.change('onCompose', {
-      createSchema: createSchema
+      createSchema: createSchema,
     });
 
     return blockElement;
@@ -424,7 +432,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const createSchema = this.parse(item);
 
     this.change('parse', {
-      createSchema: createSchema
+      createSchema: createSchema,
     });
 
     return createSchema;
@@ -432,7 +440,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /** @see IBlockModel.getTagName */
   getTagName(): string {
-    return this.getConfig("tagName", '');
+    return this.getConfig('tagName', '');
   }
 
   /** @see IBlockModel.getPlaceholder */
@@ -442,66 +450,55 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /** @see IBlockModel.getGroupCode */
   getGroupCode(): string {
-    return this.getConfig("groupCode", 'block');
+    return this.getConfig('groupCode', 'block');
   }
 
   /** @see IBlockModel.getContentClassName */
   getContentClassName(): string {
-    return this.getConfig("contentClassName", '');
+    return this.getConfig('contentClassName', '');
   }
 
   /** @see IBlockModel.getContentElement */
   getContentElement(): HTMLElement {
     const block = this.getElement();
-    const [contentElement] = queryList<HTMLElement>(".tex-block-content", block);
+    const [contentElement] = queryList<HTMLElement>('.tex-block-content', block);
 
     return contentElement;
   }
 
   /** @see IBlockModel.isAutoMerge */
   isAutoMerge(): boolean {
-    return this.getConfig("autoMerge", true);
+    return this.getConfig('autoMerge', true);
   }
 
   /** @see IBlockModel.isAutoParse */
   isAutoParse(): boolean {
-    return this.getConfig("autoParse", true);
+    return this.getConfig('autoParse', true);
   }
 
   /** @see IBlockModel.isEnterCreate */
   isEnterCreate(): boolean {
-    return this.getConfig("enterCreate", true);
+    return this.getConfig('enterCreate', true);
   }
 
   /** @see IBlockModel.isEmpty */
   isEmpty(): boolean {
     const contentElement = this.getContentElement();
 
-    if (!contentElement)
-      return true;
+    if (!contentElement) return true;
 
     if (this.isEditableItems()) {
       const length = this.getItemsLength(),
         itemBody = this.getItemBody(0);
 
-      if (!itemBody)
-        return true;
+      if (!itemBody) return true;
 
-      return (
-        length === 0 || (
-          length === 1 && isEmptyString(
-            html(itemBody).trim()
-          )
-        )
-      );
+      return length === 0 || (length === 1 && isEmptyString(html(itemBody).trim()));
     }
 
     const content = html(contentElement).trim();
 
-    return (
-      isEmptyString(content) ||
-      content == "<br>"
-    );
+    return isEmptyString(content) || content == '<br>';
   }
 
   /** @see IBlockModel.isEmptyItem */
@@ -514,70 +511,67 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
     const htmlText = html(itemBody).trim();
 
-    return (
-      isEmptyString(htmlText) ||
-      htmlText == "<br>"
-    );
+    return isEmptyString(htmlText) || htmlText == '<br>';
   }
 
   /** @see IBlockModel.isEmptyDetect */
   isEmptyDetect(): boolean {
-    return this.getConfig("emptyDetect", false);
+    return this.getConfig('emptyDetect', false);
   }
 
   /** @see IBlockModel.isBackspaceRemove */
   isBackspaceRemove(): boolean {
-    return this.getConfig("backspaceRemove", true);
+    return this.getConfig('backspaceRemove', true);
   }
 
   /** @see IBlockModel.isEditable */
   isEditable(): boolean {
-    return this.getConfig("editable", false);
+    return this.getConfig('editable', false);
   }
 
   /** @see IBlockModel.isEditableItems */
   isEditableItems(): boolean {
-    return this.getConfig("editableItems", false);
+    return this.getConfig('editableItems', false);
   }
 
   /** @see IBlockModel.isSingleItem */
   isSingleItem(): boolean {
-    return this.getConfig("singleItem", false);
+    return this.getConfig('singleItem', false);
   }
 
   /** @see IBlockModel.isRaw */
   isRaw(): boolean {
-    return this.getConfig("raw", false);
+    return this.getConfig('raw', false);
   }
 
   /** @see IBlockModel.isNormalize */
   isNormalize(): boolean {
-    return this.getConfig("normalize", false);
+    return this.getConfig('normalize', false);
   }
 
   /** @see IBlockModel.isConvertible */
   isConvertible(): boolean {
-    return this.getConfig("convertible", false);
+    return this.getConfig('convertible', false);
   }
 
   /** @see IBlockModel.isCustomSave */
   isCustomSave(): boolean {
-    return this.getConfig("customSave", false);
+    return this.getConfig('customSave', false);
   }
 
   /** @see IBlockModel.isVisibleTools */
   isVisibleTools(): boolean {
-    return this.getConfig("visibleTools", false);
+    return this.getConfig('visibleTools', false);
   }
 
   /** @see IBlockModel.getAvailableTools */
   getAvailableTools(): string[] {
-    return this.getConfig("availableTools", []) as string[];
+    return this.getConfig('availableTools', []) as string[];
   }
 
   /** @see IBlockModel.getRelatedNames */
   getRelatedNames(): string[] {
-    return this.getConfig("relatedNames", []) as string[];
+    return this.getConfig('relatedNames', []) as string[];
   }
 
   /** @see IBlockModel.getSupportedNames */
@@ -601,7 +595,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const node = this.merge();
 
     this.change('merge', {
-      node: node
+      node: node,
     });
 
     return node;
@@ -609,7 +603,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /** @see IBlockModel.isSanitizer */
   isSanitizer(): boolean {
-    return this.getConfig("sanitizer", false);
+    return this.getConfig('sanitizer', false);
   }
 
   /** @see IBlockModel.sanitize */
@@ -630,7 +624,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
         }
 
         this.change('sanitize', {
-          node: container
+          node: container,
         });
       }
     }
@@ -645,8 +639,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       this.getItems().forEach(() => {
         const itemBody = this.getItemBody(i);
 
-        if (itemBody)
-          bodyNodes.push(itemBody);
+        if (itemBody) bodyNodes.push(itemBody);
 
         i++;
       });
@@ -659,10 +652,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /** @see IBlockModel.getSanitizerConfig */
   getSanitizerConfig(): SanitizerConfig {
-    return this.getConfig(
-      "sanitizerConfig",
-      {}
-    ) as SanitizerConfig
+    return this.getConfig('sanitizerConfig', {}) as SanitizerConfig;
   }
 
   /** @see IBlockModel.toNormalize */
@@ -672,27 +662,27 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /** @see IBlockModel.getItemTagName */
   getItemTagName(): string {
-    return this.getConfig("itemTagName", "li");
+    return this.getConfig('itemTagName', 'li');
   }
 
   /** @see IBlockModel.getItemClassName */
   getItemClassName(): string {
-    return this.getConfig("itemClassName", "");
+    return this.getConfig('itemClassName', '');
   }
 
   /** @see IBlockModel.getItemBodyClassName */
   getItemBodyClassName(): string {
-    return this.getConfig("itemBodyClassName", "");
+    return this.getConfig('itemBodyClassName', '');
   }
 
   /** @see IBlockModel.getItemName */
   getItemName(): string {
-    return this.getConfig("itemName", "li");
+    return this.getConfig('itemName', 'li');
   }
 
   /** @see IBlockModel.getItemRelatedNames */
   getItemRelatedNames(): string[] {
-    return this.getConfig("itemRelatedNames", []) as string[];
+    return this.getConfig('itemRelatedNames', []) as string[];
   }
 
   /** @see IBlockModel.getItemSupportedNames */
@@ -702,7 +692,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
   /** @see IBlockModel.isSortableItems */
   isSortableItems(): boolean {
-    return this.getConfig("sortableItems", false);
+    return this.getConfig('sortableItems', false);
   }
 
   /** @see IBlockModel.getDragZoneClassName */
@@ -731,22 +721,20 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   protected makeItemDragZone(): HTMLSpanElement {
     return make('span', (span: HTMLSpanElement) => {
       addClass(span, 'tex-item-drag-zone ' + this.getDragZoneClassName());
-      html(span,
-        renderIcon(
-          IconMove,
-          {
-            width: 14,
-            height: 14
-          }
-        )
-      )
+      html(
+        span,
+        renderIcon(IconMove, {
+          width: 14,
+          height: 14,
+        }),
+      );
     });
   }
 
   /**
-   * Creates an item element.
-   * @param content - Item content.
-   * @returns The item element.
+   * Creates an item element
+   * @param content - Item content
+   * @returns The item element
    */
   protected makeItemElement(content: string | unknown = ''): HTMLElement {
     const tagName = this.getItemTagName(),
@@ -756,22 +744,20 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
     return make(tagName, (el: HTMLElement) => {
       addClass(el, 'tex-item ' + className);
-      el.id = this.getId() + "-" + type + "-" + randString(8);
+      el.id = this.getId() + '-' + type + '-' + randString(8);
 
       const body = make('div', (div: HTMLDivElement) => {
         addClass(div, 'tex-item-body ' + bodyClassName);
 
-        if (this.isEditableItems())
-          attr(div, 'contentEditable', 'true');
+        if (this.isEditableItems()) attr(div, 'contentEditable', 'true');
 
         if (typeof content === 'string') {
-          const textContent = isEmptyString(content || "") ? "" : content || "";
+          const textContent = isEmptyString(content || '') ? '' : content || '';
 
           if (this.isRaw()) {
             html(div, '');
             appendText(div, textContent);
-          } else
-            html(div, textContent);
+          } else html(div, textContent);
         }
       });
 
@@ -794,34 +780,27 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
     this.change('makeItemElement', {
       node: node,
-      content: content
+      content: content,
     });
 
     return node;
   }
 
   /** @see IBlockModel.createItem */
-  createItem(
-    content?: string | unknown,
-    index: number = -1,
-    skipEvents: boolean = false
-  ): boolean {
+  createItem(content?: string | unknown, index: number = -1, skipEvents: boolean = false): boolean {
     const contentElement = this.getContentElement();
 
-    if (!contentElement)
-      return false;
+    if (!contentElement) return false;
 
     const itemElement = this.__makeItemElement(content);
 
     if (index === 0) {
-      prepend(contentElement, itemElement)
+      prepend(contentElement, itemElement);
     } else if (index === -1) {
       const item = this.getItem(-1);
 
-      if (item)
-        after(item, itemElement);
-      else
-        append(contentElement, itemElement);
+      if (item) after(item, itemElement);
+      else append(contentElement, itemElement);
     } else {
       const prevIndex = index - 1;
       if (prevIndex < 0) {
@@ -829,8 +808,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       } else {
         const item = this.getItem(prevIndex);
 
-        if (item)
-          after(item, itemElement);
+        if (item) after(item, itemElement);
         else {
           append(contentElement, itemElement);
         }
@@ -846,27 +824,26 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       if (itemBody) {
         if (attr(itemBody, 'contentEditable') == 'true') {
           itemBody.focus();
-        } else
-          itemBody.click();
+        } else itemBody.click();
       }
 
-      this.change('createItem', {
-        index: newIndex
-      }, {
-        contentElement: contentElement,
-        blockElement: this.getElement(),
-      });
+      this.change(
+        'createItem',
+        {
+          index: newIndex,
+        },
+        {
+          contentElement: contentElement,
+          blockElement: this.getElement(),
+        },
+      );
     }
 
     return true;
   }
 
   /** @see IBlockModel.moveItem */
-  moveItem(
-    index: number,
-    targetIndex: number,
-    skipEvents: boolean = false
-  ): void {
+  moveItem(index: number, targetIndex: number, skipEvents: boolean = false): void {
     const contentElement = this.getContentElement();
 
     if (!contentElement) return;
@@ -912,14 +889,18 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     }
 
     if (!skipEvents) {
-      this.change('moveItem', {
-        item: itemElement,
-        index: index,
-        targetIndex: realTargetIndex
-      }, {
-        contentElement: contentElement,
-        blockElement: this.getElement(),
-      });
+      this.change(
+        'moveItem',
+        {
+          item: itemElement,
+          index: index,
+          targetIndex: realTargetIndex,
+        },
+        {
+          contentElement: contentElement,
+          blockElement: this.getElement(),
+        },
+      );
     }
   }
 
@@ -928,29 +909,29 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const item = this.getItem(index) as HTMLElement;
     const realIndex = this.getItemIndex(item) || 0;
 
-    if (!item)
-      return false;
+    if (!item) return false;
 
     item.remove();
 
-    this.change('removeItem', {
-      index: realIndex
-    }, {
-      contentElement: this.getContentElement(),
-      blockElement: this.getElement(),
-    });
+    this.change(
+      'removeItem',
+      {
+        index: realIndex,
+      },
+      {
+        contentElement: this.getContentElement(),
+        blockElement: this.getElement(),
+      },
+    );
 
     return true;
   }
 
   /** @see IBlockModel.getItem */
-  getItem(
-    index: number
-  ): HTMLElement | null {
+  getItem(index: number): HTMLElement | null {
     const items = this.getItems();
 
-    if (!items.length)
-      return null;
+    if (!items.length) return null;
 
     if (index === -1) {
       let itemElement = null;
@@ -971,9 +952,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   }
 
   /** @see IBlockModel.getItemBody */
-  getItemBody(
-    index: number
-  ): HTMLElement | null {
+  getItemBody(index: number): HTMLElement | null {
     const item = this.getItem(index);
 
     if (!item) return null;
@@ -990,10 +969,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       node = itemElement || this.getItem(-1);
 
     if (items.length && node) {
-      items.forEach((
-        item: HTMLElement,
-        itemIndex: number
-      ) => {
+      items.forEach((item: HTMLElement, itemIndex: number) => {
         if (item == node) {
           index = itemIndex;
         }
@@ -1004,15 +980,12 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   }
 
   /**
-   * Saves block data to output format.
+   * Saves block data to output format
    * @param blockSchema - Block schema
    * @param _blockElement - Block element
-   * @returns The modified block output.
+   * @returns The modified block output
    */
-  protected save(
-    blockSchema: BlockSchema,
-    _blockElement?: BlockElement
-  ): BlockSchema {
+  protected save(blockSchema: BlockSchema, _blockElement?: BlockElement): BlockSchema {
     return blockSchema;
   }
 
@@ -1022,15 +995,12 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param blockElement - Block node (optional)
    * @returns Modified block output
    */
-  __save(
-    block: BlockSchema,
-    blockElement?: BlockElement
-  ): BlockSchema {
+  __save(block: BlockSchema, blockElement?: BlockElement): BlockSchema {
     const blockSchema = this.save(block, blockElement);
-    this.triggerEvent('save', {
+    this.trigger('save', {
       type: 'save',
       modelCode: this.getModelCode(),
-      blockSchema: blockSchema
+      blockSchema: blockSchema,
     });
 
     return blockSchema;
@@ -1049,10 +1019,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param _map - Paste data map
    * @returns True to allow paste
    */
-  protected onPaste(
-    _evt: Event,
-    _map: PasteMap,
-  ): boolean {
+  protected onPaste(_evt: Event, _map: PasteMap): boolean {
     return true;
   }
 
@@ -1068,7 +1035,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     this.change('onPaste', {
       domEvent: evt,
       status: status,
-      map: map
+      map: map,
     });
 
     return status;
@@ -1084,12 +1051,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const __name = 'on' + name;
     const status = !!executeMethodIfExists(this, __name, [evt]);
 
-    if (!status)
-      evt.preventDefault();
+    if (!status) evt.preventDefault();
 
     this.change(__name, {
       domEvent: evt,
-      status: status
+      status: status,
     });
 
     return status;
@@ -1170,7 +1136,6 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   /**
    * Public wrapper for onClick
    * @param evt - Mouse event
-   * @returns True to allow default behavior
    */
   __onClick(evt: MouseEvent): void {
     this.onClick(evt);
@@ -1195,12 +1160,12 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   __onSelectionChange(evt: Event, range: Range): boolean {
     const status = this.onSelectionChange(evt, range);
 
-    this.triggerEvent('onSelectionChange', {
+    this.trigger('onSelectionChange', {
       type: 'onSelectionChange',
       modelCode: this.getModelCode(),
       domEvent: evt,
       range: range,
-      status: status
+      status: status,
     });
 
     return status;
@@ -1320,10 +1285,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param targetModel - Target block model
    * @returns Tuple of modified block node and target model
    */
-  protected beforeConvert(
-    blockElement: BlockElement,
-    targetModel: BlockModel
-  ): [BlockElement, BlockModel] {
+  protected beforeConvert(blockElement: BlockElement, targetModel: BlockModel): [BlockElement, BlockModel] {
     return [blockElement, targetModel];
   }
 
@@ -1333,10 +1295,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param targetModel - Target block model
    * @returns Tuple of modified block node and target model
    */
-  __beforeConvert(
-    blockElement: BlockElement,
-    targetModel: BlockModel
-  ): [BlockElement, BlockModel] {
+  __beforeConvert(blockElement: BlockElement, targetModel: BlockModel): [BlockElement, BlockModel] {
     return this.beforeConvert(blockElement, targetModel);
   }
 
@@ -1345,9 +1304,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param newBlockElement - Newly converted block node
    * @returns Modified block node
    */
-  protected afterConvert(
-    newBlockElement: BlockElement
-  ): BlockElement {
+  protected afterConvert(newBlockElement: BlockElement): BlockElement {
     return newBlockElement;
   }
 
@@ -1356,9 +1313,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param newBlockElement - Newly converted block node
    * @returns Modified block node
    */
-  __afterConvert(
-    newBlockElement: BlockElement
-  ): BlockElement {
+  __afterConvert(newBlockElement: BlockElement): BlockElement {
     return this.afterConvert(newBlockElement);
   }
 
@@ -1368,9 +1323,9 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   protected parentDestroy(): void {
     if (this.sortableItems) {
       this.sortableItems.destroy();
-      this.sortableItems = null
+      this.sortableItems = null;
     }
     const eid = this.getEventId();
-    off(document, "click.actions" + eid);
+    off(document, 'click.actions' + eid);
   }
 }

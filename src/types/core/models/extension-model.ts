@@ -1,9 +1,4 @@
-import type {
-  BaseModelConfig,
-  BaseModel,
-  BaseElement,
-  ModelConstructor
-} from "@/types";
+import type { BaseModelConfig, BaseModel, BaseElement, ModelConstructor } from '@/types';
 
 /**
  * Extension model constructor type

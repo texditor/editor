@@ -3,8 +3,8 @@
  * Key-value pairs for translation strings
  */
 export type LocaleMapData = {
-  [key: string]: unknown
-}
+  [key: string]: unknown;
+};
 
 /**
  * Locale map interface
@@ -12,7 +12,7 @@ export type LocaleMapData = {
  * @property data - Translation data for the locale
  */
 export interface LocaleMap {
-  code: string,
+  code: string;
   data: LocaleMapData;
 }
 

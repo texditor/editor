@@ -1,17 +1,5 @@
-import type {
-  SelectionState,
-  SelectionAPI as ISelectionAPI,
-  Texditor
-} from "@/types";
-import {
-  getChildNodes,
-  make,
-  html,
-  getText,
-  getLength,
-  makeText,
-  append
-} from "snappykit";
+import type { SelectionState, SelectionAPI as ISelectionAPI, Texditor } from '@/types';
+import { getChildNodes, make, html, getText, getLength, makeText, append } from 'snappykit';
 export default class SelectionAPI implements ISelectionAPI {
   /** Reference to the main editor instance */
   private editor: Texditor;
@@ -20,9 +8,9 @@ export default class SelectionAPI implements ISelectionAPI {
   private state: SelectionState = {
     position: {
       start: 0,
-      end: 0
+      end: 0,
     },
-    element: null
+    element: null,
   };
 
   /**
@@ -34,9 +22,7 @@ export default class SelectionAPI implements ISelectionAPI {
   }
 
   /** @see ISelectionAPI.setState */
-  setState(
-    state: SelectionState
-  ): void {
+  setState(state: SelectionState): void {
     this.state = state;
   }
 
@@ -51,8 +37,8 @@ export default class SelectionAPI implements ISelectionAPI {
       element: null,
       position: {
         start: 0,
-        end: 0
-      }
+        end: 0,
+      },
     });
   }
 
@@ -61,17 +47,11 @@ export default class SelectionAPI implements ISelectionAPI {
     const { element, position } = this.getState();
     const { start, end } = position;
 
-    if (element)
-      this.select(start, end, element);
+    if (element) this.select(start, end, element);
   }
 
   /** @see ISelectionAPI.select */
-  select(
-    startPos: number,
-    endPos: number,
-    container?: Element,
-    scrollToContainer: boolean = false
-  ): void {
+  select(startPos: number, endPos: number, container?: Element, scrollToContainer: boolean = false): void {
     const { element } = this.getState();
     const wrapContainer = container || element || null;
 
@@ -92,17 +72,11 @@ export default class SelectionAPI implements ISelectionAPI {
     let endOffset = 0;
 
     // Create tree walker to find all text nodes
-    const walker = document.createTreeWalker(
-      wrapContainer,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode: (node) => {
-          return node.textContent?.length
-            ? NodeFilter.FILTER_ACCEPT
-            : NodeFilter.FILTER_REJECT;
-        }
-      }
-    );
+    const walker = document.createTreeWalker(wrapContainer, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) => {
+        return node.textContent?.length ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      },
+    });
 
     let node: Text | null;
     const textNodes: Text[] = [];
@@ -151,21 +125,9 @@ export default class SelectionAPI implements ISelectionAPI {
     // Set the range if both nodes are found
     if (startNode && endNode) {
       try {
-        range.setStart(
-          startNode,
-          Math.min(
-            startOffset,
-            getLength(startNode)
-          )
-        );
+        range.setStart(startNode, Math.min(startOffset, getLength(startNode)));
 
-        range.setEnd(
-          endNode,
-          Math.min(
-            endOffset,
-            getLength(endNode)
-          )
-        );
+        range.setEnd(endNode, Math.min(endOffset, getLength(endNode)));
       } catch (e) {
         console.warn('Error setting range:', e);
         return;
@@ -176,7 +138,7 @@ export default class SelectionAPI implements ISelectionAPI {
 
     // Scroll to container if requested
     if (container && scrollToContainer) {
-      container.scrollIntoView({ behavior: "smooth", block: "center" });
+      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     selection.removeAllRanges();
@@ -184,42 +146,30 @@ export default class SelectionAPI implements ISelectionAPI {
   }
 
   /** @see ISelectionAPI.insert */
-  insert(
-    content: string,
-    isHtml = true,
-    strip = true
-  ): boolean {
+  insert(content: string, isHtml = true, strip = true): boolean {
     const selection = this.getSelection(),
       activeElement = document.activeElement as HTMLElement;
 
-    if (
-      activeElement?.isContentEditable &&
-      selection &&
-      selection.rangeCount > 0
-    ) {
+    if (activeElement?.isContentEditable && selection && selection.rangeCount > 0) {
       const range = this.getRange();
       if (!range) return false;
 
       // Delete current selection content
       range.deleteContents();
-      const div = make("div", (div: HTMLDivElement) => {
+      const div = make('div', (div: HTMLDivElement) => {
         html(div, content);
       });
 
       if (isHtml) {
         // Insert HTML nodes in reverse order to maintain proper sequence
-        getChildNodes(div).reverse().forEach((node) => {
-          range.insertNode(node)
-        })
+        getChildNodes(div)
+          .reverse()
+          .forEach((node) => {
+            range.insertNode(node);
+          });
       } else {
         // Insert as plain text
-        range.insertNode(
-          document.createTextNode(
-            strip
-              ? getText(div)
-              : content
-          )
-        );
+        range.insertNode(document.createTextNode(strip ? getText(div) : content));
       }
 
       return true;
@@ -237,16 +187,14 @@ export default class SelectionAPI implements ISelectionAPI {
   splitContent(container?: HTMLElement | null): string {
     const selection = this.getSelection();
 
-    if (!selection || selection.rangeCount === 0) return "";
+    if (!selection || selection.rangeCount === 0) return '';
 
     const range = selection.getRangeAt(0);
-    const currentParagraph = container
-      ? container
-      : this.editor.blockManager.getBlock();
+    const currentParagraph = container ? container : this.editor.blockManager.getBlock();
 
-    if (!currentParagraph) return "";
+    if (!currentParagraph) return '';
 
-    const newBlock = make("div");
+    const newBlock = make('div');
     html(newBlock, '');
 
     // Handle split within text node
@@ -268,11 +216,7 @@ export default class SelectionAPI implements ISelectionAPI {
         const parents: Node[] = [];
 
         // Collect parent chain
-        while (
-          currentNode &&
-          currentNode !== currentParagraph &&
-          currentNode.parentNode !== currentParagraph
-        ) {
+        while (currentNode && currentNode !== currentParagraph && currentNode.parentNode !== currentParagraph) {
           parents.push(currentNode.parentNode!);
           currentNode = currentNode.parentNode!;
         }
@@ -286,7 +230,7 @@ export default class SelectionAPI implements ISelectionAPI {
           newStructure = newParent;
         });
 
-        append(newBlock, newStructure)
+        append(newBlock, newStructure);
 
         // Move remaining siblings
         let nextSibling = parent.nextSibling;
@@ -325,10 +269,7 @@ export default class SelectionAPI implements ISelectionAPI {
   }
 
   /** @see ISelectionAPI.findTags */
-  findTags(
-    container: Element | HTMLElement,
-    children: boolean = true
-  ): HTMLElement[] {
+  findTags(container: Element | HTMLElement, children: boolean = true): HTMLElement[] {
     const selection = this.getSelection();
 
     if (!selection || selection.rangeCount === 0) return [];
@@ -395,11 +336,7 @@ export default class SelectionAPI implements ISelectionAPI {
     }
 
     let absoluteOffset = 0;
-    for (
-      let i = 0, len = Math.min(container.childNodes.length, offset);
-      i < len;
-      i++
-    ) {
+    for (let i = 0, len = Math.min(container.childNodes.length, offset); i < len; i++) {
       const childNode = container.childNodes[i];
 
       this.searchNode(childNode, childNode, (node) => {
@@ -426,7 +363,7 @@ export default class SelectionAPI implements ISelectionAPI {
     container: Node,
     startNode: Node,
     predicate: (node: Node) => boolean,
-    excludeSibling?: boolean
+    excludeSibling?: boolean,
   ): boolean {
     if (predicate(startNode as Text)) {
       return true;
@@ -434,9 +371,7 @@ export default class SelectionAPI implements ISelectionAPI {
 
     // Search through children
     for (let i = 0, len = startNode.childNodes.length; i < len; i++) {
-      if (
-        this.searchNode(startNode, startNode.childNodes[i], predicate, true)
-      ) {
+      if (this.searchNode(startNode, startNode.childNodes[i], predicate, true)) {
         return true;
       }
     }
@@ -471,11 +406,7 @@ export default class SelectionAPI implements ISelectionAPI {
     const wrapContainer = container || element || null;
 
     // Validate range and container
-    if (
-      !range ||
-      !wrapContainer ||
-      range.startContainer.ownerDocument !== wrapContainer.ownerDocument
-    ) {
+    if (!range || !wrapContainer || range.startContainer.ownerDocument !== wrapContainer.ownerDocument) {
       return [-1, -1];
     }
 

@@ -1,2 +1,2 @@
-export * from "./ajax";
-export * from "./icon";
+export * from './ajax';
+export * from './icon';

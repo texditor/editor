@@ -4,9 +4,9 @@ import type {
   ToolModelConfig,
   ToolModelConstructor,
   ToolElement,
-  BlockElement
-} from "@/types";
-import BaseModel from "../base/base-model";
+  BlockElement,
+} from '@/types';
+import BaseModel from '../base/base-model';
 
 export default class ToolModel extends BaseModel<ToolElement> implements IToolModel {
   /**
@@ -15,19 +15,17 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
   private blockElement?: BlockElement;
 
   /**
-  * Set up global configuration
-  * @param config - Partial configuration
-  * @returns Model constructor
-  */
-  public static setup(
-    config: Partial<ToolModelConfig>
-  ): ToolModelConstructor {
+   * Set up global configuration
+   * @param config - Partial configuration
+   * @returns Model constructor
+   */
+  public static setup(config: Partial<ToolModelConfig>): ToolModelConstructor {
     return super.setup(config) as ToolModelConstructor;
   }
 
   /**
- * @see IToolModel.getBlockElement
- */
+   * @see IToolModel.getBlockElement
+   */
   getBlockElement(): BlockElement | null {
     return this.blockElement || null;
   }
@@ -39,9 +37,9 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
   protected parentConfig(): Partial<ToolModelConfig> {
     return {
       __modelCode: 'tool',
-      tagName: "div",
-      override: true
-    }
+      tagName: 'div',
+      override: true,
+    };
   }
 
   /**
@@ -53,7 +51,7 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
 
   /**
    * Format action wrapper for tool operations
-   * @param callback - Callback function that performs the formatting 
+   * @param callback - Callback function that performs the formatting
    */
   private formatAction(callback: CallableFunction) {
     const tagName = this.getTagName();
@@ -64,18 +62,14 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
       const allTags = commands.findTags(),
         tags = commands.findTags(this.getTagName());
 
-      if (allTags.length > tags.length)
-        commands.clearAllFormatting();
+      if (allTags.length > tags.length) commands.clearAllFormatting();
     } else {
-
       const allTags = commands.findTags();
 
       allTags.forEach((tag) => {
         const toolModel = tools.getModelByTagName(tag.localName);
         if (toolModel && !toolModel.isOverride()) {
-          commands.removeFormat(
-            toolModel.getTagName()
-          );
+          commands.removeFormat(toolModel.getTagName());
         }
       });
     }
@@ -89,9 +83,9 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
 
     events.change({
       modelCode: this.getModelCode(),
-      type: "format",
+      type: 'format',
       name: this.getName(),
-      blockElement: this.getBlockElement()
+      blockElement: this.getBlockElement(),
     });
   }
 
@@ -114,8 +108,8 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
   }
 
   /**
-  * @see IToolModel.removeFormat
-  */
+   * @see IToolModel.removeFormat
+   */
   removeFormat(): void {
     const { commands, events, selectionApi } = this.editor,
       tagName = this.getTagName();
@@ -126,50 +120,48 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
 
     events.change({
       modelCode: this.getModelCode(),
-      type: "removeFormat",
+      type: 'removeFormat',
       name: this.getName(),
-      blockElement: this.getBlockElement()
+      blockElement: this.getBlockElement(),
     });
   }
 
   /**
-  * @see IToolModel.isSeparate
-  */
+   * @see IToolModel.isSeparate
+   */
   isOverride(): boolean {
     return this.getConfig('override', true) as boolean;
   }
 
   /**
    * Hook called after format is applied
-   * @param _tags - Array of formatted HTML elements 
+   * @param _tags - Array of formatted HTML elements
    */
-  protected onFormat(_tags: HTMLElement[]): void { }
+  protected onFormat(_tags: HTMLElement[]): void {}
 
   /**
    * Handle click event
-   * @param _evt - Custom event with element reference 
+   * @param _evt - Custom event with element reference
    */
   protected onClick(_evt: MouseEvent): void {
     this.format();
   }
 
   /**
-    * Check if model element is visible
-    * @returns True if model element should be displayed
-    */
+   * Check if model element is visible
+   * @returns True if model element should be displayed
+   */
   isVisible(): boolean {
     const blockElement = this.getBlockElement();
 
-    if (!blockElement)
-      return false;
+    if (!blockElement) return false;
 
     const model = blockElement.baseModel;
 
     if (model) {
       const toolNames = model.getAvailableTools();
 
-      if (!toolNames.length)
-        return true;
+      if (!toolNames.length) return true;
 
       return toolNames.includes(this.getName());
     }

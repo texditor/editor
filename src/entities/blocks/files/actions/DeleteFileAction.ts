@@ -1,16 +1,14 @@
-import type {
-  FileActionModelConfig
-} from "@/types";
-import { IconTrash } from "@/icons";
-import FileActionModel from "@/core/models/file-action-model";
+import type { FileActionModelConfig } from '@/types';
+import { IconTrash } from '@/icons';
+import FileActionModel from '@/core/models/file-action-model';
 
-export default class DeleteFileAction extends FileActionModel  {
+export default class DeleteFileAction extends FileActionModel {
   protected configure(): Partial<FileActionModelConfig> {
     return {
       name: 'delete',
       icon: IconTrash,
-      translation: 'delete'
-    }
+      translation: 'delete',
+    };
   }
 
   protected onClick(_evt: MouseEvent): void {
@@ -25,10 +23,8 @@ export default class DeleteFileAction extends FileActionModel  {
 
       model.removeItem(itemIndex);
 
-      if (model.isEmpty())
-        blockManager.removeBlock();
-      else
-        blockManager.focus(index);
+      if (model.isEmpty()) blockManager.removeBlock();
+      else blockManager.focus(index);
     }
   }
 }

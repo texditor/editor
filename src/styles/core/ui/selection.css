@@ -1,17 +1,17 @@
 /* selection-manager.css */
 .tex-ui-vs-selected {
-    background: var(--tex-vs-ui-selected-bg) !important;
-    border-color: var(--tex-vs-ui-selected-border-color) !important;
-    transition: background 0.1s ease;
+  background: var(--tex-vs-ui-selected-bg) !important;
+  border-color: var(--tex-vs-ui-selected-border-color) !important;
+  transition: background 0.1s ease;
 }
 
 .tex-ui-vs-rect {
-    display: none;
-    position: fixed;
-    border: var(--tex-vs-ui-border);
-    background: var(--tex-vs-ui-bg);
-    pointer-events: none;
-    z-index: 10000;
-    border-radius: var(--tex-vs-ui-radius);
-    will-change: left, top, width, height;
+  display: none;
+  position: fixed;
+  border: var(--tex-vs-ui-border);
+  background: var(--tex-vs-ui-bg);
+  pointer-events: none;
+  z-index: 10000;
+  border-radius: var(--tex-vs-ui-radius);
+  will-change: left, top, width, height;
 }

@@ -2,24 +2,16 @@
  * Detects the mobile operating system from user agent
  * @returns Detected OS: 'android', 'ios', 'windows_phone', or 'other'
  */
-export function detectMobileOS():
-  | "android"
-  | "ios"
-  | "windows_phone"
-  | "other" {
+export function detectMobileOS(): 'android' | 'ios' | 'windows_phone' | 'other' {
   const ua = navigator.userAgent.toLowerCase();
 
-  if (/android/.test(ua) && !/chrome os|cros/.test(ua)) return "android";
+  if (/android/.test(ua) && !/chrome os|cros/.test(ua)) return 'android';
 
-  if (
-    /ipad|iphone|ipod/.test(ua) ||
-    (/mac/.test(ua) && navigator.maxTouchPoints > 1)
-  )
-    return "ios";
+  if (/ipad|iphone|ipod/.test(ua) || (/mac/.test(ua) && navigator.maxTouchPoints > 1)) return 'ios';
 
-  if (/windows phone|iemobile|edge mobile/.test(ua)) return "windows_phone";
+  if (/windows phone|iemobile|edge mobile/.test(ua)) return 'windows_phone';
 
-  return "other";
+  return 'other';
 }
 
 /**
@@ -27,14 +19,10 @@ export function detectMobileOS():
  * @param event - Pointer or Touch event (optional)
  * @returns Coordinates object with x and y, or null if not available
  */
-export function getCaretPosition(
-  event?: PointerEvent | TouchEvent
-): { x: number; y: number } | null {
+export function getCaretPosition(event?: PointerEvent | TouchEvent): { x: number; y: number } | null {
   if (event) {
-    const clientX =
-      "touches" in event ? event.touches[0].clientX : event.clientX;
-    const clientY =
-      "touches" in event ? event.touches[0].clientY : event.clientY;
+    const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
     return { x: clientX, y: clientY };
   }
 
@@ -65,14 +53,10 @@ export function getSelectionRect() {
  * @param args - An array of arguments to pass to the method (default: [])
  * @returns The return value of the executed method, or null if the method doesn't exist or is not callable
  */
-export function executeMethodIfExists<
-  T extends object,
-  R = unknown,
-  Args extends unknown[] = unknown[]
->(
+export function executeMethodIfExists<T extends object, R = unknown, Args extends unknown[] = unknown[]>(
   instance: T,
   methodName: string,
-  args: Args = [] as unknown as Args
+  args: Args = [] as unknown as Args,
 ): R | null {
   const method = (instance as T)[methodName as keyof T];
 

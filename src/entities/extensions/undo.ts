@@ -1,6 +1,6 @@
-import type { ExtensionModelConfig } from "@/types";
-import ExtensionModel from "@/core/models/extension-model";
-import { IconUndo } from "@/icons";
+import type { ExtensionModelConfig } from '@/types';
+import ExtensionModel from '@/core/models/extension-model';
+import { IconUndo } from '@/icons';
 
 export default class Undo extends ExtensionModel {
   protected configure(): Partial<ExtensionModelConfig> {
@@ -9,8 +9,8 @@ export default class Undo extends ExtensionModel {
       translation: 'undo',
       icon: IconUndo,
       toggleActive: false,
-      groupName: 'history'
-    }
+      groupName: 'history',
+    };
   }
 
   protected onClick(_evt: MouseEvent): void {

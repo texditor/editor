@@ -3,10 +3,10 @@ import type {
   ExtensionModelConstructor,
   ExtensionModel as IExtensionModel,
   ExtensionElement,
-} from "@/types";
+} from '@/types';
 
-import { toggleClass } from "snappykit";
-import BaseModel from "../base/base-model";
+import { toggleClass } from 'snappykit';
+import BaseModel from '../base/base-model';
 
 export default class ExtensionModel extends BaseModel<ExtensionElement> implements IExtensionModel {
   /**
@@ -16,7 +16,7 @@ export default class ExtensionModel extends BaseModel<ExtensionElement> implemen
    */
   public static setup(
     this: ExtensionModelConstructor,
-    config: Partial<ExtensionModelConfig>
+    config: Partial<ExtensionModelConfig>,
   ): ExtensionModelConstructor {
     return super.setup(config) as ExtensionModelConstructor;
   }
@@ -30,23 +30,20 @@ export default class ExtensionModel extends BaseModel<ExtensionElement> implemen
 
     return {
       __modelCode: 'extension',
-      visibleTitle: config.get("extensionVisibleTitle", false),
+      visibleTitle: config.get('extensionVisibleTitle', false),
       toggleActive: false,
-      groupName: ''
-    }
+      groupName: '',
+    };
   }
 
   /**
    * Handle click with toggle functionality
-   * @param evt - Custom event with element reference 
+   * @param evt - Custom event with element reference
    */
   protected parentOnClick(evt: MouseEvent): void {
     if (this.isToggleActive()) {
       if (evt.delegateTarget) {
-        toggleClass(
-          evt.delegateTarget as HTMLElement,
-          "tex-extension-active"
-        );
+        toggleClass(evt.delegateTarget as HTMLElement, 'tex-extension-active');
       }
     }
 

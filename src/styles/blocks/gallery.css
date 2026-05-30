@@ -4,20 +4,20 @@
   gap: 16px;
 }
 
-.tex-gallery[data-options-style~="grid"] .tex-block-content {
+.tex-gallery[data-options-style~='grid'] .tex-block-content {
   grid-template-columns: 1fr 1fr;
 }
 
-.tex-gallery[data-options-style~="grid"] .tex-file-wrapper {
+.tex-gallery[data-options-style~='grid'] .tex-file-wrapper {
   padding-top: 100%;
 }
 
-.tex-gallery[data-options-style~="single"] .tex-block-content {
+.tex-gallery[data-options-style~='single'] .tex-block-content {
   grid-template-columns: 1fr;
   gap: 12px;
 }
 
-.tex-gallery[data-options-style~="slider"] .tex-block-content {
+.tex-gallery[data-options-style~='slider'] .tex-block-content {
   display: flex;
   gap: 0;
 }
@@ -30,7 +30,7 @@
   cursor: pointer;
 }
 
-.tex-gallery[data-options-style~="slider"] .tex-file-wrapper {
+.tex-gallery[data-options-style~='slider'] .tex-file-wrapper {
   padding-top: 60%;
 }
 
@@ -49,18 +49,18 @@
   display: block;
 }
 
-.tex-gallery[data-options-style~="grid"] .tex-item-body img,
-.tex-gallery[data-options-style~="slider"] .tex-item-body img,
-.tex-gallery[data-options-style~="grid"] .tex-item-body video,
-.tex-gallery[data-options-style~="slider"] .tex-item-body video {
+.tex-gallery[data-options-style~='grid'] .tex-item-body img,
+.tex-gallery[data-options-style~='slider'] .tex-item-body img,
+.tex-gallery[data-options-style~='grid'] .tex-item-body video,
+.tex-gallery[data-options-style~='slider'] .tex-item-body video {
   position: absolute;
   top: 0;
   width: 100%;
   height: 100%;
 }
 
-.tex-gallery[data-options-style~="grid"] .tex-item-body,
-.tex-gallery[data-options-style~="slider"] .tex-item-body {
+.tex-gallery[data-options-style~='grid'] .tex-item-body,
+.tex-gallery[data-options-style~='slider'] .tex-item-body {
   position: relative;
   top: 0;
   left: 0;
@@ -68,12 +68,12 @@
   height: 100%;
 }
 
-.tex-gallery .tex-item-body>* {
+.tex-gallery .tex-item-body > * {
   width: 100%;
 }
 
-.tex-gallery[data-options-style~="grid"] .tex-file-layout,
-.tex-gallery[data-options-style~="slider"] .tex-file-layout {
+.tex-gallery[data-options-style~='grid'] .tex-file-layout,
+.tex-gallery[data-options-style~='slider'] .tex-file-layout {
   width: 100%;
   height: 100%;
   position: absolute;
@@ -84,7 +84,7 @@
   left: 0;
 }
 
-.tex-gallery[data-options-style~="slider"] .tex-item-drag-zone {
+.tex-gallery[data-options-style~='slider'] .tex-item-drag-zone {
   display: none;
 }
 

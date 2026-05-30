@@ -1,3 +1,3 @@
-import Header from ".";
+import Header from '.';
 
-export default class H1 extends Header  {}
+export default class H1 extends Header {}

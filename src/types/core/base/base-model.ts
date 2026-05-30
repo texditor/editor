@@ -1,20 +1,17 @@
-import type { EventManager, RenderIconContent, Texditor } from "@/texditor";
+import type { EventManager, RenderIconContent, Texditor } from '@/texditor';
 
 /**
  * Generic model constructor interface
  * @template T - Model interface type that extends BaseModel
  * @template C - Model config type that extends BaseModelConfig
  */
-export interface ModelConstructor<
-  T extends BaseModel = BaseModel,
-  C extends BaseModelConfig = BaseModelConfig
-> {
+export interface ModelConstructor<T extends BaseModel = BaseModel, C extends BaseModelConfig = BaseModelConfig> {
   /**
    * Create a new model instance
    * @param editor - Editor instance
    * @returns Model instance of type T
    */
-  new(editor: Texditor): T;
+  new (editor: Texditor): T;
 
   /**
    * Set up global configuration for the model
@@ -70,10 +67,10 @@ export type BaseModelConstructor = ModelConstructor<BaseModel, BaseModelConfig>;
  */
 export interface BaseModel<TElement extends BaseElement = BaseElement> extends EventManager {
   /**
-  * Returns the unique identifier for this event listener instance
-  * @returns The unique event ID string used to identify and manage event listeners
-  */
-  getEventId(): string
+   * Returns the unique identifier for this event listener instance
+   * @returns The unique event ID string used to identify and manage event listeners
+   */
+  getEventId(): string;
 
   /**
    * Get model name
@@ -85,7 +82,7 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
    * Get model node tag name
    * @returns Tag name string (default: 'div')
    */
-  getElementTagName(): string
+  getElementTagName(): string;
 
   /**
    * Get model ID
@@ -109,7 +106,7 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
    * Get the immutable root CSS class name.
    * @returns Root CSS class name string
    */
-  getRootClassName(): string
+  getRootClassName(): string;
 
   /**
    * Get translation for localization
@@ -151,7 +148,7 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
    * Checks if the attribute title is configured to be always visible.
    * @returns True if the 'attributeTitle' config option is enabled, false otherwise.
    */
-  isAttributeTitle(): boolean
+  isAttributeTitle(): boolean;
 
   /**
    * Check if icon is always visible
@@ -187,18 +184,15 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
   getConfig(key: string, defaultValue: string): string;
   getConfig(key: string, defaultValue: number): number;
   getConfig<K extends keyof BaseModelConfig>(key: K): BaseModelConfig[K];
-  getConfig<K extends keyof BaseModelConfig>(
-    key: K,
-    defaultValue: BaseModelConfig[K]
-  ): BaseModelConfig[K];
+  getConfig<K extends keyof BaseModelConfig>(key: K, defaultValue: BaseModelConfig[K]): BaseModelConfig[K];
   getConfig(key: string, defaultValue: unknown): unknown;
 
   /**
-    * Get option value by key
-    * @param key - Configuration key
-    * @param defaultValue - Default value (optional)
-    * @returns Configuration value or null if not found
-    */
+   * Get option value by key
+   * @param key - Configuration key
+   * @param defaultValue - Default value (optional)
+   * @returns Configuration value or null if not found
+   */
   getOption<T = unknown>(key: string, defaultValue?: T): T | null;
 
   /**

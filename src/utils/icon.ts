@@ -1,4 +1,4 @@
-import type { RenderIconContent, RenderIconOptions } from "@/types";
+import type { RenderIconContent, RenderIconOptions } from '@/types';
 
 /**
  * Renders an SVG icon as an HTML string
@@ -9,34 +9,31 @@ import type { RenderIconContent, RenderIconOptions } from "@/types";
  * @param options.height - Height of the icon in pixels (default: 24)
  * @returns Complete SVG element HTML string or empty string if content is invalid
  */
-export function renderIcon(
-  content: RenderIconContent,
-  options?: RenderIconOptions
-): string {
+export function renderIcon(content: RenderIconContent, options?: RenderIconOptions): string {
   const opt = {
-    classes: "",
+    classes: '',
     width: 24,
     height: 24,
-    ...options
+    ...options,
   };
 
-  if (typeof content === "string") {
+  if (typeof content === 'string') {
     return (
-      "<svg  " +
-      (opt.classes ? opt.classes : "") +
+      '<svg  ' +
+      (opt.classes ? opt.classes : '') +
       ' xmlns="http://www.w3.org/2000/svg" class="tex-icon"  width="' +
       opt.width +
       '" height="' +
       opt.height +
       '" fill="none" viewBox="0 0 24 24" >' +
       content +
-      "</svg>"
+      '</svg>'
     );
   }
 
-  if (typeof content === "object" && content.raw) {
+  if (typeof content === 'object' && content.raw) {
     return content.raw;
   }
 
-  return "";
+  return '';
 }

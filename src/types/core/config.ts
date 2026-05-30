@@ -4,8 +4,8 @@ import type {
   ExtensionModelConstructor,
   LocaleMap,
   TexditorEvent,
-  ToolModelConstructor
-} from "@/types";
+  ToolModelConstructor,
+} from '@/types';
 
 /**
  * Configuration store interface defining all available configuration options
@@ -63,10 +63,10 @@ export interface ConfigOptions {
   autofocusDelay?: number;
 
   /** Virtual block selection zone */
-  selectionZoneElement?: HTMLElement
+  selectionZoneElement?: HTMLElement;
 
   /** Use keyboard shortcut history */
-  historyShortcuts?: boolean
+  historyShortcuts?: boolean;
 }
 
 /**
@@ -79,7 +79,7 @@ export type ConfigGetFunction = {
    * @param defaultValue - Default string value
    * @returns Configuration value as string
    */
-  (key: "defaultBlock", defaultValue: string): string;
+  (key: 'defaultBlock', defaultValue: string): string;
 
   /**
    * Gets a typed configuration value
@@ -94,10 +94,7 @@ export type ConfigGetFunction = {
    * @param defaultValue - Default value of the same type
    * @returns Configuration value or default
    */
-  <K extends keyof ConfigOptions>(
-    key: K,
-    defaultValue: ConfigOptions[K]
-  ): ConfigOptions[K];
+  <K extends keyof ConfigOptions>(key: K, defaultValue: ConfigOptions[K]): ConfigOptions[K];
 
   /**
    * Gets any configuration value (fallback)

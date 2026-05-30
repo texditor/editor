@@ -1,21 +1,15 @@
-import type {
-  SanitizerConfig,
-  TransformerContext,
-  TransformerOutput
-} from "@/types";
-import { appendText, make } from "snappykit";
+import type { SanitizerConfig, TransformerContext, TransformerOutput } from '@/types';
+import { appendText, make } from 'snappykit';
 export default class Sanitizer {
   static REGEX_PROTOCOL = /^([A-Za-z0-9+\-.&;*\s]*?)(?::|&*0*58|&*x0*3a)/i;
-  static RELATIVE = "**";
-  static ALL = "*";
+  static RELATIVE = '**';
+  static ALL = '*';
   private config: SanitizerConfig;
   private allowedElements: Record<string, boolean>;
   private dom: Document;
   private currentElement: Node | null = null;
   private whitelistNodes: Node[] = [];
-  private transformers: Array<
-    (context: TransformerContext) => TransformerOutput | null
-  >;
+  private transformers: Array<(context: TransformerContext) => TransformerOutput | null>;
 
   /**
    * Creates a new Sanitizer instance with the provided configuration
@@ -32,13 +26,11 @@ export default class Sanitizer {
       removeContents: options.removeContents,
       transformers: options.transformers ? options.transformers : [],
       removeAllContents: false,
-      removeElementContents: {}
+      removeElementContents: {},
     };
 
     if (this.config.attributes)
-      this.config.attributes[Sanitizer.ALL] = this.config.attributes[
-        Sanitizer.ALL
-      ]
+      this.config.attributes[Sanitizer.ALL] = this.config.attributes[Sanitizer.ALL]
         ? this.config.attributes[Sanitizer.ALL]
         : [];
 
@@ -52,9 +44,7 @@ export default class Sanitizer {
     if (options.removeContents) {
       if (Array.isArray(options.removeContents)) {
         for (let i = 0; i < options.removeContents.length; i++) {
-          (this.config.removeElementContents as Record<string, boolean>)[
-            options.removeContents[i]
-          ] = true;
+          (this.config.removeElementContents as Record<string, boolean>)[options.removeContents[i]] = true;
         }
       } else {
         this.config.removeAllContents = true;
@@ -111,7 +101,7 @@ export default class Sanitizer {
         break;
       case 3:
       case 5:
-        clone = this.dom.createTextNode(elem.textContent || "");
+        clone = this.dom.createTextNode(elem.textContent || '');
         this.currentElement?.appendChild(clone);
         break;
       case 8:
@@ -121,7 +111,7 @@ export default class Sanitizer {
         }
         break;
       default:
-        console.warn("Unknown node type", elem.nodeType);
+        console.warn('Unknown node type', elem.nodeType);
         break;
     }
   }
@@ -143,7 +133,7 @@ export default class Sanitizer {
       const allowed_attributes = this.mergeArrays(
         this.config.attributes?.[name],
         this.config.attributes?.[Sanitizer.ALL],
-        transform.attrWhitelist
+        transform.attrWhitelist,
       );
 
       for (let i = 0; i < allowed_attributes.length; i++) {
@@ -153,9 +143,7 @@ export default class Sanitizer {
           let attrOk = true;
           if (this.config.protocols?.[name]?.[attrName]) {
             const protocols = this.config.protocols[name][attrName];
-            const del = attr.value
-              .toLowerCase()
-              .match(Sanitizer.REGEX_PROTOCOL);
+            const del = attr.value.toLowerCase().match(Sanitizer.REGEX_PROTOCOL);
             if (del) {
               attrOk = protocols.indexOf(del[1]) !== -1;
             } else {
@@ -185,10 +173,7 @@ export default class Sanitizer {
       parentElement?.appendChild(this.currentElement);
     }
 
-    if (
-      !this.config.removeAllContents &&
-      !(this.config.removeElementContents as Record<string, boolean>)[name]
-    ) {
+    if (!this.config.removeAllContents && !(this.config.removeElementContents as Record<string, boolean>)[name]) {
       for (let i = 0; i < elem.childNodes.length; i++) {
         this.clean(elem.childNodes[i]);
       }
@@ -209,7 +194,7 @@ export default class Sanitizer {
     const output: TransformerOutput = {
       attrWhitelist: [],
       node: node,
-      whitelist: false
+      whitelist: false,
     };
 
     for (let i = 0; i < this.transformers.length; i++) {
@@ -219,22 +204,17 @@ export default class Sanitizer {
         node: node,
         nodeName: node.nodeName.toLowerCase(),
         whitelistNodes: this.whitelistNodes,
-        dom: this.dom
+        dom: this.dom,
       });
 
       if (transform == null) continue;
-      if (typeof transform !== "object") {
-        throw new Error("Transformer output must be an object or null");
+      if (typeof transform !== 'object') {
+        throw new Error('Transformer output must be an object or null');
       }
 
       if (transform.whitelistNodes?.length) {
         for (let j = 0; j < transform.whitelistNodes.length; j++) {
-          if (
-            this.arrayIndex(
-              transform.whitelistNodes[j],
-              this.whitelistNodes
-            ) === -1
-          ) {
+          if (this.arrayIndex(transform.whitelistNodes[j], this.whitelistNodes) === -1) {
             this.whitelistNodes.push(transform.whitelistNodes[j]);
           }
         }
@@ -242,10 +222,7 @@ export default class Sanitizer {
 
       output.whitelist = transform.whitelist ? true : false;
       if (transform.attrWhitelist) {
-        output.attrWhitelist = this.mergeArrays(
-          output.attrWhitelist,
-          transform.attrWhitelist
-        );
+        output.attrWhitelist = this.mergeArrays(output.attrWhitelist, transform.attrWhitelist);
       }
       output.node = transform.node ? transform.node : output.node;
     }
@@ -262,13 +239,13 @@ export default class Sanitizer {
     return Array.from(nodes)
       .map((node) => {
         if (node.nodeType === Node.TEXT_NODE) {
-          return this.escapeHtml(node.textContent || "");
+          return this.escapeHtml(node.textContent || '');
         } else if (node.nodeType === Node.ELEMENT_NODE) {
-          return (node as HTMLElement).outerHTML || "";
+          return (node as HTMLElement).outerHTML || '';
         }
-        return "";
+        return '';
       })
-      .join("");
+      .join('');
   }
 
   /**
@@ -277,7 +254,7 @@ export default class Sanitizer {
    * @returns The escaped HTML string
    */
   private escapeHtml(text: string): string {
-    const div = make("div");
+    const div = make('div');
     div.textContent = text;
     return div.innerHTML;
   }
@@ -290,11 +267,8 @@ export default class Sanitizer {
   sanitize(input: string | Node): string {
     let container: Node;
 
-    if (typeof input === "string") {
-      container = make(
-        "div",
-        (el: HTMLDivElement) => appendText(el, input)
-      );
+    if (typeof input === 'string') {
+      container = make('div', (el: HTMLDivElement) => appendText(el, input));
     } else {
       container = input;
     }

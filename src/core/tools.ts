@@ -1,10 +1,4 @@
-import type {
-  Texditor,
-  ToolModelConstructor,
-  ToolModel,
-  ToolElement,
-  Tools as ITools
-} from "@/types";
+import type { Texditor, ToolModelConstructor, ToolModel, ToolElement, Tools as ITools } from '@/types';
 
 import {
   addClass,
@@ -16,14 +10,10 @@ import {
   off,
   rebind,
   isEmptyString,
-  randString
-} from "snappykit";
+  randString,
+} from 'snappykit';
 
-import {
-  detectMobileOS,
-  executeMethodIfExists,
-  getCaretPosition
-} from "@/utils/common";
+import { detectMobileOS, executeMethodIfExists, getCaretPosition } from '@/utils/common';
 
 import {
   BoldTool,
@@ -33,8 +23,8 @@ import {
   MarkerTool,
   SubscriptTool,
   SuperscriptTool,
-  ClearFormattingTool
-} from "@/entities/tools";
+  ClearFormattingTool,
+} from '@/entities/tools';
 
 export default class Tools implements ITools {
   /** Reference to the editor instance */
@@ -51,21 +41,20 @@ export default class Tools implements ITools {
   constructor(editor: Texditor) {
     this.editor = editor;
 
-    const tools = this.editor.config.get(
-      "tools",
-      []
-    ) as ToolModelConstructor[];
+    const tools = this.editor.config.get('tools', []) as ToolModelConstructor[];
 
-    const toolModels = tools.length ? tools : [
-      BoldTool,
-      ItalicTool,
-      InlineCodeTool,
-      LinkTool,
-      MarkerTool,
-      SubscriptTool,
-      SuperscriptTool,
-      ClearFormattingTool
-    ]
+    const toolModels = tools.length
+      ? tools
+      : [
+          BoldTool,
+          ItalicTool,
+          InlineCodeTool,
+          LinkTool,
+          MarkerTool,
+          SubscriptTool,
+          SuperscriptTool,
+          ClearFormattingTool,
+        ];
 
     toolModels.forEach((instance: ToolModelConstructor) => {
       this.tools.push(new instance(this.editor));
@@ -79,28 +68,25 @@ export default class Tools implements ITools {
       cssName = 'tex-tools',
       blockElement = blockManager.getBlock();
 
-    if (!root || !blockElement)
-      return;
+    if (!root || !blockElement) return;
 
     const [toolsNode] = queryList<HTMLElement>('.' + cssName, root),
       [toolsListNode] = queryList<HTMLElement>('.' + cssName + '-list', root),
       [toolsContentElement] = queryList<HTMLElement>('.' + cssName + '-content', root);
 
-    if (!toolsNode && !toolsListNode && !toolsContentElement)
-      return;
+    if (!toolsNode && !toolsListNode && !toolsContentElement) return;
 
     this.getTools().forEach((tool) => {
       executeMethodIfExists(tool, '__setBlockElement', [blockElement]);
       const node = tool.getElement();
       append(toolsListNode, node);
 
-      if (!tool.isVisible())
-        node.remove();
+      if (!tool.isVisible()) node.remove();
 
-      executeMethodIfExists(tool, '__onMount', [node])
-    })
+      executeMethodIfExists(tool, '__onMount', [node]);
+    });
 
-    addClass(toolsNode, cssName + "-fixed tex-animate-fadeIn");
+    addClass(toolsNode, cssName + '-fixed tex-animate-fadeIn');
 
     const reposition = () => {
       const rect = selectionApi.getFirstLineBounds(),
@@ -109,8 +95,8 @@ export default class Tools implements ITools {
         rootRect = root.getBoundingClientRect();
 
       if (rect) {
-        let toolsLeft = rect.left;
-        let toolsTop = 0;
+        let toolsLeft = rect.left,
+          toolsTop;
 
         if (rect.left + toolsNode.offsetWidth > rootRect.width + rootRect.left)
           toolsLeft = rect.left - toolsNode.offsetWidth;
@@ -119,31 +105,21 @@ export default class Tools implements ITools {
 
         const isTopNegative = rect.top - +toolsNode.offsetHeight < 10;
 
-        if (
-          contextMenuRect?.y &&
-          (isTopNegative ||
-            (mobileDevice != "other" && contextMenuRect?.y > rect.top))
-        ) {
-          toolsTop =
-            rect.top +
-            contextMenuRect.y -
-            rect.top +
-            rect.height / 2;
-        } else
-          toolsTop =
-            rect.top - (toolsNode.clientHeight) - rect.height / 2;
+        if (contextMenuRect?.y && (isTopNegative || (mobileDevice != 'other' && contextMenuRect?.y > rect.top))) {
+          toolsTop = rect.top + contextMenuRect.y - rect.top + rect.height / 2;
+        } else toolsTop = rect.top - toolsNode.clientHeight - rect.height / 2;
 
         css(toolsNode, {
           top: toolsTop,
-          left: toolsLeft
+          left: toolsLeft,
         });
       }
     };
 
     reposition();
     const eid = this.eventId;
-    rebind(window, "resize" + eid, () => reposition());
-    rebind(window, "scroll" + eid, () => reposition());
+    rebind(window, 'resize' + eid, () => reposition());
+    rebind(window, 'scroll' + eid, () => reposition());
   }
 
   /** @see ITools.hide */
@@ -154,9 +130,9 @@ export default class Tools implements ITools {
       query(
         '.tex-tools',
         (el: HTMLElement) => {
-          removeClass(el, "tex-tools-fixed");
+          removeClass(el, 'tex-tools-fixed');
         },
-        root
+        root,
       );
     }
   }
@@ -164,17 +140,13 @@ export default class Tools implements ITools {
   /** @see ITools.syncHighlight */
   syncHighlight(): void {
     const { selectionApi } = this.editor,
-      cssName = ".tex-tool",
+      cssName = '.tex-tool',
       curElement = selectionApi.getState()?.element,
       root = this.editor.getRoot();
 
     if (!root) return;
 
-    query(
-      cssName,
-      (el: ToolElement) => removeClass(el, "active"),
-      root
-    );
+    query(cssName, (el: ToolElement) => removeClass(el, 'active'), root);
 
     if (!curElement) return;
 
@@ -186,15 +158,12 @@ export default class Tools implements ITools {
         (el: ToolElement) => {
           if (el.baseModel) {
             tags.forEach((selected: HTMLElement) => {
-              if (
-                el.baseModel.getTagName() === selected.localName &&
-                !isEmptyString(selected?.textContent || "")
-              )
-                addClass(el, "active");
+              if (el.baseModel.getTagName() === selected.localName && !isEmptyString(selected?.textContent || ''))
+                addClass(el, 'active');
             });
           }
         },
-        root
+        root,
       );
     }
   }
@@ -211,7 +180,7 @@ export default class Tools implements ITools {
       if (tool.getTagName() === tagName) {
         model = tool;
       }
-    })
+    });
 
     return model;
   }
@@ -221,7 +190,7 @@ export default class Tools implements ITools {
     this.tools.forEach((tool) => tool.destroy());
     const eid = this.eventId;
 
-    off(window, "resize" + eid);
-    off(window, "scroll" + eid);
+    off(window, 'resize' + eid);
+    off(window, 'scroll' + eid);
   }
 }

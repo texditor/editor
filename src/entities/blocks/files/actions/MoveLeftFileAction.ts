@@ -1,13 +1,13 @@
-import type { FileActionModelConfig } from "@/types";
-import { IconArrowLeft } from "@/icons";
-import FileActionModel from "@/core/models/file-action-model";
+import type { FileActionModelConfig } from '@/types';
+import { IconArrowLeft } from '@/icons';
+import FileActionModel from '@/core/models/file-action-model';
 
-export default class MoveLeftFileAction extends FileActionModel  {
+export default class MoveLeftFileAction extends FileActionModel {
   protected configure(): Partial<FileActionModelConfig> {
     return {
       name: 'moveLeft',
-      icon: IconArrowLeft
-    }
+      icon: IconArrowLeft,
+    };
   }
 
   onClick() {
@@ -26,9 +26,8 @@ export default class MoveLeftFileAction extends FileActionModel  {
     const itemElement = this.getItemElement();
     const model = blockElement?.baseModel;
 
-    if (blockElement && model && itemElement) 
-      return model.getItemIndex(itemElement) > 0;
-    
+    if (blockElement && model && itemElement) return model.getItemIndex(itemElement) > 0;
+
     return false;
   }
 }

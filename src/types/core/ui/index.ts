@@ -1,2 +1,2 @@
-export * from "./slider";
-export * from "./virtual-selection";
+export * from './slider';
+export * from './virtual-selection';

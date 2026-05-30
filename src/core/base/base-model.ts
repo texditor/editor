@@ -4,23 +4,13 @@ import {
   RenderIconContent,
   Texditor,
   ModelConstructor,
-  BaseModel as IBaseModel
-} from "@/types";
+  BaseModel as IBaseModel,
+} from '@/types';
 
-import {
-  addClass,
-  append,
-  attr,
-  html,
-  make,
-  rebind,
-  randString,
-  toKebabCase,
-  isEmptyString
-} from "snappykit";
+import { addClass, append, attr, html, make, rebind, randString, toKebabCase, isEmptyString } from 'snappykit';
 
-import { renderIcon } from "@/utils";
-import EventManager from "./event-manager";
+import { renderIcon } from '@/utils';
+import EventManager from './event-manager';
 
 /**
  * Base model class providing core functionality, event management and lifecycle hooks
@@ -67,19 +57,19 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
       className: '',
       visibleTitle: false,
       attributeTitle: true,
-      __modelCode: "baseModel",
+      __modelCode: 'baseModel',
       ...this.parentConfig(),
       ...this.configure(),
-      ...(this.constructor as typeof BaseModel).userConfig
+      ...(this.constructor as typeof BaseModel).userConfig,
     };
 
     this.element = this.createElement();
     this.onLoad();
 
-    this.triggerEvent('onLoad', {
+    this.trigger('onLoad', {
       type: 'onLoad',
       modelCode: this.getModelCode(),
-      config: this.config
+      config: this.config,
     });
 
     const childDestroy = this.destroy;
@@ -103,17 +93,12 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
       el.id = `tex-${codeName}-${randString(12)}-${randString(12)}`;
 
       const rootCssName = this.getRootClassName();
-      const classes = [rootCssName, rootCssName + '-' + name]
+      const classes = [rootCssName, rootCssName + '-' + name];
 
-      if (!isEmptyString(cssName))
-        classes.push(cssName);
+      if (!isEmptyString(cssName)) classes.push(cssName);
 
       addClass(el, classes);
-      rebind<MouseEvent>(
-        el,
-        "click.baseElement",
-        (evt) => this.handleClick(evt)
-      );
+      rebind<MouseEvent>(el, 'click.baseElement', (evt) => this.handleClick(evt));
 
       const icon = this.getIcon(),
         visibleIcon = this.isVisibleIcon();
@@ -123,23 +108,22 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
           el,
           renderIcon(icon, {
             width: this.getIconWidth(),
-            height: this.getIconHeight()
-          })
-        )
+            height: this.getIconHeight(),
+          }),
+        );
       }
 
       const title = this.getTranslation();
 
-      if (this.isAttributeTitle())
-        attr(el, "title", title);
+      if (this.isAttributeTitle()) attr(el, 'title', title);
 
       if (this.isVisibleTitle()) {
         append(
           el,
-          make("span", (span: HTMLSpanElement) => {
-            addClass(span, 'tex-model-title')
-            span.textContent = title
-          })
+          make('span', (span: HTMLSpanElement) => {
+            addClass(span, 'tex-model-title');
+            span.textContent = title;
+          }),
         );
       }
 
@@ -147,11 +131,11 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
       this.element = el;
       this.parentOnCreateElement(el);
       this.onCreateElement(el);
-      this.triggerEvent('onCreateElement', {
+      this.trigger('onCreateElement', {
         type: 'onCreateElement',
         modelCode: this.getModelCode(),
-        element: el
-      })
+        element: el,
+      });
     }) as TElement;
   }
 
@@ -162,37 +146,31 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
 
   /**
    * Hook called after model element creation
-   * @param _el - Created model element 
+   * @param _el - Created model element
    */
-  protected onCreateElement(_el: TElement): void { }
+  protected onCreateElement(_el: TElement): void {}
 
   /**
    * Parent hook called after model element creation
-   * @param _el - Created model element 
+   * @param _el - Created model element
    */
-  protected parentOnCreateElement(_el: TElement): void { }
+  protected parentOnCreateElement(_el: TElement): void {}
 
   /** @see IBaseModel.getConfig */
   getConfig(key: string, defaultValue: boolean): boolean;
   getConfig(key: string, defaultValue: string): string;
   getConfig(key: string, defaultValue: number): number;
   getConfig<K extends keyof BaseModelConfig>(key: K): BaseModelConfig[K];
-  getConfig<K extends keyof BaseModelConfig>(
-    key: K,
-    defaultValue: BaseModelConfig[K]
-  ): BaseModelConfig[K];
+  getConfig<K extends keyof BaseModelConfig>(key: K, defaultValue: BaseModelConfig[K]): BaseModelConfig[K];
   getConfig(key: string, defaultValue: unknown): unknown;
-  getConfig(
-    key: keyof BaseModelConfig | string,
-    defaultValue: unknown = ""
-  ): unknown {
+  getConfig(key: keyof BaseModelConfig | string, defaultValue: unknown = ''): unknown {
     const value = (this.config as Record<string, unknown>)[key as string];
 
     if (value !== undefined) {
       return value;
     }
 
-    return defaultValue !== undefined ? defaultValue : "";
+    return defaultValue !== undefined ? defaultValue : '';
   }
 
   /** @see IBaseModel.getOption */
@@ -277,15 +255,15 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   }
 
   /**
-   * Hook called when model loads 
+   * Hook called when model loads
    */
-  protected onLoad(): void { }
+  protected onLoad(): void {}
 
   /**
    * Handle click event
-   * @param _evt - Custom event with element reference 
+   * @param _evt - Custom event with element reference
    */
-  protected onClick(_evt: MouseEvent): void { }
+  protected onClick(_evt: MouseEvent): void {}
 
   /**
    * Parent hook called after model element clicked
@@ -298,15 +276,15 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
 
   /**
    * Handle click with event binding
-   * @param evt - Custom event with element reference 
+   * @param evt - Custom event with element reference
    */
   private handleClick(evt: MouseEvent): void {
     this.parentOnClick(evt);
 
-    this.triggerEvent('onClick', {
+    this.trigger('onClick', {
       type: 'onClick',
       modelCode: this.getModelCode(),
-      domEvent: evt
+      domEvent: evt,
     });
   }
 
@@ -314,31 +292,31 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Hook called after mounting to the DOM
    * @param _el - The mounted DOM element
    */
-  protected onMount(_el: TElement): void { }
+  protected onMount(_el: TElement): void {}
 
   /**
    * Parent hook called after mounting to the DOM
    * @param _el - The mounted DOM element
    */
-  protected parentOnMount(_el: TElement): void { }
+  protected parentOnMount(_el: TElement): void {}
 
   /** @see IBaseModel.__onMount */
   __onMount(el: TElement): void {
     this.parentOnMount(el);
     this.onMount(el);
 
-    this.triggerEvent('onMount', {
+    this.trigger('onMount', {
       type: 'onMount',
       modelCode: this.getModelCode(),
-      element: el
+      element: el,
     });
   }
 
   /**
    * Hook called during constructor creation
-   * @param editor - Editor instance reference 
+   * @param editor - Editor instance reference
    */
-  protected onConstruct(_editor: Texditor): void { }
+  protected onConstruct(_editor: Texditor): void {}
 
   /** @see IBaseModel.isActive */
   isActive(): boolean {
@@ -386,9 +364,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
       name = this.getName();
 
     const translation = this.getConfig('translation');
-    const translationCode = translation
-      ? translation
-      : name;
+    const translationCode = translation ? translation : name;
 
     return i18n.get(translationCode, name);
   }
@@ -429,17 +405,17 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   }
 
   /** @see IBaseModel.destroy */
-  destroy(): void { }
+  destroy(): void {}
 
   /**
    * Parent hook called before the element is destroyed
    */
-  protected parentDestroy(): void { }
+  protected parentDestroy(): void {}
 
   /** Internal destroy routine: cleans up parent, then fires the destroy event. */
   private originalDestroy(): void {
     this.parentDestroy();
-    this.triggerEvent('destroy', {
+    this.trigger('destroy', {
       type: 'destroy',
       modelCode: this.getModelCode(),
     });

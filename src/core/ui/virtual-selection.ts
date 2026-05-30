@@ -1,17 +1,6 @@
 import '@/styles/core/ui/selection.css';
 import { VirtualSelection as IVirtualSelection, VirtualSelectionOptions } from '@/types/core/ui/virtual-selection';
-import {
-  addClass,
-  append,
-  css,
-  make,
-  off,
-  on,
-  query,
-  randString,
-  remove,
-  removeClass
-} from 'snappykit';
+import { addClass, append, css, make, off, on, query, randString, remove, removeClass } from 'snappykit';
 
 export default class VirtualSelection implements IVirtualSelection {
   private options: Required<VirtualSelectionOptions>;
@@ -50,9 +39,9 @@ export default class VirtualSelection implements IVirtualSelection {
       autoScrollSpeed: options.autoScrollSpeed || 20,
       autoScrollEdgeThreshold: options.autoScrollEdgeThreshold || 60,
       touchActivationDelay: options.touchActivationDelay || 200,
-      onSelectionChange: options.onSelectionChange || (() => { }),
-      onLassoStart: options.onLassoStart || (() => { }),
-      onLassoEnd: options.onLassoEnd || (() => { }),
+      onSelectionChange: options.onSelectionChange || (() => {}),
+      onLassoStart: options.onLassoStart || (() => {}),
+      onLassoEnd: options.onLassoEnd || (() => {}),
     };
 
     this.init();
@@ -63,11 +52,7 @@ export default class VirtualSelection implements IVirtualSelection {
    * @param value - The touch-action CSS value (e.g., 'none', 'pan-y')
    */
   private setTouchAction(value: string): void {
-    css(
-      this.options.selectionZone,
-      'touch-action',
-      value
-    );
+    css(this.options.selectionZone, 'touch-action', value);
   }
 
   /**
@@ -114,7 +99,7 @@ export default class VirtualSelection implements IVirtualSelection {
       rect.left + window.scrollX - marginLeft,
       rect.top + window.scrollY - marginTop,
       rect.width + marginLeft + marginRight,
-      rect.height + marginTop + marginBottom
+      rect.height + marginTop + marginBottom,
     );
   }
 
@@ -124,10 +109,7 @@ export default class VirtualSelection implements IVirtualSelection {
    * @param startBlock - The block where selection started
    * @returns True if cursor is outside block boundaries by at least exitTolerance
    */
-  private hasExitedBlockBoundaries(
-    currentPoint: { x: number; y: number },
-    startBlock: HTMLElement
-  ): boolean {
+  private hasExitedBlockBoundaries(currentPoint: { x: number; y: number }, startBlock: HTMLElement): boolean {
     const fullRect = this.getFullBlockRect(startBlock);
 
     // Calculate distance to each edge
@@ -135,7 +117,7 @@ export default class VirtualSelection implements IVirtualSelection {
       left: currentPoint.x - fullRect.left,
       right: fullRect.right - currentPoint.x,
       top: currentPoint.y - fullRect.top,
-      bottom: fullRect.bottom - currentPoint.y
+      bottom: fullRect.bottom - currentPoint.y,
     };
 
     // Find the minimum distance to any edge
@@ -143,11 +125,12 @@ export default class VirtualSelection implements IVirtualSelection {
       Math.abs(distances.left),
       Math.abs(distances.right),
       Math.abs(distances.top),
-      Math.abs(distances.bottom)
+      Math.abs(distances.bottom),
     );
 
     // Check if we're outside the block
-    const isOutside = currentPoint.x < fullRect.left ||
+    const isOutside =
+      currentPoint.x < fullRect.left ||
       currentPoint.x > fullRect.right ||
       currentPoint.y < fullRect.top ||
       currentPoint.y > fullRect.bottom;
@@ -164,13 +147,13 @@ export default class VirtualSelection implements IVirtualSelection {
   refreshBlocks(): void {
     // Clear old references
     this.blocks.length = 0;
-    
+
     query(
       this.options.blockSelector,
       (block: HTMLElement) => {
         this.blocks.push(block);
       },
-      this.options.blocksContainer
+      this.options.blocksContainer,
     );
 
     this.updateBlocksVisuals(true);
@@ -182,19 +165,16 @@ export default class VirtualSelection implements IVirtualSelection {
   private createElements(): void {
     if (this.selectionRect) {
       if (this.selectionRect.parentNode) {
-        remove(this.selectionRect)
+        remove(this.selectionRect);
       }
       this.selectionRect = null;
     }
 
-    this.selectionRect = make(
-      'div',
-      (div: HTMLDivElement) => {
-        addClass(div, 'tex-ui-vs-rect');
-        // Initialize with display none
-        css(div, { display: 'none' });
-      }
-    );
+    this.selectionRect = make('div', (div: HTMLDivElement) => {
+      addClass(div, 'tex-ui-vs-rect');
+      // Initialize with display none
+      css(div, { display: 'none' });
+    });
 
     append(document.body, this.selectionRect);
   }
@@ -220,10 +200,7 @@ export default class VirtualSelection implements IVirtualSelection {
    * @param y - Y coordinate relative to viewport
    * @returns Object with x and y coordinates relative to document
    */
-  private viewportToDocument(
-    x: number,
-    y: number
-  ): { x: number, y: number } {
+  private viewportToDocument(x: number, y: number): { x: number; y: number } {
     return { x: x + window.scrollX, y: y + window.scrollY };
   }
 
@@ -233,10 +210,7 @@ export default class VirtualSelection implements IVirtualSelection {
    * @param y - Y coordinate relative to document
    * @returns Object with x and y coordinates relative to viewport
    */
-  private documentToViewport(
-    x: number,
-    y: number
-  ): { x: number, y: number } {
+  private documentToViewport(x: number, y: number): { x: number; y: number } {
     return { x: x - window.scrollX, y: y - window.scrollY };
   }
 
@@ -339,9 +313,9 @@ export default class VirtualSelection implements IVirtualSelection {
    */
   private scheduleUpdate(): void {
     if (this.needsUpdate) return;
-    
+
     this.needsUpdate = true;
-    
+
     if (this.rafId === null) {
       this.rafId = requestAnimationFrame(() => {
         this.rafId = null;
@@ -374,8 +348,14 @@ export default class VirtualSelection implements IVirtualSelection {
     this.blocks.forEach((b, i) => {
       const fullRect = this.getFullBlockRect(b);
 
-      if (!(rect.right < fullRect.left || rect.left > fullRect.right ||
-        rect.bottom < fullRect.top || rect.top > fullRect.bottom)) {
+      if (
+        !(
+          rect.right < fullRect.left ||
+          rect.left > fullRect.right ||
+          rect.bottom < fullRect.top ||
+          rect.top > fullRect.bottom
+        )
+      ) {
         this.cachedSelectedIndices.add(i);
       }
     });
@@ -417,15 +397,9 @@ export default class VirtualSelection implements IVirtualSelection {
   private updateSelectionRect(): void {
     if (!this.selectionRect || !this.isLassoActive) return;
 
-    const start = this.documentToViewport(
-      this.startPointInDocument.x,
-      this.startPointInDocument.y
-    );
+    const start = this.documentToViewport(this.startPointInDocument.x, this.startPointInDocument.y);
 
-    const current = this.documentToViewport(
-      this.currentPointInDocument.x,
-      this.currentPointInDocument.y
-    );
+    const current = this.documentToViewport(this.currentPointInDocument.x, this.currentPointInDocument.y);
 
     // Batch CSS changes to reduce reflows
     css(this.selectionRect, {
@@ -433,7 +407,7 @@ export default class VirtualSelection implements IVirtualSelection {
       left: Math.min(start.x, current.x) + 'px',
       top: Math.min(start.y, current.y) + 'px',
       width: Math.abs(current.x - start.x) + 'px',
-      height: Math.abs(current.y - start.y) + 'px'
+      height: Math.abs(current.y - start.y) + 'px',
     });
   }
 
@@ -467,18 +441,15 @@ export default class VirtualSelection implements IVirtualSelection {
     });
 
     if (!skipEvents) {
-      this.options.onSelectionChange(
-        Array.from(this.selectedIndices),
-        this.getSelectedBlocks()
-      );
+      this.options.onSelectionChange(Array.from(this.selectedIndices), this.getSelectedBlocks());
     }
   }
 
   /**
-  * Handles mouse down event to initiate selection.
-  * @param e - The mouse event
-  * @private
-  */
+   * Handles mouse down event to initiate selection.
+   * @param e - The mouse event
+   * @private
+   */
   private onMouseDown(e: MouseEvent) {
     if (e.button !== 0) return;
 
@@ -619,8 +590,7 @@ export default class VirtualSelection implements IVirtualSelection {
             if (!this.startBlock) {
               this.startLassoMode();
               e.preventDefault();
-            }
-            else if (this.startBlock && this.hasExitedBlockBoundaries(this.currentPointInDocument, this.startBlock)) {
+            } else if (this.startBlock && this.hasExitedBlockBoundaries(this.currentPointInDocument, this.startBlock)) {
               this.startLassoMode();
               e.preventDefault();
             }
@@ -684,7 +654,7 @@ export default class VirtualSelection implements IVirtualSelection {
   /** @see IVirtualSelection.getSelectedBlocks */
   getSelectedBlocks(): HTMLElement[] {
     return Array.from(this.selectedIndices)
-      .map(i => this.blocks[i])
+      .map((i) => this.blocks[i])
       .filter(Boolean);
   }
 

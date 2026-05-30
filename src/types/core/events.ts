@@ -1,4 +1,4 @@
-import type { BlockElement, EventManager, Texditor } from "..";
+import type { BlockElement, EventManager, Texditor } from '..';
 
 export type PasteMapItem = { type: string; node: Node };
 export type PasteMap = { schema: string; data: PasteMapItem[] };

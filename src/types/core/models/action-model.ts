@@ -1,10 +1,4 @@
-import type {
-  BaseModelConfig,
-  BaseModel,
-  BaseElement,
-  BlockElement,
-  ModelConstructor
-} from "@/types";
+import type { BaseModelConfig, BaseModel, BaseElement, BlockElement, ModelConstructor } from '@/types';
 
 /**
  * Action model constructor type

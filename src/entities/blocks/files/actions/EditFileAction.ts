@@ -1,9 +1,6 @@
-import type {
-  FileActionModelConfig,
-  FilesBlockModel
-} from "@/types";
-import { IconPencil } from "@/icons";
-import FileActionModel from "@/core/models/file-action-model";
+import type { FileActionModelConfig, FilesBlockModel } from '@/types';
+import { IconPencil } from '@/icons';
+import FileActionModel from '@/core/models/file-action-model';
 import {
   addClass,
   append,
@@ -18,10 +15,10 @@ import {
   on,
   rebind,
   isEmptyString,
-  randString
-} from "snappykit";
+  randString,
+} from 'snappykit';
 
-import { executeMethodIfExists } from "@/utils";
+import { executeMethodIfExists } from '@/utils';
 
 /**
  * Handles the "edit" action for file items.
@@ -31,7 +28,7 @@ export default class EditFileAction extends FileActionModel {
   /** Reference to the popup DOM element */
   private popupNode: HTMLElement | null = null;
   /** Stores timeout IDs for error message hiding */
-  private timeouts: Record<string, number | undefined> = {}
+  private timeouts: Record<string, number | undefined> = {};
 
   /**
    * Configures the action with name and icon
@@ -40,7 +37,7 @@ export default class EditFileAction extends FileActionModel {
     return {
       name: 'edit',
       icon: IconPencil,
-    }
+    };
   }
 
   /** Handles click event  */
@@ -71,9 +68,9 @@ export default class EditFileAction extends FileActionModel {
             addClass(content, `${cssName}-content`);
 
             // Form header with title
-            const formHeader = make("div", (div: HTMLDivElement) => {
-              addClass(div, cssForm + "-header");
-              div.textContent = i18n.get("edit", "Edit");
+            const formHeader = make('div', (div: HTMLDivElement) => {
+              addClass(div, cssForm + '-header');
+              div.textContent = i18n.get('edit', 'Edit');
             });
 
             // Form body with dynamic input fields
@@ -89,12 +86,12 @@ export default class EditFileAction extends FileActionModel {
                   return make('div', (field: HTMLDivElement) => {
                     addClass(field, cssForm + '-field ' + cssForm + '-field-' + name);
 
-                    const input = make("input", (input: HTMLInputElement) => {
+                    const input = make('input', (input: HTMLInputElement) => {
                       const prop = Object.getOwnPropertyDescriptor(itemElement, code ? code : 'file' + upperName);
-                      input.type = "text";
+                      input.type = 'text';
                       input.id = inputId;
                       input.value = prop?.value || '';
-                      attr(input, "placeholder", `${i18n.get(name)}` + (isRequired ? '*' : ''));
+                      attr(input, 'placeholder', `${i18n.get(name)}` + (isRequired ? '*' : ''));
                       addClass(input, 'tex-input ' + cssForm + '-input-' + name);
                     }) as HTMLInputElement;
 
@@ -110,11 +107,11 @@ export default class EditFileAction extends FileActionModel {
 
                       append(field, errorLabel);
                     }
-                  })
+                  });
                 }
 
                 return null;
-              }
+              };
 
               // Create individual fields
               const nameInput = createInput('fileName', 'fileName'),
@@ -127,22 +124,22 @@ export default class EditFileAction extends FileActionModel {
             });
 
             // Form footer with action buttons
-            const formFooter = make("div", (footer: HTMLDivElement) => {
-              addClass(footer, cssForm + "-footer");
+            const formFooter = make('div', (footer: HTMLDivElement) => {
+              addClass(footer, cssForm + '-footer');
               const btnCss = 'tex-btn tex-btn-radius tex-btn-padding';
 
-              const saveButton = make("button", (btn: HTMLButtonElement) => {
-                btn.type = "button";
-                addClass(btn, btnCss + " tex-btn-primary");
-                btn.textContent = i18n.get("save", "Save");
-                on(btn, "click", (evt: MouseEvent) => this.saveHandler(evt));
+              const saveButton = make('button', (btn: HTMLButtonElement) => {
+                btn.type = 'button';
+                addClass(btn, btnCss + ' tex-btn-primary');
+                btn.textContent = i18n.get('save', 'Save');
+                on(btn, 'click', (evt: MouseEvent) => this.saveHandler(evt));
               });
 
-              const cancelButton = make("button", (btn: HTMLButtonElement) => {
-                btn.type = "button";
-                addClass(btn, btnCss + " tex-btn-secondary");
-                btn.textContent = i18n.get("cancel", "Cancel");
-                on(btn, "click", () => this.removePopup());
+              const cancelButton = make('button', (btn: HTMLButtonElement) => {
+                btn.type = 'button';
+                addClass(btn, btnCss + ' tex-btn-secondary');
+                btn.textContent = i18n.get('cancel', 'Cancel');
+                on(btn, 'click', () => this.removePopup());
               });
 
               append(footer, [saveButton, cancelButton]);
@@ -153,18 +150,15 @@ export default class EditFileAction extends FileActionModel {
             // Reposition popup based on available space
             const reposition = () => {
               setTimeout(() => {
-                if (
-                  blockElement.offsetHeight <
-                  content.offsetHeight + itemElement.offsetTop
-                ) {
-                  css(content, "top", blockElement.offsetHeight - content.offsetHeight + itemElement.offsetHeight / 2);
+                if (blockElement.offsetHeight < content.offsetHeight + itemElement.offsetTop) {
+                  css(content, 'top', blockElement.offsetHeight - content.offsetHeight + itemElement.offsetHeight / 2);
                 } else {
-                  css(content, "top", itemElement.offsetTop);
+                  css(content, 'top', itemElement.offsetTop);
                 }
               }, 1);
             };
 
-            rebind(window, "resize.efa" + eid, () => reposition());
+            rebind(window, 'resize.efa' + eid, () => reposition());
             reposition();
           });
 
@@ -174,13 +168,18 @@ export default class EditFileAction extends FileActionModel {
         append(popup, popupOverlay);
 
         // Close popup when clicking outside
-        on(document, 'click.efa' + eid, (evt: MouseEvent) => {
-          if (!closest(evt.target, popup)) {
-            off(document, 'click.efa' + eid, true);
-            this.removePopup();
-          }
-        }, true)
-      })
+        on(
+          document,
+          'click.efa' + eid,
+          (evt: MouseEvent) => {
+            if (!closest(evt.target, popup)) {
+              off(document, 'click.efa' + eid, true);
+              this.removePopup();
+            }
+          },
+          true,
+        );
+      });
 
       prepend(blockElement, this.popupNode);
     }
@@ -217,19 +216,23 @@ export default class EditFileAction extends FileActionModel {
         executeMethodIfExists(model, 'isRequiredField' + upperName)
       ) {
         // Show error message
-        query('.tex-message-error', (errorLabel: HTMLLabelElement) => {
-          css(errorLabel, 'display', 'block');
+        query(
+          '.tex-message-error',
+          (errorLabel: HTMLLabelElement) => {
+            css(errorLabel, 'display', 'block');
 
-          clearTimeout(this.timeouts[name]);
-          this.timeouts[name] = setTimeout(() => {
-            css(errorLabel, 'display', '');
-          }, model.getMessageTimeout());
-        }, field)
+            clearTimeout(this.timeouts[name]);
+            this.timeouts[name] = setTimeout(() => {
+              css(errorLabel, 'display', '');
+            }, model.getMessageTimeout());
+          },
+          field,
+        );
         return false;
       }
 
       return true;
-    }
+    };
 
     const reqName = requiredStatus('fileName'),
       reqCaption = requiredStatus('caption'),
@@ -246,17 +249,21 @@ export default class EditFileAction extends FileActionModel {
         if (input) {
           const value = input.value || '';
 
-          Object.defineProperty(itemElement, "file" + name.charAt(0).toUpperCase() + name.slice(1), {
+          Object.defineProperty(itemElement, 'file' + name.charAt(0).toUpperCase() + name.slice(1), {
             value: value,
             writable: true,
           });
 
-          query(".tex-file-" + name, (el: HTMLElement) => {
-            el.textContent = value;
-          }, itemElement);
+          query(
+            '.tex-file-' + name,
+            (el: HTMLElement) => {
+              el.textContent = value;
+            },
+            itemElement,
+          );
         }
       }
-    }
+    };
 
     saveField('fileName');
     saveField('caption');
@@ -265,17 +272,17 @@ export default class EditFileAction extends FileActionModel {
     this.removePopup();
     events.change({
       modelCode: this.getModelCode(),
-      type: "changeFileItem",
+      type: 'changeFileItem',
       blockElement: this.getBlockElement(),
-      item: itemElement
+      item: itemElement,
     });
   }
 
   /** Removes the popup and cleans up event listeners */
   private removePopup(): void {
     const eid = this.getEventId();
-    off(document, "click.efa" + eid, true);
-    off(window, "resize.efa" + eid);
+    off(document, 'click.efa' + eid, true);
+    off(window, 'resize.efa' + eid);
     this.popupNode?.remove();
     this.popupNode = null;
   }

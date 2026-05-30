@@ -1,16 +1,16 @@
-import type { BlockModelConfig } from "@/types";
-import { IconHeader6 } from "@/icons";
-import Header from ".";
-export default class H6 extends Header  {
+import type { BlockModelConfig } from '@/types';
+import { IconHeader6 } from '@/icons';
+import Header from '.';
+export default class H6 extends Header {
   protected configure(): Partial<BlockModelConfig> {
     return {
       ...super.configure(),
       ...{
-        name: "h6",
-        tagName: "h6",
+        name: 'h6',
+        tagName: 'h6',
         icon: IconHeader6,
-        translation: "header6"
-      }
+        translation: 'header6',
+      },
     };
   }
 }
