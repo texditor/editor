@@ -4,7 +4,7 @@ import type {
   BaseModelConfig,
   BaseElement,
   SanitizerConfig,
-  TexditorEvent,
+  TexditorEventBase,
 } from '@/types';
 
 /**
@@ -52,6 +52,7 @@ export interface BlockModelSchema {
  * @property itemClassName - Item CSS class
  * @property itemBodyClassName - Item body CSS class
  * @property sortableItems - Enable item sorting
+ * @property sortableItems - The maximum number of sortable items allowed
  * @property dragZoneClassName - Name of the drag zone class
  * @property relatedNames - Related block names
  * @property emptyDetect - Enable empty detection
@@ -81,6 +82,7 @@ export interface BlockModelConfig extends BaseModelConfig {
   itemClassName: string;
   itemBodyClassName: string;
   sortableItems: boolean;
+  sortableMaxItems: number;
   dragZoneClassName: string;
   relatedNames: string[];
   emptyDetect: boolean;
@@ -103,7 +105,7 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @param params - Event parameters
    * @param globalParams - Global event parameters
    */
-  change(name: string, params?: TexditorEvent, globalParams?: TexditorEvent): void;
+  change(name: string, params?: TexditorEventBase, globalParams?: TexditorEventBase): void;
 
   /**
    * Check if Enter creates new block
@@ -206,6 +208,9 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @returns True if sortable
    */
   isSortableItems(): boolean;
+
+  /** Returns the maximum number of sortable items allowed */
+  getSortableMaxItems(): number;
 
   /**
    * Get the name of the drag zone class

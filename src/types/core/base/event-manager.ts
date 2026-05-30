@@ -1,4 +1,4 @@
-import { TexditorEvent } from '@/types';
+import { TexditorEventBase } from '@/types';
 
 /**
  * Event trigger storage structure
@@ -42,5 +42,5 @@ export interface EventManager {
    * @param name - Event name to trigger
    * @param params - Parameters to pass to callbacks
    */
-  trigger(name: string, params?: TexditorEvent): void;
+  trigger(name: string, params?: TexditorEventBase): void;
 }

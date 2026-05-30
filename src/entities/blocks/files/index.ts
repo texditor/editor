@@ -93,6 +93,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
       mimeTypes: [],
       multiple: true,
       maxItems: 10,
+      sortableMaxItems: 10,
       visibleCounter: true,
       inputName: 'files',
       contentClassName: 'tex-files-content',
@@ -592,10 +593,10 @@ export default class Files extends BlockModel implements FilesBlockModel {
         addClass(labelContainer, 'tex-files-form-label-container');
 
         const text = make(
-            'span',
-            (span: HTMLSpanElement) =>
-              (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText),
-          ),
+          'span',
+          (span: HTMLSpanElement) =>
+            (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText),
+        ),
           icon = make('span', (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
 
         append(labelContainer, [icon, text]);
@@ -628,7 +629,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * Hook called after form element creation
    * @param _form - Form element
    */
-  protected onFormCreate(_form: HTMLElement): void {}
+  protected onFormCreate(_form: HTMLElement): void { }
 
   /**
    * Create list of file items from stored data
@@ -663,13 +664,13 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * Hook called before list element creation
    * @param _contentElement - Content node element
    */
-  protected onCreateList(_contentElement: HTMLElement): void {}
+  protected onCreateList(_contentElement: HTMLElement): void { }
 
   /**
    * Hook called after list element creation
    * @param _contentElement - Content node element
    */
-  protected onCreatedList(_contentElement: HTMLElement): void {}
+  protected onCreatedList(_contentElement: HTMLElement): void { }
 
   /**
    * Create DOM node for a file item

@@ -8,7 +8,7 @@ import type {
   BlockCreateItemSchema,
   PasteMap,
   BlockModelConstructor,
-  TexditorEvent,
+  TexditorEventBase,
   ActionModelConstructor,
 } from '@/types';
 import {
@@ -54,7 +54,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   }
 
   /** @see BlockModel.change */
-  change(name: string, params: TexditorEvent = {}, globalParams: TexditorEvent = {}): void {
+  change(name: string, params: TexditorEventBase = {}, globalParams: TexditorEventBase = {}): void {
     const { events } = this.editor;
     const finallyParams = {
       ...{
@@ -119,9 +119,10 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       normalize: false,
       convertible: false,
       sortableItems: false,
+      sortableMaxItems: 0,
       dragZoneClassName: 'tex-item-drag-zone-default',
       visibleTitle: false,
-      attributeTitle: false,
+      attributeTitle: false
     };
   }
 
@@ -290,6 +291,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       ghostClass: 'tex-sortable-ghost',
       pressDuration: 10,
       edgeThreshold: 200,
+      maxItems: this.getSortableMaxItems(),
 
       onStart: () => {
         blockManager.destroyVirtualSelection();
@@ -389,7 +391,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Hook triggered after composition is complete
    * @param _createSchema - Composition schema used for composition
    */
-  protected onCompose(_createSchema?: BlockCreateSchema): void {}
+  protected onCompose(_createSchema?: BlockCreateSchema): void { }
 
   /**
    * Prepares the unit before mounting
@@ -693,6 +695,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   /** @see IBlockModel.isSortableItems */
   isSortableItems(): boolean {
     return this.getConfig('sortableItems', false);
+  }
+
+  /** @see IBlockModel.getSortableMaxItems */
+  getSortableMaxItems(): number {
+    return this.getConfig('sortableMaxItems', 0);
   }
 
   /** @see IBlockModel.getDragZoneClassName */

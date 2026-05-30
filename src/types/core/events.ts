@@ -6,7 +6,7 @@ export type PasteMap = { schema: string; data: PasteMapItem[] };
 /**
  * Event data structure passed to callbacks
  */
-export interface TexditorEvent {
+export interface TexditorEventBase {
   /** Type of event */
   type?: string;
 
@@ -31,11 +31,16 @@ export interface TexditorEvent {
   /** Model name */
   modelCode?: string;
 
-  /** Reference to the Texditor instance that fired the event */
-  instance?: Texditor;
-
   /** Additional event data */
   [key: string]: unknown;
+}
+
+/**
+* Public Event Data Structure (read-only)
+*  */
+export interface TexditorEvent extends TexditorEventBase {
+  /** Reference to the Texditor instance that fired the event */
+  instance: Texditor;
 }
 
 /**
@@ -46,7 +51,7 @@ export interface Events extends EventManager {
    * Handles content change events
    * @param event - Change event data
    */
-  change(event: TexditorEvent): void;
+  change(event: TexditorEventBase): void;
 
   /**
    * Refreshes event listeners on all blocks

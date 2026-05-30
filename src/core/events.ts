@@ -3,7 +3,7 @@ import type {
   BlockElement,
   PasteMap,
   PasteMapItem,
-  TexditorEvent,
+  TexditorEventBase,
   Texditor,
   Events as IEvents,
 } from '@/types';
@@ -100,7 +100,7 @@ export default class Events extends EventManager implements IEvents {
   }
 
   /** @see IEvents.change */
-  change(event: TexditorEvent): void {
+  change(event: TexditorEventBase): void {
     const { blockManager, config, extensions, historyManager } = this.editor;
 
     const changeHandle = config.get('onChange', false);
