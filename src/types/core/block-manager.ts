@@ -126,9 +126,10 @@ export interface BlockManager {
    * @param index - Index of the block to create (-1 after the current block)
    * @param options - Block Options
    * @param skipEvents - If true, no events will be emitted and focus won't be automatically managed
+   * @param scrollIntoView - If true or ScrollIntoViewOptions provided, the created block will be scrolled into view. Default is true
    * @returns Created block node or null
    */
-  createBlock(name: string, index?: number, options?: BlockCreateSchema, skipEvents?: boolean): BlockElement | null;
+  createBlock(name: string, index?: number, options?: BlockCreateSchema, skipEvents?: boolean, scrollIntoView?: boolean | ScrollIntoViewOptions): BlockElement | null;
 
   /**
    * Recreates a block at the given index using the existing data.
