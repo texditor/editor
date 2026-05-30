@@ -4,7 +4,8 @@ import type {
   BaseModelConfig,
   BaseElement,
   SanitizerConfig,
-  TexditorEvent,
+  TexditorEventBase,
+  Toasts,
 } from '@/types';
 
 /**
@@ -51,6 +52,7 @@ export interface BlockModelSchema {
  * @property itemRelatedNames - Related item names
  * @property itemClassName - Item CSS class
  * @property itemBodyClassName - Item body CSS class
+ * @property maxItems - Maximum number of elements
  * @property sortableItems - Enable item sorting
  * @property dragZoneClassName - Name of the drag zone class
  * @property relatedNames - Related block names
@@ -59,6 +61,8 @@ export interface BlockModelSchema {
  * @property normalize - Enable content normalization
  * @property placeholder - Placeholder text
  * @property convertible - Block can be converted
+ * @property toastTimeout - Timeout duration in milliseconds
+ * @property toastsClassName - The CSS class name for the toasts element
  */
 export interface BlockModelConfig extends BaseModelConfig {
   autoMerge: boolean;
@@ -80,6 +84,7 @@ export interface BlockModelConfig extends BaseModelConfig {
   itemRelatedNames: string[];
   itemClassName: string;
   itemBodyClassName: string;
+  maxItems: number;
   sortableItems: boolean;
   dragZoneClassName: string;
   relatedNames: string[];
@@ -89,6 +94,8 @@ export interface BlockModelConfig extends BaseModelConfig {
   placeholder?: string;
   convertible: boolean;
   contentClassName: string;
+  toastTimeout: number;
+  toastsClassName: string;
   [key: string]: unknown;
 }
 
@@ -103,7 +110,7 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @param params - Event parameters
    * @param globalParams - Global event parameters
    */
-  change(name: string, params?: TexditorEvent, globalParams?: TexditorEvent): void;
+  change(name: string, params?: TexditorEventBase, globalParams?: TexditorEventBase): void;
 
   /**
    * Check if Enter creates new block
@@ -188,6 +195,12 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @returns Item type
    */
   getItemName(): string;
+
+  /**
+   * Get maximum allowed items count
+   * @returns Maximum items number
+   */
+  getMaxItems(): number;
 
   /**
    * Get related item names
@@ -389,15 +402,37 @@ export interface BlockModel extends BaseModel<BlockElement> {
   getSanitizerConfig(): SanitizerConfig;
 
   /**
+   * Gets the CSS class name for the toasts element
+   * @returns The CSS class name as a string
+   */
+  getToastsClassName(): string;
+
+  /**
+   * Gets the auto-hide timeout for toast messages in milliseconds
+   * @returns Timeout duration in milliseconds
+   */
+  getToastTimeout(): number;
+
+  /**
+   * Gets the Toasts service instance
+   * @returns {Toasts} The Toasts service
+   */
+  toasts(): Toasts;
+
+  /**
    * Set up global configuration
    * @param config - Configuration object
    * @returns BlockModel class
    */
   setup?(config: Partial<BlockModelConfig>): BlockModelConstructor;
 }
-
+/** Data of a block: plain text, array of strings, or child blocks. */
 export type BlockSchemaData = string | string[] | BlockChildSchema[];
+
+/** HTML attributes as key-value pairs for a block. */
 export type BlockSchemaAttr = Record<string, string>;
+
+/** Full block model with type, data, attributes, and metadata. */
 export interface BlockSchema {
   type: string;
   data: BlockSchemaData;
@@ -409,6 +444,7 @@ export interface BlockSchema {
   [key: string]: unknown;
 }
 
+/** Child block element */
 export interface BlockChildSchema {
   type: string;
   data: BlockSchemaData | [];
@@ -420,11 +456,12 @@ export interface BlockChildSchema {
   [key: string]: unknown;
 }
 
-// Create
+/** Simplified model for creating a block – type is provided by context, only data is required. */
 export interface BlockCreateSchema extends Omit<BlockSchema, 'type'> {
   data: string | BlockCreateItemSchema[] | unknown[];
 }
 
+/** Simplified child item model for creation – only type and string data required. */
 export interface BlockCreateItemSchema extends Omit<BlockChildSchema, 'data'> {
   type: string;
   data: string;

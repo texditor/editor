@@ -2,7 +2,6 @@ import type { Commands as ICommands, SelectionAPI, Texditor } from '@/types';
 
 import {
   append,
-  attr,
   before,
   closest,
   getLength,
@@ -560,7 +559,7 @@ export default class Commands implements ICommands {
             if (attributesMatch) {
               for (let a = 0; a < attrs1.length; a++) {
                 const attrName = attrs1[a].name;
-                if (attr(currentEl, attrName) !== attr(nextEl, attrName)) {
+                if (currentEl.getAttribute(attrName) !== nextEl.getAttribute(attrName)) {
                   attributesMatch = false;
                   break;
                 }

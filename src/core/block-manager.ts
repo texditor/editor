@@ -460,7 +460,7 @@ export default class BlockManager implements IBlockManager {
     index: number = -1,
     options?: BlockCreateSchema,
     skipEvents: boolean = false,
-    scrollIntoView: boolean | ScrollIntoViewOptions = true
+    scrollIntoView: boolean | ScrollIntoViewOptions = true,
   ): BlockElement | null {
     let block: BlockElement | null = null;
     const { events } = this.editor,
@@ -522,18 +522,20 @@ export default class BlockManager implements IBlockManager {
                 blockElement: block,
               });
 
-              const scrollParams = scrollIntoView === true ? {
-                behavior: 'smooth',
-                block: 'center',
-                inline: 'nearest'
-              } : scrollIntoView;
+              const scrollParams =
+                scrollIntoView === true
+                  ? {
+                      behavior: 'smooth',
+                      block: 'center',
+                      inline: 'nearest',
+                    }
+                  : scrollIntoView;
 
-              if (scrollIntoView)
-                block?.scrollIntoView(scrollParams as ScrollIntoViewOptions);
+              if (scrollIntoView) block?.scrollIntoView(scrollParams as ScrollIntoViewOptions);
 
               setTimeout(() => {
                 this.focus(curIndex);
-              }, 100)
+              }, 100);
             }
           }
         }
@@ -875,7 +877,7 @@ export default class BlockManager implements IBlockManager {
 
       const createItem = (target: HTMLElement, content: string) => {
         const newItem = executeMethodIfExists(beforeTargetModel, '__makeItemElement', [content]) as HTMLElement;
-        append(target, newItem);
+        if (newItem) append(target, newItem);
       };
 
       if (targetBlockElement) {

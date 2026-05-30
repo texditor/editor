@@ -8,8 +8,9 @@ import type {
   BlockCreateItemSchema,
   PasteMap,
   BlockModelConstructor,
-  TexditorEvent,
+  TexditorEventBase,
   ActionModelConstructor,
+  Toasts as IToasts,
 } from '@/types';
 import {
   addClass,
@@ -40,6 +41,7 @@ import { IconBars, IconMove } from '@/icons';
 import BaseModel from '../base/base-model';
 import Sortum, { Sortum as ISortum } from 'sortum';
 import { mainStore } from '@/store/mainStore';
+import Toasts from '../ui/toasts';
 
 /**
  * Base block model class - manages block behavior, content, and lifecycle
@@ -47,6 +49,8 @@ import { mainStore } from '@/store/mainStore';
 export default class BlockModel extends BaseModel<BlockElement> implements IBlockModel {
   /** Sortable items manager instance */
   private sortableItems: ISortum | null = null;
+  /** Toasts instance*/
+  private toastsInstance: Toasts | null = null;
 
   /** @see IBlockModel.setup */
   public static setup(config: Partial<BlockModelConfig>): BlockModelConstructor {
@@ -54,7 +58,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   }
 
   /** @see BlockModel.change */
-  change(name: string, params: TexditorEvent = {}, globalParams: TexditorEvent = {}): void {
+  change(name: string, params: TexditorEventBase = {}, globalParams: TexditorEventBase = {}): void {
     const { events } = this.editor;
     const finallyParams = {
       ...{
@@ -91,6 +95,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       itemRelatedNames: [],
       itemClassName: '',
       itemBodyClassName: '',
+      maxItems: 0,
       backspaceRemove: true,
       className: '',
       visibleTools: false,
@@ -122,6 +127,8 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       dragZoneClassName: 'tex-item-drag-zone-default',
       visibleTitle: false,
       attributeTitle: false,
+      toastTimeout: 7000,
+      toastsClassName: 'tex-toasts',
     };
   }
 
@@ -290,6 +297,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       ghostClass: 'tex-sortable-ghost',
       pressDuration: 10,
       edgeThreshold: 200,
+      maxItems: this.getMaxItems(),
 
       onStart: () => {
         blockManager.destroyVirtualSelection();
@@ -362,11 +370,13 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       const content = createSchema?.data || {};
 
       if (!Object.keys(content).length) {
-        append(contentElement, this.__makeItemElement());
+        const itemEl = this.__makeItemElement();
+        if (itemEl) append(contentElement, itemEl);
       } else if (Array.isArray(content) && content.length) {
         content.forEach((item: BlockCreateItemSchema) => {
           if (!isEmptyString(item.data)) {
-            append(contentElement, [this.__makeItemElement(item.data)]);
+            const itemEl = this.__makeItemElement(item.data);
+            if (itemEl) append(contentElement, itemEl);
           }
         });
       }
@@ -680,6 +690,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     return this.getConfig('itemName', 'li');
   }
 
+  /** @see IBlockModel.getMaxItems */
+  getMaxItems(): number {
+    return this.getConfig('maxItems', 0);
+  }
+
   /** @see IBlockModel.getItemRelatedNames */
   getItemRelatedNames(): string[] {
     return this.getConfig('itemRelatedNames', []) as string[];
@@ -775,7 +790,17 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param content - Item content
    * @returns Item element
    */
-  __makeItemElement(content: string | unknown = ''): HTMLElement {
+  __makeItemElement(content: string | unknown = ''): HTMLElement | null {
+    const { i18n } = this.editor;
+    const maxItems = this.getMaxItems();
+
+    if (maxItems > 0 && this.getItemsLength() >= maxItems) {
+      this.toasts().add(i18n.get('maxItems', 'Maximum of elements'), {
+        insertType: 'append',
+      });
+      return null;
+    }
+
     const node = this.makeItemElement(content);
 
     this.change('makeItemElement', {
@@ -793,6 +818,8 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     if (!contentElement) return false;
 
     const itemElement = this.__makeItemElement(content);
+
+    if (!itemElement) return false;
 
     if (index === 0) {
       prepend(contentElement, itemElement);
@@ -977,6 +1004,23 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     }
 
     return index;
+  }
+
+  /** @see IBlockModel.getToastsClassName */
+  getToastsClassName(): string {
+    return this.getConfig('toastsClassName', 'tex-toasts');
+  }
+
+  /** @see IBlockModel.getToastTimeout */
+  getToastTimeout(): number {
+    return this.getConfig('toastTimeout', 7000);
+  }
+
+  toasts(): IToasts {
+    if (!this.toastsInstance)
+      this.toastsInstance = new Toasts(this.getElement(), this.getToastsClassName(), this.getToastTimeout());
+
+    return this.toastsInstance;
   }
 
   /**

@@ -1,4 +1,4 @@
-import { EventTriggerObject, Texditor, TexditorEvent } from '@/types';
+import { EventTriggerObject, Texditor, TexditorEventBase } from '@/types';
 import type { EventManager as IEventManager } from '@/types/core/base/event-manager';
 import { randString } from 'snappykit';
 
@@ -51,7 +51,7 @@ export default abstract class EventManager implements IEventManager {
   }
 
   /** @see IEventManager.trigger */
-  trigger(name: string, params: TexditorEvent = {}): void {
+  trigger(name: string, params: TexditorEventBase = {}): void {
     if (!this.triggers[name]) return;
 
     const trigger = this.triggers[name];

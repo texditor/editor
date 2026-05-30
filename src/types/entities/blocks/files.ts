@@ -17,7 +17,6 @@ export interface FilesBlockModelConfig extends BlockModelConfig {
   uploadLabelText: string;
   uploadLabelMessage: string;
   ajaxConfig: AjaxConfig;
-  maxItems: number;
   visibleCounter: boolean;
   requiredFieldFileName: boolean;
   requiredFieldCaption: boolean;
@@ -79,40 +78,10 @@ export interface FilesBlockModel extends BlockModel {
   setRenderCallback(mimeType: string | string[], callable: CallableFunction): void;
 
   /**
-   * Get the toast notifications container element
-   * @returns Toast container element or null
-   */
-  getToastsNode(): HTMLElement | null;
-
-  /**
-   * Clear all toast notifications
-   */
-  clearToasts(): void;
-
-  /**
-   * Add a toast notification message
-   * @param message - Notification message text
-   * @param status - Message status type (default: "error")
-   */
-  addToast(message: string, status?: string): void;
-
-  /**
    * Get the form container element
    * @returns Form element or null
    */
   getFormNode(): HTMLElement | null;
-
-  /**
-   * Get maximum allowed items count
-   * @returns Maximum items number
-   */
-  getMaxItems(): number;
-
-  /**
-   * Get message auto-hide timeout in milliseconds
-   * @returns Timeout duration
-   */
-  getMessageTimeout(): number;
 
   /**
    * Check if item counter is visible
