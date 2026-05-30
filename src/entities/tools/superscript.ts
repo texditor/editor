@@ -1,16 +1,16 @@
-import type { ToolModelConfig } from "@/types";
-import { IconSuperscript } from "@/icons";
-import { ToolModel } from "@/core/models";
+import type { ToolModelConfig } from '@/types';
+import { IconSuperscript } from '@/icons';
+import { ToolModel } from '@/core/models';
 
-export default class SuperscriptTool extends ToolModel  {
+export default class SuperscriptTool extends ToolModel {
   protected configure(): Partial<ToolModelConfig> {
     return {
-      name: "superscript",
+      name: 'superscript',
       tagName: 'sup',
       icon: IconSuperscript,
       override: false,
       iconWidth: 16,
-      iconHeight: 16
-    }
+      iconHeight: 16,
+    };
   }
 }

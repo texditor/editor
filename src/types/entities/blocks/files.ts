@@ -1,14 +1,6 @@
-import {
-  BlockModelConfig,
-  BlockModel,
-  FileActionModelConstructor,
-  FileActionModel,
-} from "../../";
+import { BlockModelConfig, BlockModel, FileActionModelConstructor, FileActionModel } from '../../';
 
-import {
-  AjaxConfig,
-  RenderIconContent
-} from "@/types";
+import { AjaxConfig, RenderIconContent } from '@/types';
 
 export interface FilesBlockModelConfig extends BlockModelConfig {
   showOnlyWhenEmpty: boolean;
@@ -34,7 +26,7 @@ export interface FilesBlockModelConfig extends BlockModelConfig {
   visibleFieldCaption: boolean;
   visibleFieldDesc: boolean;
   renderImage: boolean;
-  actions: FileActionModelConstructor[]
+  actions: FileActionModelConstructor[];
 }
 
 export interface FilesAjaxResponse {
@@ -159,15 +151,15 @@ export interface FilesBlockModel extends BlockModel {
   isRequiredFieldFileName(): boolean;
 
   /**
- * Checks if the caption is required
- * @returns True if required, `false` otherwise
- */
+   * Checks if the caption is required
+   * @returns True if required, `false` otherwise
+   */
   isRequiredFieldCaption(): boolean;
 
   /**
-  *Checks if the description is required
-  * @returns True if required, `false` otherwise
-  */
+   *Checks if the description is required
+   * @returns True if required, `false` otherwise
+   */
   isRequiredFieldDesc(): boolean;
 
   /**
@@ -177,15 +169,15 @@ export interface FilesBlockModel extends BlockModel {
   isVisibleFieldFileName(): boolean;
 
   /**
- * Checks if the caption is visible
- * @returns True if visible, `false` otherwise
- */
+   * Checks if the caption is visible
+   * @returns True if visible, `false` otherwise
+   */
   isVisibleFieldCaption(): boolean;
 
   /**
-  *Checks if the description is visible
-  * @returns True if visible, `false` otherwise
-  */
+   *Checks if the description is visible
+   * @returns True if visible, `false` otherwise
+   */
   isVisibleFieldDesc(): boolean;
 
   /**
@@ -228,7 +220,7 @@ export interface FilesBlockModel extends BlockModel {
    */
   getCounterNode(): HTMLElement | null;
 
-  /** 
+  /**
    * Get action models with a file.
    * @returns List of file action models
    */

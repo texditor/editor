@@ -21,8 +21,8 @@
   z-index: 1;
 }
 
-.tex-files-form-uploader input:disabled+label,
-.tex-files-form-uploader input:disabled~label {
+.tex-files-form-uploader input:disabled + label,
+.tex-files-form-uploader input:disabled ~ label {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -315,7 +315,6 @@
   font-size: 18px;
   font-weight: 700;
 }
-
 
 .tex-files-edit-form-body {
   display: grid;

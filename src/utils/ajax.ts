@@ -1,4 +1,4 @@
-import { AjaxOptions, AjaxResponse, AjaxData } from "@/types";
+import { AjaxOptions, AjaxResponse, AjaxData } from '@/types';
 
 /**
  * Sends an AJAX request with support for FormData and plain data, including progress tracking
@@ -9,20 +9,17 @@ import { AjaxOptions, AjaxResponse, AjaxData } from "@/types";
 export function ajax<
   TResponse = unknown,
   TData extends AjaxData = AjaxData,
-  THeaders extends Record<string, string> = Record<string, string>
->(
-  url: string,
-  options: AjaxOptions<TResponse, TData, THeaders> = {}
-): Promise<AjaxResponse<TResponse>> {
+  THeaders extends Record<string, string> = Record<string, string>,
+>(url: string, options: AjaxOptions<TResponse, TData, THeaders> = {}): Promise<AjaxResponse<TResponse>> {
   return new Promise((resolve, reject) => {
     const {
-      method = "GET",
+      method = 'GET',
       data,
       headers = {} as THeaders,
       progress: onProgress,
       success: onSuccess,
       error: onError,
-      timeout = 30000
+      timeout = 30000,
     } = options;
 
     const xhr = new XMLHttpRequest();
@@ -31,8 +28,8 @@ export function ajax<
     xhr.timeout = timeout;
 
     // Set default headers
-    if (!(data instanceof FormData) && typeof data === "object" && data !== null) {
-      xhr.setRequestHeader("Content-Type", "application/json");
+    if (!(data instanceof FormData) && typeof data === 'object' && data !== null) {
+      xhr.setRequestHeader('Content-Type', 'application/json');
     }
 
     // Custom headers
@@ -41,8 +38,8 @@ export function ajax<
     }
 
     // Progress tracking for upload (sending data to server)
-    if (onProgress && method !== "GET" && data) {
-      xhr.upload.addEventListener("progress", (e) => {
+    if (onProgress && method !== 'GET' && data) {
+      xhr.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
           const percent = Math.round((e.loaded / e.total) * 100);
           onProgress(percent, e.loaded, e.total);
@@ -52,7 +49,7 @@ export function ajax<
 
     // Progress tracking for download (receiving response from server)
     if (onProgress) {
-      xhr.addEventListener("progress", (e) => {
+      xhr.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
           const percent = Math.round((e.loaded / e.total) * 100);
           onProgress(percent, e.loaded, e.total);
@@ -79,13 +76,13 @@ export function ajax<
     };
 
     xhr.onerror = () => {
-      const error = new Error("Network error");
+      const error = new Error('Network error');
       onError?.(error);
       reject(error);
     };
 
     xhr.ontimeout = () => {
-      const error = new Error("Request timeout");
+      const error = new Error('Request timeout');
       onError?.(error);
       reject(error);
     };
@@ -95,7 +92,7 @@ export function ajax<
     if (data) {
       if (data instanceof FormData) {
         body = data;
-      } else if (typeof data === "object") {
+      } else if (typeof data === 'object') {
         body = JSON.stringify(data);
       } else {
         body = String(data);

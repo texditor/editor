@@ -1,9 +1,4 @@
-import type {
-  HistoryState,
-  HistoryStateSelectionData,
-  HistoryManager as IHistoryManager,
-  Texditor
-} from "@/types";
+import type { HistoryState, HistoryStateSelectionData, HistoryManager as IHistoryManager, Texditor } from '@/types';
 
 export default class HistoryManager implements IHistoryManager {
   private editor: Texditor;
@@ -24,7 +19,6 @@ export default class HistoryManager implements IHistoryManager {
    */
   scheduleSave(): void {
     if (this.isRestoring) return;
-
 
     if (this.saveTimer) {
       clearTimeout(this.saveTimer);
@@ -64,7 +58,7 @@ export default class HistoryManager implements IHistoryManager {
 
       const selectionData: HistoryStateSelectionData = {
         index: blockIndex,
-        ...selection
+        ...selection,
       };
 
       if (model?.isEditableItems()) {
@@ -74,7 +68,7 @@ export default class HistoryManager implements IHistoryManager {
       const state: HistoryState = {
         content: content,
         selection: selectionData,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       if (!this.currentState || !this.statesEqual(this.currentState, state)) {
@@ -90,14 +84,14 @@ export default class HistoryManager implements IHistoryManager {
         this.future = [];
 
         events.change({
-          type: "historySave",
+          type: 'historySave',
           state: this.currentState,
           history: this.history,
-          future: this.future
+          future: this.future,
         });
       }
     } catch (error) {
-      console.error("Error saving state:", error);
+      console.error('Error saving state:', error);
     }
   }
 
@@ -120,12 +114,7 @@ export default class HistoryManager implements IHistoryManager {
   private isDeepEqual(obj1: unknown, obj2: unknown): boolean {
     if (obj1 === obj2) return true;
 
-    if (
-      typeof obj1 !== "object" ||
-      obj1 === null ||
-      typeof obj2 !== "object" ||
-      obj2 === null
-    ) {
+    if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
       return false;
     }
 
@@ -140,12 +129,7 @@ export default class HistoryManager implements IHistoryManager {
       const val1 = (obj1 as Record<string, unknown>)[key];
       const val2 = (obj2 as Record<string, unknown>)[key];
 
-      if (
-        typeof val1 === "object" &&
-        val1 !== null &&
-        typeof val2 === "object" &&
-        val2 !== null
-      ) {
+      if (typeof val1 === 'object' && val1 !== null && typeof val2 === 'object' && val2 !== null) {
         if (!this.isDeepEqual(val1, val2)) return false;
       } else {
         if (val1 !== val2) return false;
@@ -171,12 +155,12 @@ export default class HistoryManager implements IHistoryManager {
       }
 
       this.currentState = this.history.pop()!;
-      this.restoreState("undo", this.currentState);
+      this.restoreState('undo', this.currentState);
 
       return true;
     } catch (error) {
       this.isRestoring = false;
-      console.error("Undo error:", error);
+      console.error('Undo error:', error);
       return false;
     }
   }
@@ -198,12 +182,12 @@ export default class HistoryManager implements IHistoryManager {
       }
 
       this.currentState = this.future.pop()!;
-      this.restoreState("redo", this.currentState);
+      this.restoreState('redo', this.currentState);
 
       return true;
     } catch (error) {
       this.isRestoring = false;
-      console.error("Redo error:", error);
+      console.error('Redo error:', error);
       return false;
     }
   }
@@ -231,7 +215,7 @@ export default class HistoryManager implements IHistoryManager {
       const { position } = selectionApi.getState();
       return {
         start: position.start < 0 ? 0 : position.start,
-        end: position.end < 0 ? 0 : position.end
+        end: position.end < 0 ? 0 : position.end,
       };
     } catch (error) {
       console.warn(error);
@@ -251,7 +235,7 @@ export default class HistoryManager implements IHistoryManager {
       type: type,
       state: this.currentState,
       history: this.history,
-      future: this.future
+      future: this.future,
     });
   }
 

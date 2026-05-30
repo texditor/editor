@@ -8,7 +8,7 @@ export interface SliderOptions {
    * @default true
    */
   infinite?: boolean;
-  
+
   /**
    * Callback function triggered whenever the active slide changes
    * @param index - The new current slide index (0-based)
@@ -27,19 +27,19 @@ export interface Slider {
    * @throws Will not throw but will clamp index based on infinite option
    */
   goToSlide(index: number): void;
-  
+
   /**
    * Navigates to the next slide
    * Behavior depends on infinite option setting
    */
   next(): void;
-  
+
   /**
    * Navigates to the previous slide
    * Behavior depends on infinite option setting
    */
   prev(): void;
-  
+
   /**
    * Completely destroys the slider instance
    * Removes all added classes, styles, and DOM elements

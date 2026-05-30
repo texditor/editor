@@ -1,11 +1,4 @@
-import type {
-  BaseModelConfig,
-  BaseModel,
-  BaseElement,
-  BlockElement,
-  FileItemElement,
-  ModelConstructor
-} from "@/types";
+import type { BaseModelConfig, BaseModel, BaseElement, BlockElement, FileItemElement, ModelConstructor } from '@/types';
 
 /**
  * Block model constructor type
@@ -29,7 +22,7 @@ export interface FileActionElement extends BaseElement {
  * @property confirm - Whether action requires confirmation before execution
  */
 export interface FileActionModelConfig extends BaseModelConfig {
-  actions: FileActionModel[]
+  actions: FileActionModel[];
 }
 
 export interface FileActionModel extends BaseModel<FileActionElement> {

@@ -1,5 +1,5 @@
 /** HTTP method types for AJAX requests */
-export type AjaxMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+export type AjaxMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 /** Supported data types for request body */
 export type AjaxData = FormData | Record<string, unknown> | string;
@@ -8,7 +8,7 @@ export type AjaxData = FormData | Record<string, unknown> | string;
 export interface AjaxOptions<
   TResponse = unknown,
   TData extends AjaxData = AjaxData,
-  THeaders extends Record<string, string> = Record<string, string>
+  THeaders extends Record<string, string> = Record<string, string>,
 > {
   /** HTTP method (default: GET) */
   method?: AjaxMethod;
@@ -30,7 +30,7 @@ export interface AjaxOptions<
 export interface AjaxConfig<
   TResponse = unknown,
   TData extends AjaxData = AjaxData,
-  THeaders extends Record<string, string> = Record<string, string>
+  THeaders extends Record<string, string> = Record<string, string>,
 > {
   /** Target URL for the request */
   url: string;

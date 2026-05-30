@@ -1,9 +1,5 @@
-import type {
-  I18N as II18N,
-  LocaleMapData,
-  Texditor
-} from "@/types";
-import { EnLocale } from "@/locales";
+import type { I18N as II18N, LocaleMapData, Texditor } from '@/types';
+import { EnLocale } from '@/locales';
 
 export default class I18N implements II18N {
   /** Reference to the editor instance */
@@ -14,7 +10,7 @@ export default class I18N implements II18N {
 
   /** Default fallback locale code */
   private defaultLocale: string = 'en';
-  
+
   /** Collection of translation dictionaries keyed by locale code */
   private translations: LocaleMapData = {} as LocaleMapData;
 
@@ -25,16 +21,15 @@ export default class I18N implements II18N {
   constructor(editor: Texditor) {
     this.editor = editor;
     const { config } = this.editor;
-    this.defaultLocale = config.get("defaultLocale") || 'en';
-    this.locale = config.get("locale", this.defaultLocale) || 'en';
+    this.defaultLocale = config.get('defaultLocale') || 'en';
+    this.locale = config.get('locale', this.defaultLocale) || 'en';
     this.translations['en'] = EnLocale;
 
     const locales = config.get('locales');
 
     if (Array.isArray(locales)) {
       locales.forEach((item) => {
-        if (item.code && item.data)
-          this.translations[item.code] = item.data;
+        if (item.code && item.data) this.translations[item.code] = item.data;
       });
     }
   }
@@ -56,16 +51,15 @@ export default class I18N implements II18N {
   /**
    * @see II18N.get
    */
-  get(key: string, def: string = ""): string {
+  get(key: string, def: string = ''): string {
     const locale = this.getLocale(),
       defaultLocale = this.getDefaultLocale();
 
     const tLocale = this.translations[locale] as Record<string, string> | undefined,
       tDefaultLocale = this.translations[defaultLocale] as Record<string, string> | undefined;
 
-    if (tLocale)
-      return (tLocale[key] || tDefaultLocale?.[key] || def || "");
+    if (tLocale) return tLocale[key] || tDefaultLocale?.[key] || def || '';
 
-    return tDefaultLocale?.[key] || def || "";
+    return tDefaultLocale?.[key] || def || '';
   }
 }

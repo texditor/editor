@@ -1,8 +1,8 @@
-import type { ActionModelConfig } from "@/types";
-import { IconArrowDown } from "@/icons";
-import ActionModel from "@/core/models/action-model";
+import type { ActionModelConfig } from '@/types';
+import { IconArrowDown } from '@/icons';
+import ActionModel from '@/core/models/action-model';
 /** Move the block down */
-export default class MoveDownAction extends ActionModel  {
+export default class MoveDownAction extends ActionModel {
   protected configure(): Partial<ActionModelConfig> {
     return {
       name: 'moveDownAction',
@@ -20,9 +20,7 @@ export default class MoveDownAction extends ActionModel  {
 
     blockManager.moveBlock(curIndex, curIndex + 1);
 
-    if (model)
-      model.showActions();
-
+    if (model) model.showActions();
   }
 
   isVisible(): boolean {

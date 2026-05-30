@@ -1,17 +1,16 @@
-import type { ExtensionModelConfig } from "@/types";
-import ExtensionModel from "@/core/models/extension-model";
-import { IconRedo } from "@/icons";
+import type { ExtensionModelConfig } from '@/types';
+import ExtensionModel from '@/core/models/extension-model';
+import { IconRedo } from '@/icons';
 
-export default class Redo extends ExtensionModel  {
-
+export default class Redo extends ExtensionModel {
   protected configure(): Partial<ExtensionModelConfig> {
     return {
       name: 'redo',
       translation: 'redo',
       icon: IconRedo,
       toggleActive: false,
-      groupName: 'history'
-    }
+      groupName: 'history',
+    };
   }
 
   protected onClick(_evt: MouseEvent): void {

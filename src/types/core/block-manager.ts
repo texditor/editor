@@ -1,5 +1,5 @@
-import type { BlockChildSchema, BlockCreateSchema, BlockModel, BlockModelSchema, BlockElement, BlockSchema } from ".";
-import { VirtualSelection } from "./ui/virtual-selection";
+import type { BlockChildSchema, BlockCreateSchema, BlockModel, BlockModelSchema, BlockElement, BlockSchema } from '.';
+import { VirtualSelection } from './ui/virtual-selection';
 
 export interface BlockManager {
   /**
@@ -15,9 +15,9 @@ export interface BlockManager {
   getVirtualSelection(): VirtualSelection | null;
 
   /**
-  * Clear Selection UI
-  */
-  clearVirtualSelection(): void
+   * Clear Selection UI
+   */
+  clearVirtualSelection(): void;
 
   /**
    * Destroys the current VirtualSelection instance if it exists
@@ -114,9 +114,9 @@ export interface BlockManager {
 
   /**
    * Creates a default block based on editor configuration
-    * @param index - Index of the block to create (-1 after the current block)
-    * @param options - Block Options
-    * @returns Created block node or null
+   * @param index - Index of the block to create (-1 after the current block)
+   * @param options - Block Options
+   * @returns Created block node or null
    */
   createDefaultBlock(index?: number, options?: BlockCreateSchema): BlockElement | null;
 
@@ -139,12 +139,12 @@ export interface BlockManager {
   rebuild(index: number): BlockElement | null;
 
   /**
- * Move block to new position
- * @param index - Item index
- * @param targetIndex - Target item index 
- * @param skipEvents - Skip events
- */
-  moveBlock(index: number, targetIndex: number, skipEvents?: boolean): void
+   * Move block to new position
+   * @param index - Item index
+   * @param targetIndex - Target item index
+   * @param skipEvents - Skip events
+   */
+  moveBlock(index: number, targetIndex: number, skipEvents?: boolean): void;
 
   /**
    * Removes one or multiple blocks
@@ -183,9 +183,9 @@ export interface BlockManager {
   normalize(): void;
 
   /**
- * Retrieves a list of block models based on nodes
- * @returns List of block models
- */
+   * Retrieves a list of block models based on nodes
+   * @returns List of block models
+   */
   getModels(): BlockModel[];
 
   /**
@@ -195,11 +195,11 @@ export interface BlockManager {
   getSchemas(): BlockModelSchema[];
 
   /**
- * Gets the block model schema by supported type name
- * @param name - Supported type name or alias
- * @returns Block model schema, or null if not found
- */
-  getSchema(name: string): BlockModelSchema | null
+   * Gets the block model schema by supported type name
+   * @param name - Supported type name or alias
+   * @returns Block model schema, or null if not found
+   */
+  getSchema(name: string): BlockModelSchema | null;
 
   /**
    * Gets the real block type name from a related type alias
@@ -210,7 +210,7 @@ export interface BlockManager {
 
   /**
    * Converts HTML string to an array of BlockSchema objects or text strings.
-   * 
+   *
    * @param html - HTML string to parse
    * @returns Array of BlockSchema for elements or strings for text nodes
    */
@@ -222,21 +222,21 @@ export interface BlockManager {
    * @param skipDecode - Whether to skip decoding of child content (default: false)
    * @returns Parsed BlockElement instance, or null if parsing failed
    */
-  parseBlock(blockSchema: BlockSchema, skipDecode?: boolean): BlockElement | null
+  parseBlock(blockSchema: BlockSchema, skipDecode?: boolean): BlockElement | null;
 
   /**
-  * Converts an array of BlockSchema objects into an array of BlockElement objects.
-  * 
-  * @param data - Array of BlockSchema objects to be parsed
-  * @param skipDecode - If true, skips HTML entity decoding for text content
-  * @returns An array of parsed BlockElement objects
-  */
+   * Converts an array of BlockSchema objects into an array of BlockElement objects.
+   *
+   * @param data - Array of BlockSchema objects to be parsed
+   * @param skipDecode - If true, skips HTML entity decoding for text content
+   * @returns An array of parsed BlockElement objects
+   */
   parseBlocks(data: BlockSchema[], skipDecode?: boolean): BlockElement[];
 
   /**
    * Recursively parses a BlockSchema structure and converts it into an array of DOM Nodes.
    * For root call returns children nodes, for recursive calls returns the element itself.
-   * 
+   *
    * @param schema - The BlockSchema or BlockChildSchema object containing type, data, and optional attributes
    * @param skipDecode - If true, skips HTML entity decoding for text content
    * @param returnElement - Internal parameter to track if this is a recursive call

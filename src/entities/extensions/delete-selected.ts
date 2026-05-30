@@ -1,8 +1,6 @@
-import type {
-  ExtensionModelConfig
-} from "@/types";
-import ExtensionModel from "@/core/models/extension-model";
-import { IconTrash } from "@/icons";
+import type { ExtensionModelConfig } from '@/types';
+import ExtensionModel from '@/core/models/extension-model';
+import { IconTrash } from '@/icons';
 
 export default class DeleteSelected extends ExtensionModel {
   protected configure(): Partial<ExtensionModelConfig> {
@@ -11,16 +9,15 @@ export default class DeleteSelected extends ExtensionModel {
       translation: 'delete',
       icon: IconTrash,
       toggleActive: false,
-      groupName: 'block'
-    }
+      groupName: 'block',
+    };
   }
 
   private getSelectedIndices(): number[] {
     const { blockManager } = this.editor;
     const virtualSelection = blockManager.getVirtualSelection();
 
-    if (!virtualSelection)
-      return [];
+    if (!virtualSelection) return [];
 
     return virtualSelection.getSelectedIndices();
   }
@@ -29,8 +26,7 @@ export default class DeleteSelected extends ExtensionModel {
     const { blockManager } = this.editor,
       indexes = this.getSelectedIndices();
 
-    if (indexes.length)
-      blockManager.removeBlock(indexes);
+    if (indexes.length) blockManager.removeBlock(indexes);
   }
 
   isVisible(): boolean {

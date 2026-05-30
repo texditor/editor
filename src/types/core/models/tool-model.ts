@@ -1,5 +1,5 @@
-import type { BaseModelConfig, BaseElement, ModelConstructor, BlockElement } from "@/types";
-import { BaseModel } from "../base/base-model";
+import type { BaseModelConfig, BaseElement, ModelConstructor, BlockElement } from '@/types';
+import { BaseModel } from '../base/base-model';
 
 /**
  * Tool model constructor type
@@ -45,18 +45,18 @@ export interface ToolModel extends BaseModel<ToolElement> {
   format(onlyRemove?: boolean): void;
 
   /**
-   * Force create format on selected content (without toggling) 
+   * Force create format on selected content (without toggling)
    */
   forcedFormat(): void;
 
   /**
-   * Remove format from selected content 
+   * Remove format from selected content
    */
   removeFormat(): void;
 
   /**
    * Overriding tag
    * @returns boolean
- */
-  isOverride(): boolean
+   */
+  isOverride(): boolean;
 }

@@ -3,8 +3,9 @@ import type {
   BaseModel,
   BaseModelConfig,
   BaseElement,
-  SanitizerConfig
-} from "@/types";
+  SanitizerConfig,
+  TexditorEvent,
+} from '@/types';
 
 /**
  * Block model constructor type
@@ -76,9 +77,9 @@ export interface BlockModelConfig extends BaseModelConfig {
   tagName: string;
   itemTagName: string;
   itemName: string;
-  itemRelatedNames: string[],
-  itemClassName: string,
-  itemBodyClassName: string,
+  itemRelatedNames: string[];
+  itemClassName: string;
+  itemBodyClassName: string;
   sortableItems: boolean;
   dragZoneClassName: string;
   relatedNames: string[];
@@ -96,6 +97,14 @@ export interface BlockModelConfig extends BaseModelConfig {
  * Defines all public methods for block manipulation
  */
 export interface BlockModel extends BaseModel<BlockElement> {
+  /**
+   * Trigger model change event
+   * @param name - Event name
+   * @param params - Event parameters
+   * @param globalParams - Global event parameters
+   */
+  change(name: string, params?: TexditorEvent, globalParams?: TexditorEvent): void;
+
   /**
    * Check if Enter creates new block
    * @returns True if Enter creates block
@@ -139,12 +148,6 @@ export interface BlockModel extends BaseModel<BlockElement> {
   getContentClassName(): string;
 
   /**
-   * Gets content node CSS class name
-   * @returns CSS class name
-   */
-  getContentClassName(): string;
-
-  /**
    * Get content DOM node
    * @returns Content node
    */
@@ -155,6 +158,12 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @returns Tag name
    */
   getTagName(): string;
+
+  /**
+   * Get group code
+   * @returns Group code string
+   */
+  getGroupCode(): string;
 
   /**
    * Get item tag name
@@ -199,10 +208,10 @@ export interface BlockModel extends BaseModel<BlockElement> {
   isSortableItems(): boolean;
 
   /**
- * Get the name of the drag zone class
- * @returns Name of the drag zone class
- */
-  getDragZoneClassName(): string
+   * Get the name of the drag zone class
+   * @returns Name of the drag zone class
+   */
+  getDragZoneClassName(): string;
 
   /**
    * Get item index
@@ -211,10 +220,14 @@ export interface BlockModel extends BaseModel<BlockElement> {
    */
   getItemIndex(itemElement?: HTMLElement): number;
 
-  /** Show actions */
+  /**
+   * Show block actions menu
+   */
   showActions(): void;
 
-  /** Hide actions */
+  /**
+   * Hide block actions menu
+   */
   hideActions(): void;
 
   /**
@@ -224,14 +237,14 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @param skipEvents - Skip events
    * @returns True if created
    */
-  createItem(content?: string, index?: number, skipEvents?: boolean): boolean;
+  createItem(content?: string | unknown, index?: number, skipEvents?: boolean): boolean;
 
   /**
    * Remove item
    * @param index - Item index
    * @returns True if removed
    */
-  removeItem(index?: number): boolean
+  removeItem(index?: number): boolean;
 
   /**
    * Get item by index
@@ -256,7 +269,7 @@ export interface BlockModel extends BaseModel<BlockElement> {
   /**
    * Move item to new position
    * @param index - Item index
-   * @param targetIndex - Target item index 
+   * @param targetIndex - Target item index
    * @param skipEvents - Skip events
    */
   moveItem(index: number, targetIndex: number, skipEvents?: boolean): void;
@@ -278,7 +291,7 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @param index - Item index
    * @returns True if empty
    */
-  isEmptyItem(index: number): boolean
+  isEmptyItem(index: number): boolean;
 
   /**
    * Check if empty detection enabled
@@ -351,8 +364,9 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @returns True if the sanitizer is enabled
    */
   isSanitizer(): boolean;
+
   /**
-   * Sanitize block content 
+   * Sanitize block content
    */
   sanitize(): void;
 
@@ -372,14 +386,14 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * Gets the sanitizer configuration for block content
    * @returns Sanitizer configuration object, or empty object if not set
    */
-  getSanitizerConfig(): SanitizerConfig
+  getSanitizerConfig(): SanitizerConfig;
 
   /**
    * Set up global configuration
    * @param config - Configuration object
    * @returns BlockModel class
    */
-  setup?(config: Partial<BlockModelConfig>): BlockModelConstructor
+  setup?(config: Partial<BlockModelConfig>): BlockModelConstructor;
 }
 
 export type BlockSchemaData = string | string[] | BlockChildSchema[];
@@ -407,11 +421,11 @@ export interface BlockChildSchema {
 }
 
 // Create
-export interface BlockCreateSchema extends Omit<BlockSchema, "type"> {
-  data: string | BlockCreateItemSchema[] | unknown[]
+export interface BlockCreateSchema extends Omit<BlockSchema, 'type'> {
+  data: string | BlockCreateItemSchema[] | unknown[];
 }
 
 export interface BlockCreateItemSchema extends Omit<BlockChildSchema, 'data'> {
   type: string;
-  data: string,
+  data: string;
 }

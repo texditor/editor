@@ -1,4 +1,4 @@
-import { ToolModel } from "./models";
+import { ToolModel } from './models';
 
 /**
  * Tools manager interface
@@ -6,17 +6,17 @@ import { ToolModel } from "./models";
  */
 export interface Tools {
   /**
-   * Show the toolbar at the current selection position 
+   * Show the toolbar at the current selection position
    */
   show(): void;
 
   /**
-   * Hide the toolbar 
+   * Hide the toolbar
    */
   hide(): void;
 
   /**
-   * Synchronize active state highlighting for tools based on current selection 
+   * Synchronize active state highlighting for tools based on current selection
    */
   syncHighlight(): void;
 
@@ -34,7 +34,7 @@ export interface Tools {
   getModelByTagName(tagName: string): ToolModel | null;
 
   /**
-   * Destroy tools manager and clean up resources 
+   * Destroy tools manager and clean up resources
    */
   destroy(): void;
 }

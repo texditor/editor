@@ -1,4 +1,4 @@
-import { ExtensionModel } from "./models";
+import { ExtensionModel } from './models';
 
 export interface Extensions {
   /**

@@ -1,18 +1,8 @@
-import {
-  addClass,
-  append,
-  before,
-  css,
-  html,
-  make,
-  on,
-  query,
-  removeClass,
-} from "snappykit";
-import { IconArrowLeft, IconArrowRight } from "@/icons";
-import { renderIcon } from "@/utils";
-import { Slider as ISlider, SliderOptions } from "@/types";
-import "@/styles/core/ui/slider.css";
+import { addClass, append, before, css, html, make, on, query, removeClass } from 'snappykit';
+import { IconArrowLeft, IconArrowRight } from '@/icons';
+import { renderIcon } from '@/utils';
+import { Slider as ISlider, SliderOptions } from '@/types';
+import '@/styles/core/ui/slider.css';
 
 export default class Slider implements ISlider {
   private container: HTMLElement;
@@ -23,7 +13,7 @@ export default class Slider implements ISlider {
   private options: SliderOptions;
 
   private defaultOptions: SliderOptions = {
-    infinite: true
+    infinite: true,
   };
 
   /**
@@ -32,31 +22,31 @@ export default class Slider implements ISlider {
    * @param options - Configuration options for the slider
    */
   constructor(container: HTMLElement, options: SliderOptions = {}) {
-    if (!container) throw new Error("Container not found");
+    if (!container) throw new Error('Container not found');
 
     this.container = container;
     this.options = { ...this.defaultOptions, ...options };
-    this.slider = make("div");
+    this.slider = make('div');
 
     before(this.container, this.slider);
     append(this.slider, this.container);
-    addClass(this.slider, "tex-slider");
-    addClass(this.container, "tex-slider-container");
+    addClass(this.slider, 'tex-slider');
+    addClass(this.container, 'tex-slider-container');
 
     this.eachSlides((slide: HTMLElement) => {
-      addClass(slide, "tex-slide");
+      addClass(slide, 'tex-slide');
       this.slides.push(slide);
     });
 
     const length = this.slides.length;
 
-    css(this.container, 'width', `${length * 100}%`)
+    css(this.container, 'width', `${length * 100}%`);
 
     this.slides.forEach((slide: HTMLElement) => {
       css(slide, {
         width: `${100 / length}%`,
-        flex: `0 0 ${100 / length}%`
-      })
+        flex: `0 0 ${100 / length}%`,
+      });
     });
 
     this.init();
@@ -68,11 +58,11 @@ export default class Slider implements ISlider {
    */
   private eachSlides(callback: CallableFunction): void {
     query(
-      ":scope > *",
+      ':scope > *',
       (slide: HTMLElement, index: number) => {
         callback(slide, index);
       },
-      this.container
+      this.container,
     );
   }
 
@@ -92,19 +82,19 @@ export default class Slider implements ISlider {
   private createButtons(): void {
     const iconConfig = {
       width: 14,
-      height: 14
+      height: 14,
     };
 
-    const prevBtn = make("button", (btn: HTMLButtonElement) => {
-      addClass(btn, "tex-slider-btn tex-slider-prev");
+    const prevBtn = make('button', (btn: HTMLButtonElement) => {
+      addClass(btn, 'tex-slider-btn tex-slider-prev');
       html(btn, renderIcon(IconArrowLeft, iconConfig));
-      on(btn, "click.sliderPrev", () => this.prev());
+      on(btn, 'click.sliderPrev', () => this.prev());
     });
 
-    const nextBtn = make("button", (btn: HTMLButtonElement) => {
-      addClass(btn, "tex-slider-btn tex-slider-next");
+    const nextBtn = make('button', (btn: HTMLButtonElement) => {
+      addClass(btn, 'tex-slider-btn tex-slider-next');
       html(btn, renderIcon(IconArrowRight, iconConfig));
-      on(btn, "click.sliderNext", () => this.next());
+      on(btn, 'click.sliderNext', () => this.next());
     });
 
     append(this.slider, [prevBtn, nextBtn]);
@@ -114,20 +104,20 @@ export default class Slider implements ISlider {
    * Creates and appends dot indicators for slide navigation
    */
   private createDots(): void {
-    const dotContainer = make("div", (dotCnt: HTMLElement) => {
-      addClass(dotCnt, "tex-slider-dots");
+    const dotContainer = make('div', (dotCnt: HTMLElement) => {
+      addClass(dotCnt, 'tex-slider-dots');
     });
 
     append(this.slider, dotContainer);
 
     this.dotsContainer = dotContainer;
-    html(this.dotsContainer, "");
+    html(this.dotsContainer, '');
 
     for (let i = 0; i < this.slides.length; i++) {
-      const dot = make("button", (btn: HTMLButtonElement) => {
-        addClass(btn, "tex-slider-dot");
-        btn.setAttribute("aria-label", `Go to slide: ${i + 1}`);
-        on(btn, "click.sliderDot", () => this.goToSlide(i));
+      const dot = make('button', (btn: HTMLButtonElement) => {
+        addClass(btn, 'tex-slider-dot');
+        btn.setAttribute('aria-label', `Go to slide: ${i + 1}`);
+        on(btn, 'click.sliderDot', () => this.goToSlide(i));
       });
 
       append(this.dotsContainer, dot);
@@ -139,15 +129,15 @@ export default class Slider implements ISlider {
    */
   private updateActiveDot(): void {
     query(
-      ".tex-slider-dot",
+      '.tex-slider-dot',
       (dot: HTMLButtonElement, index: number) => {
         if (index === this.currentIndex) {
-          addClass(dot, "active");
+          addClass(dot, 'active');
         } else {
-          removeClass(dot, "active");
+          removeClass(dot, 'active');
         }
       },
-      this.dotsContainer
+      this.dotsContainer,
     );
   }
 
@@ -156,11 +146,7 @@ export default class Slider implements ISlider {
    */
   private updateSliderPosition(): void {
     if (this.container) {
-      css(
-        this.container,
-        'transform',
-        `translateX(-${this.currentIndex * (100 / this.slides.length)}%)`
-      );
+      css(this.container, 'transform', `translateX(-${this.currentIndex * (100 / this.slides.length)}%)`);
     }
   }
 
@@ -196,18 +182,18 @@ export default class Slider implements ISlider {
   /** @see ISlider.destroy */
   destroy(): void {
     this.eachSlides((slide: HTMLElement) => {
-      removeClass(slide, "tex-slide");
-      slide.removeAttribute("style");
+      removeClass(slide, 'tex-slide');
+      slide.removeAttribute('style');
     });
 
-    this.container.removeAttribute("style");
-    removeClass(this.container, "tex-slider-container");
+    this.container.removeAttribute('style');
+    removeClass(this.container, 'tex-slider-container');
     query(
-      ".tex-slider-dots, .tex-slider-btn",
+      '.tex-slider-dots, .tex-slider-btn',
       (nav: HTMLElement) => {
         nav.remove();
       },
-      this.slider
+      this.slider,
     );
 
     before(this.slider, this.container);

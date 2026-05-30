@@ -6,12 +6,7 @@ export interface Commands {
    * @param endOffset - Ending character offset in the container
    * @param container - Container element containing the text
    */
-  formatTextRange(
-    tagName: string,
-    startOffset: number,
-    endOffset: number,
-    container: HTMLElement
-  ): void;
+  formatTextRange(tagName: string, startOffset: number, endOffset: number, container: HTMLElement): void;
 
   /**
    * Applies or removes formatting based on current selection context
@@ -75,7 +70,7 @@ export interface Commands {
   splitElement(
     element: HTMLElement,
     startIndex: number,
-    endIndex: number
+    endIndex: number,
   ): [HTMLElement, DocumentFragment, HTMLElement];
 
   /**

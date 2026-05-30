@@ -1,10 +1,7 @@
-import type {
-  FileActionModelConfig,
-  FileActionElement
-} from "@/types";
-import { IconDownload } from "@/icons";
-import FileActionModel from "@/core/models/file-action-model";
-import { attr } from "snappykit";
+import type { FileActionModelConfig, FileActionElement } from '@/types';
+import { IconDownload } from '@/icons';
+import FileActionModel from '@/core/models/file-action-model';
+import { attr } from 'snappykit';
 
 export default class DownloadFileAction extends FileActionModel {
   protected configure(): Partial<FileActionModelConfig> {
@@ -13,7 +10,7 @@ export default class DownloadFileAction extends FileActionModel {
       icon: IconDownload,
       elementTagName: 'a',
       translation: 'downloadFile',
-    }
+    };
   }
 
   protected onClick(): void {
@@ -27,11 +24,11 @@ export default class DownloadFileAction extends FileActionModel {
 
       if (itemElement) {
         const contentElement = model.getContentElement(),
-          index = model.getItemIndex(itemElement)
+          index = model.getItemIndex(itemElement);
 
         events.change({
           modelCode: this.getModelCode(),
-          type: "download",
+          type: 'download',
           contentElement: contentElement,
           blockElement: blockElement,
           item: itemElement,
@@ -50,14 +47,14 @@ export default class DownloadFileAction extends FileActionModel {
 
     if (itemElement) {
       const url = itemElement.fileUrl;
-      const name = itemElement.fileName || "";
+      const name = itemElement.fileName || '';
 
       if (url) {
         attr(node, {
           href: url,
           target: '_blank',
-          download: name || url.split("/").pop() || ""
-        })
+          download: name || url.split('/').pop() || '',
+        });
       }
     }
   }

@@ -12,34 +12,26 @@ import type {
   BlockSchemaData,
   ConfigOptions,
   Texditor as ITexditor,
-  TexditorRootElement
-} from "./types";
-import Events from "@/core/events";
-import BlockManager from "@/core/block-manager";
-import Config from "@/core/config";
-import SelectionAPI from "@/core/selection-api";
-import Tools from "@/core/tools";
-import I18N from "@/core/i18n";
-import Commands from "@/core/commands";
-import HistoryManager from "@/core/history-manager";
-import Extensions from "@/core/extensions";
-import MainView from "@/views/main";
-import {
-  queryLength,
-  query,
-  append,
-  dataByPrefix,
-  html,
-  isEmptyString,
-  queryList
-} from "snappykit";
-import { executeMethodIfExists, sanitizeJson } from "./utils";
-import "@/styles/tex.css";
-import "@/styles/animations.css";
-import { mainStore } from "./store/mainStore";
+  TexditorRootElement,
+} from './types';
+import Events from '@/core/events';
+import BlockManager from '@/core/block-manager';
+import Config from '@/core/config';
+import SelectionAPI from '@/core/selection-api';
+import Tools from '@/core/tools';
+import I18N from '@/core/i18n';
+import Commands from '@/core/commands';
+import HistoryManager from '@/core/history-manager';
+import Extensions from '@/core/extensions';
+import MainView from '@/views/main';
+import { queryLength, query, append, dataByPrefix, html, isEmptyString, queryList } from 'snappykit';
+import { executeMethodIfExists, sanitizeJson } from './utils';
+import '@/styles/tex.css';
+import '@/styles/animations.css';
+import { mainStore } from './store/mainStore';
 
-export * from "./types";
-export * from "./utils";
+export * from './types';
+export * from './utils';
 
 export default class Texditor implements ITexditor {
   /** @see ITexditor.config */
@@ -93,20 +85,17 @@ export default class Texditor implements ITexditor {
    * Initializes editor when ready
    */
   private ready() {
-
-    this.mount()
+    this.mount();
     this.historyManager.save();
     executeMethodIfExists(this.extensions, '__apply');
 
-    const readyCallback = this.config.get("onReady", false);
+    const readyCallback = this.config.get('onReady', false);
 
-    if (typeof readyCallback === "function")
-      readyCallback(this);
+    if (typeof readyCallback === 'function') readyCallback(this);
 
     this.blockManager.detectEmpty();
     this.blockManager.normalize();
     this.events.refresh();
-
   }
 
   /**
@@ -115,20 +104,18 @@ export default class Texditor implements ITexditor {
   getRoot(): TexditorRootElement | null {
     const root = this.rootElement || null;
 
-    if (!root)
-      throw new Error("The root element of the editor was not found.");
+    if (!root) throw new Error('The root element of the editor was not found.');
 
     return root;
   }
 
   /**
-  * @see ITexditor.getBody
-  */
+   * @see ITexditor.getBody
+   */
   getBody(): HTMLElement | null {
     const root = this.getRoot();
 
-    if (!root)
-      return null;
+    if (!root) return null;
 
     const [body] = queryList<HTMLElement>('.tex', root);
 
@@ -143,8 +130,7 @@ export default class Texditor implements ITexditor {
     const count = blockManager.count(),
       model = blockManager.getModel(0);
 
-    if (count === 0)
-      return true;
+    if (count === 0) return true;
 
     return !!(count === 1 && model && model.isEmpty());
   }
@@ -152,33 +138,25 @@ export default class Texditor implements ITexditor {
   /**
    * @see ITexditor.setContent
    */
-  setContent(
-    content: string | BlockSchema[],
-    index: number = 0,
-    focusDelay: number = 0
-  ): void {
+  setContent(content: string | BlockSchema[], index: number = 0, focusDelay: number = 0): void {
     const { blockManager, config, events } = this;
     const container = blockManager.getBlocksContainer(),
       defaultData = {
-        type: config.get("defaultBlock", "p"),
-        data: [""]
+        type: config.get('defaultBlock', 'p'),
+        data: [''],
       };
 
     let data = [defaultData];
 
     try {
-      data = typeof content === "string"
-        ? isEmptyString(content)
-          ? []
-          : JSON.parse(
-            sanitizeJson(content.trim()) || ""
-          )
-        : content;
+      data =
+        typeof content === 'string'
+          ? isEmptyString(content)
+            ? []
+            : JSON.parse(sanitizeJson(content.trim()) || '')
+          : content;
     } catch (e) {
-      console.warn(
-        "The input data is not supported or contains errors when working with JSON",
-        e
-      );
+      console.warn('The input data is not supported or contains errors when working with JSON', e);
     }
 
     if (container) {
@@ -190,8 +168,7 @@ export default class Texditor implements ITexditor {
       if (!blocks.length) {
         const defaultBlock = blockManager.parseBlock(defaultData);
 
-        if (!defaultBlock)
-          throw Error('The default block model has not been found.');
+        if (!defaultBlock) throw Error('The default block model has not been found.');
 
         blocks.push(defaultBlock);
       }
@@ -200,10 +177,7 @@ export default class Texditor implements ITexditor {
       blockManager.detectEmpty(false);
       blockManager.normalize();
       blocks.forEach((blockElement) => {
-        executeMethodIfExists(
-          blockElement.baseModel,
-          '__onMount',
-          [blockElement])
+        executeMethodIfExists(blockElement.baseModel, '__onMount', [blockElement]);
       });
       events.refresh();
 
@@ -211,14 +185,14 @@ export default class Texditor implements ITexditor {
         setTimeout(() => {
           blockManager.use(realIndex);
           blockManager.focus(realIndex);
-        }, focusDelay || 0)
+        }, focusDelay || 0);
       }
 
       events.change({
-        type: "setContent",
+        type: 'setContent',
         container: container,
-        index: realIndex
-      })
+        index: realIndex,
+      });
     }
   }
 
@@ -237,21 +211,21 @@ export default class Texditor implements ITexditor {
     const { blockManager, events } = this,
       root = this.getRoot();
 
-    events.triggerEvent("save");
+    events.trigger('save');
 
     if (!root) return [];
 
     blockManager.getBlocks().forEach((el) => {
-      events.triggerEvent("saveEach", { blockElement: el });
+      events.trigger('saveEach', { blockElement: el });
 
       const model = el.baseModel;
 
       if (model.getName()) {
-        const extOptions = dataByPrefix(el, "options");
+        const extOptions = dataByPrefix(el, 'options');
         let block: BlockSchema = {
           type: model.getName(),
           data: [],
-          ...extOptions
+          ...extOptions,
         };
 
         const contentElement = blockManager.getContentElement(el);
@@ -277,19 +251,17 @@ export default class Texditor implements ITexditor {
                     if (parsedData.length) {
                       const dataObj = {
                         type: model.getItemName(),
-                        data: parsedData
+                        data: parsedData,
                       };
-                      (block.data as object[]).push(dataObj)
+                      (block.data as object[]).push(dataObj);
                     }
                   }
 
                   i++;
-                })
+                });
               } else {
                 block.data = parsedData.filter(
-                  (item) =>
-                    typeof item === "string" ||
-                    (typeof item === "object" && item !== null)
+                  (item) => typeof item === 'string' || (typeof item === 'object' && item !== null),
                 ) as BlockSchemaData;
               }
             }
@@ -299,10 +271,10 @@ export default class Texditor implements ITexditor {
         if (block.data.length) data.push(block);
       }
 
-      events.triggerEvent("saveEachEnd", { blockElement: el });
+      events.trigger('saveEachEnd', { blockElement: el });
     });
 
-    events.triggerEvent("saveEnd");
+    events.trigger('saveEnd');
 
     return data;
   }
@@ -311,15 +283,15 @@ export default class Texditor implements ITexditor {
    * @see ITexditor.destroy
    */
   destroy(): void {
-    const {
-      blockManager,
-      events,
-      extensions,
-      historyManager,
-      tools
-    } = this;
-    if (this.rootElement)
-      html(this.rootElement, "");
+    const { blockManager, events, extensions, historyManager, tools } = this;
+    if (this.rootElement) html(this.rootElement, '');
+
+    const editors = mainStore.get('editors');
+
+    mainStore.set(
+      'editors',
+      editors.filter((editor) => editor != this.rootElement),
+    );
 
     blockManager.destroy();
     events.destroy();
@@ -334,12 +306,11 @@ export default class Texditor implements ITexditor {
    */
   private mount(): void {
     const { config } = this;
-    const editorId = this.config.get("handle", "texditor");
+    const editorId = this.config.get('handle', 'texditor');
 
-    if (!queryLength("#" + editorId))
-      throw new Error("The editor's ID was not found.");
+    if (!queryLength('#' + editorId)) throw new Error("The editor's ID was not found.");
 
-    query("#" + editorId, (el: HTMLElement) => {
+    query('#' + editorId, (el: HTMLElement) => {
       const texditorElement = el as TexditorRootElement;
 
       if (texditorElement?.texditor) {
@@ -348,26 +319,22 @@ export default class Texditor implements ITexditor {
 
       append(el, MainView(this));
 
-      Object.defineProperty(texditorElement, "texditor", {
+      Object.defineProperty(texditorElement, 'texditor', {
         value: this,
         writable: true,
       });
 
       this.rootElement = texditorElement;
 
-      const editors = mainStore.get('editor');
-      editors.push(this.rootElement)
-      mainStore.set('editor', editors)
+      const editors = mainStore.get('editors');
+      editors.push(this.rootElement);
+      mainStore.set('editors', editors);
     });
 
     if (this.getRoot()) {
       const content = config.get('content', []) as string | BlockSchema[];
 
-      this.setContent(
-        content,
-        config.get("autofocus", true) ? 0 : -1,
-        config.get('autofocusDelay', 10)
-      );
+      this.setContent(content, config.get('autofocus', true) ? 0 : -1, config.get('autofocusDelay', 10));
     }
   }
 }

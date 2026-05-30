@@ -3,8 +3,8 @@ import type {
   BlockElement,
   BlockModelConfig,
   BlockCreateSchema,
-  CodeLanguages as ICodeLanguages
-} from "@/types";
+  CodeLanguages as ICodeLanguages,
+} from '@/types';
 import {
   addClass,
   append,
@@ -22,16 +22,12 @@ import {
   on,
   val,
   lower,
-} from "snappykit";
-import {
-  IconArrowDown,
-  IconCode,
-  IconCornerUpRight
-} from "@/icons";
-import { renderIcon } from "@/utils";
-import BlockModel from "@/core/models/block-model";
+} from 'snappykit';
+import { IconArrowDown, IconCode, IconCornerUpRight } from '@/icons';
+import { renderIcon } from '@/utils';
+import BlockModel from '@/core/models/block-model';
 import CodeLanguages from './languages';
-import "@/styles/blocks/code.css";
+import '@/styles/blocks/code.css';
 
 export default class Code extends BlockModel {
   /**
@@ -40,15 +36,15 @@ export default class Code extends BlockModel {
    */
   protected configure(): Partial<BlockModelConfig> {
     return {
-      name: "code",
-      tagName: "pre",
-      translation: "code",
+      name: 'code',
+      tagName: 'pre',
+      translation: 'code',
       groupCode: 'code',
-      className: "tex-code",
+      className: 'tex-code',
       autoParse: false,
       autoMerge: true,
       icon: IconCode,
-      placeholder: this.editor.i18n.get("codePlaceholder", "Enter your code"),
+      placeholder: this.editor.i18n.get('codePlaceholder', 'Enter your code'),
       editable: true,
       emptyDetect: true,
       sanitizer: false,
@@ -59,7 +55,7 @@ export default class Code extends BlockModel {
       showLanguages: true,
       customSave: true,
       search: true,
-      lineBreakInfoMessage: "Ctrl + Enter"
+      lineBreakInfoMessage: 'Ctrl + Enter',
     };
   }
 
@@ -76,8 +72,7 @@ export default class Code extends BlockModel {
    * @param blockElement - block DOM element
    */
   private init(blockElement: BlockElement): void {
-    if (!blockElement)
-      return;
+    if (!blockElement) return;
 
     const { events, i18n } = this.editor;
 
@@ -93,9 +88,13 @@ export default class Code extends BlockModel {
         };
 
         const updateName = (name: string = notSpecified) => {
-          query('.' + cssName + '-lang-link-name', (lnk: HTMLLinkElement) => {
-            lnk.textContent = name
-          }, blockElement)
+          query(
+            '.' + cssName + '-lang-link-name',
+            (lnk: HTMLLinkElement) => {
+              lnk.textContent = name;
+            },
+            blockElement,
+          );
         };
 
         const languageWrap = make('div', (wrap: HTMLDivElement) => {
@@ -108,34 +107,38 @@ export default class Code extends BlockModel {
               append(
                 menu,
                 make('div', (search: HTMLDivElement) => {
-                  addClass(search, cssName + "-menu-search")
+                  addClass(search, cssName + '-menu-search');
                   const searchInput = make('input', (input: HTMLInputElement) => {
                     addClass(input, 'tex-input');
                     attr(input, 'type', 'text');
                     attr(input, 'placeholder', i18n.get('search', 'Search'));
                     on(input, 'input.codeLang', (inputEvt: KeyboardEvent) => {
                       inputEvt.preventDefault();
-                      val(input)
-                      const text =  lower(val(input)).trim();
+                      val(input);
+                      const text = lower(val(input)).trim();
 
-                      query("." + cssName + "-menu-item", (searchItem: HTMLDivElement) => {
-                        if (text) {
-                          const itemText = searchItem.textContent?.toLowerCase() || '';
-                          const itemKey = data(searchItem, 'langKey') || '';
+                      query(
+                        '.' + cssName + '-menu-item',
+                        (searchItem: HTMLDivElement) => {
+                          if (text) {
+                            const itemText = searchItem.textContent?.toLowerCase() || '';
+                            const itemKey = data(searchItem, 'langKey') || '';
 
-                          if (!itemText.includes(text) && !itemKey.includes(text)) {
-                            css(searchItem, 'display', 'none');
+                            if (!itemText.includes(text) && !itemKey.includes(text)) {
+                              css(searchItem, 'display', 'none');
+                            } else {
+                              css(searchItem, 'display', '');
+                            }
                           } else {
                             css(searchItem, 'display', '');
                           }
-                        } else {
-                          css(searchItem, 'display', '');
-                        }
-                      }, blockElement);
+                        },
+                        blockElement,
+                      );
                     });
                   });
                   append(search, searchInput);
-                })
+                }),
               );
             }
 
@@ -146,16 +149,16 @@ export default class Code extends BlockModel {
                 attr(item, 'data-lang-key', '');
                 html(item, notSpecified);
                 on(item, 'click.rmLang', () => {
-                  this.removeOption('lang')
+                  this.removeOption('lang');
                   updateName();
                   closeMenu();
                   events.change({
                     modelCode: this.getModelCode(),
-                    type: "codeClearLanguage",
-                    blockElement: blockElement
-                  })
+                    type: 'codeClearLanguage',
+                    blockElement: blockElement,
+                  });
                 });
-              })
+              }),
             );
 
             for (const [codeKey, codeName] of Object.entries(languages)) {
@@ -171,21 +174,21 @@ export default class Code extends BlockModel {
                     closeMenu();
                     events.change({
                       modelCode: this.getModelCode(),
-                      type: "codeChangeLanguage",
+                      type: 'codeChangeLanguage',
                       blockElement: blockElement,
-                      lang: codeKey
-                    })
+                      lang: codeKey,
+                    });
                   });
-                })
+                }),
               );
             }
           });
           const eid = this.getEventId();
 
           const closeMenu = () => {
-            off(document, "click.codeMenu" + eid);
+            off(document, 'click.codeMenu' + eid);
             css(menu, 'display', '');
-          }
+          };
 
           const link = make('a', (link: HTMLLinkElement) => {
             addClass(link, cssName + '-lang-link');
@@ -196,27 +199,35 @@ export default class Code extends BlockModel {
                 span.textContent = getLanguageName(curLang);
               }),
               make('span', (span: HTMLSpanElement) => {
-                html(span, renderIcon(IconArrowDown, {
-                  width: 12,
-                  height: 12
-                }));
-              })
+                html(
+                  span,
+                  renderIcon(IconArrowDown, {
+                    width: 12,
+                    height: 12,
+                  }),
+                );
+              }),
             ]);
 
             on(link, 'click.codeLink', () => {
               css(menu, 'display', 'block');
-              on(document, "click.codeMenu" + eid, (evt: MouseEvent) => {
-                if (!closest(evt.target, menu)) {
-                  closeMenu();
-                }
-              }, true);
+              on(
+                document,
+                'click.codeMenu' + eid,
+                (evt: MouseEvent) => {
+                  if (!closest(evt.target, menu)) {
+                    closeMenu();
+                  }
+                },
+                true,
+              );
             });
           });
 
           append(wrap, [link, menu]);
-        })
+        });
 
-        prepend(blockElement, languageWrap)
+        prepend(blockElement, languageWrap);
       }
     }
 
@@ -224,24 +235,25 @@ export default class Code extends BlockModel {
 
     if (lineBreakInfoMessage) {
       append(
-        blockElement, make('div', (info: HTMLDivElement) => {
+        blockElement,
+        make('div', (info: HTMLDivElement) => {
           addClass(info, 'tex-code-line-break-info');
-          append(
-            info,
-            [
-              make('span', (span: HTMLSpanElement) => {
-                html(span, lineBreakInfoMessage);
-              }),
-              make('span', (span: HTMLSpanElement) => {
-                html(span, renderIcon(IconCornerUpRight, {
+          append(info, [
+            make('span', (span: HTMLSpanElement) => {
+              html(span, lineBreakInfoMessage);
+            }),
+            make('span', (span: HTMLSpanElement) => {
+              html(
+                span,
+                renderIcon(IconCornerUpRight, {
                   width: 12,
-                  height: 12
-                }));
-              })
-            ]
-          )
-        })
-      )
+                  height: 12,
+                }),
+              );
+            }),
+          ]);
+        }),
+      );
     }
   }
 
@@ -277,8 +289,7 @@ export default class Code extends BlockModel {
 
       const lang = this.getOption('lang', '');
 
-      if (lang)
-        blockSchema.lang = lang;
+      if (lang) blockSchema.lang = lang;
     }
 
     return blockSchema;
@@ -293,16 +304,12 @@ export default class Code extends BlockModel {
     const languages = this.getConfig('languages', {}) as ICodeLanguages;
     let lang = (item?.lang || '') as string;
 
-    if (lang && !languages[lang])
-      lang = '';
+    if (lang && !languages[lang]) lang = '';
 
     return {
       lang: lang,
-      data:
-        typeof item.data[0] === "string"
-          ? item.data[0]
-          : ""
-    }
+      data: typeof item.data[0] === 'string' ? item.data[0] : '',
+    };
   }
 
   /**
@@ -321,6 +328,6 @@ export default class Code extends BlockModel {
    */
   destroy(): void {
     const eid = this.getEventId();
-    off(document, "click.codeMenu" + eid);
+    off(document, 'click.codeMenu' + eid);
   }
 }

@@ -3,31 +3,20 @@ import type {
   ActionModel as IActionModel,
   ActionModelConstructor,
   ActionElement,
-  BlockElement
-} from "@/types";
-import { IconArrowRight } from "@/icons";
-import {
-  addClass,
-  append,
-  before,
-  css,
-  html,
-  make,
-  on,
-  query
-} from "snappykit";
-import { renderIcon } from "@/utils/icon";
-import BaseModel from "../base/base-model";
+  BlockElement,
+} from '@/types';
+import { IconArrowRight } from '@/icons';
+import { addClass, append, before, css, html, make, on, query } from 'snappykit';
+import { renderIcon } from '@/utils/icon';
+import BaseModel from '../base/base-model';
 
 export default class ActionModel extends BaseModel<ActionElement> implements IActionModel {
   /**
-  * Set up global configuration
-  * @param config - Partial configuration
-  * @returns Model constructor
-  */
-  public static setup(
-    config: Partial<ActionModelConfig>
-  ): ActionModelConstructor {
+   * Set up global configuration
+   * @param config - Partial configuration
+   * @returns Model constructor
+   */
+  public static setup(config: Partial<ActionModelConfig>): ActionModelConstructor {
     return super.setup(config) as ActionModelConstructor;
   }
 
@@ -50,8 +39,8 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
       __modelCode: 'action',
       visibleTitle: true,
       menu: false,
-      confirm: false
-    }
+      confirm: false,
+    };
   }
 
   /**
@@ -62,16 +51,15 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
   protected parentOnCreateElement(el: ActionElement): void {
     const cssName = 'tex-action';
 
-    if (this.isConfirm())
-      addClass(el, cssName + '-verifiable');
+    if (this.isConfirm()) addClass(el, cssName + '-verifiable');
 
-    const moreIcon = make("span", (span: HTMLSpanElement) => {
+    const moreIcon = make('span', (span: HTMLSpanElement) => {
       html(
         span,
         renderIcon(IconArrowRight, {
           width: 12,
-          height: 12
-        })
+          height: 12,
+        }),
       );
     });
 
@@ -84,7 +72,7 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
    */
   protected confirm(evt: MouseEvent): void {
     const { events, i18n } = this.editor,
-      cssName = "tex-action",
+      cssName = 'tex-action',
       element = this.getElement(),
       icon = this.getIcon();
 
@@ -92,32 +80,28 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
       css(element, 'display', 'none');
       before(
         element,
-        make("div", (cfm: HTMLElement) => {
-          addClass(
-            cfm,
-            cssName + " " + cssName + "-confirm " +
-            cssName + "-" + this.getName() + "-confirm"
-          );
+        make('div', (cfm: HTMLElement) => {
+          addClass(cfm, cssName + ' ' + cssName + '-confirm ' + cssName + '-' + this.getName() + '-confirm');
 
           if (icon) {
             html(
               cfm,
               renderIcon(icon, {
                 width: 20,
-                height: 20
-              })
+                height: 20,
+              }),
             );
           }
 
-          cfm.innerHTML += i18n.get("confirmAction", "Confirm action");
+          cfm.innerHTML += i18n.get('confirmAction', 'Confirm action');
 
-          on(cfm, "click.am", () => {
+          on(cfm, 'click.am', () => {
             this.onClick(evt);
             cfm.remove();
             css(element, 'display', '');
             events.refresh();
           });
-        })
+        }),
       );
     }
   }
@@ -139,10 +123,14 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
           dropdownElement = this.dropdown();
 
         query('.' + cssContent + '-body', (body: HTMLDivElement) => html(body, ''), blockElement);
-        query('.' + cssContent + '-dropdown', (dropdown: HTMLDivElement) => {
-          append(dropdown, dropdownElement);
-          addClass(dropdown, 'tex-active');
-        }, blockElement);
+        query(
+          '.' + cssContent + '-dropdown',
+          (dropdown: HTMLDivElement) => {
+            append(dropdown, dropdownElement);
+            addClass(dropdown, 'tex-active');
+          },
+          blockElement,
+        );
       } else {
         this.onClick(evt);
         events.refresh();

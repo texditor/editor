@@ -5,12 +5,12 @@ import type {
   PasteMapItem,
   TexditorEvent,
   Texditor,
-  Events as IEvents
-} from "@/types";
+  Events as IEvents,
+} from '@/types';
 
-import { executeMethodIfExists } from "@/utils/common";
-import { currentStore } from "@/store/currentStore";
-import EventManager from "./base/event-manager";
+import { executeMethodIfExists } from '@/utils/common';
+import { currentStore } from '@/store/currentStore';
+import EventManager from './base/event-manager';
 
 import {
   addClass,
@@ -31,8 +31,8 @@ import {
   rebind,
   isEmptyString,
   escapeHtml,
-  randString
-} from "snappykit";
+  randString,
+} from 'snappykit';
 
 export default class Events extends EventManager implements IEvents {
   /** Reference to the main editor instance */
@@ -67,86 +67,60 @@ export default class Events extends EventManager implements IEvents {
       eid = this.eventId,
       blockContainer = blockManager.getBlocksContainer();
 
-    if (!blockContainer)
-      throw new Error("The root element of the editor was not found.");
+    if (!blockContainer) throw new Error('The root element of the editor was not found.');
 
     blockManager.refreshVirtualSelection();
 
-    rebind(
-      document,
-      'dblclick.docEvt' + eid,
-      () => blockManager.clearVirtualSelection(),
-      true
-    );
+    rebind(document, 'dblclick.docEvt' + eid, () => blockManager.clearVirtualSelection(), true);
 
-    rebind(
-      document,
-      'click.docEvt' + eid,
-      () => extensions.refresh(),
-      true
-    );
+    rebind(document, 'click.docEvt' + eid, () => extensions.refresh(), true);
 
-    rebind(
-      document,
-      "keydown.docEvt" + eid,
-      this.onDocumentKeyDownHandle,
-      true
-    );
+    rebind(document, 'keydown.docEvt' + eid, this.onDocumentKeyDownHandle, true);
 
     query(
       '.tex-block-content',
       (el: HTMLElement) => {
-        rebind(el, "keydown.e", this.onKeyDownHandle);
-        rebind(el, "keyup.e", this.onKeyUpHandle);
-        rebind(el, "paste.e", this.onPasteHandle);
-        rebind(el, "dragstart.e", this.onDragStart);
-        rebind(el, "dragleave.e", this.onDragLeave);
-        rebind(el, "dragover.e", this.onDragOver);
-        rebind(el, "drag.e1", this.onDrag);
-        rebind(el, "drop.e1", this.onDrop);
-        rebind(el, "dragend.e", this.onDragEnd);
-        rebind(el, "focus.e", this.onFocusHandle);
-        rebind(el, "blur.e", this.onBlurHandle);
-        rebind(el, "click.e", this.onClickHandle);
+        rebind(el, 'keydown.e', this.onKeyDownHandle);
+        rebind(el, 'keyup.e', this.onKeyUpHandle);
+        rebind(el, 'paste.e', this.onPasteHandle);
+        rebind(el, 'dragstart.e', this.onDragStart);
+        rebind(el, 'dragleave.e', this.onDragLeave);
+        rebind(el, 'dragover.e', this.onDragOver);
+        rebind(el, 'drag.e1', this.onDrag);
+        rebind(el, 'drop.e1', this.onDrop);
+        rebind(el, 'dragend.e', this.onDragEnd);
+        rebind(el, 'focus.e', this.onFocusHandle);
+        rebind(el, 'blur.e', this.onBlurHandle);
+        rebind(el, 'click.e', this.onClickHandle);
       },
-      blockContainer
+      blockContainer,
     );
 
-    rebind(
-      document,
-      "selectionchange.e" + this.eventId,
-      this.onSelectionChangeHandle
-    );
+    rebind(document, 'selectionchange.e' + this.eventId, this.onSelectionChangeHandle);
   }
 
   /** @see IEvents.change */
   change(event: TexditorEvent): void {
-    const {
-      blockManager,
-      config,
-      extensions,
-      historyManager
-    } = this.editor;
+    const { blockManager, config, extensions, historyManager } = this.editor;
 
-    const changeHandle = config.get("onChange", false);
+    const changeHandle = config.get('onChange', false);
 
     blockManager.detectEmpty();
     blockManager.normalize();
 
-    if (changeHandle && typeof changeHandle === "function") {
-      if (!this.isEventExists("onChange.onReady"))
-        this.addEvent("onChange.onReady", changeHandle);
+    if (changeHandle && typeof changeHandle === 'function') {
+      if (!this.hasEvent('onChange.onReady')) this.on('onChange.onReady', changeHandle);
     }
 
     extensions.refresh();
 
-    this.triggerEvent("onChange", event);
+    this.trigger('onChange', event);
 
     if (
-      event.type != "keydown" &&
-      event.type != "keyup" &&
-      event.type != "historySave" &&
-      event.type != "virtualSelectionChange"
+      event.type != 'keydown' &&
+      event.type != 'keyup' &&
+      event.type != 'historySave' &&
+      event.type != 'virtualSelectionChange'
     ) {
       historyManager.save();
     }
@@ -157,14 +131,13 @@ export default class Events extends EventManager implements IEvents {
    * @param evt - Focus event
    */
   private onFocusHandle(evt: FocusEvent): void {
-    this.triggerEvent("focus", { domEvent: evt });
+    this.trigger('focus', { domEvent: evt });
     this.setIndexByTarget(evt.target);
     const model = this.editor.blockManager.getModel();
 
-    if (model && executeMethodIfExists(model, '__onFocus', [evt]))
-      evt.preventDefault();
+    if (model && executeMethodIfExists(model, '__onFocus', [evt])) evt.preventDefault();
 
-    this.triggerEvent("focusEnd", { domEvent: evt });
+    this.trigger('focusEnd', { domEvent: evt });
   }
 
   /**
@@ -172,15 +145,14 @@ export default class Events extends EventManager implements IEvents {
    * @param evt - Mouse event
    */
   private onClickHandle(evt: MouseEvent): void {
-    this.triggerEvent("click", { domEvent: evt });
+    this.trigger('click', { domEvent: evt });
     this.setIndexByTarget(evt.target);
 
     const model = this.editor.blockManager.getModel();
 
-    if (model)
-      executeMethodIfExists(model, '__onClick', [evt]);
+    if (model) executeMethodIfExists(model, '__onClick', [evt]);
 
-    this.triggerEvent("clickEnd", { domEvent: evt });
+    this.trigger('clickEnd', { domEvent: evt });
   }
 
   /**
@@ -190,10 +162,9 @@ export default class Events extends EventManager implements IEvents {
   private onBlurHandle(evt: FocusEvent): void {
     const model = this.editor.blockManager.getModel();
 
-    if (model && executeMethodIfExists(model, '__onBlur', [evt]))
-      evt.preventDefault();
+    if (model && executeMethodIfExists(model, '__onBlur', [evt])) evt.preventDefault();
 
-    this.triggerEvent("blur", { domEvent: evt });
+    this.trigger('blur', { domEvent: evt });
   }
 
   /**
@@ -203,20 +174,19 @@ export default class Events extends EventManager implements IEvents {
   private onKeyUpHandle(evt: KeyboardEvent): void {
     const { blockManager, historyManager } = this.editor;
 
-    this.triggerEvent("keyup", { domEvent: evt });
+    this.trigger('keyup', { domEvent: evt });
     this.setIndexByTarget(evt.target);
 
     const model = blockManager.getModel();
 
-    if (model && executeMethodIfExists(model, '__onKeyUp', [evt]))
-      evt.preventDefault();
+    if (model && executeMethodIfExists(model, '__onKeyUp', [evt])) evt.preventDefault();
 
     this.change({
-      type: "keyup",
-      domEvent: evt
+      type: 'keyup',
+      domEvent: evt,
     });
 
-    this.triggerEvent("keyupEnd", { domEvent: evt });
+    this.trigger('keyupEnd', { domEvent: evt });
     historyManager.scheduleSave();
   }
 
@@ -256,7 +226,7 @@ export default class Events extends EventManager implements IEvents {
 
         if (items.length) {
           items.forEach((item: HTMLElement) => {
-            removeClass(item, className)
+            removeClass(item, className);
           });
           addClass(activeItem, className);
         }
@@ -272,14 +242,13 @@ export default class Events extends EventManager implements IEvents {
     const { blockManager } = this.editor,
       root = this.editor.getRoot();
 
-    if (!root)
-      return;
+    if (!root) return;
 
-    this.triggerEvent("documentKeydown", { domEvent: evt });
+    this.trigger('documentKeydown', { domEvent: evt });
 
     if (currentStore.get('el') === root) {
       if (this.handleHistoryShortcuts(evt)) {
-        this.triggerEvent("documentKeydownEnd", { domEvent: evt });
+        this.trigger('documentKeydownEnd', { domEvent: evt });
         return;
       }
     }
@@ -290,17 +259,16 @@ export default class Events extends EventManager implements IEvents {
       if (virtualSelection) {
         const list = virtualSelection.getSelectedIndices();
 
-        if (list.length)
-          blockManager.removeBlock(list);
+        if (list.length) blockManager.removeBlock(list);
       }
-    }
+    };
 
-    if (evt.key == "Backspace" || evt.key == "Delete") {
+    if (evt.key == 'Backspace' || evt.key == 'Delete') {
       deleteSelectedBlocks();
-      this.triggerEvent("documentKeydownBackspace", { domEvent: evt });
+      this.trigger('documentKeydownBackspace', { domEvent: evt });
     }
 
-    this.triggerEvent("documentKeydownEnd", { domEvent: evt });
+    this.trigger('documentKeydownEnd', { domEvent: evt });
   }
 
   /**
@@ -310,27 +278,25 @@ export default class Events extends EventManager implements IEvents {
   private onKeyDownHandle(evt: KeyboardEvent): void {
     const { blockManager, historyManager, selectionApi, config } = this.editor;
 
-    this.triggerEvent("keydown", { domEvent: evt });
+    this.trigger('keydown', { domEvent: evt });
 
     if (evt.target) {
       const blockElement = blockManager.findParent(evt.target);
 
       if (blockElement) {
-        blockManager.use(
-          blockManager.getIndex(blockElement)
-        );
+        blockManager.use(blockManager.getIndex(blockElement));
       }
     }
 
     const blocksContainer = blockManager.getBlocksContainer(),
-      defBlock = config.get("defaultBlock", "p"),
+      defBlock = config.get('defaultBlock', 'p'),
       model = blockManager.getModel(),
       contentElement = blockManager.getContentElement();
 
     const breakEvent = () => {
       evt.stopPropagation();
       evt.preventDefault();
-    }
+    };
 
     if (!model) {
       breakEvent();
@@ -339,9 +305,7 @@ export default class Events extends EventManager implements IEvents {
 
     executeMethodIfExists(model, '__onKeyDown', [evt]);
 
-    const focusedNode = model.isEditableItems() && model.getItemBody(-1)
-      ? model.getItemBody(-1)
-      : contentElement;
+    const focusedNode = model.isEditableItems() && model.getItemBody(-1) ? model.getItemBody(-1) : contentElement;
 
     if (!focusedNode) {
       breakEvent();
@@ -356,8 +320,8 @@ export default class Events extends EventManager implements IEvents {
     if (blocksContainer && contentElement) {
       if (this.editor.isEmpty() && blockManager.count() == 0) blockManager.createBlock(defBlock);
 
-      if (evt.key == "Enter") {
-        this.triggerEvent("keydownEnterKey", { domEvent: evt });
+      if (evt.key == 'Enter') {
+        this.trigger('keydownEnterKey', { domEvent: evt });
 
         if (closest(evt.target, contentElement)) {
           if (model.isEditableItems()) {
@@ -367,22 +331,12 @@ export default class Events extends EventManager implements IEvents {
               const itemIndex = model.getItemIndex(),
                 isEmptyItem = model.isEmptyItem(itemIndex);
 
-              if (
-                isEmptyItem &&
-                model.getItemsLength() === itemIndex + 1
-              ) {
+              if (isEmptyItem && model.getItemsLength() === itemIndex + 1) {
                 model.removeItem(itemIndex);
                 blockManager.createBlock(defBlock);
               } else {
-                if (
-                  !isEmptyItem &&
-                  (!model?.isEmptyItem(itemIndex - 1) && cursorStart != 0 && cursorEnd != 0)
-                ) {
-                  model.createItem(
-                    selectionApi.splitContent(
-                      model.getItemBody(-1)
-                    )
-                  );
+                if (!isEmptyItem && !model?.isEmptyItem(itemIndex - 1) && cursorStart != 0 && cursorEnd != 0) {
+                  model.createItem(selectionApi.splitContent(model.getItemBody(-1)));
                 }
               }
             }
@@ -390,33 +344,24 @@ export default class Events extends EventManager implements IEvents {
             if (model.isEnterCreate()) {
               breakEvent();
 
-              if (
-                (cursorStart === cursorEnd && cursorStart === curTextLength) ||
-                cursorStart !== cursorEnd
-              ) {
-                if (!model.isEmpty())
-                  blockManager.createBlock(defBlock);
+              if ((cursorStart === cursorEnd && cursorStart === curTextLength) || cursorStart !== cursorEnd) {
+                if (!model.isEmpty()) blockManager.createBlock(defBlock);
               } else {
                 blockManager.createBlock(defBlock, -1, {
-                  data: selectionApi.splitContent(contentElement)
+                  data: selectionApi.splitContent(contentElement),
                 });
               }
             }
           }
         }
 
-        this.triggerEvent("keydownEnterKeyEnd", { domEvent: evt });
-      } else if (evt.key == "Backspace") {
-        this.triggerEvent("keydownBackspaceKey", { domEvent: evt });
+        this.trigger('keydownEnterKeyEnd', { domEvent: evt });
+      } else if (evt.key == 'Backspace') {
+        this.trigger('keydownBackspaceKey', { domEvent: evt });
 
         if (blockManager.count() > 1) {
           const index = blockManager.getIndex();
-          if (
-            model.isEditableItems() &&
-            model.getItemIndex() > 0 &&
-            cursorStart == 0 &&
-            cursorEnd == 0
-          ) {
+          if (model.isEditableItems() && model.getItemIndex() > 0 && cursorStart == 0 && cursorEnd == 0) {
             breakEvent();
             const itemChild = getChildNodes(focusedNode),
               itemIndex = model.getItemIndex();
@@ -429,12 +374,7 @@ export default class Events extends EventManager implements IEvents {
               if (prevLength) {
                 appendText(prevItemBody, ' ');
                 append(prevItemBody, itemChild);
-                blockManager.focus(
-                  index,
-                  prevLength,
-                  prevLength,
-                  itemIndex - 1
-                );
+                blockManager.focus(index, prevLength, prevLength, itemIndex - 1);
               } else {
                 prevItemBody.focus();
               }
@@ -450,20 +390,11 @@ export default class Events extends EventManager implements IEvents {
                 const prevModel = blockManager.getModel(curIndex - 1);
                 const prevLength = (prevModel?.getItemsLength() || 1) - 1;
 
-                blockManager.focus(
-                  curIndex ? curIndex - 1 : 0,
-                  undefined,
-                  undefined,
-                  prevLength
-                );
+                blockManager.focus(curIndex ? curIndex - 1 : 0, undefined, undefined, prevLength);
               }
             } else {
               // Merge if not an empty block
-              if (
-                cursorStart === 0 &&
-                cursorEnd === 0 &&
-                model?.isBackspaceRemove()
-              ) {
+              if (cursorStart === 0 && cursorEnd === 0 && model?.isBackspaceRemove()) {
                 const pervIndex = index - 1;
 
                 evt.preventDefault();
@@ -473,21 +404,17 @@ export default class Events extends EventManager implements IEvents {
           }
         }
 
-        this.triggerEvent("keydownBackspaceKeyEnd", { domEvent: evt });
+        this.trigger('keydownBackspaceKeyEnd', { domEvent: evt });
       }
     }
 
-    this.triggerEvent("keydownEnd", { domEvent: evt });
+    this.trigger('keydownEnd', { domEvent: evt });
     this.change({
-      type: "keydown",
-      event: evt
+      type: 'keydown',
+      event: evt,
     });
 
-    if (
-      evt.key === "Enter" ||
-      evt.key === "Backspace" ||
-      evt.key === "Delete"
-    ) {
+    if (evt.key === 'Enter' || evt.key === 'Backspace' || evt.key === 'Delete') {
       historyManager.save();
     } else {
       historyManager.scheduleSave();
@@ -501,28 +428,27 @@ export default class Events extends EventManager implements IEvents {
    */
   private handleHistoryShortcuts(evt: KeyboardEvent): boolean {
     const { historyManager } = this.editor;
-    if (!this.editor.config.get('historyShortcuts', true))
-      return false;
+    if (!this.editor.config.get('historyShortcuts', true)) return false;
 
     const { ctrlKey, shiftKey, metaKey, code } = evt,
       isCommand = metaKey;
 
     // Ctrl+Z | Cmd+Z - Undo
-    if ((ctrlKey || isCommand) && !shiftKey && code === "KeyZ") {
+    if ((ctrlKey || isCommand) && !shiftKey && code === 'KeyZ') {
       evt.preventDefault();
       historyManager.undo();
-      this.triggerEvent("undo", { type: "undo" });
+      this.trigger('undo', { type: 'undo' });
       return true;
     }
 
-    // Ctrl+Shift+Z | Cmd+Shift+Z | Ctrl+Y - Redo 
+    // Ctrl+Shift+Z | Cmd+Shift+Z | Ctrl+Y - Redo
     if (
-      ((ctrlKey || isCommand) && shiftKey && code === "KeyZ") ||
-      ((ctrlKey || isCommand) && !shiftKey && code === "KeyY")
+      ((ctrlKey || isCommand) && shiftKey && code === 'KeyZ') ||
+      ((ctrlKey || isCommand) && !shiftKey && code === 'KeyY')
     ) {
       const { historyManager } = this.editor;
       historyManager.redo();
-      this.triggerEvent("redo", { type: "undo" });
+      this.trigger('redo', { type: 'undo' });
     }
 
     return false;
@@ -557,12 +483,12 @@ export default class Events extends EventManager implements IEvents {
 
       if (!childLength) return false;
 
-      const elementChildren = childNodes.filter(cn => cn.nodeType === Node.ELEMENT_NODE);
+      const elementChildren = childNodes.filter((cn) => cn.nodeType === Node.ELEMENT_NODE);
 
       if (elementChildren.length !== childLength) return false;
 
       let hasBlocks = false;
-      elementChildren.forEach(child => {
+      elementChildren.forEach((child) => {
         if (blockManager.getRealName(child.nodeName.toLowerCase())) {
           map.push({ type: 'block', node: child });
           hasBlocks = true;
@@ -572,7 +498,7 @@ export default class Events extends EventManager implements IEvents {
       return hasBlocks;
     };
 
-    childNodes.forEach(node => {
+    childNodes.forEach((node) => {
       if (node.nodeType === Node.TEXT_NODE) {
         processTextNode(node);
       } else if (node.nodeType === Node.ELEMENT_NODE) {
@@ -580,14 +506,14 @@ export default class Events extends EventManager implements IEvents {
         if (!isBlockProcessed) {
           map.push({
             type: node.nodeType === Node.ELEMENT_NODE ? 'node' : 'textNode',
-            node
+            node,
           });
         }
       }
     });
 
-    const oneBlock = map.filter(item => item.type === 'block'),
-      onlyTextNodes = map.filter(item => item.type === 'textNode');
+    const oneBlock = map.filter((item) => item.type === 'block'),
+      onlyTextNodes = map.filter((item) => item.type === 'textNode');
 
     if (onlyTextNodes.length === map.length) {
       return { schema: 'node', data: onlyTextNodes };
@@ -596,17 +522,17 @@ export default class Events extends EventManager implements IEvents {
     const mapResult: PasteMapItem[] = [];
 
     if (oneBlock.length === 0) {
-      map.forEach(item => mapResult.push({ type: 'node', node: item.node }));
+      map.forEach((item) => mapResult.push({ type: 'node', node: item.node }));
       return { schema: 'node', data: mapResult };
     }
 
     if (oneBlock.length === 1) {
-      const blockItem = map.find(item => item.type === 'block');
+      const blockItem = map.find((item) => item.type === 'block');
       if (blockItem) {
-        getChildNodes(blockItem.node).forEach(node => {
+        getChildNodes(blockItem.node).forEach((node) => {
           mapResult.push({
             type: node.nodeType === Node.ELEMENT_NODE ? 'node' : 'textNode',
-            node
+            node,
           });
         });
         return { schema: 'node', data: mapResult };
@@ -619,7 +545,6 @@ export default class Events extends EventManager implements IEvents {
         const pushToNode = (targetNode: Node) => {
           if (item.type === 'textNode') {
             appendText(targetNode, item.node.textContent || '');
-
           } else {
             const childNodes = getChildNodes(item.node);
             append(targetNode, childNodes);
@@ -645,24 +570,20 @@ export default class Events extends EventManager implements IEvents {
    * @param evt - Clipboard event
    */
   private onPasteHandle(evt: ClipboardEvent): void {
-    const {
-      config,
-      blockManager,
-      selectionApi
-    } = this.editor;
+    const { config, blockManager, selectionApi } = this.editor;
 
-    this.triggerEvent("onPaste", { domEvent: evt });
+    this.trigger('onPaste', { domEvent: evt });
 
     if (!evt.clipboardData) return;
 
     evt.preventDefault();
 
-    const defBlock = config.get("defaultBlock", "p"),
+    const defBlock = config.get('defaultBlock', 'p'),
       model = blockManager.getModel();
 
     if (model) {
-      const textInput = evt.clipboardData.getData("text/plain"),
-        htmlInput = evt.clipboardData.getData("text/html");
+      const textInput = evt.clipboardData.getData('text/plain'),
+        htmlInput = evt.clipboardData.getData('text/html');
 
       const pasteData = model.isRaw() ? textInput : htmlInput;
 
@@ -683,15 +604,11 @@ export default class Events extends EventManager implements IEvents {
               const nodes: Node[] = [];
               map.data.forEach((item) => {
                 appendText(item.node, ' ');
-                nodes.push(item.node)
+                nodes.push(item.node);
               });
 
               if (model.isRaw()) {
-                selectionApi.insertText(
-                  escapeHtml(
-                    getText(nodes) + ' '
-                  )
-                );
+                selectionApi.insertText(escapeHtml(getText(nodes) + ' '));
 
                 model.sanitize();
               } else {
@@ -700,9 +617,7 @@ export default class Events extends EventManager implements IEvents {
 
                   schemas.forEach((schema) => {
                     const nodeName = node.nodeName.toLowerCase();
-                    const realName = blockManager.getRealName(nodeName) ||
-                      blockManager.getRealName(defBlock) ||
-                      "p";
+                    const realName = blockManager.getRealName(nodeName) || blockManager.getRealName(defBlock) || 'p';
                     const schemaModel = schema.model;
                     const names = schemaModel.getSupportedNames();
 
@@ -712,7 +627,7 @@ export default class Events extends EventManager implements IEvents {
                       if (schemaModel.isEditable() && !schemaModel.isEditableItems()) {
                         const html = (node as Element)?.innerHTML;
                         newBlock = blockManager.createBlock(realName, nextIndex, {
-                          data: html
+                          data: html,
                         });
                         nextIndex++;
                       } else if (!schemaModel.isEditable() && schemaModel.isEditableItems()) {
@@ -720,22 +635,19 @@ export default class Events extends EventManager implements IEvents {
 
                         getChildNodes(node).forEach((child: Node) => {
                           const childNodeName = child.nodeName.toLowerCase(),
-                            relatedNames = [
-                              schemaModel.getItemName(),
-                              ...schemaModel.getItemRelatedNames()
-                            ];
+                            relatedNames = [schemaModel.getItemName(), ...schemaModel.getItemRelatedNames()];
 
                           if (relatedNames.includes(childNodeName)) {
                             items.push({
                               type: schemaModel.getItemName(),
-                              data: toHtml(getChildNodes(child))
-                            })
+                              data: toHtml(getChildNodes(child)),
+                            });
                           }
                         });
 
                         if (items) {
                           newBlock = blockManager.createBlock(realName, nextIndex, {
-                            data: items
+                            data: items,
                           });
                           nextIndex++;
                         }
@@ -750,25 +662,21 @@ export default class Events extends EventManager implements IEvents {
                 });
               }
 
-              blockManager.focus(
-                !model.isEmpty() ? nextIndex - 1 : nextIndex
-              );
+              blockManager.focus(!model.isEmpty() ? nextIndex - 1 : nextIndex);
             } else {
               const nodes: Node[] = [];
               map.data.forEach((item) => nodes.push(item.node));
 
               if (nodes.length) {
                 if (model.isRaw()) {
-                  selectionApi.insertText(
-                    escapeHtml(getText(nodes))
-                  );
+                  selectionApi.insertText(escapeHtml(getText(nodes)));
                 } else {
                   const sanitizerConfig = model.getSanitizerConfig(),
                     safeNodes: Node[] = [];
 
                   nodes.forEach((node: Node) => {
                     if (sanitizerConfig.elements?.includes(node.nodeName.toLowerCase())) {
-                      safeNodes.push(node)
+                      safeNodes.push(node);
                     } else {
                       const text = getText(node);
 
@@ -778,29 +686,26 @@ export default class Events extends EventManager implements IEvents {
                     }
                   });
 
-                  const div = make(
-                    'div',
-                    (el: HTMLElement) => append(el, safeNodes)
-                  );
+                  const div = make('div', (el: HTMLElement) => append(el, safeNodes));
 
                   selectionApi.insert(html(div));
                 }
               }
 
-              model.sanitize()
+              model.sanitize();
               blockManager.focus(-1);
             }
           }
         }
 
         this.change({
-          type: "paste",
+          type: 'paste',
           domEvent: evt,
-          map: map
+          map: map,
         });
       }
 
-      this.triggerEvent("onPasteEnd", { domEvent: evt });
+      this.trigger('onPasteEnd', { domEvent: evt });
     }
   }
 
@@ -814,13 +719,11 @@ export default class Events extends EventManager implements IEvents {
     const model = blockManager.getModel(),
       __name = '__' + name;
 
-    if (
-      model && executeMethodIfExists(model, __name, [evt])
-    ) {
+    if (model && executeMethodIfExists(model, __name, [evt])) {
       evt.preventDefault();
     }
 
-    this.triggerEvent(name, { domEvent: evt });
+    this.trigger(name, { domEvent: evt });
   }
 
   /**
@@ -855,7 +758,6 @@ export default class Events extends EventManager implements IEvents {
     this.defEvent('onDrag', evt);
   }
 
-
   /**
    * Prevents default drag end behavior
    * @param evt - Drag event
@@ -878,16 +780,12 @@ export default class Events extends EventManager implements IEvents {
    * @param evt - Event
    */
   private onSelectionChangeHandle(evt: Event): void {
-    const {
-      blockManager,
-      selectionApi,
-      tools
-    } = this.editor;
+    const { blockManager, selectionApi, tools } = this.editor;
 
     const root = this.editor.getRoot();
 
     if (root) {
-      this.triggerEvent("onSelectionChange", { domEvent: evt });
+      this.trigger('onSelectionChange', { domEvent: evt });
 
       blockManager.clearVirtualSelection();
 
@@ -907,9 +805,7 @@ export default class Events extends EventManager implements IEvents {
 
               if (model) {
                 const contentElement = model.getContentElement(),
-                  blockItem = model.isEditableItems()
-                    ? model.getItemBody(-1)
-                    : null;
+                  blockItem = model.isEditableItems() ? model.getItemBody(-1) : null;
 
                 const element = blockItem || contentElement,
                   [start, end] = selectionApi.getOffset(element);
@@ -919,8 +815,8 @@ export default class Events extends EventManager implements IEvents {
                     element: element,
                     position: {
                       start: start,
-                      end: end
-                    }
+                      end: end,
+                    },
                   });
                 }
 
@@ -938,10 +834,10 @@ export default class Events extends EventManager implements IEvents {
             }
           }
         },
-        root
+        root,
       );
 
-      this.triggerEvent("onSelectionChangeEnd", { domEvent: evt });
+      this.trigger('onSelectionChangeEnd', { domEvent: evt });
     }
   }
 
@@ -960,29 +856,29 @@ export default class Events extends EventManager implements IEvents {
 
     off(document, 'click.docEvt' + eid, true);
     off(document, 'dblclick.docEvt' + eid, true);
-    off(document, "keydown.docEvt" + eid, true);
+    off(document, 'keydown.docEvt' + eid, true);
 
     if (!root) return;
 
     query(
       '.tex-block',
       (el: HTMLElement) => {
-        off(el, "keydown.e");
-        off(el, "keyup.e");
-        off(el, "paste.e");
-        off(el, "dragstart.e");
-        off(el, "dragleave.e");
-        off(el, "dragover.e");
-        off(el, "drag.e1");
-        off(el, "drop.e1");
-        off(el, "dragend.e");
-        off(el, "focus.e");
-        off(el, "blur.e");
-        off(el, "click.e");
+        off(el, 'keydown.e');
+        off(el, 'keyup.e');
+        off(el, 'paste.e');
+        off(el, 'dragstart.e');
+        off(el, 'dragleave.e');
+        off(el, 'dragover.e');
+        off(el, 'drag.e1');
+        off(el, 'drop.e1');
+        off(el, 'dragend.e');
+        off(el, 'focus.e');
+        off(el, 'blur.e');
+        off(el, 'click.e');
       },
-      root
+      root,
     );
 
-    off(document, "selectionchange.e" + this.eventId);
+    off(document, 'selectionchange.e' + this.eventId);
   }
 }

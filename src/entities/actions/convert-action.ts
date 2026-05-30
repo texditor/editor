@@ -1,19 +1,10 @@
-import type {
-  ActionModelConfig,
-  BlockModelSchema
-} from "@/types";
-import { IconConvert } from "@/icons";
-import ActionModel from "@/core/models/action-model";
+import type { ActionModelConfig, BlockModelSchema } from '@/types';
+import { IconConvert } from '@/icons';
+import ActionModel from '@/core/models/action-model';
 
-import {
-  addClass,
-  append,
-  html,
-  make,
-  rebind
-} from "snappykit";
+import { addClass, append, html, make, rebind } from 'snappykit';
 
-import { renderIcon } from "@/utils";
+import { renderIcon } from '@/utils';
 
 /** Convert a block */
 export default class ConvertAction extends ActionModel {
@@ -22,8 +13,8 @@ export default class ConvertAction extends ActionModel {
       name: 'convertAction',
       icon: IconConvert,
       translation: 'convert',
-      dropdown: true
-    }
+      dropdown: true,
+    };
   }
 
   protected dropdown(): HTMLElement {
@@ -34,46 +25,40 @@ export default class ConvertAction extends ActionModel {
     return make('div', (div: HTMLDivElement) => {
       const title = make('h4', (h4: HTMLHeadingElement) => {
         h4.textContent = this.getTranslation() || this.getName();
-      })
+      });
 
       append(div, title);
 
       schemas.forEach((schema: BlockModelSchema) => {
         const model = schema.model;
-        if (
-          model.isConvertible() &&
-          blockElement?.baseModel.getName() !== model.getName()
-        ) {
-          const modelElement = make("div", (el: HTMLDivElement) => {
-            addClass(el, "tex-actions-content-dropdown-item");
+        if (model.isConvertible() && blockElement?.baseModel.getName() !== model.getName()) {
+          const modelElement = make('div', (el: HTMLDivElement) => {
+            addClass(el, 'tex-actions-content-dropdown-item');
             const iconContent = model.getIcon();
 
             if (iconContent) {
               append(
-                el, make(
-                  'span',
-                  (span: HTMLSpanElement) => html(
+                el,
+                make('span', (span: HTMLSpanElement) =>
+                  html(
                     span,
                     renderIcon(iconContent, {
                       width: model.getIconWidth(),
-                      height: model.getIconHeight()
-                    })
-                  )
-                )
+                      height: model.getIconHeight(),
+                    }),
+                  ),
+                ),
               );
             }
 
-            append(el, make(
-              'span',
-              (span: HTMLSpanElement) => {
-                html(
-                  span,
-                  model.getTranslation() || model.getName()
-                )
-              }
-            ));
+            append(
+              el,
+              make('span', (span: HTMLSpanElement) => {
+                html(span, model.getTranslation() || model.getName());
+              }),
+            );
 
-            rebind(el, "click.am", () => {
+            rebind(el, 'click.am', () => {
               if (blockElement) blockManager.convert(blockElement, model);
             });
           });

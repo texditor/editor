@@ -1,6 +1,6 @@
-import type { ActionModelConfig } from "@/types";
-import { IconArrowUp } from "@/icons";
-import ActionModel from "@/core/models/action-model";
+import type { ActionModelConfig } from '@/types';
+import { IconArrowUp } from '@/icons';
+import ActionModel from '@/core/models/action-model';
 
 /** Move the block up */
 export default class MoveUpAction extends ActionModel {
@@ -21,8 +21,7 @@ export default class MoveUpAction extends ActionModel {
 
     blockManager.moveBlock(curIndex, curIndex - 1);
 
-    if (model)
-      model.showActions();
+    if (model) model.showActions();
   }
 
   isVisible(): boolean {

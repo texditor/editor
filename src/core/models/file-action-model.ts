@@ -4,19 +4,17 @@ import type {
   FileItemElement,
   FileActionModelConstructor,
   FileActionElement,
-  BlockElement
-} from "@/types";
-import BaseModel from "../base/base-model";
+  BlockElement,
+} from '@/types';
+import BaseModel from '../base/base-model';
 
 export default class FileActionModel extends BaseModel<FileActionElement> implements IFileActionModel {
   /**
-  * Set up global configuration
-  * @param config - Partial configuration
-  * @returns Model constructor
-  */
-  public static setup(
-    config: Partial<FileActionModelConfig>
-  ): FileActionModelConstructor {
+   * Set up global configuration
+   * @param config - Partial configuration
+   * @returns Model constructor
+   */
+  public static setup(config: Partial<FileActionModelConfig>): FileActionModelConstructor {
     return super.setup(config) as FileActionModelConstructor;
   }
 
@@ -37,14 +35,14 @@ export default class FileActionModel extends BaseModel<FileActionElement> implem
   }
 
   /**
- * Parent model configuration
- * @returns Parent model configuration
- */
+   * Parent model configuration
+   * @returns Parent model configuration
+   */
   protected parentConfig(): Partial<FileActionModelConfig> {
     return {
       __modelCode: 'fileAction',
       visibleTitle: false,
-      className: 'tex-file-action'
-    }
+      className: 'tex-file-action',
+    };
   }
 }

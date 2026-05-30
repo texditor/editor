@@ -1,8 +1,8 @@
-import { TexditorRootElement } from "@/types";
-import { createStore } from "snappykit";
+import { TexditorRootElement } from '@/types';
+import { createStore } from 'snappykit';
 
-const mainData: { editor: TexditorRootElement[] } = {
-    editor: []
-}
+const mainData: { editors: TexditorRootElement[] } = {
+  editors: [],
+};
 
 export const mainStore = createStore(mainData);

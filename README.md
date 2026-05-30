@@ -18,12 +18,12 @@ A modern, modular block-based text editor built with TypeScript. Featuring a cle
 ### Basic Setup
 
 ```js
-import "@texditor/editor/styles/theme.css"; // Theme variables
-import "@texditor/editor/styles/editor.css"; // Core styles
-import Texditor from "@texditor/editor";
+import '@texditor/editor/styles/theme.css'; // Theme variables
+import '@texditor/editor/styles/editor.css'; // Core styles
+import Texditor from '@texditor/editor';
 
 const editor = new Texditor({
-  handle: "texditor" // Target element ID
+  handle: 'texditor', // Target element ID
 });
 ```
 
@@ -34,21 +34,8 @@ const editor = new Texditor({
 ##### Advanced Configuration
 
 ```js
-import {
-  Code,
-  Files,
-  Gallery,
-  H1,
-  H2,
-  H3,
-  H4,
-  H5,
-  H6,
-  List,
-  OrderedList,
-  Paragraph
-} from "@texditor/editor/blocks";
-import { Undo, Redo } from "@texditor/editor/extensions";
+import { Code, Files, Gallery, H1, H2, H3, H4, H5, H6, List, OrderedList, Paragraph } from '@texditor/editor/blocks';
+import { Undo, Redo } from '@texditor/editor/extensions';
 
 import {
   BoldTool,
@@ -56,29 +43,29 @@ import {
   ItalicTool,
   LinkTool,
   SubscriptTool,
-  SuperscriptTool
-} from "@texditor/editor/tools";
+  SuperscriptTool,
+} from '@texditor/editor/tools';
 
 const editor = new Texditor({
-  handle: "texditor",
+  handle: 'texditor',
   extensions: [Undo, Redo],
   tools: [
     BoldTool,
-    LinkTool
+    LinkTool,
     // Add more tools...
   ],
   blocks: [
     Paragraph, // Default configuration
     H1.setup({
       // Custom configuration
-      placeholder: "Heading 1",
+      placeholder: 'Heading 1',
       sanitizerConfig: {
-        elements: ["a", "sup", "sub"]
+        elements: ['a', 'sup', 'sub'],
         // Additional sanitizer options...
-      }
-    })
+      },
+    }),
     // Add more blocks...
-  ]
+  ],
 });
 ```
 

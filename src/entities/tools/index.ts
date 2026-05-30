@@ -1,11 +1,11 @@
-import BoldTool from "./bold";
-import ClearFormattingTool from "./clear-formatting";
-import InlineCodeTool from "./inline-code";
-import ItalicTool from "./italic";
-import LinkTool from "./link";
-import MarkerTool from "./marker";
-import SubscriptTool from "./subscript";
-import SuperscriptTool from "./superscript";
+import BoldTool from './bold';
+import ClearFormattingTool from './clear-formatting';
+import InlineCodeTool from './inline-code';
+import ItalicTool from './italic';
+import LinkTool from './link';
+import MarkerTool from './marker';
+import SubscriptTool from './subscript';
+import SuperscriptTool from './superscript';
 
 export {
   BoldTool,
@@ -15,5 +15,5 @@ export {
   LinkTool,
   MarkerTool,
   SubscriptTool,
-  SuperscriptTool
+  SuperscriptTool,
 };

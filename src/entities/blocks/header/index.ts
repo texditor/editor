@@ -1,45 +1,37 @@
-import type { BlockModelConfig } from "@/types";
-import BlockModel from "@/core/models/block-model";
-import { IconHeader1 } from "@/icons";
+import type { BlockModelConfig } from '@/types';
+import BlockModel from '@/core/models/block-model';
+import { IconHeader1 } from '@/icons';
 
 export default class Header extends BlockModel {
   protected configure(): Partial<BlockModelConfig> {
     return {
-      name: "h1",
-      translation: "header1",
+      name: 'h1',
+      translation: 'header1',
       groupCode: 'header',
-      tagName: "h1",
-      className: "tex-header",
+      tagName: 'h1',
+      className: 'tex-header',
       autoParse: true,
       icon: IconHeader1,
-      placeholder: this.editor.i18n.get(
-        "headerPlaceholder",
-        "Enter your title"
-      ),
+      placeholder: this.editor.i18n.get('headerPlaceholder', 'Enter your title'),
       editable: true,
       visibleTools: true,
-      availableTools: [
-        "link",
-        "subscript",
-        "superscript",
-        "clearFormatting"
-      ],
+      availableTools: ['link', 'subscript', 'superscript', 'clearFormatting'],
       enterCreate: true,
       emptyDetect: true,
       normalize: true,
       sanitizer: true,
       convertible: true,
       sanitizerConfig: {
-        elements: ["a", "sup", "sub"],
+        elements: ['a', 'sup', 'sub'],
         attributes: {
-          a: ["href"]
+          a: ['href'],
         },
         protocols: {
           a: {
-            href: ["https", "ftp", "http", "mailto"]
-          }
-        }
-      }
+            href: ['https', 'ftp', 'http', 'mailto'],
+          },
+        },
+      },
     };
   }
 }

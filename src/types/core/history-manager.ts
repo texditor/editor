@@ -1,4 +1,4 @@
-import { BlockSchema } from "./models";
+import { BlockSchema } from './models';
 
 /**
  * Interface for selection data to be saved in history
@@ -6,7 +6,7 @@ import { BlockSchema } from "./models";
  * @property start - Starting position of selection in text
  * @property end - Ending position of selection in text
  * @property index - Index of the current block
- * @property itemIndex - Item index inside block (for editable lists, etc.) 
+ * @property itemIndex - Item index inside block (for editable lists, etc.)
  */
 export interface HistoryStateSelectionData {
   start: number;
@@ -20,7 +20,7 @@ export interface HistoryStateSelectionData {
  * Stores a complete snapshot of the editor state at a specific moment in time
  * @property content -  Content of all editor blocks
  * @property selection - Current selection data
- * @property timestamp - Timestamp of state creation (Unix timestamp) 
+ * @property timestamp - Timestamp of state creation (Unix timestamp)
  */
 export interface HistoryState {
   content: BlockSchema[];

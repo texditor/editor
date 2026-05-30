@@ -55,12 +55,7 @@ export interface SelectionAPI {
    * @param container - Container element (optional)
    * @param scrollToContainer - Whether to scroll to the container
    */
-  select(
-    startPos: number,
-    endPos: number,
-    container?: Element,
-    scrollToContainer?: boolean
-  ): void;
+  select(startPos: number, endPos: number, container?: Element, scrollToContainer?: boolean): void;
 
   /**
    * Inserts content at the current cursor position
@@ -92,10 +87,7 @@ export interface SelectionAPI {
    * @param children - Whether to search children recursively
    * @returns Array of HTML elements that intersect the selection
    */
-  findTags(
-    container: Element | HTMLElement,
-    children?: boolean
-  ): HTMLElement[];
+  findTags(container: Element | HTMLElement, children?: boolean): HTMLElement[];
 
   /**
    * Gets the current window selection object
