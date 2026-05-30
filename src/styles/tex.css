@@ -409,6 +409,12 @@
   display: none;
 }
 
+.tex-toasts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
 @media (hover: hover) {
   .tex-action:hover,
   .tex-actions-content-dropdown-item:hover {

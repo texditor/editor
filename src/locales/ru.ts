@@ -61,4 +61,5 @@ export const RuLocale = {
   close: 'Закрыть',
   move: 'Переместить',
   requiredField: 'Обязательное поле',
+  maxItems: 'Достигнуто максимальное количество элементов',
 };

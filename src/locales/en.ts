@@ -61,4 +61,5 @@ export const EnLocale = {
   close: 'Close',
   move: 'Move',
   requiredField: 'Required field',
+  maxItems: 'The maximum number of elements has been reached',
 };

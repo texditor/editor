@@ -36,8 +36,8 @@ export interface TexditorEventBase {
 }
 
 /**
-* Public Event Data Structure (read-only)
-*  */
+ * Public Event Data Structure (read-only)
+ *  */
 export interface TexditorEvent extends TexditorEventBase {
   /** Reference to the Texditor instance that fired the event */
   instance: Texditor;

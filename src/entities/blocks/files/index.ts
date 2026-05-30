@@ -31,7 +31,6 @@ import {
   decodeHtml,
   formatBytes,
   randString,
-  getChildNodes,
   html,
   isEmptyString,
   make,
@@ -41,6 +40,7 @@ import {
   query,
   queryList,
   rebind,
+  show,
 } from 'snappykit';
 
 export { MoveRightFileAction, MoveLeftFileAction, DownloadFileAction, DeleteFileAction, EditFileAction };
@@ -48,8 +48,6 @@ export { MoveRightFileAction, MoveLeftFileAction, DownloadFileAction, DeleteFile
 export default class Files extends BlockModel implements FilesBlockModel {
   /** Form container element */
   private formNode: HTMLElement | null = null;
-  /** Toast notifications container */
-  private toastsNode: HTMLElement | null = null;
   /** Upload progress bar element */
   private progressNode: HTMLElement | null = null;
   /** Counter displaying current/total items */
@@ -89,11 +87,9 @@ export default class Files extends BlockModel implements FilesBlockModel {
       customSave: true,
       sortableItems: true,
       dragZoneClassName: 'tex-files-item-drag-zone',
-      messageTimeout: 7000,
       mimeTypes: [],
       multiple: true,
       maxItems: 10,
-      sortableMaxItems: 10,
       visibleCounter: true,
       inputName: 'files',
       contentClassName: 'tex-files-content',
@@ -134,10 +130,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
     const blockElement = this.getElement();
     this.counterNode = this.createCounter();
     this.formNode = this.createForm();
-    this.toastsNode = this.createToasts();
-
-    prepend(blockElement, [this.formNode, this.toastsNode]);
-
+    prepend(blockElement, this.formNode);
     this.createList();
     this.refresh();
   }
@@ -325,55 +318,6 @@ export default class Files extends BlockModel implements FilesBlockModel {
     });
   }
 
-  /**
-   * Create toast notifications container
-   * @returns Toast container element
-   */
-  protected createToasts(): HTMLElement {
-    return make('div', (el: HTMLDivElement) => {
-      addClass(el, 'tex-files-toasts');
-    });
-  }
-
-  /** @see FilesBlockModel.getToastsNode */
-  getToastsNode(): HTMLElement | null {
-    return this.toastsNode;
-  }
-
-  /** @see FilesBlockModel.clearToasts */
-  clearToasts(): void {
-    const toasts = this.getToastsNode();
-
-    if (toasts) {
-      html(toasts, '');
-      css(toasts, 'display', '');
-    }
-  }
-
-  /** @see FilesBlockModel.addToast */
-  addToast(message: string, status: string = 'error'): void {
-    const toasts = this.getToastsNode(),
-      hideTimeout = this.getMessageTimeout();
-
-    if (toasts) {
-      const messageBlock = make('div', (msg: HTMLDivElement) => {
-        addClass(msg, 'tex-file-message tex-animate-fadeIn tex-message tex-message-' + status);
-        html(msg, message);
-      });
-
-      css(toasts, 'display', 'grid');
-      append(toasts, messageBlock);
-
-      setTimeout(() => {
-        messageBlock.remove();
-
-        if (!getChildNodes(toasts).length) {
-          this.clearToasts();
-        }
-      }, hideTimeout);
-    }
-  }
-
   /** @see FilesBlockModel.getFormNode */
   getFormNode(): HTMLElement | null {
     return this.formNode;
@@ -439,7 +383,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
           filesLength = input.files?.length || 0;
 
         if (itemsLength + filesLength > maxItems || (!this.isMultiple() && itemsLength > 0)) {
-          this.addToast(i18n.get('fileUploadMaxItems'), 'error');
+          this.toasts().add(i18n.get('fileUploadMaxItems'), { code: 'error' });
           onLoaded();
         } else {
           this.progress(0);
@@ -453,9 +397,9 @@ export default class Files extends BlockModel implements FilesBlockModel {
                   }
                 });
 
-                this.addToast(response?.message || i18n.get('fileUploadSuccess'), 'success');
+                this.toasts().add(response?.message || i18n.get('fileUploadSuccess'), { code: 'success' });
               } else {
-                this.addToast(response?.message || i18n.get('fileUploadError'));
+                this.toasts().add(response?.message || i18n.get('fileUploadError'));
               }
               onLoaded();
             },
@@ -471,19 +415,9 @@ export default class Files extends BlockModel implements FilesBlockModel {
     }
   }
 
-  /** @see FilesBlockModel.getMaxItems */
-  getMaxItems(): number {
-    return this.getConfig('maxItems', 10);
-  }
-
   /** @see FilesBlockModel.isVisibleCounter */
   isVisibleCounter(): boolean {
     return this.getConfig('visibleCounter', true);
-  }
-
-  /** @see FilesBlockModel.getMessageTimeout */
-  getMessageTimeout(): number {
-    return this.getConfig('messageTimeout', 7000);
   }
 
   /** @see FilesBlockModel.getMimeTypes */
@@ -593,10 +527,10 @@ export default class Files extends BlockModel implements FilesBlockModel {
         addClass(labelContainer, 'tex-files-form-label-container');
 
         const text = make(
-          'span',
-          (span: HTMLSpanElement) =>
-            (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText),
-        ),
+            'span',
+            (span: HTMLSpanElement) =>
+              (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText),
+          ),
           icon = make('span', (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
 
         append(labelContainer, [icon, text]);
@@ -629,7 +563,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * Hook called after form element creation
    * @param _form - Form element
    */
-  protected onFormCreate(_form: HTMLElement): void { }
+  protected onFormCreate(_form: HTMLElement): void {}
 
   /**
    * Create list of file items from stored data
@@ -652,7 +586,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
       filtered.forEach((item: FileItem, index) => this.createItem(item, index, true));
 
-      css(contentElement, 'display', '');
+      show(contentElement);
     }
 
     this.onCreatedList(contentElement);
@@ -664,13 +598,13 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * Hook called before list element creation
    * @param _contentElement - Content node element
    */
-  protected onCreateList(_contentElement: HTMLElement): void { }
+  protected onCreateList(_contentElement: HTMLElement): void {}
 
   /**
    * Hook called after list element creation
    * @param _contentElement - Content node element
    */
-  protected onCreatedList(_contentElement: HTMLElement): void { }
+  protected onCreatedList(_contentElement: HTMLElement): void {}
 
   /**
    * Create DOM node for a file item
@@ -912,7 +846,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
     const url = ajaxConfig.url;
 
     if (isEmptyString(url)) {
-      this.addToast(i18n.get('emptyUrl'));
+      this.toasts().add(i18n.get('emptyUrl'));
       return;
     }
 
@@ -933,7 +867,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
           });
 
           if (!isValid) {
-            this.addToast(i18n.get('invalidFileType') + ': ' + file.name);
+            this.toasts().add(i18n.get('invalidFileType') + ': ' + file.name);
             if (error) error(new Error('Invalid file type'));
             return;
           }
@@ -1007,7 +941,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
           );
         })
         .catch((errorData) => {
-          this.addToast(i18n.get('fileUploadError') + ': ' + (errorData?.message || 'Unknown error'));
+          this.toasts().add(i18n.get('fileUploadError') + ': ' + (errorData?.message || 'Unknown error'));
 
           if (error) error(errorData);
 

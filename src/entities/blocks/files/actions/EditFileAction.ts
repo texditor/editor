@@ -224,7 +224,7 @@ export default class EditFileAction extends FileActionModel {
             clearTimeout(this.timeouts[name]);
             this.timeouts[name] = setTimeout(() => {
               css(errorLabel, 'display', '');
-            }, model.getMessageTimeout());
+            }, model.getToastTimeout());
           },
           field,
         );
@@ -240,7 +240,7 @@ export default class EditFileAction extends FileActionModel {
 
     if (!reqName || !reqCaption || !reqDesc) return;
 
-    const saveField = (name: string) => {
+    const saveField = (name: string, code: string) => {
       const [field] = queryList<HTMLElement>('.' + formCss + '-field-' + name, popupNode) as HTMLInputElement[];
 
       if (field) {
@@ -249,7 +249,7 @@ export default class EditFileAction extends FileActionModel {
         if (input) {
           const value = input.value || '';
 
-          Object.defineProperty(itemElement, 'file' + name.charAt(0).toUpperCase() + name.slice(1), {
+          Object.defineProperty(itemElement, code, {
             value: value,
             writable: true,
           });
@@ -265,9 +265,9 @@ export default class EditFileAction extends FileActionModel {
       }
     };
 
-    saveField('fileName');
-    saveField('caption');
-    saveField('desc');
+    saveField('fileName', 'fileName');
+    saveField('caption', 'fileCaption');
+    saveField('desc', 'fileDesc');
 
     this.removePopup();
     events.change({
