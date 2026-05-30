@@ -170,7 +170,7 @@ const editor = new Texditor({
 
 ---
 
-## 📥 JSON Output Example
+## JSON Output Example
 
 All content is exported as **structured JSON**, where special characters and nested elements are properly formatted:
 
@@ -265,6 +265,6 @@ All content is exported as **structured JSON**, where special characters and nes
 ]
 ```
 
-## 📄 License
+## License
 
-MIT License. See the [LICENSE](LICENSE) file for details.
+[MIT](https://opensource.org/licenses/MIT)
