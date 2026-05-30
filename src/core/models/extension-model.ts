@@ -1,12 +1,11 @@
 import type {
-  BaseEvent,
   ExtensionModelConfig,
   ExtensionModelConstructor,
   ExtensionModel as IExtensionModel,
   ExtensionElement,
 } from "@/types";
 
-import { toggleClass } from "@/utils/dom";
+import { toggleClass } from "snappykit";
 import BaseModel from "../base/base-model";
 
 export default class ExtensionModel extends BaseModel<ExtensionElement> implements IExtensionModel {
@@ -41,7 +40,7 @@ export default class ExtensionModel extends BaseModel<ExtensionElement> implemen
    * Handle click with toggle functionality
    * @param evt - Custom event with element reference 
    */
-  protected parentOnClick(evt: BaseEvent): void {
+  protected parentOnClick(evt: MouseEvent): void {
     if (this.isToggleActive()) {
       if (evt.delegateTarget) {
         toggleClass(

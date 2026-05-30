@@ -375,12 +375,16 @@
 .tex-sortable-item {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   border: 3px dashed var(--tex-vs-ui-selected-border-color);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.tex-sortable-chosen {
-  position: relative;
-  z-index: 1000;
+.tex-sortable-invalid {
+  border: 3px dashed var(--tex-error);
+}
+
+.tex-sortable-ghost {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border: 3px dashed var(--tex-vs-ui-selected-border-color);
 }
 
 .tex-item {

@@ -28,13 +28,15 @@ import {
   queryLength,
   query,
   append,
-  findDatasetsWithPrefix,
-  html
-} from "@/utils/dom";
-import { executeMethodIfExists } from "./utils";
-import { isEmptyString, sanitizeJson } from "@/utils";
+  dataByPrefix,
+  html,
+  isEmptyString,
+  queryList
+} from "snappykit";
+import { executeMethodIfExists, sanitizeJson } from "./utils";
 import "@/styles/tex.css";
 import "@/styles/animations.css";
+import { mainStore } from "./store/mainStore";
 
 export * from "./types";
 export * from "./utils";
@@ -91,20 +93,20 @@ export default class Texditor implements ITexditor {
    * Initializes editor when ready
    */
   private ready() {
-    setTimeout(() => {
-      this.mount()
-      this.historyManager.save();
-      executeMethodIfExists(this.extensions, '__apply');
 
-      const readyCallback = this.config.get("onReady", false);
+    this.mount()
+    this.historyManager.save();
+    executeMethodIfExists(this.extensions, '__apply');
 
-      if (typeof readyCallback === "function")
-        readyCallback(this);
+    const readyCallback = this.config.get("onReady", false);
 
-      this.blockManager.detectEmpty();
-      this.blockManager.normalize();
-      this.events.refresh();
-    }, 10);
+    if (typeof readyCallback === "function")
+      readyCallback(this);
+
+    this.blockManager.detectEmpty();
+    this.blockManager.normalize();
+    this.events.refresh();
+
   }
 
   /**
@@ -117,6 +119,20 @@ export default class Texditor implements ITexditor {
       throw new Error("The root element of the editor was not found.");
 
     return root;
+  }
+
+  /**
+  * @see ITexditor.getBody
+  */
+  getBody(): HTMLElement | null {
+    const root = this.getRoot();
+
+    if (!root)
+      return null;
+
+    const [body] = queryList<HTMLElement>('.tex', root);
+
+    return body || null;
   }
 
   /**
@@ -231,7 +247,7 @@ export default class Texditor implements ITexditor {
       const model = el.baseModel;
 
       if (model.getName()) {
-        const extOptions = findDatasetsWithPrefix(el, "options");
+        const extOptions = dataByPrefix(el, "options");
         let block: BlockSchema = {
           type: model.getName(),
           data: [],
@@ -338,6 +354,10 @@ export default class Texditor implements ITexditor {
       });
 
       this.rootElement = texditorElement;
+
+      const editors = mainStore.get('editor');
+      editors.push(this.rootElement)
+      mainStore.set('editor', editors)
     });
 
     if (this.getRoot()) {

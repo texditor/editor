@@ -1,7 +1,6 @@
 import {
   BaseModelConfig,
   BaseElement,
-  BaseEvent,
   RenderIconContent,
   Texditor,
   ModelConstructor,
@@ -12,12 +11,15 @@ import {
   addClass,
   append,
   attr,
-  generateRandomString,
   html,
   make,
   rebind,
-  renderIcon
-} from "@/utils";
+  randString,
+  toKebabCase,
+  isEmptyString
+} from "snappykit";
+
+import { renderIcon } from "@/utils";
 import EventManager from "./event-manager";
 
 /**
@@ -40,7 +42,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   protected store: Record<string, unknown> = {};
 
   /** Unique identifier for event listeners to prevent conflicts with other event handlers */
-  private eventId: string = '.actions' + generateRandomString(16);
+  private eventId: string = '.actions' + randString(16);
 
   /** Modifiable model options */
   private options: Record<string, unknown> = {};
@@ -98,15 +100,19 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
       cssName = this.getClassName();
 
     return make(this.getElementTagName(), (el: TElement) => {
-      el.id = `tex-${codeName}-${generateRandomString(12)}-${generateRandomString(12)}`;
-      const customCss = cssName !== '' ? ' ' + cssName : "",
-        namedCss = name.trim() !== '' ? ' tex-' + codeName + "-" + name : '';
+      el.id = `tex-${codeName}-${randString(12)}-${randString(12)}`;
 
-      addClass(el, 'tex-' + codeName + namedCss + customCss);
-      rebind(
+      const rootCssName = this.getRootClassName();
+      const classes = [rootCssName, rootCssName + '-' + name]
+
+      if (!isEmptyString(cssName))
+        classes.push(cssName);
+
+      addClass(el, classes);
+      rebind<MouseEvent>(
         el,
         "click.baseElement",
-        (evt: BaseEvent) => this.handleClick(evt)
+        (evt) => this.handleClick(evt)
       );
 
       const icon = this.getIcon(),
@@ -279,14 +285,14 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Handle click event
    * @param _evt - Custom event with element reference 
    */
-  protected onClick(_evt: BaseEvent): void { }
+  protected onClick(_evt: MouseEvent): void { }
 
   /**
    * Parent hook called after model element clicked
    * @param evt - Custom event with element reference
    * @returns void
    */
-  protected parentOnClick(evt: BaseEvent): void {
+  protected parentOnClick(evt: MouseEvent): void {
     this.onClick(evt);
   }
 
@@ -294,7 +300,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Handle click with event binding
    * @param evt - Custom event with element reference 
    */
-  private handleClick(evt: BaseEvent): void {
+  private handleClick(evt: MouseEvent): void {
     this.parentOnClick(evt);
 
     this.triggerEvent('onClick', {
@@ -367,6 +373,11 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   /** @see IBaseModel.getClassName */
   getClassName(): string {
     return this.getConfig('className', '');
+  }
+
+  /** @see IBaseModel.getRootClassName */
+  getRootClassName(): string {
+    return 'tex-' + toKebabCase(this.getModelCode());
   }
 
   /** @see IBaseModel.getTranslation */

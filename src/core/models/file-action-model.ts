@@ -9,8 +9,6 @@ import type {
 import BaseModel from "../base/base-model";
 
 export default class FileActionModel extends BaseModel<FileActionElement> implements IFileActionModel {
-  private itemElement?: FileItemElement;
-  private blockElement?: BlockElement;
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -24,25 +22,18 @@ export default class FileActionModel extends BaseModel<FileActionElement> implem
 
   /** @see IFileActionModel.getItemElement */
   getItemElement(): FileItemElement | null {
-    return this.itemElement || null;
+    const element = this.getElement();
+    if (!element) return null;
+
+    return element.closest('.tex-item');
   }
 
   /** @see IFileActionModel.getItemElement */
   getBlockElement(): BlockElement | null {
-    return this.blockElement || null;
-  }
+    const element = this.getElement();
+    if (!element) return null;
 
-  /**
-   * Sets the block and item elements.
-   * @param blockElement - The block element to set.
-   * @param itemElement - The file item element to set.
-   */
-  __setElements(
-    blockElement: BlockElement,
-    itemElement: FileItemElement
-  ): void {
-    this.blockElement = blockElement;
-    this.itemElement = itemElement;
+    return element.closest('.tex-block');
   }
 
   /**

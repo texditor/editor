@@ -1,11 +1,10 @@
 import type {
-  ExtensionModelConfig,
-  BaseEvent
+  ExtensionModelConfig
 } from "@/types";
 import ExtensionModel from "@/core/models/extension-model";
 import { IconTrash } from "@/icons";
 
-export default class DeleteSelected extends ExtensionModel  {
+export default class DeleteSelected extends ExtensionModel {
   protected configure(): Partial<ExtensionModelConfig> {
     return {
       name: 'deleteSelected',
@@ -26,7 +25,7 @@ export default class DeleteSelected extends ExtensionModel  {
     return virtualSelection.getSelectedIndices();
   }
 
-  protected onClick(_evt: BaseEvent): void {
+  protected onClick(_evt: MouseEvent): void {
     const { blockManager } = this.editor,
       indexes = this.getSelectedIndices();
 

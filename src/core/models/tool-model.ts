@@ -1,6 +1,5 @@
 import type {
   Commands,
-  BaseEvent,
   ToolModel as IToolModel,
   ToolModelConfig,
   ToolModelConstructor,
@@ -150,7 +149,7 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
    * Handle click event
    * @param _evt - Custom event with element reference 
    */
-  protected onClick(_evt: BaseEvent): void {
+  protected onClick(_evt: MouseEvent): void {
     this.format();
   }
 

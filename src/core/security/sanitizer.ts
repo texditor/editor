@@ -3,7 +3,7 @@ import type {
   TransformerContext,
   TransformerOutput
 } from "@/types";
-import { appendText, make } from "@/utils";
+import { appendText, make } from "snappykit";
 export default class Sanitizer {
   static REGEX_PROTOCOL = /^([A-Za-z0-9+\-.&;*\s]*?)(?::|&*0*58|&*x0*3a)/i;
   static RELATIVE = "**";

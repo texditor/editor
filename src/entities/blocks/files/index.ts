@@ -6,7 +6,6 @@ import type {
   FileItemElement,
   BlockSchema,
   AjaxConfig,
-  BaseEvent,
   AjaxOptions,
   FilesAjaxResponse,
   FileActionModelConstructor,
@@ -27,17 +26,16 @@ import DeleteFileAction from "./actions/DeleteFileAction";
 import EditFileAction from "./actions/EditFileAction";
 import DownloadFileAction from "./actions/DownloadFileAction";
 import "@/styles/blocks/files.css";
+import { ajax, executeMethodIfExists } from "@/utils";
 import {
   addClass,
-  ajax,
   append,
   attr,
   closest,
   css,
-  decodeHtmlSpecialChars,
-  executeMethodIfExists,
+  decodeHtml,
   formatBytes,
-  generateRandomString,
+  randString,
   getChildNodes,
   html,
   isEmptyString,
@@ -48,7 +46,7 @@ import {
   query,
   queryList,
   rebind
-} from "@/utils";
+} from "snappykit";
 
 
 export {
@@ -282,7 +280,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
     if (itemsLength > 0) css(contentElement, "display", "");
 
-    const [formUploader] = queryList(".tex-files-form-uploader", formNode);
+    const [formUploader] = queryList<HTMLElement>(".tex-files-form-uploader", formNode);
 
     if (formUploader) {
 
@@ -410,7 +408,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * @returns Form element
    */
   protected createForm(): HTMLElement {
-    const id = generateRandomString(16),
+    const id = randString(16),
       itemsLength = this.getOption("data", [])?.length || 0;
 
     return make("div", (form: HTMLElement) => {
@@ -433,7 +431,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * Handle file input cancel event
    * @param _evt - Base event object
    */
-  protected onCancelFile(_evt: BaseEvent): void {
+  protected onCancelFile(_evt: Event): void {
     const { blockManager } = this.editor;
 
     if (this.isEmpty()) blockManager.removeBlock();
@@ -443,13 +441,13 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * Handle file input change event, process upload
    * @param evt - Base event object with file input element
    */
-  protected onChangeFile(evt: BaseEvent): void {
+  protected onChangeFile(evt: Event): void {
     const { i18n } = this.editor,
       input = evt.delegateTarget as HTMLInputElement,
       form = this.getFormNode();
 
     if (form) {
-      const [label] = queryList(".tex-files-form-label", form);
+      const [label] = queryList<HTMLElement>(".tex-files-form-label", form);
 
       const onLoaded = () => {
         css(label, "visibility", "");
@@ -601,8 +599,8 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
       if (mimeTypes.length) attr(input, "accept", mimeTypes.join(", "));
 
-      on(input, "cancel.file", (evt: BaseEvent) => this.onCancelFile(evt));
-      on(input, "change.file", (evt: BaseEvent) => this.onChangeFile(evt));
+      on(input, "cancel.file", (evt) => this.onCancelFile(evt));
+      on(input, "change.file", (evt) => this.onChangeFile(evt));
     }) as HTMLInputElement;
   }
 
@@ -735,7 +733,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
     if (typeof methodName === "function" && blockElement) {
       itemElement = make("div", (el: FileItemElement) => {
         addClass(el, "tex-item  " + fileCss + " " + className);
-        el.id = blockElement.id + "-" + generateRandomString(12);
+        el.id = blockElement.id + "-" + randString(12);
         el.fileType = item.type;
         el.fileUrl = item.url;
 
@@ -743,8 +741,8 @@ export default class Files extends BlockModel implements FilesBlockModel {
         if (item?.size) el.fileSize = item.size;
         if (item?.id) el.fileId = item.id;
         if (item?.thumbnail) el.thumbnail = item.thumbnail;
-        if (item.caption) el.fileCaption = decodeHtmlSpecialChars(item.caption);
-        if (item.desc) el.fileDesc = decodeHtmlSpecialChars(item.desc);
+        if (item.caption) el.fileCaption = decodeHtml(item.caption);
+        if (item.desc) el.fileDesc = decodeHtml(item.desc);
 
         const wrapper = make("div", (wrap: HTMLElement) => {
           const sourceElement = methodName(item, blockElement);
@@ -834,16 +832,11 @@ export default class Files extends BlockModel implements FilesBlockModel {
     append(itemElement, actionsNode);
 
     const actionConstructors = this.getConfig("actions", []) as FileActionModelConstructor[],
-      [actionsNodeList] = queryList('.' + cssName + '-list', itemElement);
+      [actionsNodeList] = queryList<HTMLElement>('.' + cssName + '-list', itemElement);
 
     if (actionsNodeList) {
       actionConstructors.forEach((instance: FileActionModelConstructor) => {
         const action = new instance(this.editor);
-        executeMethodIfExists(
-          action,
-          '__setElements',
-          [this.getElement(), itemElement]
-        );
         const fileActionElement = action.getElement();
         append(actionsNodeList, fileActionElement);
         executeMethodIfExists(action, "__onMount", [fileActionElement]);
@@ -903,7 +896,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
         ]);
       });
 
-      const [uploaderNode] = queryList(".tex-files-form-uploader", form);
+      const [uploaderNode] = queryList<HTMLElement>(".tex-files-form-uploader", form);
 
       if (uploaderNode) {
         append(uploaderNode, this.progressNode);

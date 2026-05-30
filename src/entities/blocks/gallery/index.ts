@@ -17,6 +17,7 @@ import {
   IconSingleGrid,
   IconSlider
 } from "@/icons";
+import { renderIcon } from "@/utils";
 import {
   addClass,
   append,
@@ -28,8 +29,8 @@ import {
   query,
   rebind,
   removeClass,
-  renderIcon
-} from "@/utils";
+
+} from "snappykit";
 import Slider from "@/core/ui/slider";
 import "@/styles/blocks/gallery.css";
 

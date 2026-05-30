@@ -1,5 +1,6 @@
 import type { Texditor } from "@/types";
-import { addClass, append, executeMethodIfExists, make, query, queryLength } from "@/utils";
+import { executeMethodIfExists } from "@/utils";
+import { addClass, append, make, query, queryLength } from "snappykit";
 
 export default function ExtensionsView(
   editor: Texditor

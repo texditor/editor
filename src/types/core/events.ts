@@ -1,4 +1,4 @@
-import type { BaseEvent, BlockElement, EventManager } from "..";
+import type { BlockElement, EventManager, Texditor } from "..";
 
 export type PasteMapItem = { type: string; node: Node };
 export type PasteMap = { schema: string; data: PasteMapItem[] };
@@ -26,10 +26,13 @@ export interface TexditorEvent {
   element?: HTMLElement | HTMLElement[] | null;
 
   /** Original DOM event */
-  domEvent?: Event | BaseEvent;
+  domEvent?: Event;
 
   /** Model name */
   modelCode?: string;
+
+  /** Reference to the Texditor instance that fired the event */
+  instance?: Texditor;
 
   /** Additional event data */
   [key: string]: unknown;

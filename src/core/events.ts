@@ -7,11 +7,11 @@ import type {
   Texditor,
   Events as IEvents
 } from "@/types";
-import {
-  encodeHtmlSpecialChars,
-  executeMethodIfExists,
-  generateRandomString
-} from "@/utils/common";
+
+import { executeMethodIfExists } from "@/utils/common";
+import { currentStore } from "@/store/currentStore";
+import EventManager from "./base/event-manager";
+
 import {
   addClass,
   append,
@@ -25,20 +25,21 @@ import {
   parseHtml,
   removeClass,
   toHtml,
-  toTextNode
-} from "@/utils/dom";
-import { off, rebind } from "@/utils/events";
-import { query } from "@/utils/dom";
-import { isEmptyString } from "@/utils/string";
-import { globalStore } from "@/store/globalStore";
-import EventManager from "./base/event-manager";
+  toTextNode,
+  query,
+  off,
+  rebind,
+  isEmptyString,
+  escapeHtml,
+  randString
+} from "snappykit";
 
 export default class Events extends EventManager implements IEvents {
   /** Reference to the main editor instance */
   private editor: Texditor;
 
   /** Unique identifier for event listeners to prevent conflicts */
-  private eventId: string = generateRandomString(16);
+  private eventId: string = randString(16);
 
   constructor(editor: Texditor) {
     super();
@@ -276,7 +277,7 @@ export default class Events extends EventManager implements IEvents {
 
     this.triggerEvent("documentKeydown", { domEvent: evt });
 
-    if (globalStore.get('el') === root) {
+    if (currentStore.get('el') === root) {
       if (this.handleHistoryShortcuts(evt)) {
         this.triggerEvent("documentKeydownEnd", { domEvent: evt });
         return;
@@ -687,7 +688,7 @@ export default class Events extends EventManager implements IEvents {
 
               if (model.isRaw()) {
                 selectionApi.insertText(
-                  encodeHtmlSpecialChars(
+                  escapeHtml(
                     getText(nodes) + ' '
                   )
                 );
@@ -759,7 +760,7 @@ export default class Events extends EventManager implements IEvents {
               if (nodes.length) {
                 if (model.isRaw()) {
                   selectionApi.insertText(
-                    encodeHtmlSpecialChars(getText(nodes))
+                    escapeHtml(getText(nodes))
                   );
                 } else {
                   const sanitizerConfig = model.getSanitizerConfig(),
@@ -942,6 +943,14 @@ export default class Events extends EventManager implements IEvents {
 
       this.triggerEvent("onSelectionChangeEnd", { domEvent: evt });
     }
+  }
+
+  /**
+   * Provides the parent component with access to the child's current editor instance.
+   * Returns the editor object if initialized, or `null` otherwise.
+   */
+  protected provideEditor(): Texditor | null {
+    return this.editor;
   }
 
   /** @see IEvents.destroy */

@@ -3,6 +3,7 @@ import type {
   BlockModelConstructor,
   ExtensionModelConstructor,
   LocaleMap,
+  TexditorEvent,
   ToolModelConstructor
 } from "@/types";
 
@@ -14,10 +15,10 @@ export interface ConfigOptions {
   handle?: string;
 
   /** Callback function called when editor is ready */
-  onReady?: CallableFunction;
+  onReady?: (evt: TexditorEvent) => void;
 
   /** Callback function called when content changes */
-  onChange?: CallableFunction;
+  onChange?: (evt: TexditorEvent) => void;
 
   /** Initial data to populate the editor */
   content?: object[] | string;

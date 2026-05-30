@@ -5,22 +5,26 @@ import type {
   ToolElement,
   Tools as ITools
 } from "@/types";
+
 import {
   addClass,
   append,
   css,
   query,
   queryList,
-  removeClass
-} from "@/utils/dom";
-import { off, rebind } from "@/utils/events";
-import { isEmptyString } from "@/utils/string";
+  removeClass,
+  off,
+  rebind,
+  isEmptyString,
+  randString
+} from "snappykit";
+
 import {
   detectMobileOS,
   executeMethodIfExists,
-  generateRandomString,
   getCaretPosition
 } from "@/utils/common";
+
 import {
   BoldTool,
   ItalicTool,
@@ -38,7 +42,7 @@ export default class Tools implements ITools {
   /** Collection of tool models available in the toolbar */
   private tools: ToolModel[] = [];
   /** Unique identifier for event listeners to prevent conflicts */
-  private eventId: string = '.tool' + generateRandomString(12);
+  private eventId: string = '.tool' + randString(12);
 
   /**
    * Create a new tools manager instance
@@ -73,14 +77,14 @@ export default class Tools implements ITools {
     const { blockManager, selectionApi } = this.editor;
     const root = this.editor.getRoot(),
       cssName = 'tex-tools',
-      blockElement = blockManager.getElement();
+      blockElement = blockManager.getBlock();
 
     if (!root || !blockElement)
       return;
 
-    const [toolsNode] = queryList('.' + cssName, root),
-      [toolsListNode] = queryList('.' + cssName + '-list', root),
-      [toolsContentElement] = queryList('.' + cssName + '-content', root);
+    const [toolsNode] = queryList<HTMLElement>('.' + cssName, root),
+      [toolsListNode] = queryList<HTMLElement>('.' + cssName + '-list', root),
+      [toolsContentElement] = queryList<HTMLElement>('.' + cssName + '-content', root);
 
     if (!toolsNode && !toolsListNode && !toolsContentElement)
       return;
@@ -105,8 +109,8 @@ export default class Tools implements ITools {
         rootRect = root.getBoundingClientRect();
 
       if (rect) {
-        let toolsLeft = rect.left,
-          toolsTop = 0;
+        let toolsLeft = rect.left;
+        let toolsTop = 0;
 
         if (rect.left + toolsNode.offsetWidth > rootRect.width + rootRect.left)
           toolsLeft = rect.left - toolsNode.offsetWidth;

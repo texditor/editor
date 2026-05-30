@@ -16,19 +16,19 @@ import {
   html,
   make,
   prepend,
-  query
-} from "@/utils/dom";
+  query,
+  isEmptyString,
+  off,
+  on,
+  val,
+  lower,
+} from "snappykit";
 import {
   IconArrowDown,
   IconCode,
   IconCornerUpRight
 } from "@/icons";
-import {
-  isEmptyString,
-  off,
-  on,
-  renderIcon
-} from "@/utils";
+import { renderIcon } from "@/utils";
 import BlockModel from "@/core/models/block-model";
 import CodeLanguages from './languages';
 import "@/styles/blocks/code.css";
@@ -115,7 +115,8 @@ export default class Code extends BlockModel {
                     attr(input, 'placeholder', i18n.get('search', 'Search'));
                     on(input, 'input.codeLang', (inputEvt: KeyboardEvent) => {
                       inputEvt.preventDefault();
-                      const text = input.value.toLowerCase().trim();
+                      val(input)
+                      const text =  lower(val(input)).trim();
 
                       query("." + cssName + "-menu-item", (searchItem: HTMLDivElement) => {
                         if (text) {

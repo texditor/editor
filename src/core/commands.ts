@@ -3,8 +3,21 @@ import type {
   SelectionAPI,
   Texditor
 } from "@/types";
-import { isEmptyString } from "@/utils/string";
-import { append, attr, before, closest, getLength, getText, make, makeText, mergeAdjacentTextNodes, query, remove } from "@/utils/dom";
+
+import {
+  append,
+  attr,
+  before,
+  closest,
+  getLength,
+  getText,
+  make,
+  makeText,
+  mergeAdjacentTextNodes,
+  query,
+  remove,
+  isEmptyString
+} from "snappykit";
 
 /**
  * The Commands class handles text formatting operations

@@ -13,11 +13,15 @@ import {
   make,
   prepend,
   query,
-  queryList
-} from "@/utils/dom";
-import { off, on, rebind } from "@/utils/events";
-import { isEmptyString } from "@/utils/string";
-import { executeMethodIfExists, generateRandomString } from "@/utils";
+  queryList,
+  off,
+  on,
+  rebind,
+  isEmptyString,
+  randString
+} from "snappykit";
+
+import { executeMethodIfExists } from "@/utils";
 
 /**
  * Handles the "edit" action for file items.
@@ -77,7 +81,7 @@ export default class EditFileAction extends FileActionModel {
               addClass(body, cssForm + '-body');
 
               const createInput = (name: string, code: string = ''): HTMLElement | null => {
-                const inputId = `name-${generateRandomString(12)}`,
+                const inputId = `name-${randString(12)}`,
                   upperName = name.charAt(0).toUpperCase() + name.slice(1);
                 const isRequired = executeMethodIfExists(model, 'isRequiredField' + upperName);
 
@@ -201,12 +205,12 @@ export default class EditFileAction extends FileActionModel {
 
     const requiredStatus = (name: string): boolean => {
       const upperName = name.charAt(0).toUpperCase() + name.slice(1);
-      const [field] = queryList('.' + formCss + '-field-' + name, popupNode) as HTMLInputElement[];
+      const [field] = queryList<HTMLElement>('.' + formCss + '-field-' + name, popupNode) as HTMLInputElement[];
       const isVisible = executeMethodIfExists(model, 'isVisibleField' + upperName);
 
       if (!field && isVisible) return false;
 
-      const [input] = queryList('.' + formCss + '-input-' + name, field) as HTMLInputElement[];
+      const [input] = queryList<HTMLElement>('.' + formCss + '-input-' + name, field) as HTMLInputElement[];
 
       if (
         (!input || (input && isEmptyString(input.value))) &&
@@ -234,10 +238,10 @@ export default class EditFileAction extends FileActionModel {
     if (!reqName || !reqCaption || !reqDesc) return;
 
     const saveField = (name: string) => {
-      const [field] = queryList('.' + formCss + '-field-' + name, popupNode) as HTMLInputElement[];
+      const [field] = queryList<HTMLElement>('.' + formCss + '-field-' + name, popupNode) as HTMLInputElement[];
 
       if (field) {
-        const [input] = queryList('.' + formCss + '-input-' + name, field) as HTMLInputElement[];
+        const [input] = queryList<HTMLElement>('.' + formCss + '-input-' + name, field) as HTMLInputElement[];
 
         if (input) {
           const value = input.value || '';

@@ -7,7 +7,6 @@ import type {
   BlockCreateSchema,
   BlockCreateItemSchema,
   PasteMap,
-  BaseEvent,
   BlockModelConstructor,
   TexditorEvent,
   ActionModelConstructor,
@@ -21,33 +20,32 @@ import {
   closest,
   css,
   data,
-  getLength,
   html,
   make,
   prepend,
   query,
   queryList,
-  removeClass
-} from "@/utils/dom";
-import Sanitizer from "../security/sanitizer";
-import { renderIcon } from "@/utils/icon";
-import {
-  executeMethodIfExists,
-  generateRandomString,
+  removeClass,
   isEmptyString,
+  randString,
   off,
   on,
-  rebind
-} from "@/utils";
+  rebind,
+  getLength
+} from "snappykit";
+import Sanitizer from "../security/sanitizer";
+import { renderIcon } from "@/utils/icon";
+import { executeMethodIfExists } from "@/utils";
 import { IconBars, IconMove } from "@/icons";
 import BaseModel from "../base/base-model";
-import Sortable from "../ui/sortable";
+import Sortum, { Sortum as ISortum } from "sortum";
+import { currentStore } from "@/store/currentStore";
 /**
  * Base block model class - manages block behavior, content, and lifecycle
  */
 export default class BlockModel extends BaseModel<BlockElement> implements IBlockModel {
   /** Sortable items manager instance */
-  private sortableItems: Sortable | null = null;
+  private sortableItems: ISortum | null = null;
 
   /**
   * Set up global configuration
@@ -213,16 +211,15 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       cssName = '.tex-actions',
       blockElement = this.getElement();
 
-    const [actionsElement] = queryList(cssName, blockElement);
+    const [actionsElement] = queryList<HTMLElement>(cssName, blockElement);
 
     if (actionsElement) {
       const blockActions = config.get("actions", []) as ActionModelConstructor[];
       query(cssName + '-content', (content: HTMLDivElement) => {
-        const [contentBody] = queryList(cssName + '-content-body', content);
+        const [contentBody] = queryList<HTMLElement>(cssName + '-content-body', content);
         if (contentBody) {
           blockActions.forEach((instance: ActionModelConstructor) => {
             const action = new instance(this.editor);
-            executeMethodIfExists(action, '__setBlockElement', [this.getElement()])
             const actionEl = action.getElement(),
               isVisible = action.isVisible();
 
@@ -254,7 +251,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       cssName = '.tex-actions',
       blockElement = this.getElement();
 
-    const [actionsElement] = queryList(cssName, blockElement);
+    const [actionsElement] = queryList<HTMLElement>(cssName, blockElement);
 
     if (actionsElement) {
       off(document, "click.actions" + eid);
@@ -281,7 +278,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Refresh sortable items functionality 
    */
   protected refreshSortableItems(): void {
-    const { blockManager, selectionApi } = this.editor;
+    const { blockManager } = this.editor;
     if (this.isSortableItems()) {
       if (this.sortableItems) {
         this.sortableItems.destroy();
@@ -290,18 +287,54 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       const contentElement = this.getContentElement();
 
       if (contentElement) {
-        this.sortableItems = new Sortable(contentElement, {
-          selectorHandler: '.tex-item-drag-zone',
+        this.sortableItems = new Sortum(contentElement, {
+          handleSelector: ".tex-item-drag-zone",
           group: this.getGroupCode(),
-          // swap: true,
-          classTarget: 'tex-sortable-item',
-          onBeforeDrop: () => {
-            console.log(5555)
+          targetClass: 'tex-sortable-item',
+          invalidClass: "tex-sortable-invalid",
+          ghostClass: 'tex-sortable-ghost',
+          pressDuration: 10,
+          edgeThreshold: 200,
+          onStart: () => {
+            blockManager.destroyVirtualSelection();
           },
-          onDrop: () => {
-            console.log(333)
+          onEnd: (data) => {
+            blockManager.refreshVirtualSelection();
+
+            const targetBlock = blockManager.findParent(data.destination!)!;
+            const targetModel = targetBlock?.baseModel;
+            const isCrossGroup = targetBlock != this.getElement();
+            const targetIndex = blockManager.getIndex(targetBlock);
+            const currentIndex = blockManager.getIndex(this.getElement())
+
+            if (isCrossGroup) {
+              blockManager.rebuild(currentIndex);
+              blockManager.rebuild(targetIndex);
+            }
+
+            this.change('moveListItem', {
+              item: data.item,
+              index: data.fromIndex,
+              targetIndex: data.toIndex,
+              source: data.source,
+              destination: data.destination,
+            }, {
+              blockElement: this.getElement(),
+              contentElement: contentElement,
+            });
+
+            console.log(this.editor.getBody(), 33)
+            const itemBody = targetModel.getItemBody(data.toIndex || 0);
+
+            if (targetModel && itemBody) {
+              const length = getLength(itemBody);
+              const isEditable = attr(itemBody, 'contentEditable') == 'true';
+              const pos = isEditable ? length : 0;
+
+              blockManager.focus(targetIndex, pos, pos, data.toIndex);
+            }
           }
-        });
+        })
       }
     }
   }
@@ -420,7 +453,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   /** @see IBlockModel.getContentElement */
   getContentElement(): HTMLElement {
     const block = this.getElement();
-    const [contentElement] = queryList(".tex-block-content", block);
+    const [contentElement] = queryList<HTMLElement>(".tex-block-content", block);
 
     return contentElement;
   }
@@ -683,7 +716,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
     if (!contentElement) return [];
 
-    return queryList(':scope > *', contentElement);
+    return queryList<HTMLElement>(':scope > *', contentElement);
   }
 
   /** @see IBlockModel.getItemsLength */
@@ -723,7 +756,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
     return make(tagName, (el: HTMLElement) => {
       addClass(el, 'tex-item ' + className);
-      el.id = this.getId() + "-" + type + "-" + generateRandomString(8);
+      el.id = this.getId() + "-" + type + "-" + randString(8);
 
       const body = make('div', (div: HTMLDivElement) => {
         addClass(div, 'tex-item-body ' + bodyClassName);
@@ -945,7 +978,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
     if (!item) return null;
 
-    const [itemBody] = queryList('.tex-item-body', item);
+    const [itemBody] = queryList<HTMLElement>('.tex-item-body', item);
 
     return itemBody || null;
   }
@@ -1047,7 +1080,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param evt - The DOM event object
    * @returns Whether a handler was executed
    */
-  private defEvent(name: string, evt: Event | BaseEvent): boolean {
+  private defEvent(name: string, evt: Event): boolean {
     const __name = 'on' + name;
     const status = !!executeMethodIfExists(this, __name, [evt]);
 
@@ -1139,7 +1172,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @param evt - Mouse event
    * @returns True to allow default behavior
    */
-  __onClick(evt: BaseEvent): void {
+  __onClick(evt: MouseEvent): void {
     this.onClick(evt);
   }
 

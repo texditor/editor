@@ -1,7 +1,6 @@
 import type {
   ActionModelConfig,
   ActionModel as IActionModel,
-  BaseEvent,
   ActionModelConstructor,
   ActionElement,
   BlockElement
@@ -14,18 +13,13 @@ import {
   css,
   html,
   make,
+  on,
   query
-} from "@/utils/dom";
-import { on } from "@/utils/events";
+} from "snappykit";
 import { renderIcon } from "@/utils/icon";
 import BaseModel from "../base/base-model";
 
 export default class ActionModel extends BaseModel<ActionElement> implements IActionModel {
-  /**
-   * Reference to the parent block node that contains this action
-   */
-  private blockElement?: BlockElement;
-
   /**
   * Set up global configuration
   * @param config - Partial configuration
@@ -41,7 +35,10 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
    * @see IActionModel.getBlockElement
    */
   getBlockElement(): BlockElement | null {
-    return this.blockElement || null;
+    const element = this.getElement();
+    if (!element) return null;
+
+    return element.closest('.tex-block');
   }
 
   /**
@@ -85,7 +82,7 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
    * Handle confirmation flow for actions that require user verification
    * @param evt - Basic event
    */
-  protected confirm(evt: BaseEvent): void {
+  protected confirm(evt: MouseEvent): void {
     const { events, i18n } = this.editor,
       cssName = "tex-action",
       element = this.getElement(),
@@ -130,7 +127,7 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
    * @param evt - Basic event
    * @returns void
    */
-  protected parentOnClick(evt: BaseEvent): void {
+  protected parentOnClick(evt: MouseEvent): void {
     const { events, tools } = this.editor;
     const blockElement = this.getBlockElement();
 
@@ -176,13 +173,5 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
    */
   isConfirm(): boolean {
     return this.getConfig('confirm', false);
-  }
-
-  /**
-   * Internal method to set the parent block node reference
-   * @param blockElement - Block node
-   */
-  __setBlockElement(blockElement: BlockElement): void {
-    this.blockElement = blockElement;
   }
 }

@@ -18,10 +18,12 @@ import {
   make,
   query,
   replaceWithChildren,
-  toggleClass
-} from "@/utils/dom";
+  toggleClass,
+  off,
+  on,
+  rebind
+} from "snappykit"
 import "@/styles/tools/link.css";
-import { off, on, rebind } from "@/utils/events";
 import { renderIcon } from "@/utils/icon";
 
 export default class LinkTool extends ToolModel {

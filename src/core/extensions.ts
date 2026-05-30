@@ -4,14 +4,16 @@ import type {
   Extensions as IExtensions,
   Texditor
 } from "@/types";
-import { generateRandomString } from "@/utils";
+
 import {
+  randString,
   addClass,
   css,
   query,
-  removeClass
-} from "@/utils/dom";
-import { off, rebind } from "@/utils/events";
+  removeClass,
+  off,
+  rebind
+} from "snappykit";
 
 export default class Extensions implements IExtensions {
   /** Reference to the main editor instance */
@@ -21,7 +23,7 @@ export default class Extensions implements IExtensions {
   private extensions: ExtensionModel[] = [];
 
   /** Unique identifier for event listeners to prevent conflicts */
-  private eventId: string = '.ext' + generateRandomString(12);
+  private eventId: string = '.ext' + randString(12);
 
   constructor(editor: Texditor) {
     this.editor = editor;

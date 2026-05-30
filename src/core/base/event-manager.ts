@@ -1,6 +1,6 @@
-import { EventTriggerObject, TexditorEvent } from "@/types";
+import { EventTriggerObject, Texditor, TexditorEvent } from "@/types";
 import type { EventManager as IEventManager } from "@/types/core/base/event-manager";
-import { generateRandomString } from "@/utils";
+import { randString } from "snappykit";
 
 export default abstract class EventManager implements IEventManager {
     /** Storage for registered event callbacks */
@@ -14,7 +14,7 @@ export default abstract class EventManager implements IEventManager {
         if (!this.triggers[eventName]) this.triggers[eventName] = {};
 
         if (typeof callback === "function") {
-            const id = eventId ? eventId : generateRandomString(16);
+            const id = eventId ? eventId : randString(16);
             this.triggers[eventName][id] = callback;
         }
     }
@@ -55,11 +55,23 @@ export default abstract class EventManager implements IEventManager {
         if (!this.triggers[name]) return;
 
         const trigger = this.triggers[name];
+        const editor = this.provideEditor();
+
+        if (editor)
+            params.instance = editor
 
         if (typeof trigger === "object") {
             for (const eventId in trigger) {
                 trigger[eventId](params);
             }
         }
+    }
+
+    /**
+   * Provides the parent component with access to the child's current editor instance.
+   * Returns the editor object if initialized, or `null` otherwise.
+   */
+    protected provideEditor(): Texditor | null {
+        return null;
     }
 }

@@ -106,6 +106,12 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
   getClassName(): string;
 
   /**
+   * Get the immutable root CSS class name.
+   * @returns Root CSS class name string
+   */
+  getRootClassName(): string
+
+  /**
    * Get translation for localization
    * @returns Translated string
    */

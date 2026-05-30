@@ -1,4 +1,3 @@
-import { IconArrowLeft, IconArrowRight } from "@/icons";
 import {
   addClass,
   append,
@@ -9,8 +8,9 @@ import {
   on,
   query,
   removeClass,
-  renderIcon
-} from "@/utils";
+} from "snappykit";
+import { IconArrowLeft, IconArrowRight } from "@/icons";
+import { renderIcon } from "@/utils";
 import { Slider as ISlider, SliderOptions } from "@/types";
 import "@/styles/core/ui/slider.css";
 

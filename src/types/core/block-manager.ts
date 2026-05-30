@@ -41,7 +41,7 @@ export interface BlockManager {
    * @param index - Block index (defaults to current index)
    * @returns Block element or null if not found
    */
-  getElement(index?: number): BlockElement | null;
+  getBlock(index?: number): BlockElement | null;
 
   /**
    * Gets the content element within a block
@@ -129,6 +129,14 @@ export interface BlockManager {
    * @returns Created block node or null
    */
   createBlock(name: string, index?: number, options?: BlockCreateSchema, skipEvents?: boolean): BlockElement | null;
+
+  /**
+   * Recreates a block at the given index using the existing data.
+   *
+   * @param index - The index of the block to rebuild
+   * @returns A new block element or null
+   */
+  rebuild(index: number): BlockElement | null;
 
   /**
  * Move block to new position

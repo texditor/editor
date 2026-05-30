@@ -11,7 +11,7 @@ import {
   getLength,
   makeText,
   append
-} from "@/utils";
+} from "snappykit";
 export default class SelectionAPI implements ISelectionAPI {
   /** Reference to the main editor instance */
   private editor: Texditor;
@@ -242,7 +242,7 @@ export default class SelectionAPI implements ISelectionAPI {
     const range = selection.getRangeAt(0);
     const currentParagraph = container
       ? container
-      : this.editor.blockManager.getElement();
+      : this.editor.blockManager.getBlock();
 
     if (!currentParagraph) return "";
 
@@ -514,8 +514,7 @@ export default class SelectionAPI implements ISelectionAPI {
     }
 
     // Handle selection that extends beyond container
-    let start = 0;
-    let end = containerLength;
+    let start, end;
 
     if (range.compareBoundaryPoints(Range.START_TO_START, containerRange) < 0) {
       start = 0;

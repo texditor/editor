@@ -1,5 +1,4 @@
 import type {
-  BaseEvent,
   FileActionModelConfig
 } from "@/types";
 import { IconTrash } from "@/icons";
@@ -14,7 +13,7 @@ export default class DeleteFileAction extends FileActionModel  {
     }
   }
 
-  protected onClick(_evt: BaseEvent): void {
+  protected onClick(_evt: MouseEvent): void {
     const { blockManager } = this.editor;
     const blockElement = this.getBlockElement();
     const model = blockElement?.baseModel;

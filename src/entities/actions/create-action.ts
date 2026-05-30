@@ -4,8 +4,15 @@ import type {
 } from "@/types";
 import { IconPlus } from "@/icons";
 import ActionModel from "@/core/models/action-model";
-import { addClass, append, html, make } from "@/utils/dom";
-import { rebind } from "@/utils/events";
+
+import {
+  addClass,
+  append,
+  html,
+  make,
+  rebind
+} from "snappykit";
+
 import { renderIcon } from "@/utils";
 
 /** Create a block */

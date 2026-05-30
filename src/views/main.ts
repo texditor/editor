@@ -1,5 +1,5 @@
 import type { Texditor } from "@/types";
-import { addClass, append, make } from "@/utils/dom";
+import { addClass, append, make } from "snappykit";
 import ToolsView from "./tools";
 import ExtensionsView from "./extensions";
 

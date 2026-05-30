@@ -2,7 +2,7 @@ import type { BlockModelConfig } from "@/types";
 import BlockModel from "@/core/models/block-model";
 import { IconHeader1 } from "@/icons";
 
-export default class Header extends BlockModel  {
+export default class Header extends BlockModel {
   protected configure(): Partial<BlockModelConfig> {
     return {
       name: "h1",
@@ -18,7 +18,12 @@ export default class Header extends BlockModel  {
       ),
       editable: true,
       visibleTools: true,
-      availableTools: ["link", "subscript", "superscript", "clearFormatting"],
+      availableTools: [
+        "link",
+        "subscript",
+        "superscript",
+        "clearFormatting"
+      ],
       enterCreate: true,
       emptyDetect: true,
       normalize: true,

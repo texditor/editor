@@ -4,7 +4,7 @@ import type {
 } from "@/types";
 import { IconDownload } from "@/icons";
 import FileActionModel from "@/core/models/file-action-model";
-import { attr } from "@/utils";
+import { attr } from "snappykit";
 
 export default class DownloadFileAction extends FileActionModel {
   protected configure(): Partial<FileActionModelConfig> {

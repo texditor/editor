@@ -50,9 +50,14 @@ export interface Texditor {
   /**
    * Gets the root element of the editor
    * @returns Root element or null if not found
-   * @throws Error if root element is not found
    */
   getRoot(): TexditorRootElement | null;
+
+  /**
+   * Returns the main content body element inside the editor root
+   * @returns The body HTMLElement or null if not found
+   */
+  getBody(): HTMLElement | null;
 
   /**
    * Checks if the editor is empty (no content)

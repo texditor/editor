@@ -4,14 +4,14 @@ import {
   addClass,
   append,
   css,
-  generateRandomString,
   make,
   off,
   on,
   query,
+  randString,
   remove,
   removeClass
-} from '@/utils';
+} from 'snappykit';
 
 export default class VirtualSelection implements IVirtualSelection {
   private options: Required<VirtualSelectionOptions>;
@@ -26,7 +26,7 @@ export default class VirtualSelection implements IVirtualSelection {
   private currentPointInDocument = { x: 0, y: 0 };
   private selectedIndices: Set<number> = new Set();
   private selectionRect: HTMLElement | null = null;
-  private eventId = 'slUi_' + generateRandomString(8);
+  private eventId = 'slUi_' + randString(8);
   private autoScrollInterval: number | null = null;
   private startBlock: HTMLElement | null = null;
 

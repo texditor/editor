@@ -1,4 +1,4 @@
-import { addClass, append, make } from "@/utils/dom";
+import { addClass, append, make } from "snappykit";
 
 export default function ToolsView(): HTMLElement {
   const cssName = "tex-tools";
