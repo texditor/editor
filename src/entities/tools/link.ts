@@ -17,7 +17,7 @@ import {
   on,
   rebind,
 } from 'snappykit';
-import '@/styles/tools/link.css';
+import '@/styles/entities/tools/link.css';
 import { renderIcon } from '@/utils/icon';
 
 export default class LinkTool extends ToolModel {

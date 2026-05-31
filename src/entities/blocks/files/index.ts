@@ -20,7 +20,7 @@ import MoveLeftFileAction from './actions/MoveLeftFileAction';
 import DeleteFileAction from './actions/DeleteFileAction';
 import EditFileAction from './actions/EditFileAction';
 import DownloadFileAction from './actions/DownloadFileAction';
-import '@/styles/blocks/files.css';
+import '@/styles/entities/blocks/files.css';
 import { ajax, executeMethodIfExists } from '@/utils';
 import {
   addClass,

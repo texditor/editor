@@ -1,6 +1,6 @@
 import type { BlockModelConfig } from '@/types';
 import BlockModel from '@/core/models/block-model';
-import '@/styles/blocks/paragraph.css';
+import '@/styles/entities/blocks/paragraph.css';
 import { IconParagraph } from '@/icons';
 
 export default class Paragraph extends BlockModel {

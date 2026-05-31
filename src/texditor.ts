@@ -26,7 +26,7 @@ import Extensions from '@/core/extensions';
 import MainView from '@/views/main';
 import { queryLength, query, append, dataByPrefix, html, isEmptyString, queryList } from 'snappykit';
 import { executeMethodIfExists, sanitizeJson } from './utils';
-import '@/styles/tex.css';
+import '@/styles/texditor.css';
 import '@/styles/animations.css';
 import { mainStore } from './store/mainStore';
 
