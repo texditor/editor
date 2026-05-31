@@ -1,4 +1,5 @@
 :root {
+  --tex-max-width: 650px;
   --tex-vs-ui-bg: rgba(59, 130, 246, 0.15);
   --tex-vs-ui-border: 2px dashed #3b82f6;
   --tex-vs-ui-radius: 4px;

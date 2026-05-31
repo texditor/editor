@@ -14,7 +14,7 @@ import { IconImage, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } fro
 import { renderIcon } from '@/utils';
 import { addClass, append, attr, data, html, make, prepend, query, rebind, removeClass } from 'snappykit';
 import Slider from '@/core/ui/slider';
-import '@/styles/blocks/gallery.css';
+import '@/styles/entities/blocks/gallery.css';
 
 export default class Gallery extends Files implements GalleryBlockModel {
   private defaultStyles: string[] = ['grid', 'slider', 'single'];

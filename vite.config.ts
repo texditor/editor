@@ -1,10 +1,11 @@
+import { copyFileSync, mkdirSync } from 'fs';
 import path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
   build: {
+    cssCodeSplit: true,
     copyPublicDir: false,
     lib: {
       entry: {
@@ -33,7 +34,11 @@ export default defineConfig({
         },
         assetFileNames: (assetInfo: { name?: string }) => {
           if (assetInfo.name?.endsWith('.css')) {
-            return `styles/[name][extname]`;
+            let name = assetInfo.name;
+            if (name?.includes('src/styles/')) {
+              name = name.replace('src/styles/', '');
+            }
+            return `styles/${name}`;
           }
           return 'assets/[name][extname]';
         },
@@ -46,22 +51,26 @@ export default defineConfig({
     },
   },
   plugins: [
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'src/styles/theme.css',
-          dest: 'styles',
-        },
-      ],
-    }),
+    {
+      name: 'copy-theme-css',
+      closeBundle() {
+        const src = path.resolve(__dirname, 'src/styles/theme.css');
+        const destDir = path.resolve(__dirname, 'dist/styles');
+        const dest = path.resolve(destDir, 'theme.css');
+
+        mkdirSync(destDir, { recursive: true });
+        copyFileSync(src, dest);
+
+        console.log('✓ theme.css copied to dist/styles/');
+      }
+    },
     dts({
       insertTypesEntry: true,
       include: ['src'],
-      outDir: 'dist',
+      outDirs: ['dist'],
       entryRoot: 'src',
-      rollupTypes: false,
       copyDtsFiles: true,
-      staticImport: true,
+      staticImport: true
     }),
   ],
   server: {

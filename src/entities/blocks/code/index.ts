@@ -27,7 +27,7 @@ import { IconArrowDown, IconCode, IconCornerUpRight } from '@/icons';
 import { renderIcon } from '@/utils';
 import BlockModel from '@/core/models/block-model';
 import CodeLanguages from './languages';
-import '@/styles/blocks/code.css';
+import '@/styles/entities/blocks/code.css';
 
 export default class Code extends BlockModel {
   /**

@@ -1,6 +1,6 @@
 import type { BlockModelConfig } from '@/types';
 import BlockModel from '@/core/models/block-model';
-import '@/styles/blocks/list.css';
+import '@/styles/entities/blocks/list.css';
 import { IconList } from '@/icons';
 
 export default class List extends BlockModel {

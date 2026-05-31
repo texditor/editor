@@ -46,7 +46,7 @@ Include the styles and initialize the editor:
 
 ```javascript
 import "texditor/styles/theme.css"; // Theme variables
-import "texditor/styles/editor.css"; // Core styles
+import "texditor/styles/texditor.css"; // Core styles
 import Texditor from "texditor";
 
 const editor = new Texditor({
