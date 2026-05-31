@@ -2,7 +2,9 @@
 
 [![npm version](https://img.shields.io/npm/v/texditor.svg)](https://www.npmjs.com/package/texditor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Website
+
 ## Website
 
 [Website](https://texditor.priveted.com) /
@@ -14,7 +16,6 @@
 [Сайт](https://texditor.priveted.com/ru/) /
 [Руководство](https://texditor.priveted.com/ru/guide/) /
 [API](https://texditor.priveted.com/ru/api/) /
-
 
 **Texditor** is a modern, **visual block editor** built with TypeScript. It provides a flexible, modular architecture for creating, editing, and managing structured content. All data is stored and exported in **pure JSON format**, making it easy to integrate, save, and process content programmatically.
 
@@ -45,12 +46,12 @@ npm install texditor
 Include the styles and initialize the editor:
 
 ```javascript
-import "texditor/styles/theme.css"; // Theme variables
-import "texditor/styles/texditor.css"; // Core styles
-import Texditor from "texditor";
+import 'texditor/styles/theme.css'; // Theme variables
+import 'texditor/styles/texditor.css'; // Core styles
+import Texditor from 'texditor';
 
 const editor = new Texditor({
-  handle: "texditor", // Target element ID
+  handle: 'texditor', // Target element ID
 });
 ```
 
@@ -65,106 +66,72 @@ const editor = new Texditor({
 Configure blocks, tools, extensions, and localization:
 
 ```javascript
-import Texditor from "texditor";
-import {
-  Paragraph,
-  H1, H2, H3, H4, H5, H6,
-  List,
-  OrderedList,
-  Code,
-  Gallery,
-  Files
-} from "texditor/blocks";
+import Texditor from 'texditor';
+import { Paragraph, H1, H2, H3, H4, H5, H6, List, OrderedList, Code, Gallery, Files } from 'texditor/blocks';
 
-import {
-  BoldTool,
-  ItalicTool,
-  LinkTool,
-  ClearFormattingTool,
-  SubscriptTool,
-  SuperscriptTool
-} from "texditor/tools";
+import { BoldTool, ItalicTool, LinkTool, ClearFormattingTool, SubscriptTool, SuperscriptTool } from 'texditor/tools';
 
-import {
-  Undo,
-  Redo
-} from "texditor/extensions";
+import { Undo, Redo } from 'texditor/extensions';
 
-import { EnLocale, RuLocale } from "texditor/locales";
+import { EnLocale, RuLocale } from 'texditor/locales';
 
 const editor = new Texditor({
-  handle: "texditor",
-  
+  handle: 'texditor',
+
   // Default content (JSON format)
-  content: [
-    { type: "p", data: ["Start typing..."] }
-  ],
-  
+  content: [{ type: 'p', data: ['Start typing...'] }],
+
   // Localization
-  locale: "en",
+  locale: 'en',
   locales: [
-    { code: "en", data: EnLocale },
-    { code: "ru", data: RuLocale }
+    { code: 'en', data: EnLocale },
+    { code: 'ru', data: RuLocale },
   ],
-  
+
   // Blocks
   blocks: [
     Paragraph,
-    H1.setup({ placeholder: "Heading 1" }),
+    H1.setup({ placeholder: 'Heading 1' }),
     H2,
     H3,
     List.setup({ sortable: true }),
     OrderedList,
     Code.setup({ search: true }),
     Gallery.setup({
-      mimeTypes: ["image/png", "image/jpeg"],
+      mimeTypes: ['image/png', 'image/jpeg'],
       multiple: true,
       ajaxConfig: {
-        url: "/upload",
-        options: { success: (data) => console.log(data) }
-      }
+        url: '/upload',
+        options: { success: (data) => console.log(data) },
+      },
     }),
     Files.setup({
-      mimeTypes: ["image/png", "application/pdf"],
-      multiple: false
-    })
+      mimeTypes: ['image/png', 'application/pdf'],
+      multiple: false,
+    }),
   ],
-  
+
   // Tools
-  tools: [
-    BoldTool,
-    ItalicTool,
-    LinkTool,
-    ClearFormattingTool
-  ],
-  
+  tools: [BoldTool, ItalicTool, LinkTool, ClearFormattingTool],
+
   // Extensions
-  extensions: [
-    Undo.setup({ visibleTitle: false }),
-    Redo
-  ],
-  
+  extensions: [Undo.setup({ visibleTitle: false }), Redo],
+
   // Actions
-  actions: [
-    CreateAction,
-    ConvertAction,
-    DeleteAction,
-    MoveUpAction,
-    MoveDownAction
-  ],
-  
+  actions: [CreateAction, ConvertAction, DeleteAction, MoveUpAction, MoveDownAction],
+
   // UI settings
   extensionsFixed: true,
   extensionVisibleTitle: true,
   autofocus: true,
-  
+
   // Event handlers
-  onReady: (evt) => console.log("Editor is ready!"),
+  onReady: (evt) => console.log('Editor is ready!'),
   onChange: (evt) => {
     // Get content as JSON
     const content = evt.instance.save();
-    console.log("Content changed (JSON):", content);
-  }
+    console.log('Content changed (JSON):', content);
+  },
 });
 ```
 
@@ -197,9 +164,7 @@ All content is exported as **structured JSON**, where special characters and nes
   {
     "type": "code",
     "lang": "javascript",
-    "data": [
-      "const greet = () => {\n  console.log('Hello, world!');\n};\n\ngreet();"
-    ]
+    "data": ["const greet = () => {\n  console.log('Hello, world!');\n};\n\ngreet();"]
   },
   {
     "type": "gallery",
@@ -225,10 +190,7 @@ All content is exported as **structured JSON**, where special characters and nes
       { "type": "li", "data": ["First item"] },
       {
         "type": "li",
-        "data": [
-          "Second item with ",
-          { "type": "b", "data": ["bold text"] }
-        ]
+        "data": ["Second item with ", { "type": "b", "data": ["bold text"] }]
       },
       {
         "type": "li",

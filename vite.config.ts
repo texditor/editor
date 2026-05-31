@@ -60,9 +60,7 @@ export default defineConfig({
 
         mkdirSync(destDir, { recursive: true });
         copyFileSync(src, dest);
-
-        console.log('✓ theme.css copied to dist/styles/');
-      }
+      },
     },
     dts({
       insertTypesEntry: true,
@@ -70,7 +68,7 @@ export default defineConfig({
       outDirs: ['dist'],
       entryRoot: 'src',
       copyDtsFiles: true,
-      staticImport: true
+      staticImport: true,
     }),
   ],
   server: {
