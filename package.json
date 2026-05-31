@@ -1,7 +1,14 @@
 {
   "name": "texditor",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Texditor is a modern, block-based text editor written in TypeScript. It has a clean architecture and an extensible design that allows users to customize the content blocks",
+  "license": "MIT",
+  "author": "Eduard Y",
+  "homepage": "https://texditor.priveted.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/texditor/editor"
+  },
   "type": "module",
   "main": "./dist/texditor.mjs",
   "module": "./dist/texditor.mjs",
