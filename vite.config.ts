@@ -2,6 +2,7 @@ import { copyFileSync, mkdirSync } from 'fs';
 import path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig({
   build: {
@@ -13,6 +14,7 @@ export default defineConfig({
         locales: path.resolve(__dirname, 'src/locales/index.ts'),
         'entities/actions': path.resolve(__dirname, 'src/entities/actions/index.ts'),
         'entities/blocks': path.resolve(__dirname, 'src/entities/blocks/index.ts'),
+        'entities/blocks/files/actions': path.resolve(__dirname, 'src/entities/blocks/files/actions/index.ts'),
         'entities/tools': path.resolve(__dirname, 'src/entities/tools/index.ts'),
         'entities/extensions': path.resolve(__dirname, 'src/entities/extensions/index.ts'),
         'core/models': path.resolve(__dirname, 'src/core/models/index.ts'),
@@ -51,6 +53,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    cssInjectedByJsPlugin(),
     {
       name: 'copy-theme-css',
       closeBundle() {

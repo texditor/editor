@@ -45,7 +45,6 @@ Include the styles and initialize the editor:
 
 ```javascript
 import 'texditor/styles/theme.css'; // Theme variables
-import 'texditor/styles/texditor.css'; // Core styles
 import Texditor from 'texditor';
 
 const editor = new Texditor({
@@ -65,12 +64,16 @@ Configure blocks, tools, extensions, and localization:
 
 ```javascript
 import Texditor from 'texditor';
-import { Paragraph, H1, H2, H3, H4, H5, H6, List, OrderedList, Code, Gallery, Files } from 'texditor/blocks';
-
-import { BoldTool, ItalicTool, LinkTool, ClearFormattingTool, SubscriptTool, SuperscriptTool } from 'texditor/tools';
-
-import { Undo, Redo } from 'texditor/extensions';
-
+import { Paragraph, H1, H2, H3, H4, H5, H6, List, OrderedList, Code, Gallery, Files } from 'texditor/entities/blocks';
+import {
+  BoldTool,
+  ItalicTool,
+  LinkTool,
+  ClearFormattingTool,
+  SubscriptTool,
+  SuperscriptTool,
+} from 'texditor/entities/tools';
+import { Undo, Redo } from 'texditor/entities/extensions';
 import { EnLocale, RuLocale } from 'texditor/locales';
 
 const editor = new Texditor({
