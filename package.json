@@ -1,6 +1,6 @@
 {
   "name": "texditor",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Texditor is a modern, block-based text editor written in TypeScript. It has a clean architecture and an extensible design that allows users to customize the content blocks",
   "type": "module",
   "main": "./dist/texditor.mjs",
@@ -51,6 +51,15 @@
     "format": "prettier --write .",
     "prepublishOnly": "npm run build"
   },
+  "keywords": [
+    "editor",
+    "json",
+    "html",
+    "wiwysiwyg",
+    "blocks",
+    "modular",
+    "typescript"
+  ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^25.9.1",
