@@ -11,6 +11,9 @@ import { renderIcon } from '@/utils/icon';
 import BaseModel from '../base/base-model';
 
 export default class ActionModel extends BaseModel<ActionElement> implements IActionModel {
+  /** Block element */
+  private blockElement: BlockElement | null = null;
+
   /**
    * Set up global configuration
    * @param config - Partial configuration
@@ -24,10 +27,7 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
    * @see IActionModel.getBlockElement
    */
   getBlockElement(): BlockElement | null {
-    const element = this.getElement();
-    if (!element) return null;
-
-    return element.closest('.tex-block');
+    return this.blockElement;
   }
 
   /**
@@ -161,5 +161,9 @@ export default class ActionModel extends BaseModel<ActionElement> implements IAc
    */
   isConfirm(): boolean {
     return this.getConfig('confirm', false);
+  }
+
+  __setBlockElement(blockElement: BlockElement): void {
+    this.blockElement = blockElement;
   }
 }

@@ -49,7 +49,7 @@ import Toasts from '../ui/toasts';
 export default class BlockModel extends BaseModel<BlockElement> implements IBlockModel {
   /** Sortable items manager instance */
   private sortableItems: ISortum | null = null;
-  /** Toasts instance*/
+  /** Toasts instance */
   private toastsInstance: Toasts | null = null;
 
   /** @see IBlockModel.setup */
@@ -219,6 +219,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
           if (contentBody) {
             blockActions.forEach((instance: ActionModelConstructor) => {
               const action = new instance(this.editor);
+              executeMethodIfExists(action, '__setBlockElement', [blockElement]);
               const actionEl = action.getElement(),
                 isVisible = action.isVisible();
 
@@ -399,7 +400,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Hook triggered after composition is complete
    * @param _createSchema - Composition schema used for composition
    */
-  protected onCompose(_createSchema?: BlockCreateSchema): void {}
+  protected onCompose(_createSchema?: BlockCreateSchema): void { }
 
   /**
    * Prepares the unit before mounting
@@ -785,21 +786,30 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     });
   }
 
+  /** @see IBlockModel.canCreateItem */
+  canCreateItem(): boolean {
+    const { i18n } = this.editor;
+
+    const maxItems = this.getMaxItems();
+
+    if (maxItems > 0 && this.getItemsLength() >= maxItems) {
+      this.toasts().add(i18n.get('maxItems', 'Maximum of elements'), {
+        insertType: 'append',
+        single: true,
+      });
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    * Public wrapper for makeItemElement
    * @param content - Item content
    * @returns Item element
    */
   __makeItemElement(content: string | unknown = ''): HTMLElement | null {
-    const { i18n } = this.editor;
-    const maxItems = this.getMaxItems();
-
-    if (maxItems > 0 && this.getItemsLength() >= maxItems) {
-      this.toasts().add(i18n.get('maxItems', 'Maximum of elements'), {
-        insertType: 'append',
-      });
-      return null;
-    }
+    if (!this.canCreateItem()) return null;
 
     const node = this.makeItemElement(content);
 
@@ -1016,6 +1026,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     return this.getConfig('toastTimeout', 7000);
   }
 
+  /** @see IBlockModel.toasts */
   toasts(): IToasts {
     if (!this.toastsInstance)
       this.toastsInstance = new Toasts(this.getElement(), this.getToastsClassName(), this.getToastTimeout());

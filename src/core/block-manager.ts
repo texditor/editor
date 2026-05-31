@@ -10,6 +10,7 @@ import type {
   BlockSchemaData,
   BlockCreateItemSchema,
   BlockChildSchema,
+  Toasts as IToasts
 } from '@/types';
 
 import {
@@ -44,6 +45,7 @@ import VirtualSelection from './ui/virtual-selection';
 import { VirtualSelection as IVirtualSelection } from '@/types/core/ui/virtual-selection';
 import { currentStore } from '@/store/currentStore';
 import { executeMethodIfExists } from '@/utils';
+import Toasts from './ui/toasts';
 
 export default class BlockManager implements IBlockManager {
   /** Reference to the main editor instance */
@@ -61,8 +63,19 @@ export default class BlockManager implements IBlockManager {
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = randString(16);
 
+  /** Toasts instance */
+  private toastsInstance: Toasts | null = null;
+
   constructor(editor: Texditor) {
     this.editor = editor;
+  }
+
+  /** @see IBlockManager.toasts */
+  toasts(): IToasts {
+    if (!this.toastsInstance)
+      this.toastsInstance = new Toasts(this.getBlock());
+
+    return this.toastsInstance;
   }
 
   /** @see IBlockManager.refreshVirtualSelection */
@@ -463,8 +476,25 @@ export default class BlockManager implements IBlockManager {
     scrollIntoView: boolean | ScrollIntoViewOptions = true,
   ): BlockElement | null {
     let block: BlockElement | null = null;
-    const { events } = this.editor,
+    const { config, events, i18n } = this.editor,
       schemas = this.getSchemas();
+
+    const maxBlocks = config.get('maxBlocks', 0);
+
+    if (maxBlocks > 0 && this.count() >= maxBlocks) {
+      const block = this.getBlock();
+
+      if (block) {
+        block?.click();
+        this.toasts().add(i18n.get('maxItems', 'Maximum of elements'), {
+          insertType: 'after',
+          single: true,
+          parent: block
+        })
+      }
+
+      return null;
+    }
 
     schemas.forEach((schema: BlockModelSchema) => {
       const names = schema.model.getSupportedNames();
@@ -525,10 +555,10 @@ export default class BlockManager implements IBlockManager {
               const scrollParams =
                 scrollIntoView === true
                   ? {
-                      behavior: 'smooth',
-                      block: 'center',
-                      inline: 'nearest',
-                    }
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest',
+                  }
                   : scrollIntoView;
 
               if (scrollIntoView) block?.scrollIntoView(scrollParams as ScrollIntoViewOptions);
@@ -1003,7 +1033,6 @@ export default class BlockManager implements IBlockManager {
 
     blockModels.forEach((constructor: BlockModelConstructor) => {
       const model = new constructor(this.editor);
-
       this.blockSchemas.push({
         constructor: constructor,
         model: model,
@@ -1011,6 +1040,15 @@ export default class BlockManager implements IBlockManager {
     });
 
     return this.blockSchemas;
+  }
+
+  cleanupSchemas(): void {
+    this.blockSchemas.forEach(schema => {
+      if (schema.model && typeof schema.model.destroy === 'function') {
+        schema.model.destroy();
+      }
+    });
+    this.blockSchemas = [];
   }
 
   /** @see IBlockManager.getSchema */
@@ -1217,7 +1255,7 @@ export default class BlockManager implements IBlockManager {
   /** @see IBlockManager.destroy */
   destroy(): void {
     this.getModels().forEach((model) => model.destroy());
-    this.getSchemas().forEach((schema) => schema.model.destroy());
+    this.cleanupSchemas();
 
     off(document, 'click.notActive' + this.eventId, true);
     this.destroyVirtualSelection();

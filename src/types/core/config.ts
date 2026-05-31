@@ -26,6 +26,9 @@ export interface ConfigOptions {
   /** Array of block model instances available in the editor */
   blocks?: BlockModelConstructor[];
 
+  /** Maximum number of blocks allowed in the editor */
+  maxBlocks?: number;
+
   /** Array of tool model instances available in the editor */
   tools?: ToolModelConstructor[];
 
@@ -91,10 +94,10 @@ export type ConfigGetFunction = {
   /**
    * Gets a typed configuration value with default
    * @param key - Configuration key from ConfigOptions
-   * @param defaultValue - Default value of the same type
+   * @param defaultValue - Default value
    * @returns Configuration value or default
    */
-  <K extends keyof ConfigOptions>(key: K, defaultValue: ConfigOptions[K]): ConfigOptions[K];
+  <K extends keyof ConfigOptions>(key: K, defaultValue: Required<ConfigOptions>[K]): Required<ConfigOptions>[K];
 
   /**
    * Gets any configuration value (fallback)

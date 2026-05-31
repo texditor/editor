@@ -1,7 +1,14 @@
-import type { BlockChildSchema, BlockCreateSchema, BlockModel, BlockModelSchema, BlockElement, BlockSchema } from '.';
+
+import type { BlockChildSchema, BlockCreateSchema, BlockModel, BlockModelSchema, BlockElement, BlockSchema, Toasts } from '.';
 import { VirtualSelection } from './ui/virtual-selection';
 
 export interface BlockManager {
+  /**
+   * Gets the Toasts service instance
+   * @returns {Toasts} The Toasts service
+   */
+  toasts(): Toasts;
+
   /**
    * Recreates the VirtualSelection instance with current options.
    * @returns The new VirtualSelection instance, or null.
