@@ -27,6 +27,10 @@
       "import": "./dist/entities/blocks.mjs",
       "types": "./dist/entities/blocks.d.ts"
     },
+    "./entities/blocks/files/actions": {
+      "import": "./dist/entities/blocks/files/actions.mjs",
+      "types": "./dist/entities/blocks/files/actions.d.ts"
+    },
     "./entities/tools": {
       "import": "./dist/entities/tools.mjs",
       "types": "./dist/entities/tools.d.ts"
@@ -69,6 +73,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.60.0",
     "vite": "^8.0.14",
+    "vite-plugin-css-injected-by-js": "^5.0.1",
     "vite-plugin-dts": "^5.0.1"
   },
   "files": [
