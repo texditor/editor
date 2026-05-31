@@ -41,24 +41,11 @@ export default class Events extends EventManager implements IEvents {
   /** Unique identifier for event listeners to prevent conflicts */
   private eventId: string = randString(16);
 
+  private isPaused: boolean = false;
+
   constructor(editor: Texditor) {
     super();
     this.editor = editor;
-    this.onDocumentKeyDownHandle = this.onDocumentKeyDownHandle.bind(this);
-    this.onKeyDownHandle = this.onKeyDownHandle.bind(this);
-    this.onKeyUpHandle = this.onKeyUpHandle.bind(this);
-    this.onPasteHandle = this.onPasteHandle.bind(this);
-    this.onFocusHandle = this.onFocusHandle.bind(this);
-    this.onClickHandle = this.onClickHandle.bind(this);
-    this.onBlurHandle = this.onBlurHandle.bind(this);
-    this.onSelectionChangeHandle = this.onSelectionChangeHandle.bind(this);
-    this.handleHistoryShortcuts = this.handleHistoryShortcuts.bind(this);
-    this.onDragStart = this.onDragStart.bind(this);
-    this.onDragLeave = this.onDragLeave.bind(this);
-    this.onDragOver = this.onDragOver.bind(this);
-    this.onDrag = this.onDrag.bind(this);
-    this.onDrop = this.onDrop.bind(this);
-    this.onDragEnd = this.onDragEnd.bind(this);
   }
 
   /** @see IEvents.refresh */
@@ -72,31 +59,29 @@ export default class Events extends EventManager implements IEvents {
     blockManager.refreshVirtualSelection();
 
     rebind(document, 'dblclick.docEvt' + eid, () => blockManager.clearVirtualSelection(), true);
-
     rebind(document, 'click.docEvt' + eid, () => extensions.refresh(), true);
-
-    rebind(document, 'keydown.docEvt' + eid, this.onDocumentKeyDownHandle, true);
+    rebind(document, 'keydown.docEvt' + eid, (evt: KeyboardEvent) => this.onDocumentKeyDownHandle(evt), true);
 
     query(
       '.tex-block-content',
       (el: HTMLElement) => {
-        rebind(el, 'keydown.e', this.onKeyDownHandle);
-        rebind(el, 'keyup.e', this.onKeyUpHandle);
-        rebind(el, 'paste.e', this.onPasteHandle);
-        rebind(el, 'dragstart.e', this.onDragStart);
-        rebind(el, 'dragleave.e', this.onDragLeave);
-        rebind(el, 'dragover.e', this.onDragOver);
-        rebind(el, 'drag.e1', this.onDrag);
-        rebind(el, 'drop.e1', this.onDrop);
-        rebind(el, 'dragend.e', this.onDragEnd);
-        rebind(el, 'focus.e', this.onFocusHandle);
-        rebind(el, 'blur.e', this.onBlurHandle);
-        rebind(el, 'click.e', this.onClickHandle);
+        rebind(el, 'keydown.e', (evt: KeyboardEvent) => this.onKeyDownHandle(evt));
+        rebind(el, 'keyup.e', (evt: KeyboardEvent) => this.onKeyUpHandle(evt));
+        rebind(el, 'paste.e', (evt: ClipboardEvent) => this.onPasteHandle(evt));
+        rebind(el, 'dragstart.e', (evt: DragEvent) => this.onDragStart(evt));
+        rebind(el, 'dragleave.e', (evt: DragEvent) => this.onDragLeave(evt));
+        rebind(el, 'dragover.e', (evt: DragEvent) => this.onDragOver(evt));
+        rebind(el, 'drag.e1', (evt: DragEvent) => this.onDrag(evt));
+        rebind(el, 'drop.e1', (evt: DragEvent) => this.onDrop(evt));
+        rebind(el, 'dragend.e', (evt: DragEvent) => this.onDragEnd(evt));
+        rebind(el, 'focus.e', (evt: FocusEvent) => this.onFocusHandle(evt));
+        rebind(el, 'blur.e', (evt: FocusEvent) => this.onBlurHandle(evt));
+        rebind(el, 'click.e', (evt: MouseEvent) => this.onClickHandle(evt));
       },
       blockContainer,
     );
 
-    rebind(document, 'selectionchange.e' + this.eventId, this.onSelectionChangeHandle);
+    rebind(document, 'selectionchange.e' + this.eventId, (evt: Event) => this.onSelectionChangeHandle(evt));
   }
 
   /** @see IEvents.change */
@@ -336,7 +321,9 @@ export default class Events extends EventManager implements IEvents {
                 blockManager.createBlock(defBlock);
               } else {
                 if (!isEmptyItem && !model?.isEmptyItem(itemIndex - 1) && cursorStart != 0 && cursorEnd != 0) {
-                  model.createItem(selectionApi.splitContent(model.getItemBody(-1)));
+                  if (model.canCreateItem()) {
+                    model.createItem(selectionApi.splitContent(model.getItemBody(-1)));
+                  }
                 }
               }
             }
@@ -570,6 +557,10 @@ export default class Events extends EventManager implements IEvents {
    * @param evt - Clipboard event
    */
   private onPasteHandle(evt: ClipboardEvent): void {
+    if (this.isPaused) return;
+
+    this.isPaused = true;
+
     const { config, blockManager, selectionApi } = this.editor;
 
     this.trigger('onPaste', { domEvent: evt });
@@ -581,132 +572,165 @@ export default class Events extends EventManager implements IEvents {
     const defBlock = config.get('defaultBlock', 'p'),
       model = blockManager.getModel();
 
-    if (model) {
-      const textInput = evt.clipboardData.getData('text/plain'),
-        htmlInput = evt.clipboardData.getData('text/html');
+    if (!model) return;
 
-      const pasteData = model.isRaw() ? textInput : htmlInput;
+    const textInput = evt.clipboardData.getData('text/plain'),
+      htmlInput = evt.clipboardData.getData('text/html');
 
-      const input = parseHtml(pasteData, true);
+    const pasteData = model.isRaw() ? textInput : htmlInput;
 
-      if (input.length) {
-        const childNodes = input;
-        const map = this.createPasteMap(childNodes);
-        const onPasteModel = executeMethodIfExists(model, '__onPaste', [evt, map]),
-          schemas = blockManager.getSchemas(),
-          currentIndex = blockManager.getIndex(),
-          isEmpty = blockManager.isEmpty();
+    let input: Node[];
+    if (isEmptyString(htmlInput) && !isEmptyString(textInput)) {
+      input = [toTextNode(textInput)];
+    } else {
+      input = parseHtml(pasteData, true);
+    }
 
-        if (onPasteModel) {
-          if (map.data.length) {
-            if (map.schema === 'block') {
-              let nextIndex = currentIndex === 0 && isEmpty ? 0 : currentIndex + 1;
-              const nodes: Node[] = [];
-              map.data.forEach((item) => {
-                appendText(item.node, ' ');
-                nodes.push(item.node);
-              });
+    if (!input.length) return;
 
-              if (model.isRaw()) {
-                selectionApi.insertText(escapeHtml(getText(nodes) + ' '));
+    const map = this.createPasteMap(input);
+    const onPasteModel = executeMethodIfExists(model, '__onPaste', [evt, map]);
 
-                model.sanitize();
-              } else {
-                map.data.forEach((item) => {
-                  const node = item.node;
+    if (!onPasteModel || !map.data.length) return;
 
-                  schemas.forEach((schema) => {
-                    const nodeName = node.nodeName.toLowerCase();
-                    const realName = blockManager.getRealName(nodeName) || blockManager.getRealName(defBlock) || 'p';
-                    const schemaModel = schema.model;
-                    const names = schemaModel.getSupportedNames();
+    const schemas = blockManager.getSchemas();
+    const currentIndex = blockManager.getIndex();
+    const isEmptyBlock = blockManager.isEmpty();
 
-                    if (names.includes(realName)) {
-                      let newBlock: BlockElement | null = null;
+    if (map.schema === 'block') {
+      let nextIndex = currentIndex === 0 && isEmptyBlock ? 0 : currentIndex + 1;
 
-                      if (schemaModel.isEditable() && !schemaModel.isEditableItems()) {
-                        const html = (node as Element)?.innerHTML;
-                        newBlock = blockManager.createBlock(realName, nextIndex, {
-                          data: html,
-                        });
-                        nextIndex++;
-                      } else if (!schemaModel.isEditable() && schemaModel.isEditableItems()) {
-                        const items: BlockCreateItemSchema[] = [];
+      if (model.isRaw()) {
+        const textNodes: Node[] = [];
 
-                        getChildNodes(node).forEach((child: Node) => {
-                          const childNodeName = child.nodeName.toLowerCase(),
-                            relatedNames = [schemaModel.getItemName(), ...schemaModel.getItemRelatedNames()];
+        for (const item of map.data) {
+          appendText(item.node, ' ');
+          textNodes.push(item.node);
+        }
 
-                          if (relatedNames.includes(childNodeName)) {
-                            items.push({
-                              type: schemaModel.getItemName(),
-                              data: toHtml(getChildNodes(child)),
-                            });
-                          }
-                        });
+        const text = getText(textNodes) + ' ';
+        selectionApi.insertText(escapeHtml(text));
+        model.sanitize();
+      } else {
+        for (const item of map.data) {
+          const node = item.node;
+          let blockCreated = false;
 
-                        if (items) {
-                          newBlock = blockManager.createBlock(realName, nextIndex, {
-                            data: items,
-                          });
-                          nextIndex++;
-                        }
-                      }
+          for (const schema of schemas) {
+            if (blockCreated) break;
 
-                      if (newBlock) {
-                        const newModel = newBlock.baseModel;
-                        newModel.sanitize();
-                      }
-                    }
-                  });
-                });
+            const nodeName = node.nodeName.toLowerCase();
+            const realName = blockManager.getRealName(nodeName) || blockManager.getRealName(defBlock) || 'p';
+            const schemaModel = schema.model;
+            const names = schemaModel.getSupportedNames();
+
+            if (!names.includes(realName)) continue;
+
+            if (schemaModel.isEditable() && !schemaModel.isEditableItems()) {
+              const htmlContent = (node as Element)?.innerHTML || '';
+
+              if (!isEmptyString(htmlContent)) {
+                const newBlock = blockManager.createBlock(realName, nextIndex, { data: htmlContent }, true);
+                if (newBlock) {
+                  newBlock.baseModel.sanitize();
+                  nextIndex++;
+                  blockCreated = true;
+                }
               }
+            } else if (!schemaModel.isEditable() && schemaModel.isEditableItems()) {
+              const items: BlockCreateItemSchema[] = [];
+              const itemName = schemaModel.getItemName();
+              const relatedNames = schemaModel.getItemRelatedNames();
+              const allItemNames = [itemName, ...relatedNames];
+              const children = getChildNodes(node);
 
-              blockManager.focus(!model.isEmpty() ? nextIndex - 1 : nextIndex);
-            } else {
-              const nodes: Node[] = [];
-              map.data.forEach((item) => nodes.push(item.node));
+              for (const child of children) {
+                const childNodeName = child.nodeName.toLowerCase();
 
-              if (nodes.length) {
-                if (model.isRaw()) {
-                  selectionApi.insertText(escapeHtml(getText(nodes)));
-                } else {
-                  const sanitizerConfig = model.getSanitizerConfig(),
-                    safeNodes: Node[] = [];
+                if (allItemNames.includes(childNodeName)) {
+                  const childNodes = getChildNodes(child);
+                  const htmlData = toHtml(childNodes);
 
-                  nodes.forEach((node: Node) => {
-                    if (sanitizerConfig.elements?.includes(node.nodeName.toLowerCase())) {
-                      safeNodes.push(node);
-                    } else {
-                      const text = getText(node);
-
-                      if (!isEmptyString(text)) {
-                        safeNodes.push(toTextNode(text));
-                      }
-                    }
-                  });
-
-                  const div = make('div', (el: HTMLElement) => append(el, safeNodes));
-
-                  selectionApi.insert(html(div));
+                  if (!isEmptyString(htmlData)) {
+                    items.push({
+                      type: itemName,
+                      data: htmlData,
+                    });
+                  }
                 }
               }
 
-              model.sanitize();
-              blockManager.focus(-1);
+              if (items.length > 0) {
+                const newBlock = blockManager.createBlock(realName, nextIndex, { data: items }, true);
+                if (newBlock) {
+                  newBlock.baseModel.sanitize();
+                  nextIndex++;
+                  blockCreated = true;
+                }
+              }
             }
           }
         }
-
-        this.change({
-          type: 'paste',
-          domEvent: evt,
-          map: map,
-        });
       }
 
-      this.trigger('onPasteEnd', { domEvent: evt });
+      const focusIndex = !model.isEmpty() ? nextIndex - 1 : nextIndex;
+
+      blockManager.focus(focusIndex >= 0 ? focusIndex : 0);
+    } else {
+      const { position } = selectionApi.getState();
+      const nodes: Node[] = [];
+
+      for (const item of map.data) {
+        nodes.push(item.node);
+      }
+
+      if (nodes.length > 0) {
+        if (model.isRaw()) {
+          const text = escapeHtml(getText(nodes));
+          selectionApi.insertText(text);
+        } else {
+          const sanitizerConfig = model.getSanitizerConfig();
+          const safeNodes: Node[] = [];
+
+          for (const node of nodes) {
+            if (sanitizerConfig.elements?.includes(node.nodeName.toLowerCase())) {
+              safeNodes.push(node);
+            } else {
+              const text = getText(node);
+              if (!isEmptyString(text)) {
+                safeNodes.push(toTextNode(text));
+              }
+            }
+          }
+
+          if (safeNodes.length > 0) {
+            const div = make('div', (el: HTMLElement) => {
+              append(el, safeNodes);
+            });
+            selectionApi.insert(html(div));
+          }
+        }
+
+        model.sanitize();
+        blockManager.focus(-1);
+
+        if (!model.isRaw()) {
+          selectionApi.select(position.end, position.end);
+        }
+      }
     }
+
+    this.change({
+      type: 'paste',
+      domEvent: evt,
+      map: map,
+    });
+
+    this.refresh();
+
+    this.isPaused = false;
+
+    this.trigger('onPasteEnd', { domEvent: evt });
   }
 
   /**

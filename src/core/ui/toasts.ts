@@ -7,6 +7,7 @@ export default class Toasts implements IToasts {
   private defaultTimeout: number;
   private defaultParent: Element | null;
   private defaultInsertType: 'prepend' | 'append' | 'before' | 'after';
+  private activeToast: HTMLElement | null = null;
 
   constructor(
     defaultParent?: Element | null,
@@ -33,7 +34,20 @@ export default class Toasts implements IToasts {
       className,
       timeout = this.defaultTimeout,
       scrollIntoView = true,
+      single = false,
     } = options;
+
+    if (single && this.activeToast) {
+      this.activeToast.remove();
+      this.activeToast = null;
+    }
+
+    if (single && this.toastsNode) {
+      const existingToasts = getChildNodes(this.toastsNode);
+      if (existingToasts.length > 0) {
+        existingToasts.forEach((toast) => (toast as HTMLElement).remove());
+      }
+    }
 
     if (!this.toastsNode) {
       this.toastsNode = this.createToasts(className || this.defaultClassName);
@@ -46,8 +60,15 @@ export default class Toasts implements IToasts {
 
     append(this.toastsNode, messageBlock);
 
+    if (single) {
+      this.activeToast = messageBlock;
+    }
+
     setTimeout(() => {
       messageBlock.remove();
+      if (single && this.activeToast === messageBlock) {
+        this.activeToast = null;
+      }
     }, timeout);
 
     const targetParent = parent || this.defaultParent || document.body;
@@ -81,6 +102,7 @@ export default class Toasts implements IToasts {
         observer.disconnect();
         remove(this.toastsNode);
         this.toastsNode = null;
+        this.activeToast = null;
       }
     });
 
@@ -95,6 +117,7 @@ export default class Toasts implements IToasts {
     if (this.toastsNode) {
       remove(this.toastsNode);
       this.toastsNode = null;
+      this.activeToast = null;
     }
   }
 

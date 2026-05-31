@@ -38,8 +38,13 @@ export interface ToastOptions {
    * @default true
    */
   scrollIntoView?: boolean;
-}
 
+  /**
+   * Limits display to a single toast, replacing any existing one.
+   * @default false
+   */
+  single?: boolean;
+}
 /**
  * Public interface for the Toasts class.
  * Defines the contract for toast notification management.

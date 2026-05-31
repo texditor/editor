@@ -293,6 +293,11 @@ export interface BlockModel extends BaseModel<BlockElement> {
    */
   getItemsLength(): number;
 
+  /** Checks if a new item can be added without exceeding the maximum limit.
+   * @returns `true` if allowed, `false` if limit reached
+   */
+  canCreateItem(): boolean;
+
   /**
    * Check if block is empty
    * @returns True if empty
