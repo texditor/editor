@@ -320,7 +320,7 @@
 
 .tex-extensions-fixed {
   position: sticky;
-  top: 16px;
+  top: var(--tex-extensions-fixed-top);
   left: 50%;
   z-index: 1000;
   margin-top: 12px;
