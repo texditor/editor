@@ -5,8 +5,6 @@
 
 ## Website
 
-## Website
-
 [Website](https://texditor.priveted.com) /
 [Guide](https://texditor.priveted.com/guide/) /
 [API](https://texditor.priveted.com/api/) /
