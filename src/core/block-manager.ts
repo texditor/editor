@@ -10,7 +10,7 @@ import type {
   BlockSchemaData,
   BlockCreateItemSchema,
   BlockChildSchema,
-  Toasts as IToasts
+  Toasts as IToasts,
 } from '@/types';
 
 import {
@@ -72,8 +72,7 @@ export default class BlockManager implements IBlockManager {
 
   /** @see IBlockManager.toasts */
   toasts(): IToasts {
-    if (!this.toastsInstance)
-      this.toastsInstance = new Toasts(this.getBlock());
+    if (!this.toastsInstance) this.toastsInstance = new Toasts(this.getBlock());
 
     return this.toastsInstance;
   }
@@ -489,8 +488,8 @@ export default class BlockManager implements IBlockManager {
         this.toasts().add(i18n.get('maxItems', 'Maximum of elements'), {
           insertType: 'after',
           single: true,
-          parent: block
-        })
+          parent: block,
+        });
       }
 
       return null;
@@ -555,10 +554,10 @@ export default class BlockManager implements IBlockManager {
               const scrollParams =
                 scrollIntoView === true
                   ? {
-                    behavior: 'smooth',
-                    block: 'center',
-                    inline: 'nearest',
-                  }
+                      behavior: 'smooth',
+                      block: 'center',
+                      inline: 'nearest',
+                    }
                   : scrollIntoView;
 
               if (scrollIntoView) block?.scrollIntoView(scrollParams as ScrollIntoViewOptions);
@@ -1043,7 +1042,7 @@ export default class BlockManager implements IBlockManager {
   }
 
   cleanupSchemas(): void {
-    this.blockSchemas.forEach(schema => {
+    this.blockSchemas.forEach((schema) => {
       if (schema.model && typeof schema.model.destroy === 'function') {
         schema.model.destroy();
       }

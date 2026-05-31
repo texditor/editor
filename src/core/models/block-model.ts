@@ -400,7 +400,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Hook triggered after composition is complete
    * @param _createSchema - Composition schema used for composition
    */
-  protected onCompose(_createSchema?: BlockCreateSchema): void { }
+  protected onCompose(_createSchema?: BlockCreateSchema): void {}
 
   /**
    * Prepares the unit before mounting

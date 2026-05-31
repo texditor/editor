@@ -37,17 +37,15 @@ export default class Toasts implements IToasts {
       single = false,
     } = options;
 
-    // Если режим single активен и уже есть тост — удаляем старый
     if (single && this.activeToast) {
       this.activeToast.remove();
       this.activeToast = null;
     }
 
-    // Если режим single активен, но нет активного контейнера с тостами
     if (single && this.toastsNode) {
       const existingToasts = getChildNodes(this.toastsNode);
       if (existingToasts.length > 0) {
-        existingToasts.forEach(toast => (toast as HTMLElement).remove());
+        existingToasts.forEach((toast) => (toast as HTMLElement).remove());
       }
     }
 

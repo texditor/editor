@@ -1,5 +1,12 @@
-
-import type { BlockChildSchema, BlockCreateSchema, BlockModel, BlockModelSchema, BlockElement, BlockSchema, Toasts } from '.';
+import type {
+  BlockChildSchema,
+  BlockCreateSchema,
+  BlockModel,
+  BlockModelSchema,
+  BlockElement,
+  BlockSchema,
+  Toasts,
+} from '.';
 import { VirtualSelection } from './ui/virtual-selection';
 
 export interface BlockManager {
