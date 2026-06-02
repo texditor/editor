@@ -1,7 +1,6 @@
 .tex-ui-vs-selected {
   background: var(--tex-vs-ui-selected-bg) !important;
-  border-color: var(--tex-vs-ui-selected-border-color) !important;
-  transition: background 0.1s ease;
+  outline: var(--tex-vs-ui-selected-outline) !important;
 }
 
 .tex-ui-vs-rect {

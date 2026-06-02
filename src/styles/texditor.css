@@ -374,7 +374,7 @@
 
 .tex-sortable-item {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  outline: 3px dashed var(--tex-vs-ui-selected-border-color);
+  outline: 3px dashed var(--tex-sortable-outline-color);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -384,7 +384,7 @@
 
 .tex-sortable-ghost {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  outline: 3px dashed var(--tex-vs-ui-selected-border-color);
+  outline: 3px dashed var(--tex-sortable-outline-color);
 }
 
 .tex-item {

@@ -4,7 +4,9 @@
   --tex-vs-ui-border: 2px dashed #3b82f6;
   --tex-vs-ui-radius: 4px;
   --tex-vs-ui-selected-bg: rgba(59, 130, 246, 0.1);
-  --tex-vs-ui-selected-border-color: #3b82f6;
+  --tex-vs-ui-selected-outline-color: #3b82f6;
+  --tex-vs-ui-selected-outline: 1px solid var(--tex-vs-ui-selected-outline-color);
+  --tex-sortable-outline-color: var(--tex-vs-ui-selected-outline-color);
   --tex-fill: rgba(100, 100, 100, 0.7);
   --tex-background: #fff;
   --tex-color: #222;
