@@ -67,10 +67,7 @@ export default defineConfig({
         const dtsContent = `declare const css: string;
 export default css;`;
 
-        writeFileSync(
-          path.resolve(destDir, 'theme.d.ts'),
-          dtsContent
-        );
+        writeFileSync(path.resolve(destDir, 'theme.d.ts'), dtsContent);
       },
     },
     dts({
