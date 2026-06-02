@@ -50,9 +50,7 @@
       "import": "./dist/entities/extensions.mjs",
       "types": "./dist/entities/extensions.d.ts"
     },
-    "./styles/*.css": {
-      "default": "./dist/styles/*.css"
-    }
+    "./styles/theme.css": "./dist/styles/theme.css"
   },
   "scripts": {
     "dev": "vite",
