@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync } from 'fs';
+import { copyFileSync, mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
@@ -63,6 +63,14 @@ export default defineConfig({
 
         mkdirSync(destDir, { recursive: true });
         copyFileSync(src, dest);
+
+        const dtsContent = `declare const css: string;
+export default css;`;
+
+        writeFileSync(
+          path.resolve(destDir, 'theme.d.ts'),
+          dtsContent
+        );
       },
     },
     dts({
