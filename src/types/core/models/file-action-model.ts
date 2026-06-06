@@ -17,8 +17,8 @@ export interface FileActionElement extends BaseElement {
 
 /**
  * File action model configuration interface
-  *@property actions - List of file action constructors
-  */
+ *@property actions - List of file action constructors
+ */
 export interface FileActionModelConfig extends BaseModelConfig {
   actions: FileActionModelConstructor[];
 }
