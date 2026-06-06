@@ -44,7 +44,7 @@ export interface SelectionAPI {
   clearState(): void;
 
   /**
-   * Restores the saved selection state.
+   * Applies the current selection state on the container
    */
   applyState(): void;
 
