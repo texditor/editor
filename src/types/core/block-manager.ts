@@ -218,7 +218,7 @@ export interface BlockManager {
   /**
    * Clear block schema cache
    */
-  cleanupSchemas(): void
+  cleanupSchemas(): void;
 
   /**
    * Gets the block model schema by supported type name

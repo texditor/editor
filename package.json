@@ -1,6 +1,6 @@
 {
   "name": "texditor",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Texditor is a modern block—based text editor that allows you to export data in JSON format.",
   "license": "MIT",
   "author": "Eduard Y",
