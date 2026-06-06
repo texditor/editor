@@ -137,7 +137,7 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
    * Hook called after format is applied
    * @param _tags - Array of formatted HTML elements
    */
-  protected onFormat(_tags: HTMLElement[]): void { }
+  protected onFormat(_tags: HTMLElement[]): void {}
 
   /**
    * Handle click event
