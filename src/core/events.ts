@@ -435,7 +435,7 @@ export default class Events extends EventManager implements IEvents {
     ) {
       const { historyManager } = this.editor;
       historyManager.redo();
-      this.trigger('redo', { type: 'undo' });
+      this.trigger('redo', { type: 'redo' });
     }
 
     return false;

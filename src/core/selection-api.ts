@@ -42,7 +42,7 @@ export default class SelectionAPI implements ISelectionAPI {
     });
   }
 
-  /** @see ISelectionAPI.selectCurrent */
+  /** @see ISelectionAPI.applyState */
   applyState(): void {
     const { element, position } = this.getState();
     const { start, end } = position;
