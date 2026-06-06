@@ -388,7 +388,7 @@ export default class Commands implements ICommands {
             ? Commands.DIR_RIGHT_SPACE
             : Commands.DIR_RIGHT;
       } else if (!startsInside && endsInside) {
-        direction = isEmptyFirstChar ? 'LEFT_SPACE' : Commands.DIR_LEFT;
+        direction = isEmptyFirstChar ? Commands.DIR_LEFT_SPACE : Commands.DIR_LEFT;
       } else if (!startsInside && !endsInside && tags.length > 1) {
         direction = Commands.DIR_MULTIPLE_OUTSIDE;
 

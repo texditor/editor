@@ -127,7 +127,7 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
   }
 
   /**
-   * @see IToolModel.isSeparate
+   * @see IToolModel.isOverride
    */
   isOverride(): boolean {
     return this.getConfig('override', true) as boolean;
@@ -137,7 +137,7 @@ export default class ToolModel extends BaseModel<ToolElement> implements IToolMo
    * Hook called after format is applied
    * @param _tags - Array of formatted HTML elements
    */
-  protected onFormat(_tags: HTMLElement[]): void {}
+  protected onFormat(_tags: HTMLElement[]): void { }
 
   /**
    * Handle click event

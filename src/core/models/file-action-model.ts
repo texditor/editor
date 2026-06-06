@@ -26,7 +26,7 @@ export default class FileActionModel extends BaseModel<FileActionElement> implem
     return element.closest('.tex-item');
   }
 
-  /** @see IFileActionModel.getItemElement */
+  /** @see IFileActionModel.getBlockElement */
   getBlockElement(): BlockElement | null {
     const element = this.getElement();
     if (!element) return null;
@@ -43,6 +43,7 @@ export default class FileActionModel extends BaseModel<FileActionElement> implem
       __modelCode: 'fileAction',
       visibleTitle: false,
       className: 'tex-file-action',
+      actions: [],
     };
   }
 }

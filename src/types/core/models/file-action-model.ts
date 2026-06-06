@@ -2,8 +2,7 @@ import type { BaseModelConfig, BaseModel, BaseElement, BlockElement, FileItemEle
 
 /**
  * Block model constructor type
- * Specialized constructor that creates ActionModel instances
- * with ActionModelConfig
+ * Specialized constructor that creates FileActionModel instances with FileActionModelConfig
  */
 export type FileActionModelConstructor = ModelConstructor<FileActionModel, FileActionModelConfig>;
 
@@ -18,11 +17,10 @@ export interface FileActionElement extends BaseElement {
 
 /**
  * File action model configuration interface
- * @property menu - Whether action shows a menu on click
- * @property confirm - Whether action requires confirmation before execution
- */
+  *@property actions - List of file action constructors
+  */
 export interface FileActionModelConfig extends BaseModelConfig {
-  actions: FileActionModel[];
+  actions: FileActionModelConstructor[];
 }
 
 export interface FileActionModel extends BaseModel<FileActionElement> {

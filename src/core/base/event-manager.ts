@@ -57,7 +57,7 @@ export default abstract class EventManager implements IEventManager {
     const trigger = this.triggers[name];
     const editor = this.provideEditor();
 
-    if (editor) params.instance = editor;
+    if (editor) params = { ...params, instance: editor };
 
     if (typeof trigger === 'object') {
       for (const eventId in trigger) {

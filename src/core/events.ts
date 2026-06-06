@@ -102,10 +102,10 @@ export default class Events extends EventManager implements IEvents {
     this.trigger('onChange', event);
 
     if (
-      event.type != 'keydown' &&
-      event.type != 'keyup' &&
-      event.type != 'historySave' &&
-      event.type != 'virtualSelectionChange'
+      event.type !== 'keydown' &&
+      event.type !== 'keyup' &&
+      event.type !== 'historySave' &&
+      event.type !== 'virtualSelectionChange'
     ) {
       historyManager.save();
     }
@@ -382,10 +382,10 @@ export default class Events extends EventManager implements IEvents {
             } else {
               // Merge if not an empty block
               if (cursorStart === 0 && cursorEnd === 0 && model?.isBackspaceRemove()) {
-                const pervIndex = index - 1;
+                const prevIndex = index - 1;
 
                 evt.preventDefault();
-                blockManager.merge(index, pervIndex, pervIndex);
+                blockManager.merge(index, prevIndex, prevIndex);
               }
             }
           }
@@ -398,7 +398,7 @@ export default class Events extends EventManager implements IEvents {
     this.trigger('keydownEnd', { domEvent: evt });
     this.change({
       type: 'keydown',
-      event: evt,
+      domEvent: evt,
     });
 
     if (evt.key === 'Enter' || evt.key === 'Backspace' || evt.key === 'Delete') {

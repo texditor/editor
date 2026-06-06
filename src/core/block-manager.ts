@@ -481,14 +481,14 @@ export default class BlockManager implements IBlockManager {
     const maxBlocks = config.get('maxBlocks', 0);
 
     if (maxBlocks > 0 && this.count() >= maxBlocks) {
-      const block = this.getBlock();
+      const blockEl = this.getBlock();
 
-      if (block) {
-        block?.click();
+      if (blockEl) {
+        blockEl?.click();
         this.toasts().add(i18n.get('maxItems', 'Maximum of elements'), {
           insertType: 'after',
           single: true,
-          parent: block,
+          parent: blockEl,
         });
       }
 
