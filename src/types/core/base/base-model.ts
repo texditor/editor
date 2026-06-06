@@ -33,11 +33,14 @@ export interface BaseElement extends HTMLElement {
 /**
  * Model configuration interface
  * @property name - Model name identifier
+ * @property elementTagName - HTML tag name for the model element
  * @property translation - Translation key for localization
  * @property icon - Icon content for the button
+ * @property visibleIcon - Whether icon is visible
  * @property iconWidth - Icon width in pixels
  * @property iconHeight - Icon height in pixels
  * @property className - CSS class name for styling
+ * @property attributeTitle - Whether title attribute is set on the element
  * @property visibleTitle - Whether title is always visible
  * @property __modelCode - Model code identifier for parent models
  */
@@ -55,7 +58,6 @@ export interface BaseModelConfig {
   __modelCode: string;
   [key: string]: unknown;
 }
-
 /**
  * Base model constructor type alias
  */
@@ -145,7 +147,7 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
   isVisibleTitle(): boolean;
 
   /**
-   * Checks if the attribute title is configured to be always visible.
+   * Checks if the attribute title is configured to be visible.
    * @returns True if the 'attributeTitle' config option is enabled, false otherwise.
    */
   isAttributeTitle(): boolean;

@@ -182,7 +182,7 @@ export interface BlockManager {
    * @param focus - The index of the focus block
    * @param useItems - Use all the contents of the editable child elements.
    */
-  merge(index: number, targetIndex: number, focus?: number, useItems?: boolean | false): void;
+  merge(index: number, targetIndex: number, focus?: number, useItems?: boolean): void;
 
   /**
    * Converts a block to a different type

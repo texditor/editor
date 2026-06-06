@@ -25,6 +25,6 @@ export default class MoveDownAction extends ActionModel {
 
   isVisible(): boolean {
     const { blockManager } = this.editor;
-    return !(blockManager.getIndex() + 1 == blockManager.count());
+    return !(blockManager.getIndex() + 1 === blockManager.count());
   }
 }

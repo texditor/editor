@@ -18,7 +18,7 @@ export interface ActionElement extends BaseElement {
 
 /**
  * Action model configuration interface
- * @property menu - Whether action shows a menu on click
+ * @property dropdown - Whether action shows a dropdown menu on click
  * @property confirm - Whether action requires confirmation before execution
  */
 export interface ActionModelConfig extends BaseModelConfig {

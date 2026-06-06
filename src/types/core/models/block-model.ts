@@ -10,8 +10,7 @@ import type {
 
 /**
  * Block model constructor type
- * Specialized constructor that creates ActionModel instances
- * with ActionModelConfig
+ * Specialized constructor that creates BlockModel instances with BlockModelConfig
  */
 export type BlockModelConstructor = ModelConstructor<BlockModel, BlockModelConfig>;
 
@@ -32,7 +31,6 @@ export interface BlockModelSchema {
 /**
  * Block model configuration interface
  * @property autoMerge - Automatically merge with adjacent blocks
- * @property icon - Block icon
  * @property autoParse - Automatically parse content
  * @property groupCode - Block group categorization
  * @property contentClassName - Name of the CSS class of the content node

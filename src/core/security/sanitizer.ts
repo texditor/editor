@@ -74,13 +74,13 @@ export default class Sanitizer {
    */
   private mergeArrays(...arrays: (string[] | undefined)[]): string[] {
     const result: string[] = [];
-    const uniq_hash: Record<string, boolean> = {};
+    const uniqHash: Record<string, boolean> = {};
 
     for (const array of arrays) {
       if (!array || !array.length) continue;
       for (const item of array) {
-        if (uniq_hash[item]) continue;
-        uniq_hash[item] = true;
+        if (uniqHash[item]) continue;
+        uniqHash[item] = true;
         result.push(item);
       }
     }
@@ -130,14 +130,14 @@ export default class Sanitizer {
       this.currentElement = this.dom.createElement(elem.nodeName);
       parentElement?.appendChild(this.currentElement);
 
-      const allowed_attributes = this.mergeArrays(
+      const allowedAttributes = this.mergeArrays(
         this.config.attributes?.[name],
         this.config.attributes?.[Sanitizer.ALL],
         transform.attrWhitelist,
       );
 
-      for (let i = 0; i < allowed_attributes.length; i++) {
-        const attrName = allowed_attributes[i];
+      for (let i = 0; i < allowedAttributes.length; i++) {
+        const attrName = allowedAttributes[i];
         const attr = elem.attributes.getNamedItem(attrName);
         if (attr) {
           let attrOk = true;
@@ -160,9 +160,9 @@ export default class Sanitizer {
 
       if (this.config.addAttributes?.[name]) {
         for (const attrName in this.config.addAttributes[name]) {
-          const attr_node = document.createAttribute(attrName);
-          attr_node.value = this.config.addAttributes[name][attrName];
-          (this.currentElement as Element).setAttributeNode(attr_node);
+          const attrNode = document.createAttribute(attrName);
+          attrNode.value = this.config.addAttributes[name][attrName];
+          (this.currentElement as Element).setAttributeNode(attrNode);
         }
       }
     } else if (this.arrayIndex(elem, this.whitelistNodes) !== -1) {

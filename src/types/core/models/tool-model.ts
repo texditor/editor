@@ -42,7 +42,7 @@ export interface ToolModel extends BaseModel<ToolElement> {
   /**
    * Apply format to selected content
    */
-  format(onlyRemove?: boolean): void;
+  format(): void;
 
   /**
    * Force create format on selected content (without toggling)
@@ -55,7 +55,7 @@ export interface ToolModel extends BaseModel<ToolElement> {
   removeFormat(): void;
 
   /**
-   * Overriding tag
+   * Check if tag is overriding
    * @returns boolean
    */
   isOverride(): boolean;
