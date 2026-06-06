@@ -28,7 +28,7 @@
 }
 
 .tex-files-form-progress {
-  background-color: var(--tex-background-secondary);
+  background-color: var(--tex-progress-background-wrap);
   position: absolute;
   width: 100%;
   top: 0;
@@ -221,10 +221,12 @@
 
 .tex-file-caption {
   font-weight: 500;
+  color: var(--tex-color-light);
 }
 
 .tex-file-desc,
 .tex-file-layout-size {
+  color: var(--tex-color-light);
   font-size: var(--tex-font-size-small, 12px);
 }
 

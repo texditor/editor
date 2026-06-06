@@ -368,12 +368,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
     if (form) {
       const [label] = queryList<HTMLElement>('.tex-files-form-label', form);
-
-      const onLoaded = () => {
-        css(label, 'visibility', '');
-        this.removeProgress();
-        this.refresh();
-      };
+      const onLoaded = () => this.removeProgress();
 
       if (label) {
         css(label, 'visibility', 'hidden');
@@ -818,11 +813,24 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
   /** @see FilesBlockModel.removeProgress */
   removeProgress(): void {
-    const progressNode = this.getProgressNode();
+    const form = this.getFormNode();
 
-    if (progressNode) {
-      progressNode.remove();
-      this.progressNode = null;
+    if (form) {
+      const [label] = queryList<HTMLElement>('.tex-files-form-label', form);
+
+      if (label) {
+        css(label, 'visibility', '');
+        const progressNode = this.getProgressNode();
+
+        if (progressNode) {
+          setTimeout(() => {
+            progressNode.remove();
+            this.progressNode = null;
+          }, 1000);
+        }
+      }
+
+      this.refresh();
     }
   }
 
@@ -847,6 +855,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
     if (isEmptyString(url)) {
       this.toasts().add(i18n.get('emptyUrl'));
+      this.removeProgress();
       return;
     }
 
