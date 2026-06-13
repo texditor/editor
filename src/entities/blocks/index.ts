@@ -1,6 +1,6 @@
 import Code from './code';
-import Files from './files';
-import Gallery from './gallery';
+import File from './file';
+import Image from './image';
 import H1 from './header/H1';
 import H2 from './header/H2';
 import H3 from './header/H3';
@@ -11,4 +11,4 @@ import List from './list';
 import OrderedList from './list/ol';
 import Paragraph from './paragraph';
 
-export { Code, Files, Gallery, H1, H2, H3, H4, H5, H6, List, OrderedList, Paragraph };
+export { Code, File, Image, H1, H2, H3, H4, H5, H6, List, OrderedList, Paragraph };

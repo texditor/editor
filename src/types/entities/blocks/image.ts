@@ -1,7 +1,7 @@
-import { FilesBlockModelConfig, FilesBlockModel } from './files';
+import { FileBlockModelConfig, FileBlockModel } from './file';
 
 /**
- * Configuration interface for the Gallery block model.
+ * Configuration interface for the Image block model.
  * @property styles - Available display styles for the gallery
  * @property stylesLtr - Position of the style selector panel ('left' or 'right')
  * @property defaultStyle - Default display style when no style is selected
@@ -9,7 +9,7 @@ import { FilesBlockModelConfig, FilesBlockModel } from './files';
  * @property imageMimeTypes - MIME types that should be rendered as images
  * @property videoMimeTypes - MIME types that should be rendered as videos
  */
-export interface GalleryBlockModelConfig extends FilesBlockModelConfig {
+export interface ImageBlockModelConfig extends FileBlockModelConfig {
   styles: string[];
   stylesLtr: 'left' | 'right';
   defaultStyle: string;
@@ -19,10 +19,10 @@ export interface GalleryBlockModelConfig extends FilesBlockModelConfig {
 }
 
 /**
- * Interface for the Gallery block model.
+ * Interface for the Image block model.
  * Provides methods for managing gallery-specific display styles and behavior.
  */
-export interface GalleryBlockModel extends FilesBlockModel {
+export interface ImageBlockModel extends FileBlockModel {
   /**
    * Returns the list of available display styles for the gallery
    * @returns Array of style identifiers

@@ -261,6 +261,7 @@
 }
 
 .tex-btn {
+  cursor: pointer;
   transition: all 0.7s;
   display: flex;
   align-items: center;

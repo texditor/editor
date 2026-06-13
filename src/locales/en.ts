@@ -18,7 +18,7 @@ export const EnLocale = {
   paragraph: 'Paragraph',
   code: 'Code',
   files: 'Files',
-  gallery: 'Gallery',
+  image: 'Image',
   header1: 'Header 1',
   header2: 'Header 2',
   header3: 'Header 3',

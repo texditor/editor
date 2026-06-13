@@ -1,4 +1,4 @@
-import type { FileActionModelConfig, FilesBlockModel } from '@/types';
+import type { FileActionModelConfig, FileBlockModel } from '@/types';
 import { IconPencil } from '@/icons';
 import FileActionModel from '@/core/models/file-action-model';
 import {
@@ -51,11 +51,11 @@ export default class EditFileAction extends FileActionModel {
   protected createPopup() {
     const { i18n } = this.editor,
       eid = this.getEventId(),
-      cssName = 'tex-files-edit-popup',
-      cssForm = 'tex-files-edit-form',
+      cssName = 'tex-file-item-edit-popup',
+      cssForm = 'tex-file-item-edit-form',
       blockElement = this.getBlockElement(),
       itemElement = this.getItemElement(),
-      model = blockElement?.baseModel as FilesBlockModel;
+      model = blockElement?.baseModel as FileBlockModel;
 
     if (blockElement && itemElement && model) {
       this.popupNode = make('div', (popup: HTMLDivElement) => {
@@ -128,15 +128,13 @@ export default class EditFileAction extends FileActionModel {
               addClass(footer, cssForm + '-footer');
               const btnCss = 'tex-btn tex-btn-radius tex-btn-padding';
 
-              const saveButton = make('button', (btn: HTMLButtonElement) => {
-                btn.type = 'button';
+              const saveButton = make('a', (btn: HTMLLinkElement) => {
                 addClass(btn, btnCss + ' tex-btn-primary');
                 btn.textContent = i18n.get('save', 'Save');
                 on(btn, 'click', (evt: MouseEvent) => this.saveHandler(evt));
               });
 
-              const cancelButton = make('button', (btn: HTMLButtonElement) => {
-                btn.type = 'button';
+              const cancelButton = make('a', (btn: HTMLLinkElement) => {
                 addClass(btn, btnCss + ' tex-btn-secondary');
                 btn.textContent = i18n.get('cancel', 'Cancel');
                 on(btn, 'click', () => this.removePopup());
@@ -194,8 +192,8 @@ export default class EditFileAction extends FileActionModel {
       blockElement = this.getBlockElement(),
       popupNode = this.popupNode,
       itemElement = this.getItemElement(),
-      formCss = 'tex-files-edit-form',
-      model = blockElement?.baseModel as FilesBlockModel;
+      formCss = 'tex-file-item-edit-form',
+      model = blockElement?.baseModel as FileBlockModel;
 
     if (!blockElement || !itemElement || !popupNode || !model) {
       this.removePopup();
@@ -255,7 +253,7 @@ export default class EditFileAction extends FileActionModel {
           });
 
           query(
-            '.tex-file-' + name,
+            '.tex-file-item-' + name,
             (el: HTMLElement) => {
               el.textContent = value;
             },

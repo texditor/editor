@@ -1,12 +1,12 @@
-import Files from '../files';
+import File from '../file';
 import type {
   BlockModelConstructor,
   BlockElement,
   FileItem,
-  GalleryBlockModelConfig,
+  ImageBlockModelConfig,
   Slider as ISlider,
   TexditorEvent,
-  GalleryBlockModel,
+  ImageBlockModel,
   BlockSchema,
   BlockSchemaData,
 } from '@/types';
@@ -14,9 +14,9 @@ import { IconImage, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } fro
 import { renderIcon } from '@/utils';
 import { addClass, append, attr, data, html, make, prepend, query, rebind, removeClass } from 'snappykit';
 import Slider from '@/core/ui/slider';
-import '@/styles/entities/blocks/gallery.css';
+import '@/styles/entities/blocks/image.css';
 
-export default class Gallery extends Files implements GalleryBlockModel {
+export default class Image extends File implements ImageBlockModel {
   private defaultStyles: string[] = ['grid', 'slider', 'single'];
   private slider?: ISlider | null = null;
 
@@ -25,7 +25,7 @@ export default class Gallery extends Files implements GalleryBlockModel {
    * @param config - Partial configuration
    * @returns Model constructor
    */
-  public static setup(config: Partial<GalleryBlockModelConfig>): BlockModelConstructor {
+  public static setup(config: Partial<ImageBlockModelConfig>): BlockModelConstructor {
     return super.setup(config);
   }
 
@@ -33,18 +33,18 @@ export default class Gallery extends Files implements GalleryBlockModel {
    * Configure block model
    * @returns Partial configuration object
    */
-  protected configure(): Partial<GalleryBlockModelConfig> {
+  protected configure(): Partial<ImageBlockModelConfig> {
     return {
       ...super.configure(),
       ...{
-        name: 'gallery',
+        name: 'image',
         icon: IconImage,
-        className: 'tex-gallery tex-files',
-        translation: 'gallery',
+        className: 'tex-gallery tex-file',
+        translation: 'image',
         styles: ['grid', 'slider', 'single'],
         stylesLtr: 'right',
         defaultStyle: 'single',
-        groupCode: 'gallery',
+        groupCode: 'image',
         sliderInfinite: true,
         imageMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/bmp'],
         videoMimeTypes: ['video/mp4', 'video/webm', 'video/ogg', 'video/mpeg', 'video/quicktime', 'video/x-msvideo'],
@@ -67,7 +67,7 @@ export default class Gallery extends Files implements GalleryBlockModel {
     });
   }
 
-  /** @see GalleryBlockModel.getDefaultStyle */
+  /** @see ImageBlockModel.getDefaultStyle */
   getDefaultStyle(): string {
     const defaultStyle = this.getConfig('defaultStyle', []) as string;
 
@@ -76,12 +76,12 @@ export default class Gallery extends Files implements GalleryBlockModel {
     return defaultStyle;
   }
 
-  /** @see GalleryBlockModel.getStyles */
+  /** @see ImageBlockModel.getStyles */
   getStyles(): string[] {
     return this.getConfig('styles', []) as string[];
   }
 
-  /** @see GalleryBlockModel.areStylesAllowed */
+  /** @see ImageBlockModel.areStylesAllowed */
   areStylesAllowed(): boolean {
     const styles = this.getStyles();
 

@@ -1,8 +1,8 @@
-import { BlockModelConfig, BlockModel, FileActionModelConstructor, FileActionModel } from '../../';
+import { BlockModelConfig, BlockModel, FileActionModelConstructor, FileActionModel } from '../..';
 
 import { AjaxConfig, RenderIconContent } from '@/types';
 
-export interface FilesBlockModelConfig extends BlockModelConfig {
+export interface FileBlockModelConfig extends BlockModelConfig {
   showOnlyWhenEmpty: boolean;
   multiple: boolean;
   messageTimeout: number;
@@ -28,7 +28,7 @@ export interface FilesBlockModelConfig extends BlockModelConfig {
   actions: FileActionModelConstructor[];
 }
 
-export interface FilesAjaxResponse {
+export interface FileAjaxResponse {
   data: FileItem[];
   success: boolean;
   message: string;
@@ -58,11 +58,11 @@ export interface FileItemElement extends HTMLElement {
   thumbnail?: string;
 }
 
-export interface FilesCreateOptions {
+export interface FileCreateOptions {
   [key: string]: unknown;
 }
 
-export interface FilesBlockModel extends BlockModel {
+export interface FileBlockModel extends BlockModel {
   /**
    * Get render callback function for a specific MIME type
    * @param mimeType - MIME type string

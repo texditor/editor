@@ -8,7 +8,7 @@
   grid-template-columns: 1fr 1fr;
 }
 
-.tex-gallery[data-options-style~='grid'] .tex-file-wrapper {
+.tex-gallery[data-options-style~='grid'] .tex-file-item-wrapper {
   padding-top: 100%;
 }
 
@@ -22,7 +22,7 @@
   gap: 0;
 }
 
-.tex-gallery .tex-file {
+.tex-gallery .tex-file-item {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
@@ -30,7 +30,7 @@
   cursor: pointer;
 }
 
-.tex-gallery[data-options-style~='slider'] .tex-file-wrapper {
+.tex-gallery[data-options-style~='slider'] .tex-file-item-wrapper {
   padding-top: 56.666666%;
 }
 
@@ -72,8 +72,8 @@
   width: 100%;
 }
 
-.tex-gallery[data-options-style~='grid'] .tex-file-layout,
-.tex-gallery[data-options-style~='slider'] .tex-file-layout {
+.tex-gallery[data-options-style~='grid'] .tex-file-item-layout,
+.tex-gallery[data-options-style~='slider'] .tex-file-item-layout {
   width: 100%;
   height: 100%;
   position: absolute;
@@ -88,7 +88,7 @@
   display: none;
 }
 
-.tex-gallery .tex-file-layout {
+.tex-gallery .tex-file-item-layout {
   position: relative;
 }
 

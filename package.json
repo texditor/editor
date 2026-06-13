@@ -34,9 +34,9 @@
       "import": "./dist/entities/blocks.mjs",
       "types": "./dist/entities/blocks.d.ts"
     },
-    "./entities/blocks/files/actions": {
-      "import": "./dist/entities/blocks/files/actions.mjs",
-      "types": "./dist/entities/blocks/files/actions.d.ts"
+    "./entities/blocks/file/actions": {
+      "import": "./dist/entities/blocks/file/actions.mjs",
+      "types": "./dist/entities/blocks/file/actions.d.ts"
     },
     "./entities/tools": {
       "import": "./dist/entities/tools.mjs",

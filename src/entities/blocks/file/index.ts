@@ -2,15 +2,15 @@ import type {
   BlockElement,
   FileItem,
   BlockModelConstructor,
-  FilesBlockModelConfig,
+  FileBlockModelConfig,
   FileItemElement,
   BlockSchema,
   AjaxConfig,
   AjaxOptions,
-  FilesAjaxResponse,
+  FileAjaxResponse,
   FileActionModelConstructor,
   FileActionModel,
-  FilesBlockModel,
+  FileBlockModel,
 } from '@/types';
 import { IconClose, IconFile, IconFiles, IconPlus } from '@/icons';
 import BlockModel from '@/core/models/block-model';
@@ -20,7 +20,7 @@ import MoveLeftFileAction from './actions/MoveLeftFileAction';
 import DeleteFileAction from './actions/DeleteFileAction';
 import EditFileAction from './actions/EditFileAction';
 import DownloadFileAction from './actions/DownloadFileAction';
-import '@/styles/entities/blocks/files.css';
+import '@/styles/entities/blocks/file.css';
 import { ajax, executeMethodIfExists } from '@/utils';
 import {
   addClass,
@@ -45,7 +45,7 @@ import {
 
 export { MoveRightFileAction, MoveLeftFileAction, DownloadFileAction, DeleteFileAction, EditFileAction };
 
-export default class Files extends BlockModel implements FilesBlockModel {
+export default class File extends BlockModel implements FileBlockModel {
   /** Form container element */
   private formNode: HTMLElement | null = null;
   /** Upload progress bar element */
@@ -57,8 +57,8 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
   private fileActions: FileActionModel[] = [];
 
-  /** @see FilesBlockModel.setup */
-  public static setup(config: Partial<FilesBlockModelConfig>): BlockModelConstructor {
+  /** @see FileBlockModel.setup */
+  public static setup(config: Partial<FileBlockModelConfig>): BlockModelConstructor {
     return super.setup(config);
   }
 
@@ -66,14 +66,14 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * Configure block model
    * @returns Partial configuration object
    */
-  protected configure(): Partial<FilesBlockModelConfig> {
+  protected configure(): Partial<FileBlockModelConfig> {
     const { i18n } = this.editor;
 
     return {
-      name: 'files',
+      name: 'file',
       tagName: 'div',
       translation: 'files',
-      groupCode: 'files',
+      groupCode: 'file',
       autoParse: false,
       autoMerge: false,
       actions: [MoveLeftFileAction, EditFileAction, DownloadFileAction, DeleteFileAction, MoveRightFileAction],
@@ -83,17 +83,17 @@ export default class Files extends BlockModel implements FilesBlockModel {
       enterCreate: false,
       editable: false,
       sanitizer: false,
-      className: 'tex-files',
+      className: 'tex-file',
       customSave: true,
       sortableItems: true,
-      dragZoneClassName: 'tex-files-item-drag-zone',
+      dragZoneClassName: 'tex-file-item-drag-zone',
       mimeTypes: [],
       multiple: true,
       maxItems: 10,
       visibleCounter: true,
       inputName: 'files',
-      contentClassName: 'tex-files-content',
-      itemClassName: 'tex-file-default',
+      contentClassName: 'tex-file-content',
+      itemClassName: 'tex-file-item-default',
       uploadLabelIcon: renderIcon(IconPlus, {
         width: 12,
         height: 12,
@@ -135,12 +135,12 @@ export default class Files extends BlockModel implements FilesBlockModel {
     this.refresh();
   }
 
-  /** @see FilesBlockModel.getRenderCallback */
+  /** @see FileBlockModel.getRenderCallback */
   getRenderCallback(mimeType: string): CallableFunction {
     return this.renderCallbacks[mimeType] || this.renderCallbacks['default'];
   }
 
-  /** @see FilesBlockModel.setRenderCallback */
+  /** @see FileBlockModel.setRenderCallback */
   setRenderCallback(mimeType: string | string[], callback: CallableFunction): void {
     if (Array.isArray(mimeType)) {
       mimeType.forEach((mime: string) => {
@@ -158,7 +158,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
    */
   protected defaultRenderItem(item: FileItem): HTMLElement {
     const isRenderImage = this.isRenderImage(),
-      fileCss = 'tex-file';
+      fileCss = 'tex-file-item';
 
     return make('div', (div: HTMLElement) => {
       const className = fileCss + '-layout',
@@ -196,7 +196,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
             addClass(cnt, className + '-content');
 
             const name = make('div', (nameEl: HTMLDivElement) => {
-              addClass(nameEl, 'tex-file-fileName');
+              addClass(nameEl, 'tex-file-item-fileName');
 
               if (item?.name) {
                 nameEl.innerText = item?.name;
@@ -207,12 +207,12 @@ export default class Files extends BlockModel implements FilesBlockModel {
             });
 
             const caption = make('div', (captionEl: HTMLDivElement) => {
-              addClass(captionEl, 'tex-file-caption');
+              addClass(captionEl, 'tex-file-item-caption');
               captionEl.textContent = item.caption || '';
             });
 
             const desc = make('div', (descEl: HTMLDivElement) => {
-              addClass(descEl, 'tex-file-desc');
+              addClass(descEl, 'tex-file-item-desc');
               descEl.textContent = item.desc || '';
             });
 
@@ -242,7 +242,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
     });
   }
 
-  /** @see FilesBlockModel.refresh */
+  /** @see FileBlockModel.refresh */
   refresh(): void {
     const contentElement = this.getContentElement(),
       formNode = this.getFormNode(),
@@ -253,7 +253,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
     if (itemsLength > 0) css(contentElement, 'display', '');
 
-    const [formUploader] = queryList<HTMLElement>('.tex-files-form-uploader', formNode);
+    const [formUploader] = queryList<HTMLElement>('.tex-file-form-uploader', formNode);
 
     if (formUploader) {
       query(
@@ -272,7 +272,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
     }
   }
 
-  /** @see FilesBlockModel.refreshCount */
+  /** @see FileBlockModel.refreshCount */
   refreshCount(count?: number): void {
     const realCount = count || typeof count == 'number' ? count : this.getItemsLength();
 
@@ -303,7 +303,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
    * Get the counter DOM element
    * @returns Counter element or null
    */
-  /** @see FilesBlockModel.getCounterNode */
+  /** @see FileBlockModel.getCounterNode */
   getCounterNode(): HTMLElement | null {
     return this.counterNode;
   }
@@ -314,11 +314,11 @@ export default class Files extends BlockModel implements FilesBlockModel {
    */
   protected createCounter(): HTMLElement {
     return make('div', (el: HTMLDListElement) => {
-      addClass(el, 'tex-files-counter');
+      addClass(el, 'tex-file-counter');
     });
   }
 
-  /** @see FilesBlockModel.getFormNode */
+  /** @see FileBlockModel.getFormNode */
   getFormNode(): HTMLElement | null {
     return this.formNode;
   }
@@ -332,10 +332,10 @@ export default class Files extends BlockModel implements FilesBlockModel {
       itemsLength = this.getOption('data', [])?.length || 0;
 
     return make('div', (form: HTMLElement) => {
-      addClass(form, 'tex-files-form');
+      addClass(form, 'tex-file-form');
 
       const uploader = make('div', (uploaderEl: HTMLElement) => {
-        addClass(uploaderEl, 'tex-files-form-uploader tex-no-select');
+        addClass(uploaderEl, 'tex-file-form-uploader tex-no-select');
         const labelFile = this.formLabel(itemsLength, id);
         const inputFile = this.formInputFile(id);
         append(uploaderEl, [inputFile, labelFile]);
@@ -367,7 +367,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
       form = this.getFormNode();
 
     if (form) {
-      const [label] = queryList<HTMLElement>('.tex-files-form-label', form);
+      const [label] = queryList<HTMLElement>('.tex-file-form-label', form);
       const onLoaded = () => this.removeProgress();
 
       if (label) {
@@ -384,7 +384,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
           this.progress(0);
           this.ajax(
             input,
-            (response: FilesAjaxResponse) => {
+            (response: FileAjaxResponse) => {
               if (response.success && Array.isArray(response.data) && response.data.length) {
                 response.data.forEach((item: FileItem) => {
                   if (item.url && item.type) {
@@ -410,62 +410,62 @@ export default class Files extends BlockModel implements FilesBlockModel {
     }
   }
 
-  /** @see FilesBlockModel.isVisibleCounter */
+  /** @see FileBlockModel.isVisibleCounter */
   isVisibleCounter(): boolean {
     return this.getConfig('visibleCounter', true);
   }
 
-  /** @see FilesBlockModel.getMimeTypes */
+  /** @see FileBlockModel.getMimeTypes */
   getMimeTypes(): string[] {
     return this.getConfig('mimeTypes', []) as string[];
   }
 
-  /** @see FilesBlockModel.isMultiple */
+  /** @see FileBlockModel.isMultiple */
   isMultiple(): boolean {
     return this.getConfig('multiple', true);
   }
 
-  /** @see FilesBlockModel.getAjaxConfig */
+  /** @see FileBlockModel.getAjaxConfig */
   getAjaxConfig(): AjaxConfig {
     return this.getConfig('ajaxConfig', { url: '' }) as AjaxConfig;
   }
 
-  /** @see FilesBlockModel.getInputName */
+  /** @see FileBlockModel.getInputName */
   getInputName(): string {
     return this.getConfig('inputName', 'files');
   }
 
-  /** @see FilesBlockModel.isRequiredFieldName */
+  /** @see FileBlockModel.isRequiredFieldName */
   isRequiredFieldFileName(): boolean {
     return this.getConfig('requiredFieldFileName', true);
   }
 
-  /** @see FilesBlockModel.isRequiredFieldCaption */
+  /** @see FileBlockModel.isRequiredFieldCaption */
   isRequiredFieldCaption(): boolean {
     return this.getConfig('requiredFieldCaption', true);
   }
 
-  /** @see FilesBlockModel.isRequiredFieldDesc */
+  /** @see FileBlockModel.isRequiredFieldDesc */
   isRequiredFieldDesc(): boolean {
     return this.getConfig('requiredFieldDesc', true);
   }
 
-  /** @see FilesBlockModel.isVisibleFieldName */
+  /** @see FileBlockModel.isVisibleFieldName */
   isVisibleFieldFileName(): boolean {
     return this.getConfig('visibleFieldFileName', true);
   }
 
-  /** @see FilesBlockModel.isVisibleFieldCaption */
+  /** @see FileBlockModel.isVisibleFieldCaption */
   isVisibleFieldCaption(): boolean {
     return this.getConfig('visibleFieldCaption', true);
   }
 
-  /** @see FilesBlockModel.isVisibleFieldDesc */
+  /** @see FileBlockModel.isVisibleFieldDesc */
   isVisibleFieldDesc(): boolean {
     return this.getConfig('visibleFieldDesc', true);
   }
 
-  /** @see FilesBlockModel.isRenderImage */
+  /** @see FileBlockModel.isRenderImage */
   isRenderImage(): boolean {
     return this.getConfig('renderImage', true);
   }
@@ -515,11 +515,11 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
     return make('label', (label: HTMLLabelElement) => {
       attr(label, 'for', 'file-' + id);
-      addClass(label, 'tex-files-form-label');
+      addClass(label, 'tex-file-form-label');
       label.id = 'label-' + id;
 
       const labelCnt = make('div', (labelContainer: HTMLDivElement) => {
-        addClass(labelContainer, 'tex-files-form-label-container');
+        addClass(labelContainer, 'tex-file-form-label-container');
 
         const text = make(
             'span',
@@ -541,7 +541,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
       if (!isEmptyString(uploadLabelMessage)) {
         const labelMessage = make('div', (msg: HTMLDivElement) => {
-          addClass(msg, 'tex-files-form-label-message');
+          addClass(msg, 'tex-file-form-label-message');
           html(msg, uploadLabelMessage);
         });
 
@@ -609,7 +609,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
   protected makeItemElement(item: FileItem): HTMLElement {
     const methodName = this.getRenderCallback(item.type),
       className = this.getItemClassName(),
-      fileCss = 'tex-file',
+      fileCss = 'tex-file-item',
       blockElement = this.getElement();
 
     let itemElement = make('div') as FileItemElement;
@@ -650,7 +650,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
   protected createActions(itemElement: FileItemElement): void {
     let actionsConstructors: FileActionModel[] = [];
     const { i18n } = this.editor;
-    const cssName = 'tex-files-actions',
+    const cssName = 'tex-file-actions',
       eid = this.getEventId(),
       contentElement = this.getContentElement();
 
@@ -684,8 +684,8 @@ export default class Files extends BlockModel implements FilesBlockModel {
       });
 
       const actionButtons = make('div', (buttons: HTMLDivElement) => {
-        const btnClassName = 'tex-files-actions-btn';
-        addClass(buttons, 'tex-files-actions-buttons');
+        const btnClassName = 'tex-file-actions-btn';
+        addClass(buttons, 'tex-file-actions-buttons');
 
         const closeIcon = make('div', (close: HTMLDivElement) => {
           addClass(close, btnClassName + ' ' + btnClassName + '-close');
@@ -761,7 +761,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
     }
   }
 
-  /** @see FilesBlockModel.getFileActions */
+  /** @see FileBlockModel.getFileActions */
   getFileActions(): FileActionModel[] {
     return this.fileActions;
   }
@@ -774,18 +774,18 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
     if (form && !this.progressNode) {
       this.progressNode = make('div', (div: HTMLDivElement) => {
-        addClass(div, 'tex-files-form-progress');
+        addClass(div, 'tex-file-form-progress');
         append(div, [
           make('div', (pro: HTMLDivElement) => {
-            addClass(pro, 'tex-files-form-progress-line');
+            addClass(pro, 'tex-file-form-progress-line');
           }),
           make('div', (per: HTMLDivElement) => {
-            addClass(per, 'tex-files-form-progress-percent');
+            addClass(per, 'tex-file-form-progress-percent');
           }),
         ]);
       });
 
-      const [uploaderNode] = queryList<HTMLElement>('.tex-files-form-uploader', form);
+      const [uploaderNode] = queryList<HTMLElement>('.tex-file-form-uploader', form);
 
       if (uploaderNode) {
         append(uploaderNode, this.progressNode);
@@ -793,17 +793,17 @@ export default class Files extends BlockModel implements FilesBlockModel {
     }
   }
 
-  /** @see FilesBlockModel.getProgressNode */
+  /** @see FileBlockModel.getProgressNode */
   getProgressNode(): HTMLElement | null {
     return this.progressNode;
   }
 
-  /** @see FilesBlockModel.progress */
+  /** @see FileBlockModel.progress */
   progress(percent: number): void {
     this.createProgress();
 
     const progressNode = this.getProgressNode();
-    const cssName = '.tex-files-form';
+    const cssName = '.tex-file-form';
 
     if (progressNode) {
       query(cssName + '-progress-line', (el: HTMLDivElement) => css(el, 'width', percent + '%'), progressNode);
@@ -811,12 +811,12 @@ export default class Files extends BlockModel implements FilesBlockModel {
     }
   }
 
-  /** @see FilesBlockModel.removeProgress */
+  /** @see FileBlockModel.removeProgress */
   removeProgress(): void {
     const form = this.getFormNode();
 
     if (form) {
-      const [label] = queryList<HTMLElement>('.tex-files-form-label', form);
+      const [label] = queryList<HTMLElement>('.tex-file-form-label', form);
 
       if (label) {
         css(label, 'visibility', '');
@@ -931,7 +931,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
         timeout: userOptions?.timeout || 45000,
       };
 
-      ajax<FilesAjaxResponse>(url, ajaxOptions)
+      ajax<FileAjaxResponse>(url, ajaxOptions)
         .then((response) => {
           if (progress) success(response);
 
@@ -984,7 +984,7 @@ export default class Files extends BlockModel implements FilesBlockModel {
 
     if (root) {
       query(
-        '.tex-file',
+        '.tex-file-item',
         (el: FileItemElement) => {
           const preparedItem = {
             url: el.fileUrl || '',

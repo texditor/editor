@@ -64,7 +64,7 @@ Configure blocks, tools, extensions, and localization:
 
 ```javascript
 import Texditor from 'texditor';
-import { Paragraph, H1, H2, H3, H4, H5, H6, List, OrderedList, Code, Gallery, Files } from 'texditor/entities/blocks';
+import { Paragraph, H1, H2, H3, H4, H5, H6, List, OrderedList, Code, Image, File } from 'texditor/entities/blocks';
 import {
   BoldTool,
   ItalicTool,
@@ -98,7 +98,7 @@ const editor = new Texditor({
     List.setup({ sortable: true }),
     OrderedList,
     Code.setup({ search: true }),
-    Gallery.setup({
+    Image.setup({
       mimeTypes: ['image/png', 'image/jpeg'],
       multiple: true,
       ajaxConfig: {
@@ -106,7 +106,7 @@ const editor = new Texditor({
         options: { success: (data) => console.log(data) },
       },
     }),
-    Files.setup({
+    File.setup({
       mimeTypes: ['image/png', 'application/pdf'],
       multiple: false,
     }),
@@ -168,7 +168,7 @@ All content is exported as **structured JSON**, where special characters and nes
     "data": ["const greet = () => {\n  console.log('Hello, world!');\n};\n\ngreet();"]
   },
   {
-    "type": "gallery",
+    "type": "image",
     "style": "grid",
     "data": [
       {
