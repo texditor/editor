@@ -3,7 +3,7 @@ import { AjaxOptions, AjaxResponse, AjaxData } from '@/types';
 /**
  * Sends an AJAX request with support for FormData and plain data, including progress tracking.
  * Always resolves with an AjaxResponse object, even on HTTP errors or network issues.
- * 
+ *
  * @param url - Request URL
  * @param options - Request configuration
  * @returns Promise that resolves with the full response object (data + status + error)
@@ -65,7 +65,7 @@ export function ajax<
     const buildResponse = (
       status: number,
       data: TResponse | null,
-      errorMessage: string | null = null
+      errorMessage: string | null = null,
     ): AjaxResponse<TResponse> => {
       const response: AjaxResponse<TResponse> = {
         status,

@@ -64,15 +64,16 @@ export const EnLocale = {
   maxItems: 'The maximum number of elements has been reached',
   unsupportedImageFormat: 'Unsupported image format',
   unsupportedVideoFormat: 'Unsupported video format',
-  uploadImage: "Upload Image",
-  uploadImages: "Upload Images",
-  addImages: "Add Images",
+  uploadImage: 'Upload Image',
+  uploadImages: 'Upload Images',
+  addImages: 'Add Images',
   video: 'Video',
   videoPlay: 'Play the video',
   videoPause: 'Pause',
   asyncMessage: 'Task added to processing queue',
-  asyncErrorMessage: "The file could not be uploaded because the task queue ID could not be found or an error occurred on the server",
+  asyncErrorMessage:
+    'The file could not be uploaded because the task queue ID could not be found or an error occurred on the server',
   asyncCancelSuccess: 'Task successfully cancelled',
   asyncCancelErrorMessage: 'Error when canceling a task',
-  asyncCancelNoTask: 'There is no active task to cancel'
+  asyncCancelNoTask: 'There is no active task to cancel',
 };

@@ -64,7 +64,21 @@ Configure blocks, tools, extensions, and localization:
 
 ```javascript
 import Texditor from 'texditor';
-import { Paragraph, H1, H2, H3, H4, H5, H6, List, OrderedList, Code, Image, File, Video } from 'texditor/entities/blocks';
+import {
+  Paragraph,
+  H1,
+  H2,
+  H3,
+  H4,
+  H5,
+  H6,
+  List,
+  OrderedList,
+  Code,
+  Image,
+  File,
+  Video,
+} from 'texditor/entities/blocks';
 import {
   BoldTool,
   ItalicTool,

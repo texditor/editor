@@ -51,10 +51,10 @@ export interface BlockManager {
   getBlocks(): BlockElement[];
 
   /**
- * Gets all prepared (non-empty) block elements in the editor.
- * Returns only blocks that are not empty and fully ready for processing.
- * @returns Array of ready (non-empty) block elements.
- */
+   * Gets all prepared (non-empty) block elements in the editor.
+   * Returns only blocks that are not empty and fully ready for processing.
+   * @returns Array of ready (non-empty) block elements.
+   */
   getReadyBlocks(): BlockElement[];
 
   /**
