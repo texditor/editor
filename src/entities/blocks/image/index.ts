@@ -48,14 +48,7 @@ export default class Image extends File implements ImageBlockModel {
         defaultStyle: 'single',
         groupCode: 'image',
         sliderInfinite: true,
-        mimeTypes: [
-          'image/jpeg',
-          'image/png',
-          'image/gif',
-          'image/webp',
-          'image/avif',
-          'image/bmp'
-        ],
+        mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/bmp'],
         visibleFieldFileName: false,
         requiredFieldFileName: false,
         uploadMultipleLabelText: i18n.get('uploadImages', 'Upload Images'),
@@ -194,8 +187,7 @@ export default class Image extends File implements ImageBlockModel {
       itemStyle = this.getOption('style', '');
 
     if (this.areStylesAllowed() && itemStyle) {
-      if (styles.includes(itemStyle))
-        data(blockElement, 'optionsStyle', itemStyle);
+      if (styles.includes(itemStyle)) data(blockElement, 'optionsStyle', itemStyle);
     }
   }
 
@@ -210,9 +202,9 @@ export default class Image extends File implements ImageBlockModel {
     if (!this.isSupportedItem(item)) {
       return make('div', (div) => {
         addClass(div, 'tex-image-item-bad');
-        const line = make('div', (line) => addClass(line, 'tex-image-item-bad-line'))
+        const line = make('div', (line) => addClass(line, 'tex-image-item-bad-line'));
         const txt = make('div', (cnt) => text(cnt, i18n.get('unsupportedImageFormat', 'Unsupported image format')));
-        append(div, [line, txt])
+        append(div, [line, txt]);
       });
     }
 
@@ -231,16 +223,14 @@ export default class Image extends File implements ImageBlockModel {
     const items = this.prepareItems(blockElement);
 
     const resultData = this.isLinkStrategy()
-      ? items
-        .filter(item => this.isSupportedItem(item))
-        .map(({ size: _size, name: _name, ...item }) => item)
+      ? items.filter((item) => this.isSupportedItem(item)).map(({ size: _size, name: _name, ...item }) => item)
       : items
-        .filter(item => this.isSupportedItem(item) && item.id && item.id > 0)
-        .map(({ id, caption, desc }) => ({ id, caption, desc } as FileItem));
+          .filter((item) => this.isSupportedItem(item) && item.id && item.id > 0)
+          .map(({ id, caption, desc }) => ({ id, caption, desc }) as FileItem);
 
     return {
       ...blockSchema,
-      data: resultData as BlockSchemaData
+      data: resultData as BlockSchemaData,
     };
   }
 
@@ -250,15 +240,13 @@ export default class Image extends File implements ImageBlockModel {
    * @returns True/False
    */
   private isSupportedItem(item: FileItem): boolean {
-    if (!item.type)
-      return false;
+    if (!item.type) return false;
 
     if (!item.type.startsWith('image/')) {
-      return false
+      return false;
     }
 
-    if (!this.getMimeTypes().includes(item.type))
-      return false;
+    if (!this.getMimeTypes().includes(item.type)) return false;
 
     return true;
   }

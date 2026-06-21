@@ -211,7 +211,7 @@ export default class BlockManager implements IBlockManager {
       if (!block.baseModel.isEmpty()) {
         blocks.push(block);
       }
-    })
+    });
 
     return blocks;
   }
@@ -223,7 +223,7 @@ export default class BlockManager implements IBlockManager {
     let block = null;
 
     this.getReadyBlocks().forEach((el, i) => {
-      if (i === realIndex) block = el
+      if (i === realIndex) block = el;
     });
 
     return block;
@@ -236,7 +236,7 @@ export default class BlockManager implements IBlockManager {
     let block = null;
 
     this.getBlocks().forEach((el, i) => {
-      if (i === realIndex) block = el
+      if (i === realIndex) block = el;
     });
 
     return block;
@@ -578,10 +578,10 @@ export default class BlockManager implements IBlockManager {
               const scrollParams =
                 scrollIntoView === true
                   ? {
-                    behavior: 'smooth',
-                    block: 'center',
-                    inline: 'nearest',
-                  }
+                      behavior: 'smooth',
+                      block: 'center',
+                      inline: 'nearest',
+                    }
                   : scrollIntoView;
 
               if (scrollIntoView) block?.scrollIntoView(scrollParams as ScrollIntoViewOptions);
@@ -602,7 +602,6 @@ export default class BlockManager implements IBlockManager {
 
   /** @see IBlockManager.rebuild */
   rebuild(index: number): BlockElement | null {
-
     const { events } = this.editor;
     const blockElement = this.getReadyBlock(index);
 
@@ -616,7 +615,6 @@ export default class BlockManager implements IBlockManager {
     if (!blockData) {
       return null;
     }
-
 
     const newBlockElement = this.parseBlock(blockData);
 

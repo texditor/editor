@@ -308,7 +308,7 @@ export interface FileAsyncResponse {
   /**
    * Task status indicator
    */
-  status: boolean | "processing" | "async";
+  status: boolean | 'processing' | 'async';
 
   /**
    * Total size of uploaded files in bytes

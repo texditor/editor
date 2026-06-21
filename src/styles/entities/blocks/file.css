@@ -21,8 +21,8 @@
   z-index: 1;
 }
 
-.tex-file-form-uploader input:disabled+label,
-.tex-file-form-uploader input:disabled~label {
+.tex-file-form-uploader input:disabled + label,
+.tex-file-form-uploader input:disabled ~ label {
   opacity: 0.5;
   cursor: not-allowed;
 }

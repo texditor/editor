@@ -1,7 +1,4 @@
-import File, {
-  DeleteFileAction,
-  EditFileAction
-} from '../file';
+import File, { DeleteFileAction, EditFileAction } from '../file';
 import type {
   BlockModelConstructor,
   BlockElement,
@@ -19,7 +16,6 @@ import '@/styles/entities/blocks/video.css';
 import { renderIcon } from '@/utils';
 
 export default class Video extends File implements FileBlockModel {
-
   /**
    * Set up global configuration
    * @param config - Partial configuration
@@ -54,12 +50,12 @@ export default class Video extends File implements FileBlockModel {
           'video/x-flv',
           'video/MP2T',
           'video/mpeg',
-          'video/3gpp'
+          'video/3gpp',
         ],
         visibleFieldFileName: false,
         requiredFieldFileName: false,
         maxItems: 3,
-        actionSkipSelector: '.tex-video-custom-controls'
+        actionSkipSelector: '.tex-video-custom-controls',
       },
     };
   }
@@ -89,7 +85,7 @@ export default class Video extends File implements FileBlockModel {
         attr(video, { src: item.url || '', playsinline: '' });
 
         if (item?.poster) {
-          attr(video, 'poster', item.poster || '')
+          attr(video, 'poster', item.poster || '');
         }
 
         const source = make('source', (source: HTMLSourceElement) => {
@@ -107,13 +103,12 @@ export default class Video extends File implements FileBlockModel {
       const customControls = make('div', (controls) => {
         addClass(controls, 'tex-video-custom-controls');
         const playPauseBtn = make('div', (btn: HTMLButtonElement) => {
-
           addClass(btn, 'tex-video-play-pause-btn');
           attr(btn, 'aria-label', 'Play/Pause');
-          html(btn, playIcon)
+          html(btn, playIcon);
 
           const updatePlayPauseIcon = () => {
-            html(btn, videoPlayer.paused ? playIcon : pauseIcon)
+            html(btn, videoPlayer.paused ? playIcon : pauseIcon);
           };
 
           on(videoPlayer, 'play', updatePlayPauseIcon);
@@ -207,7 +202,7 @@ export default class Video extends File implements FileBlockModel {
           html(btn, videoPlayer.muted || videoPlayer.volume === 0 ? volumeMuteIcon : volumeHighIcon);
 
           const updateVolumeIcon = () => {
-            html(btn, (videoPlayer.muted || videoPlayer.volume === 0) ? volumeMuteIcon : volumeHighIcon);
+            html(btn, videoPlayer.muted || videoPlayer.volume === 0 ? volumeMuteIcon : volumeHighIcon);
           };
 
           on(videoPlayer, 'volumechange', updateVolumeIcon);
@@ -303,16 +298,14 @@ export default class Video extends File implements FileBlockModel {
     const items = this.prepareItems(blockElement);
 
     const resultData = this.isLinkStrategy()
-      ? items
-        .filter(item => this.isSupportedItem(item))
-        .map(({ size: _size, name: _name, ...item }) => item)
+      ? items.filter((item) => this.isSupportedItem(item)).map(({ size: _size, name: _name, ...item }) => item)
       : items
-        .filter(item => this.isSupportedItem(item) && item.id && item.id > 0)
-        .map(({ id, caption, desc }) => ({ id, caption, desc } as FileItem));
+          .filter((item) => this.isSupportedItem(item) && item.id && item.id > 0)
+          .map(({ id, caption, desc }) => ({ id, caption, desc }) as FileItem);
 
     return {
       ...blockSchema,
-      data: resultData as BlockSchemaData
+      data: resultData as BlockSchemaData,
     };
   }
 
@@ -322,15 +315,13 @@ export default class Video extends File implements FileBlockModel {
    * @returns True/False
    */
   private isSupportedItem(item: FileItem): boolean {
-    if (!item.type)
-      return false;
+    if (!item.type) return false;
 
     if (!item.type.startsWith('video/')) {
-      return false
+      return false;
     }
 
-    if (!this.getMimeTypes().includes(item.type))
-      return false;
+    if (!this.getMimeTypes().includes(item.type)) return false;
 
     return true;
   }
