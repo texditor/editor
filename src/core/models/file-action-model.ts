@@ -40,9 +40,9 @@ export default class FileActionModel extends BaseModel<FileActionElement> implem
    */
   protected parentConfig(): Partial<FileActionModelConfig> {
     return {
-      __modelCode: 'fileAction',
+      __modelCode: 'fileItemAction',
       visibleTitle: false,
-      className: 'tex-file-action',
+      className: 'tex-file-item-action',
       actions: [],
     };
   }

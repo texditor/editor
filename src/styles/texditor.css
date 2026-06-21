@@ -232,7 +232,7 @@
 }
 
 .tex-tool .tex-model-title {
-  font-size: var(--tex-small-font-size);
+  font-size: var(--tex-font-size-very-small);
 }
 
 .tex-input {
@@ -261,6 +261,7 @@
 }
 
 .tex-btn {
+  cursor: pointer;
   transition: all 0.7s;
   display: flex;
   align-items: center;

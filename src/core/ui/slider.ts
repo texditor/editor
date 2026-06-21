@@ -85,13 +85,13 @@ export default class Slider implements ISlider {
       height: 14,
     };
 
-    const prevBtn = make('button', (btn: HTMLButtonElement) => {
+    const prevBtn = make('a', (btn: HTMLButtonElement) => {
       addClass(btn, 'tex-slider-btn tex-slider-prev');
       html(btn, renderIcon(IconArrowLeft, iconConfig));
       on(btn, 'click.sliderPrev', () => this.prev());
     });
 
-    const nextBtn = make('button', (btn: HTMLButtonElement) => {
+    const nextBtn = make('a', (btn: HTMLButtonElement) => {
       addClass(btn, 'tex-slider-btn tex-slider-next');
       html(btn, renderIcon(IconArrowRight, iconConfig));
       on(btn, 'click.sliderNext', () => this.next());
@@ -114,7 +114,7 @@ export default class Slider implements ISlider {
     html(this.dotsContainer, '');
 
     for (let i = 0; i < this.slides.length; i++) {
-      const dot = make('button', (btn: HTMLButtonElement) => {
+      const dot = make('a', (btn: HTMLButtonElement) => {
         addClass(btn, 'tex-slider-dot');
         btn.setAttribute('aria-label', `Go to slide: ${i + 1}`);
         on(btn, 'click.sliderDot', () => this.goToSlide(i));

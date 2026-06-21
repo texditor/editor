@@ -1,22 +1,22 @@
-import Files from '../files';
+import File from '../file';
 import type {
   BlockModelConstructor,
   BlockElement,
   FileItem,
-  GalleryBlockModelConfig,
+  ImageBlockModelConfig,
   Slider as ISlider,
   TexditorEvent,
-  GalleryBlockModel,
+  ImageBlockModel,
   BlockSchema,
   BlockSchemaData,
 } from '@/types';
-import { IconImage, IconMultipleGrid, IconPlay, IconSingleGrid, IconSlider } from '@/icons';
+import { IconImage, IconMultipleGrid, IconSingleGrid, IconSlider } from '@/icons';
 import { renderIcon } from '@/utils';
-import { addClass, append, attr, data, html, make, prepend, query, rebind, removeClass } from 'snappykit';
+import { addClass, append, attr, data, html, make, prepend, query, rebind, removeClass, text } from 'snappykit';
 import Slider from '@/core/ui/slider';
-import '@/styles/entities/blocks/gallery.css';
+import '@/styles/entities/blocks/image.css';
 
-export default class Gallery extends Files implements GalleryBlockModel {
+export default class Image extends File implements ImageBlockModel {
   private defaultStyles: string[] = ['grid', 'slider', 'single'];
   private slider?: ISlider | null = null;
 
@@ -25,7 +25,7 @@ export default class Gallery extends Files implements GalleryBlockModel {
    * @param config - Partial configuration
    * @returns Model constructor
    */
-  public static setup(config: Partial<GalleryBlockModelConfig>): BlockModelConstructor {
+  public static setup(config: Partial<ImageBlockModelConfig>): BlockModelConstructor {
     return super.setup(config);
   }
 
@@ -33,23 +33,34 @@ export default class Gallery extends Files implements GalleryBlockModel {
    * Configure block model
    * @returns Partial configuration object
    */
-  protected configure(): Partial<GalleryBlockModelConfig> {
+  protected configure(): Partial<ImageBlockModelConfig> {
+    const { i18n } = this.editor;
+
     return {
       ...super.configure(),
       ...{
-        name: 'gallery',
+        name: 'image',
         icon: IconImage,
-        className: 'tex-gallery tex-files',
-        translation: 'gallery',
+        className: 'tex-image tex-file',
+        translation: 'image',
         styles: ['grid', 'slider', 'single'],
         stylesLtr: 'right',
         defaultStyle: 'single',
-        groupCode: 'gallery',
+        groupCode: 'image',
         sliderInfinite: true,
-        imageMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/bmp'],
-        videoMimeTypes: ['video/mp4', 'video/webm', 'video/ogg', 'video/mpeg', 'video/quicktime', 'video/x-msvideo'],
+        mimeTypes: [
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'image/avif',
+          'image/bmp'
+        ],
         visibleFieldFileName: false,
         requiredFieldFileName: false,
+        uploadMultipleLabelText: i18n.get('uploadImages', 'Upload Images'),
+        uploadAddLabelText: i18n.get('addImages', 'Add Image'),
+        uploadLabelText: i18n.get('uploadImage', 'Upload Image'),
       },
     };
   }
@@ -61,13 +72,13 @@ export default class Gallery extends Files implements GalleryBlockModel {
   protected onMount(el: BlockElement): void {
     super.onMount(el);
     this.initSlider();
-    this.on('onChange.gallery', (evt: TexditorEvent) => {
+    this.on('onChange.image', (evt: TexditorEvent) => {
       const index = (evt?.targetIndex || 0) as number;
       this.initSlider(index);
     });
   }
 
-  /** @see GalleryBlockModel.getDefaultStyle */
+  /** @see ImageBlockModel.getDefaultStyle */
   getDefaultStyle(): string {
     const defaultStyle = this.getConfig('defaultStyle', []) as string;
 
@@ -76,12 +87,12 @@ export default class Gallery extends Files implements GalleryBlockModel {
     return defaultStyle;
   }
 
-  /** @see GalleryBlockModel.getStyles */
+  /** @see ImageBlockModel.getStyles */
   getStyles(): string[] {
     return this.getConfig('styles', []) as string[];
   }
 
-  /** @see GalleryBlockModel.areStylesAllowed */
+  /** @see ImageBlockModel.areStylesAllowed */
   areStylesAllowed(): boolean {
     const styles = this.getStyles();
 
@@ -102,14 +113,14 @@ export default class Gallery extends Files implements GalleryBlockModel {
       const saveActiveItem = (code: string) => {
         if (styles.includes(code)) {
           query(
-            '.tex-gallery-style-item',
+            '.tex-image-style-item',
             (div: HTMLDivElement) => {
               removeClass(div, 'tex-active');
             },
             form,
           );
           query(
-            '.tex-gallery-style-item-' + code,
+            '.tex-image-style-item-' + code,
             (div: HTMLDivElement) => {
               addClass(div, 'tex-active');
             },
@@ -120,7 +131,7 @@ export default class Gallery extends Files implements GalleryBlockModel {
 
       const styleItem = (code: string, icon: string) => {
         return make('div', (item: HTMLDivElement) => {
-          addClass(item, 'tex-gallery-style-item tex-gallery-style-item-' + code);
+          addClass(item, 'tex-image-style-item tex-image-style-item-' + code);
           rebind(item, 'click.style', () => {
             saveActiveItem(code);
             data(blockElement, 'optionsStyle', code);
@@ -128,7 +139,7 @@ export default class Gallery extends Files implements GalleryBlockModel {
 
             events.change({
               modelCode: this.getModelCode(),
-              type: 'galleryStyle',
+              type: 'imageStyle',
               index: blockManager.getIndex(),
               blockElement: blockElement,
               contentElement: this.getContentElement(),
@@ -148,11 +159,11 @@ export default class Gallery extends Files implements GalleryBlockModel {
       };
 
       const stylePanel = make('div', (panel: HTMLDivElement) => {
-        addClass(panel, 'tex-gallery-styles');
+        addClass(panel, 'tex-image-styles');
         append(
           panel,
           make('div', (div: HTMLDivElement) => {
-            addClass(div, 'tex-gallery-style-list');
+            addClass(div, 'tex-image-style-list');
             const items = [];
 
             if (styles.includes('single')) items.push(styleItem('single', IconSingleGrid));
@@ -183,38 +194,30 @@ export default class Gallery extends Files implements GalleryBlockModel {
       itemStyle = this.getOption('style', '');
 
     if (this.areStylesAllowed() && itemStyle) {
-      if (styles.includes(itemStyle)) data(blockElement, 'optionsStyle', itemStyle);
+      if (styles.includes(itemStyle))
+        data(blockElement, 'optionsStyle', itemStyle);
+    }
+  }
+
+  /**
+   * Default render method for file items
+   * @param item - File item data
+   * @returns Rendered HTMLElement
+   */
+  protected renderItem(item: FileItem): HTMLElement {
+    const { i18n } = this.editor;
+
+    if (!this.isSupportedItem(item)) {
+      return make('div', (div) => {
+        addClass(div, 'tex-image-item-bad');
+        const line = make('div', (line) => addClass(line, 'tex-image-item-bad-line'))
+        const txt = make('div', (cnt) => text(cnt, i18n.get('unsupportedImageFormat', 'Unsupported image format')));
+        append(div, [line, txt])
+      });
     }
 
-    this.setRenderCallback(this.getConfig('imageMimeTypes', []) as string[], (item: FileItem): HTMLElement => {
-      return make('img', (img: HTMLImageElement) => {
-        img.src = item.url;
-      });
-    });
-
-    this.setRenderCallback(this.getConfig('videoMimeTypes', []) as string[], (item: FileItem): HTMLElement => {
-      const videoContainer = make('div', (vc: HTMLDivElement) => {
-        const video = make('video', (video: HTMLVideoElement) => {
-            append(
-              video,
-              make('source', (source: HTMLSourceElement) => {
-                source.src = item.url;
-                attr(source, 'type', item.type);
-              }),
-            );
-          }),
-          playIcon = make('div', (div: HTMLDivElement) => {
-            addClass(div, 'tex-gallery-item-play');
-            div.innerHTML = renderIcon(IconPlay, {
-              width: 18,
-              height: 18,
-            });
-          });
-
-        append(vc, [video, playIcon]);
-      });
-
-      return videoContainer;
+    return make('img', (img: HTMLImageElement) => {
+      img.src = item.url || '';
     });
   }
 
@@ -225,21 +228,39 @@ export default class Gallery extends Files implements GalleryBlockModel {
    * @returns The modified block output
    */
   protected save(blockSchema: BlockSchema, blockElement?: BlockElement): BlockSchema {
-    blockSchema = super.save(blockSchema, blockElement);
-    const data = blockSchema?.data as FileItem[],
-      resultData: FileItem[] = [];
+    const items = this.prepareItems(blockElement);
 
-    if (data.length && Array.isArray(data)) {
-      data.forEach((item: FileItem) => {
-        if (item.size) delete item.size;
+    const resultData = this.isLinkStrategy()
+      ? items
+        .filter(item => this.isSupportedItem(item))
+        .map(({ size: _size, name: _name, ...item }) => item)
+      : items
+        .filter(item => this.isSupportedItem(item) && item.id && item.id > 0)
+        .map(({ id, caption, desc }) => ({ id, caption, desc } as FileItem));
 
-        if (item.id) delete item.id;
-        resultData.push(item);
-      });
+    return {
+      ...blockSchema,
+      data: resultData as BlockSchemaData
+    };
+  }
 
-      blockSchema.data = resultData as BlockSchemaData;
+  /**
+   * Checks whether the given file item is a supported image.
+   * @param item - The file item to check.
+   * @returns True/False
+   */
+  private isSupportedItem(item: FileItem): boolean {
+    if (!item.type)
+      return false;
+
+    if (!item.type.startsWith('image/')) {
+      return false
     }
-    return blockSchema;
+
+    if (!this.getMimeTypes().includes(item.type))
+      return false;
+
+    return true;
   }
 
   /**

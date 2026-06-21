@@ -1,4 +1,4 @@
-.tex-files {
+.tex-file {
   border-radius: 6px;
   padding: 12px;
   display: grid;
@@ -7,13 +7,13 @@
   border: 1px solid var(--tex-border-color);
 }
 
-.tex-files-form {
+.tex-file-form {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.tex-files-form-uploader {
+.tex-file-form-uploader {
   background-color: var(--tex-background-secondary);
   border-radius: 6px;
   position: relative;
@@ -21,13 +21,13 @@
   z-index: 1;
 }
 
-.tex-files-form-uploader input:disabled + label,
-.tex-files-form-uploader input:disabled ~ label {
+.tex-file-form-uploader input:disabled+label,
+.tex-file-form-uploader input:disabled~label {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.tex-files-form-progress {
+.tex-file-form-progress {
   background-color: var(--tex-progress-background-wrap);
   position: absolute;
   width: 100%;
@@ -37,8 +37,24 @@
   z-index: 3;
 }
 
-.tex-files-counter {
-  font-size: var(--tex-small-font-size);
+.tex-file-async-cancel {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  height: 16px;
+  width: 16px;
+  margin-top: -8px;
+  border-radius: 50%;
+  z-index: 5;
+  background-color: var(--tex-error);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tex-file-counter {
+  font-size: var(--tex-font-size-very-small);
   color: var(--tex-color-light);
   display: flex;
   gap: 8px;
@@ -51,7 +67,7 @@
   white-space: nowrap;
 }
 
-.tex-files-form-progress-percent {
+.tex-file-form-progress-percent {
   color: var(--tex-progress-color);
   display: flex;
   justify-content: center;
@@ -66,7 +82,7 @@
   font-size: var(--tex-message-font-size);
 }
 
-.tex-files-form-progress-line {
+.tex-file-form-progress-line {
   background-color: var(--tex-progress-background);
   position: absolute;
   top: 0;
@@ -78,12 +94,12 @@
   z-index: 4;
 }
 
-.tex-files-form-uploader label {
+.tex-file-form-uploader label {
   padding: 6px;
 }
 
-.tex-files-form-uploader,
-.tex-files-form-uploader label {
+.tex-file-form-uploader,
+.tex-file-form-uploader label {
   cursor: pointer;
   transition: opacity 1s;
   display: grid;
@@ -91,7 +107,7 @@
   height: 100%;
 }
 
-.tex-files-form-label-container {
+.tex-file-form-label-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -102,35 +118,35 @@
   position: relative;
 }
 
-.tex-files-form-label {
+.tex-file-form-label {
   position: relative;
   z-index: 2;
 }
 
-.tex-files-form-label-message {
+.tex-file-form-label-message {
   text-align: center;
   font-size: 12px;
   color: var(--tex-color-light);
 }
 
-.tex-files-content {
+.tex-file-content {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
 }
 
-.tex-files-content:has(> .tex-file:only-child) {
+.tex-file-content:has(> .tex-file:only-child) {
   padding-top: unset;
 }
 
-.tex-file-default {
+.tex-file-item-default {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
   position: relative;
 }
 
-.tex-files-actions {
+.tex-file-actions {
   display: none;
   position: absolute;
   top: 0;
@@ -140,7 +156,7 @@
   z-index: 1;
 }
 
-.tex-files-actions-buttons {
+.tex-file-actions-buttons {
   display: flex;
   align-items: center;
   position: absolute;
@@ -152,7 +168,7 @@
   border-radius: 4px;
 }
 
-.tex-files-actions-btn {
+.tex-file-actions-btn {
   color: var(--tex-fill);
   width: 22px;
   height: 22px;
@@ -163,7 +179,7 @@
   cursor: pointer;
 }
 
-.tex-files-actions-wrap {
+.tex-file-actions-wrap {
   background: var(--tex-background-overlay);
   display: flex;
   justify-content: center;
@@ -173,13 +189,13 @@
   width: 100%;
 }
 
-.tex-files-actions-list {
+.tex-file-actions-list {
   background: var(--tex-background);
   border-radius: 6px;
   display: flex;
 }
 
-.tex-file-action {
+.tex-file-item-action {
   padding: 8px;
   cursor: pointer;
   transition: all 1s;
@@ -192,15 +208,15 @@
   text-align: center;
 }
 
-.tex-file-action .tex-model-title {
+.tex-file-item-action .tex-model-title {
   font-size: var(--tex-font-size-small);
 }
 
-.tex-file-action-delete {
+.tex-file-item-action-delete {
   color: var(--tex-error);
 }
 
-.tex-file-layout-wrap {
+.tex-file-item-layout-wrap {
   background: var(--tex-background-secondary);
   display: flex;
   gap: 12px;
@@ -208,29 +224,29 @@
   color: var(--tex-fill);
 }
 
-.tex-file-layout-left {
+.tex-file-item-layout-left {
   display: flex;
   gap: 12px;
   flex-grow: 1;
 }
 
-.tex-file-fileName {
+.tex-file-item-fileName {
   color: var(--tex-color);
   font-weight: 600;
 }
 
-.tex-file-caption {
+.tex-file-item-caption {
   font-weight: 500;
   color: var(--tex-color-light);
 }
 
-.tex-file-desc,
-.tex-file-layout-size {
+.tex-file-item-desc,
+.tex-file-item-layout-size {
   color: var(--tex-color-light);
   font-size: var(--tex-font-size-small, 12px);
 }
 
-.tex-file-layout-icon-wrap {
+.tex-file-item-layout-icon-wrap {
   position: relative;
   display: flex;
   align-items: center;
@@ -243,7 +259,7 @@
   overflow: hidden;
 }
 
-.tex-file-layout-img {
+.tex-file-item-layout-img {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -252,23 +268,23 @@
   object-fit: cover;
 }
 
-.tex-file-layout-content {
+.tex-file-item-layout-content {
   display: grid;
   grid-template-columns: 1fr;
   gap: 4px;
 }
 
-.tex-files-edit-form-field .tex-input {
+.tex-file-item-edit-form-field .tex-input {
   width: 100%;
   padding: 12px;
 }
 
-.tex-file-wrapper {
+.tex-file-item-wrapper {
   overflow: hidden;
   border-radius: 6px;
 }
 
-.tex-files-edit-popup {
+.tex-file-item-edit-popup {
   position: absolute;
   top: 0;
   left: 0;
@@ -277,7 +293,7 @@
   z-index: 10;
 }
 
-.tex-files-edit-popup-overlay {
+.tex-file-item-edit-popup-overlay {
   background: var(--tex-background-overlay);
   padding: 16px;
   display: flex;
@@ -288,7 +304,7 @@
   width: 100%;
 }
 
-.tex-files-edit-popup-content {
+.tex-file-item-edit-popup-content {
   background: var(--tex-background);
   padding: 24px;
   border-radius: 8px;
@@ -301,24 +317,24 @@
   box-shadow: 0 6px 16px var(--tex-shadow-color);
 }
 
-.tex-files-edit-form {
+.tex-file-item-edit-form {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
-.tex-files-edit-form-header {
+.tex-file-item-edit-form-header {
   font-size: 18px;
   font-weight: 700;
 }
 
-.tex-files-edit-form-body {
+.tex-file-item-edit-form-body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
-.tex-files-edit-form-footer {
+.tex-file-item-edit-form-footer {
   display: flex;
   gap: 16px;
   border-top: 1px solid var(--tex-border-color);
@@ -326,38 +342,42 @@
   margin: 0 -24px;
 }
 
-.tex-file-moveRight.not-active,
-.tex-file-moveLeft.not-active {
+.tex-file-item-moveRight.not-active,
+.tex-file-item-moveLeft.not-active {
   display: none;
 }
 
-.tex-file-desc:empty,
-.tex-file-caption:empty {
+.tex-file-item-desc:empty,
+.tex-file-item-caption:empty {
   display: none;
 }
 
 @media (hover: hover) {
-  .tex-files-actions-btn:hover {
+  .tex-file-actions-btn:hover {
     opacity: 0.4;
     transform: scale(1.1);
   }
 
-  .tex-files-form-uploader:hover {
+  .tex-file-form-uploader:hover {
     opacity: 0.5;
   }
 
-  .tex-files-action:hover {
+  .tex-file-action:hover {
     opacity: 0.6;
     background-color: var(--tex-background-lite);
   }
 }
 
 @media screen and (max-width: 768px) {
-  .tex-files-list {
+  .tex-file-form-label-container {
+    font-size: var(--tex-font-size-small);
+  }
+
+  .tex-file-list {
     grid-template-columns: 1fr;
   }
 
-  .tex-files-counter {
+  .tex-file-counter {
     margin-top: 0;
     position: static;
     padding-left: 12px;
