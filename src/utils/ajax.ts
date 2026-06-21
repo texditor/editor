@@ -1,17 +1,19 @@
 import { AjaxOptions, AjaxResponse, AjaxData } from '@/types';
 
 /**
- * Sends an AJAX request with support for FormData and plain data, including progress tracking
+ * Sends an AJAX request with support for FormData and plain data, including progress tracking.
+ * Always resolves with an AjaxResponse object, even on HTTP errors or network issues.
+ * 
  * @param url - Request URL
  * @param options - Request configuration
- * @returns Promise that resolves with the response data
+ * @returns Promise that resolves with the full response object (data + status + error)
  */
 export function ajax<
   TResponse = unknown,
   TData extends AjaxData = AjaxData,
   THeaders extends Record<string, string> = Record<string, string>,
 >(url: string, options: AjaxOptions<TResponse, TData, THeaders> = {}): Promise<AjaxResponse<TResponse>> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const {
       method = 'GET',
       data,
@@ -57,34 +59,52 @@ export function ajax<
       });
     }
 
+    /**
+     * Helper function to build and return a consistent AjaxResponse.
+     */
+    const buildResponse = (
+      status: number,
+      data: TResponse | null,
+      errorMessage: string | null = null
+    ): AjaxResponse<TResponse> => {
+      const response: AjaxResponse<TResponse> = {
+        status,
+        data,
+        error: errorMessage,
+      };
+
+      if (errorMessage) {
+        onError?.(errorMessage, response);
+      } else if (data !== null) {
+        onSuccess?.(data);
+      }
+
+      return response;
+    };
+
     xhr.onload = () => {
+      let parsedData: TResponse | null;
+      try {
+        parsedData = JSON.parse(xhr.responseText) as TResponse;
+      } catch {
+        // If JSON parsing fails, use raw text if available
+        parsedData = xhr.responseText as unknown as TResponse;
+      }
+
       if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const response = JSON.parse(xhr.responseText) as TResponse;
-          onSuccess?.(response);
-          resolve(response);
-        } catch {
-          const response = xhr.responseText as TResponse;
-          onSuccess?.(response);
-          resolve(response);
-        }
+        resolve(buildResponse(xhr.status, parsedData));
       } else {
-        const error = new Error(`Request failed with status ${xhr.status}`);
-        onError?.(error);
-        reject(error);
+        const errorMsg = `Request failed with status ${xhr.status}`;
+        resolve(buildResponse(xhr.status, parsedData, errorMsg));
       }
     };
 
     xhr.onerror = () => {
-      const error = new Error('Network error');
-      onError?.(error);
-      reject(error);
+      resolve(buildResponse(0, null, 'Network error'));
     };
 
     xhr.ontimeout = () => {
-      const error = new Error('Request timeout');
-      onError?.(error);
-      reject(error);
+      resolve(buildResponse(408, null, 'Request timeout'));
     };
 
     // Prepare body

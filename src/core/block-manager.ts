@@ -203,22 +203,41 @@ export default class BlockManager implements IBlockManager {
     return elements;
   }
 
-  /** @see IBlockManager.getBlock */
-  getBlock(index?: number): BlockElement | null {
-    const realIndex = index !== undefined ? index : this.getIndex(),
-      blockContainer = this.getBlocksContainer();
+  /** @see IBlockManager.getReadyBlocks */
+  getReadyBlocks(): BlockElement[] {
+    const blocks: BlockElement[] = [];
 
-    if (!blockContainer) return null;
+    this.getBlocks().forEach((block) => {
+      if (!block.baseModel.isEmpty()) {
+        blocks.push(block);
+      }
+    })
+
+    return blocks;
+  }
+
+  /** @see IBlockManager.getReadyBlock */
+  getReadyBlock(index?: number): BlockElement | null {
+    const realIndex = index !== undefined ? index : this.getIndex();
 
     let block = null;
 
-    query(
-      '.tex-block',
-      (el: HTMLElement, i: number) => {
-        if (i === realIndex) block = el;
-      },
-      blockContainer,
-    );
+    this.getReadyBlocks().forEach((el, i) => {
+      if (i === realIndex) block = el
+    });
+
+    return block;
+  }
+
+  /** @see IBlockManager.getBlock */
+  getBlock(index?: number): BlockElement | null {
+    const realIndex = index !== undefined ? index : this.getIndex();
+
+    let block = null;
+
+    this.getBlocks().forEach((el, i) => {
+      if (i === realIndex) block = el
+    });
 
     return block;
   }
@@ -304,23 +323,28 @@ export default class BlockManager implements IBlockManager {
     }
   }
 
+  /** @see IBlockManager.getReadyIndex */
+  getReadyIndex(el?: BlockElement | HTMLElement | EventTarget): number {
+    if (!el) return this.blockIndex;
+
+    let index = 0;
+
+    this.getReadyBlocks().forEach((blockEl, i) => {
+      if (el === blockEl) index = i;
+    });
+
+    return index;
+  }
+
   /** @see IBlockManager.getIndex */
   getIndex(el?: BlockElement | HTMLElement | EventTarget): number {
     if (!el) return this.blockIndex;
 
     let index = 0;
 
-    const container = this.getBlocksContainer();
-
-    if (container) {
-      query(
-        '.tex-block',
-        (blockEl: HTMLElement, i: number) => {
-          if (el === blockEl) index = i;
-        },
-        container,
-      );
-    }
+    this.getBlocks().forEach((blockEl, i) => {
+      if (el === blockEl) index = i;
+    });
 
     return index;
   }
@@ -443,17 +467,17 @@ export default class BlockManager implements IBlockManager {
       const focusIndex = lastRemovedIndex - 1;
       setTimeout(() => this.focus(focusIndex <= 0 ? 0 : focusIndex), 100);
 
-      const defBlock = config.get('defaultBlock', 'p');
-
-      if (this.count() == 0) {
-        this.createBlock(defBlock);
-      }
-
       events.change({
         type: 'removeBlock',
         index: lastRemovedIndex || 0,
         blockElement: lastRemovedBlock,
       });
+    }
+
+    const defBlock = config.get('defaultBlock', 'p');
+
+    if (this.count() == 0) {
+      this.createBlock(defBlock);
     }
 
     events.refresh();
@@ -554,10 +578,10 @@ export default class BlockManager implements IBlockManager {
               const scrollParams =
                 scrollIntoView === true
                   ? {
-                      behavior: 'smooth',
-                      block: 'center',
-                      inline: 'nearest',
-                    }
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest',
+                  }
                   : scrollIntoView;
 
               if (scrollIntoView) block?.scrollIntoView(scrollParams as ScrollIntoViewOptions);
@@ -578,8 +602,9 @@ export default class BlockManager implements IBlockManager {
 
   /** @see IBlockManager.rebuild */
   rebuild(index: number): BlockElement | null {
+
     const { events } = this.editor;
-    const blockElement = this.getBlock(index);
+    const blockElement = this.getReadyBlock(index);
 
     if (!blockElement) {
       return null;
@@ -591,6 +616,7 @@ export default class BlockManager implements IBlockManager {
     if (!blockData) {
       return null;
     }
+
 
     const newBlockElement = this.parseBlock(blockData);
 

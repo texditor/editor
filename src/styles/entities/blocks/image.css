@@ -1,28 +1,28 @@
-.tex-gallery .tex-block-content {
+.tex-image .tex-block-content {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
-.tex-gallery[data-options-style~='grid'] .tex-block-content {
+.tex-image[data-options-style~='grid'] .tex-block-content {
   grid-template-columns: 1fr 1fr;
 }
 
-.tex-gallery[data-options-style~='grid'] .tex-file-item-wrapper {
+.tex-image[data-options-style~='grid'] .tex-file-item-wrapper {
   padding-top: 100%;
 }
 
-.tex-gallery[data-options-style~='single'] .tex-block-content {
+.tex-image[data-options-style~='single'] .tex-block-content {
   grid-template-columns: 1fr;
   gap: 12px;
 }
 
-.tex-gallery[data-options-style~='slider'] .tex-block-content {
+.tex-image[data-options-style~='slider'] .tex-block-content {
   display: flex;
   gap: 0;
 }
 
-.tex-gallery .tex-file-item {
+.tex-image .tex-file-item {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
@@ -30,37 +30,35 @@
   cursor: pointer;
 }
 
-.tex-gallery[data-options-style~='slider'] .tex-file-item-wrapper {
+.tex-image[data-options-style~='slider'] .tex-file-item-wrapper {
   padding-top: 56.666666%;
 }
 
-.tex-gallery .tex-item-body {
+.tex-image .tex-item-body {
   -webkit-user-select: none;
   user-select: none;
   overflow: hidden;
   border-radius: 6px;
   background: var(--tex-background-secondary);
+  min-height: 120px;
 }
 
-.tex-gallery .tex-item-body img,
-.tex-gallery .tex-item-body video {
+.tex-image .tex-item-body img {
   object-fit: cover;
   width: 100%;
   display: block;
 }
 
-.tex-gallery[data-options-style~='grid'] .tex-item-body img,
-.tex-gallery[data-options-style~='slider'] .tex-item-body img,
-.tex-gallery[data-options-style~='grid'] .tex-item-body video,
-.tex-gallery[data-options-style~='slider'] .tex-item-body video {
+.tex-image[data-options-style~='grid'] .tex-item-body img,
+.tex-image[data-options-style~='slider'] .tex-item-body img {
   position: absolute;
   top: 0;
   width: 100%;
   height: 100%;
 }
 
-.tex-gallery[data-options-style~='grid'] .tex-item-body,
-.tex-gallery[data-options-style~='slider'] .tex-item-body {
+.tex-image[data-options-style~='grid'] .tex-item-body,
+.tex-image[data-options-style~='slider'] .tex-item-body {
   position: relative;
   top: 0;
   left: 0;
@@ -68,12 +66,12 @@
   height: 100%;
 }
 
-.tex-gallery .tex-item-body > * {
+.tex-image .tex-item-body>* {
   width: 100%;
 }
 
-.tex-gallery[data-options-style~='grid'] .tex-file-item-layout,
-.tex-gallery[data-options-style~='slider'] .tex-file-item-layout {
+.tex-image[data-options-style~='grid'] .tex-file-item-layout,
+.tex-image[data-options-style~='slider'] .tex-file-item-layout {
   width: 100%;
   height: 100%;
   position: absolute;
@@ -84,15 +82,15 @@
   left: 0;
 }
 
-.tex-gallery[data-options-style~='slider'] .tex-item-drag-zone {
+.tex-image[data-options-style~='slider'] .tex-item-drag-zone {
   display: none;
 }
 
-.tex-gallery .tex-file-item-layout {
+.tex-image .tex-file-item-layout {
   position: relative;
 }
 
-.tex-gallery-item-play {
+.tex-image-item-play {
   position: absolute;
   top: 12px;
   left: 12px;
@@ -100,42 +98,70 @@
   opacity: 0.8;
 }
 
-.tex-gallery-styles {
+.tex-image-styles {
   color: var(--tex-fill);
 }
 
-.tex-gallery-style-list {
+.tex-image-style-list {
   display: flex;
   align-items: center;
 }
 
-.tex-gallery-right {
+.tex-image-right {
   justify-content: flex-end;
 }
 
-.tex-gallery-left {
+.tex-image-left {
   justify-content: flex-start;
 }
 
-.tex-gallery-style-item {
+.tex-image-style-item {
   padding: 6px;
   transition: all 1s;
   cursor: pointer;
 }
 
-.tex-gallery-style-item.tex-active {
+.tex-image-style-item.tex-active {
   color: var(--tex-color-secondary);
 }
 
+.tex-image-item-bad {
+  padding: 12px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tex-font-size-small);
+  color: var(--tex-color-light);
+  gap: 12px;
+  flex-direction: column;
+  text-align: center;
+}
+
+.tex-image-item-bad-line {
+  background-color: var(--tex-error);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
 @media (hover: hover) {
-  .tex-gallery-style-item:hover {
+  .tex-image-style-item:hover {
     opacity: 0.6;
     background-color: var(--tex-background-lite);
   }
 }
 
 @media screen and (max-width: 768px) {
-  .tex-gallery .tex-block-content {
+  .tex-image .tex-file-form {
+    flex-direction: column;
+  }
+
+  .tex-image .tex-block-content {
     grid-template-columns: 1fr;
   }
 }

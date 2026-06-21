@@ -18,7 +18,7 @@
   --tex-background-lite: rgba(204, 255, 204, 0.3);
   --tex-background-secondary: rgba(150, 150, 150, 0.07);
   --tex-progress-background: #34785a;
-  --tex-progress-background-wrap: rgba(255, 255, 255, 0.8);
+  --tex-progress-background-wrap: #fff;
   --tex-background-overlay: rgba(150, 150, 150, 0.7);
   --tex-progress-color: #70c29e;
   --tex-shadow-color: rgb(33, 33, 33, 0.4);
@@ -26,7 +26,6 @@
   --tex-error: #e6004c;
   --tex-success: #1e764e;
   --tex-message-font-size: 12px;
-  --tex-small-font-size: 10px;
   --tex-button-bg: #42d392;
   --tex-button-border-color: #42d392;
   --tex-button-text-color: #fff;
@@ -39,8 +38,13 @@
   --tex-selected-outline: #1e764e;
   --tex-selected-background: rgba(30, 118, 78, 0.1);
   --tex-font-size-small: 12px;
+  --tex-font-size-very-small: 10px;
   --tex-actions-top: 0;
   --tex-actions-top-mobile: -28px;
   --tex-actions-left: -24px;
   --tex-actions-left-mobile: 0;
+  --tex-controls-color: #3e544a;
+  --tex-controls-secondary-color: #5d8674;
+  --tex-controls-background: rgba(150, 150, 150, 0.3);
+  --tex-controls-track-background: rgba(200, 200, 200, 0.3);
 }

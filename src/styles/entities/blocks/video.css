@@ -1,0 +1,129 @@
+.tex-video .tex-file-item-wrapper {
+  padding-top: 56.666666%;
+  position: relative;
+}
+
+.tex-video-player-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.tex-video-player {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: pointer;
+}
+
+.tex-video-custom-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 12px;
+  background: var(--tex-controls-background);
+  pointer-events: auto;
+}
+
+.tex-video-play-pause-btn,
+.tex-video-volume-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  padding-left: 12px;
+  margin: 0;
+  flex-shrink: 0;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9;
+  transition: opacity 0.2s, transform 0.1s;
+  color: var(--tex-controls-color);
+}
+
+.tex-video-play-pause-btn:hover,
+.tex-video-volume-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.tex-video-range-container {
+  position: relative;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.tex-video-seek-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.tex-video-volume-container {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.tex-video-range-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: var(--tex-controls-track-background);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tex-video-range-container:hover .tex-video-range-track {
+  height: 6px;
+  border-radius: 3px;
+}
+
+.tex-video-range-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--tex-controls-color);
+  border-radius: 2px;
+  width: 0%;
+  transition: height 0.1s;
+}
+
+.tex-video-range-thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  background: var(--tex-controls-secondary-color);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  left: 0%;
+  transition: transform 0.1s, box-shadow 0.1s;
+  pointer-events: none;
+}
+
+.tex-video-range-container:hover .tex-video-range-thumb {
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.tex-video-range-container:active .tex-video-range-thumb {
+  transform: translate(-50%, -50%) scale(1.3);
+  box-shadow: 0 2px 8px rgba(74, 158, 255, 0.6);
+}

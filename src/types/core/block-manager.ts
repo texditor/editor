@@ -51,6 +51,21 @@ export interface BlockManager {
   getBlocks(): BlockElement[];
 
   /**
+ * Gets all prepared (non-empty) block elements in the editor.
+ * Returns only blocks that are not empty and fully ready for processing.
+ * @returns Array of ready (non-empty) block elements.
+ */
+  getReadyBlocks(): BlockElement[];
+
+  /**
+   * Gets a specific prepared (non-empty) block element by index.
+   * Returns only blocks that are not empty and fully ready for processing.
+   * @param index - Block index (defaults to current index)
+   * @returns Ready block element or null if not found or block is empty
+   */
+  getReadyBlock(index?: number): BlockElement | null;
+
+  /**
    * Gets a specific block element by index
    * @param index - Block index (defaults to current index)
    * @returns Block element or null if not found
@@ -89,6 +104,13 @@ export interface BlockManager {
    * @returns Block index
    */
   getIndex(el?: BlockElement | HTMLElement | EventTarget): number;
+
+  /**
+   * Gets the index of a block that is prepared and non-empty.
+   * @param el - Target node (defaults to current block)
+   * @returns Block index if ready, otherwise -1
+   */
+  getReadyIndex(el?: BlockElement | HTMLElement | EventTarget): number;
 
   /**
    * Sets the active block index and updates UI
