@@ -29,10 +29,21 @@
   z-index: 9999;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 24px;
   padding: 2px 12px;
   background: var(--tex-controls-background);
   pointer-events: auto;
+}
+
+.tex-video-custom-controls-left,
+.tex-video-custom-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 12px
+}
+
+.tex-video-custom-controls-left {
+  flex-grow: 1;
 }
 
 .tex-video-play-pause-btn,
@@ -41,7 +52,6 @@
   border: none;
   cursor: pointer;
   padding: 0;
-  padding-left: 12px;
   margin: 0;
   flex-shrink: 0;
   line-height: 1;
@@ -77,7 +87,7 @@
 }
 
 .tex-video-volume-container {
-  width: 70px;
+  width: 50px;
   flex-shrink: 0;
 }
 
