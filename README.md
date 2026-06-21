@@ -64,7 +64,7 @@ Configure blocks, tools, extensions, and localization:
 
 ```javascript
 import Texditor from 'texditor';
-import { Paragraph, H1, H2, H3, H4, H5, H6, List, OrderedList, Code, Image, File } from 'texditor/entities/blocks';
+import { Paragraph, H1, H2, H3, H4, H5, H6, List, OrderedList, Code, Image, File, Video } from 'texditor/entities/blocks';
 import {
   BoldTool,
   ItalicTool,
@@ -109,6 +109,13 @@ const editor = new Texditor({
     File.setup({
       mimeTypes: ['image/png', 'application/pdf'],
       multiple: false,
+    }),
+    Video.setup({
+      mimeTypes: ['image/png', 'image/jpeg'],
+      ajaxConfig: {
+        url: '/upload',
+        options: { success: (data) => console.log(data) },
+      },
     }),
   ],
 
@@ -215,7 +222,7 @@ All content is exported as **structured JSON**, where special characters and nes
     ]
   },
   {
-    "type": "files",
+    "type": "file",
     "data": [
       {
         "url": "/documents/report.pdf",
