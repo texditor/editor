@@ -11,14 +11,14 @@ import type {
   FileItemElement,
   VideoItem,
   FileBlockModelConfig,
+  FileBlockModel,
 } from '@/types';
 import { IconPause, IconPlay, IconVideo, IconVolumeHigh, IconVolumeMute } from '@/icons';
 import { addClass, append, attr, css, html, make, off, on, query, text } from 'snappykit';
 import '@/styles/entities/blocks/video.css';
-import { VideoBlockModel } from '@/types/entities/blocks/video';
 import { renderIcon } from '@/utils';
 
-export default class Video extends File implements VideoBlockModel {
+export default class Video extends File implements FileBlockModel {
 
   /**
    * Set up global configuration
