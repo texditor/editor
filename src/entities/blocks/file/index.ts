@@ -380,7 +380,6 @@ export default class File extends BlockModel implements FileBlockModel {
       return;
     }
 
-    // Отменяем таймер processAsync если он активен
     if (this.asyncTimerId) {
       clearTimeout(this.asyncTimerId);
       this.asyncTimerId = null;
@@ -522,6 +521,7 @@ export default class File extends BlockModel implements FileBlockModel {
             response: responseData,
           }, {
             uploadEvent: true,
+            async: true
           });
         } else if (status == 'success') {
           if (Array.isArray(files)) {
@@ -543,6 +543,7 @@ export default class File extends BlockModel implements FileBlockModel {
             response: responseData,
           }, {
             uploadEvent: true,
+            async: true
           });
 
         } else {
@@ -555,6 +556,7 @@ export default class File extends BlockModel implements FileBlockModel {
             response: responseData
           }, {
             uploadEvent: true,
+            async: true
           });
         }
       });
