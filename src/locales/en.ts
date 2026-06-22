@@ -70,9 +70,10 @@ export const EnLocale = {
   video: 'Video',
   videoPlay: 'Play the video',
   videoPause: 'Pause',
+  uploadVideo: "Upload video",
+  addVideo: "Add video",
   asyncMessage: 'Task added to processing queue',
-  asyncErrorMessage:
-    'The file could not be uploaded because the task queue ID could not be found or an error occurred on the server',
+  asyncErrorMessage: 'The file could not be uploaded because the task queue ID could not be found or an error occurred on the server',
   asyncCancelSuccess: 'Task successfully cancelled',
   asyncCancelErrorMessage: 'Error when canceling a task',
   asyncCancelNoTask: 'There is no active task to cancel',
