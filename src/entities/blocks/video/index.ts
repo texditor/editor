@@ -288,13 +288,13 @@ export default class Video extends File implements FileBlockModel {
 
         const left = make('div', (left) => {
           addClass(left, 'tex-video-custom-controls-left');
-          append(left, [playPauseBtn, seekBarContainer])
-        })
+          append(left, [playPauseBtn, seekBarContainer]);
+        });
 
         const right = make('div', (left) => {
           addClass(left, 'tex-video-custom-controls-right');
-          append(left, [volumeBtn, volumeSliderContainer])
-        })
+          append(left, [volumeBtn, volumeSliderContainer]);
+        });
 
         append(controls, [left, right]);
       });
@@ -315,8 +315,8 @@ export default class Video extends File implements FileBlockModel {
     const resultData = this.isLinkStrategy()
       ? items.filter((item) => this.isSupportedItem(item)).map(({ size: _size, name: _name, ...item }) => item)
       : items
-        .filter((item) => this.isSupportedItem(item) && item.id && item.id > 0)
-        .map(({ id, caption, desc }) => ({ id, caption, desc }) as FileItem);
+          .filter((item) => this.isSupportedItem(item) && item.id && item.id > 0)
+          .map(({ id, caption, desc }) => ({ id, caption, desc }) as FileItem);
 
     return {
       ...blockSchema,
