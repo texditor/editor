@@ -30,6 +30,8 @@ export default class Video extends File implements FileBlockModel {
    * @returns Partial configuration object
    */
   protected configure(): Partial<FileBlockModelConfig> {
+    const { i18n } = this.editor;
+
     return {
       ...super.configure(),
       ...{
@@ -56,6 +58,9 @@ export default class Video extends File implements FileBlockModel {
         requiredFieldFileName: false,
         maxItems: 3,
         actionSkipSelector: '.tex-video-custom-controls',
+        uploadMultipleLabelText: i18n.get('uploadVideo', 'Upload video'),
+        uploadAddLabelText: i18n.get('addVideo', 'Add video'),
+        uploadLabelText: i18n.get('uploadVideo', 'Upload video'),
       },
     };
   }
