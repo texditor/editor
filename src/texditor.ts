@@ -177,8 +177,7 @@ export default class Texditor implements ITexditor {
       blockManager.detectEmpty(false);
       blockManager.normalize();
       blocks.forEach((blockElement) => {
-        if (blockElement.baseModel?.isEmpty()) remove(blockElement);
-        else executeMethodIfExists(blockElement.baseModel, '__onMount', [blockElement]);
+        executeMethodIfExists(blockElement.baseModel, '__onMount', [blockElement]);
       });
 
       events.refresh();
