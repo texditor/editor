@@ -24,7 +24,7 @@ import Commands from '@/core/commands';
 import HistoryManager from '@/core/history-manager';
 import Extensions from '@/core/extensions';
 import MainView from '@/views/main';
-import { queryLength, query, append, dataByPrefix, html, isEmptyString, queryList, remove } from 'snappykit';
+import { queryLength, query, append, dataByPrefix, html, isEmptyString, queryList } from 'snappykit';
 import { executeMethodIfExists, sanitizeJson } from './utils';
 import '@/styles/texditor.css';
 import '@/styles/animations.css';
