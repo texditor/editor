@@ -159,10 +159,6 @@ export default class Texditor implements ITexditor {
       console.warn('The input data is not supported or contains errors when working with JSON', e);
     }
 
-    if (data.length === 0) {
-      data = [defaultData];
-    }
-
     if (container) {
       html(container, '');
 
