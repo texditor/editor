@@ -159,6 +159,10 @@ export default class Texditor implements ITexditor {
       console.warn('The input data is not supported or contains errors when working with JSON', e);
     }
 
+    if (data.length === 0) {
+      data = [defaultData];
+    }
+
     if (container) {
       html(container, '');
 
@@ -177,8 +181,7 @@ export default class Texditor implements ITexditor {
       blockManager.detectEmpty(false);
       blockManager.normalize();
       blocks.forEach((blockElement) => {
-        if (blockElement.baseModel?.isEmpty()) remove(blockElement);
-        else executeMethodIfExists(blockElement.baseModel, '__onMount', [blockElement]);
+        executeMethodIfExists(blockElement.baseModel, '__onMount', [blockElement]);
       });
 
       events.refresh();
