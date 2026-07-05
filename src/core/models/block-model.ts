@@ -74,6 +74,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
 
     this.trigger(name, finallyParams);
     this.trigger('onChange', finallyParams);
+    this.onBlockChange(finallyParams);
   }
 
   /**
@@ -1068,6 +1069,12 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   protected parentOnMount(): void {
     this.refreshSortableItems();
   }
+
+  /**
+   * Block change event
+   * @param _evt - Base event
+   */
+  protected onBlockChange(_evt: TexditorEventBase = {}): void {}
 
   /**
    * Handle paste event

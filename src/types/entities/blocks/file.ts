@@ -1,5 +1,7 @@
-import { BlockModelConfig, BlockModel, FileActionModelConstructor, FileActionModel } from '../..';
+import { BlockModelConfig, BlockModel, FileActionModelConstructor, FileActionModel, Texditor } from '../..';
 import { AjaxConfig, RenderIconContent } from '@/types';
+
+export type GlobalFile = File;
 
 export interface FileBlockModelConfig extends BlockModelConfig {
   /**
@@ -167,6 +169,63 @@ export interface FileBlockModelConfig extends BlockModelConfig {
    * @default ''
    */
   actionSkipSelector: string;
+
+  /**
+   * Enable chunked upload for large files
+   * @default false
+   */
+  chunked: boolean;
+
+  /**
+   * Size of each chunk in bytes for chunked upload
+   * @default 1048576
+   */
+  chunkSize: number;
+
+  /**
+   * Maximum file size in bytes (0 = unlimited)
+   * @default 10485760
+   */
+  fileMaxSize: number;
+
+  /**
+   * Enable or disable the file manager
+   * @default false
+   */
+  fileManager: boolean;
+
+  /**
+   * Show or hide the file manager title bar
+   * @default true
+   */
+  fileManagerShowTitle: boolean;
+
+  /**
+   * Custom title for the file manager window
+   * @default ''
+   */
+  fileManagerTitle: string;
+
+  /**
+   * An icon with HTML content for the file manager button
+   * @default IconFolder
+   */
+  fileManagerBtnIcon: RenderIconContent;
+
+  /**
+   * Layout direction of the file manager
+   * @default 'left'
+   */
+  fileManagerLtr: 'left' | 'right';
+
+  /**
+   * Callback fired when a file is opened in the file manager
+   * @param index - The index of the file in the list
+   * @param name - The block name
+   * @param instance - The FileBlockModel instance associated with the file
+   * @param editor - The Texditor instance
+   */
+  onOpenFileManager?: (index: number, name: string, instance: FileBlockModel, editor: Texditor) => void;
 }
 
 /**
@@ -177,7 +236,7 @@ export interface FileAjaxResponse {
   /**
    * Response data - either array of file items or async task response
    */
-  data: FileResponseItem[] | FileAsyncResponse;
+  data: FileResponseItem | FileAsyncResponse;
 
   /**
    * Indicates if the request was successful
@@ -514,6 +573,48 @@ export interface FileBlockModel extends BlockModel {
    * @returns AJAX configuration object for async cancellation
    */
   getAsyncCancelConfig(): AjaxConfig;
+
+  /**
+   * Checks if the file upload is chunked
+   * @returns True if upload is chunked, false otherwise
+   */
+  isChunked(): boolean;
+
+  /**
+   * Get the chunk size for file upload
+   * @returns Chunk size in bytes
+   */
+  getChunkSize(): number;
+
+  /**
+   * Get the maximum allowed file size for upload
+   * @returns Maximum file size in bytes
+   */
+  getFileMaxSize(): number;
+
+  /**
+   * Check if the file manager is enabled
+   * @returns True if the file manager is enabled
+   */
+  isFileManager(): boolean;
+
+  /**
+   * Check if the file manager title should be displayed
+   * @returns True if the title should be shown
+   */
+  isFileManagerShowTitle(): boolean;
+
+  /**
+   * Get the file manager title
+   * @returns The title string
+   */
+  getFileManagerTitle(): string;
+
+  /**
+   * Get the text direction of the file manager
+   * @returns 'ltr' for left-to-right, 'rtl' for right-to-left
+   */
+  getFileManagerLtr(): string;
 
   /**
    * Get input name attribute for file upload
