@@ -138,7 +138,7 @@ export default class File extends BlockModel implements FileBlockModel {
       chunkSize: 2 * 1024 * 1204,
       fileMaxSize: 10 * 1024 * 1204,
       fileManager: false,
-      fileManagerShowTitle: true,
+      fileManagerShowTitle: false,
       fileManagerTitle: i18n.get('fileManager', 'File Manager'),
       fileManagerBtnIcon: renderIcon(IconFolder, {
         width: 12,
@@ -405,10 +405,12 @@ export default class File extends BlockModel implements FileBlockModel {
 
       const btns = [uploader];
 
-      if (this.getFileManagerLtr() == 'left') {
-        btns.unshift(fileManager);
-      } else {
-        btns.push(fileManager);
+      if (this.isFileManager()) {
+        if (this.getFileManagerLtr() == 'left') {
+          btns.unshift(fileManager);
+        } else {
+          btns.push(fileManager);
+        }
       }
 
       const uploadsForm = make('div', (uForm) => {
