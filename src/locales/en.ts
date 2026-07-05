@@ -78,4 +78,6 @@ export const EnLocale = {
   asyncCancelSuccess: 'Task successfully cancelled',
   asyncCancelErrorMessage: 'Error when canceling a task',
   asyncCancelNoTask: 'There is no active task to cancel',
+  largeFile: 'The file size is too large',
+  fileManager: 'File Manager',
 };

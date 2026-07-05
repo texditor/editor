@@ -78,4 +78,6 @@ export const RuLocale = {
   asyncCancelSuccess: 'Задача успешно отменена',
   asyncCancelErrorMessage: 'Ошибка при отмене задачи',
   asyncCancelNoTask: 'Нет активной задачи для отмены',
+  largeFile: 'Размер файла слишком велик',
+  fileManager: 'Файловый менеджер',
 };

@@ -47,3 +47,25 @@ export interface AjaxConfig<
   /** Request options */
   options?: AjaxOptions<TResponse, TData, THeaders>;
 }
+
+/**
+ * Standardized JSON API response envelope
+ * Follows a common REST API convention with success flag, status code, and typed data payload
+ * @template T - Type of the data payload (defaults to unknown array)
+ */
+export interface ApiResponse<T = unknown[]> {
+  /** Indicates whether the request was processed successfully */
+  success: boolean;
+  /** Application-level status/error code */
+  code: number;
+  /** Human-readable message (null if no message is provided) */
+  message: string | null;
+  /** Validation errors or detailed error information (optional) */
+  errors?: string;
+  /** Response data payload */
+  data: T;
+  /**
+   * Additional dynamic properties
+   */
+  [key: string]: unknown;
+}

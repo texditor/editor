@@ -17,8 +17,11 @@ import type {
   FileAsyncCheckerResponse,
   FileAsyncCancelResponse,
   BlockSchemaData,
+  GlobalFile,
+  AjaxData,
+  TexditorEventBase,
 } from '@/types';
-import { IconClose, IconFile, IconFiles, IconPlus } from '@/icons';
+import { IconClose, IconFile, IconFiles, IconFolder, IconPlus } from '@/icons';
 import BlockModel from '@/core/models/block-model';
 import { renderIcon } from '@/utils/icon';
 import MoveRightFileAction from './actions/MoveRightFileAction';
@@ -27,7 +30,7 @@ import DeleteFileAction from './actions/DeleteFileAction';
 import EditFileAction from './actions/EditFileAction';
 import DownloadFileAction from './actions/DownloadFileAction';
 import '@/styles/entities/blocks/file.css';
-import { ajax, executeMethodIfExists } from '@/utils';
+import { ajax, executeMethodIfExists, generateUUID } from '@/utils';
 import {
   addClass,
   append,
@@ -47,6 +50,7 @@ import {
   queryList,
   rebind,
   show,
+  text,
 } from 'snappykit';
 
 export { MoveRightFileAction, MoveLeftFileAction, DownloadFileAction, DeleteFileAction, EditFileAction };
@@ -64,6 +68,14 @@ export default class File extends BlockModel implements FileBlockModel {
   private asyncTimerId: number | null = null;
   /** Current async task ID */
   private taskId: string | number = '';
+  /** Current job status */
+  private jobStatus: string = '';
+  /** Set of active XHR requests for cancellation support */
+  private activeXHRs: Set<XMLHttpRequest> = new Set();
+  /** Current file index being uploaded */
+  private currentFileIndex: number = 0;
+  /** Total files to upload */
+  private totalFilesCount: number = 0;
 
   /** @see FileBlockModel.setup */
   public static setup(config: Partial<FileBlockModelConfig>): BlockModelConstructor {
@@ -99,7 +111,7 @@ export default class File extends BlockModel implements FileBlockModel {
       multiple: true,
       maxItems: 10,
       visibleCounter: true,
-      inputName: 'files',
+      inputName: 'file',
       contentClassName: 'tex-file-content',
       itemClassName: 'tex-file-item-default',
       uploadLabelIcon: renderIcon(IconPlus, {
@@ -122,6 +134,17 @@ export default class File extends BlockModel implements FileBlockModel {
       asyncCheckerConfig: { url: '' },
       asyncCancelConfig: { url: '' },
       actionSkipSelector: '',
+      chunked: false,
+      chunkSize: 2 * 1024 * 1204,
+      fileMaxSize: 10 * 1024 * 1204,
+      fileManager: false,
+      fileManagerShowTitle: true,
+      fileManagerTitle: i18n.get('fileManager', 'File Manager'),
+      fileManagerBtnIcon: renderIcon(IconFolder, {
+        width: 12,
+        height: 12,
+      }),
+      fileManagerLtr: 'right',
     };
   }
 
@@ -144,6 +167,14 @@ export default class File extends BlockModel implements FileBlockModel {
     this.formElement = this.createForm();
     prepend(blockElement, this.formElement);
     this.createList();
+    this.refresh();
+  }
+
+  /**
+   * Block change event
+   * @param _evt - Base event
+   */
+  protected onBlockChange(_evt?: TexditorEventBase): void {
     this.refresh();
   }
 
@@ -324,8 +355,10 @@ export default class File extends BlockModel implements FileBlockModel {
    * @returns Form element
    */
   protected createForm(): HTMLElement {
+    const { blockManager } = this.editor;
     const id = randString(16),
-      itemsLength = this.getOption('data', [])?.length || 0;
+      itemsLength = this.getOption('data', [])?.length || 0,
+      fmIcon = this.getConfig('fileManagerBtnIcon') as string;
 
     return make('div', (form: HTMLElement) => {
       addClass(form, 'tex-file-form');
@@ -337,7 +370,53 @@ export default class File extends BlockModel implements FileBlockModel {
         append(uploaderEl, [inputFile, labelFile]);
       });
 
-      append(form, uploader);
+      const fileManager = make('div', (fm) => {
+        addClass(fm, 'tex-file-form-fileManager tex-no-select');
+
+        const btn = make('div', (btn) => {
+          addClass(btn, 'tex-file-form-fileManager-btn');
+
+          append(
+            btn,
+            make('span', (spanBtn) => html(spanBtn, fmIcon)),
+          );
+
+          if (this.isFileManagerShowTitle()) {
+            append(
+              btn,
+              make('span', (spanText) => {
+                addClass(spanText, 'tex-text-span');
+                text(spanText, this.getFileManagerTitle());
+              }),
+            );
+          }
+
+          on(btn, 'click.fm', () => {
+            const callback = this.getConfig('onOpenFileManager') as CallableFunction;
+
+            if (callback) {
+              callback(blockManager.getIndex(this.getElement()), this.getName(), this, this.editor);
+            }
+          });
+        });
+
+        append(fm, btn);
+      });
+
+      const btns = [uploader];
+
+      if (this.getFileManagerLtr() == 'left') {
+        btns.unshift(fileManager);
+      } else {
+        btns.push(fileManager);
+      }
+
+      const uploadsForm = make('div', (uForm) => {
+        addClass(uForm, 'tex-file-form-uploads');
+      });
+
+      append(uploadsForm, btns);
+      append(form, uploadsForm);
 
       this.onFormCreate(form);
     });
@@ -381,195 +460,409 @@ export default class File extends BlockModel implements FileBlockModel {
     const ajaxConfig: AjaxConfig = this.getAsyncCancelConfig();
     const userOptions: AjaxOptions = ajaxConfig?.options || {};
     const url = ajaxConfig.url;
+    const { data, method, headers, timeout } = userOptions;
+    const formData = this.formData(data);
+    formData.append('taskId', taskId.toString());
 
-    if (!userOptions.data) {
-      userOptions.data = { taskId: taskId };
-    } else if (typeof userOptions.data === 'object' && !(userOptions.data instanceof FormData)) {
-      (userOptions.data as Record<string, unknown>).taskId = taskId;
-    }
+    ajax<FileAsyncCancelResponse>(url, {
+      method: method || 'POST',
+      data: formData,
+      headers: headers ? { ...headers } : {},
+      timeout: timeout || 45000,
+      success: (data) => {
+        const responseData = data.data;
 
-    if (!userOptions.method) userOptions.method = 'POST';
-
-    ajax<FileAsyncCancelResponse>(url, userOptions).then((response: AjaxResponse<FileAsyncCancelResponse>) => {
-      if (response.error) {
-        if (userOptions.error) {
-          userOptions.error(response.error, response);
+        if (userOptions.success) {
+          userOptions.success(responseData);
         }
-        this.toasts().add(response.error || i18n.get('asyncCancelErrorMessage'), { code: 'error' });
+
+        if (responseData?.status === 'cancelled') {
+          this.setTaskId('');
+
+          if (responseData?.message)
+            this.toasts().add(responseData?.message || i18n.get('asyncCancelSuccess'), { code: 'success' });
+
+          this.change(
+            'upload',
+            {
+              success: true,
+              response: data,
+            },
+            {
+              uploadEvent: true,
+            },
+          );
+        } else {
+          this.toasts().add(i18n.get('asyncCancelErrorMessage'), { code: 'error' });
+
+          this.change(
+            'upload',
+            {
+              success: false,
+              response: data,
+            },
+            {
+              uploadEvent: true,
+            },
+          );
+        }
+
+        this.updateProgress(null);
+      },
+      error: (errorMessage, response) => {
+        if (response.data?.errors && Array.isArray(response.data.errors)) {
+          response.data.errors.forEach((item) => {
+            this.toasts().add(item, { code: 'error' });
+          });
+        } else {
+          this.toasts().add(errorMessage || i18n.get('asyncCancelErrorMessage'), { code: 'error' });
+        }
+
+        if (userOptions.error) {
+          userOptions.error(errorMessage, response);
+        }
+
+        this.updateProgress(null);
 
         this.change(
           'upload',
           {
             success: false,
-            error: response.error,
+            error: errorMessage,
             response: response.data,
           },
           {
             uploadEvent: true,
           },
         );
-        return;
-      }
-
-      const responseData = response.data;
-
-      if (userOptions.success) {
-        userOptions.success(responseData);
-      }
-
-      if (responseData?.data?.status === 'cancelled') {
-        this.removeProgress();
-        this.setTaskId('');
-
-        if (responseData?.data?.message)
-          this.toasts().add(responseData?.data?.message || i18n.get('asyncCancelSuccess'), { code: 'success' });
-
-        this.change(
-          'upload',
-          {
-            success: true,
-            response: responseData,
-          },
-          {
-            uploadEvent: true,
-          },
-        );
-      } else {
-        this.toasts().add(i18n.get('asyncCancelErrorMessage'), { code: 'error' });
-
-        this.change(
-          'upload',
-          {
-            success: false,
-            response: responseData,
-          },
-          {
-            uploadEvent: true,
-          },
-        );
-      }
+      },
     });
   }
 
-  private processAsync() {
-    const ajaxConfig: AjaxConfig = this.getAsyncCheckerConfig();
-    const userOptions: AjaxOptions = ajaxConfig?.options || {};
-    const url = ajaxConfig.url;
-    const { i18n } = this.editor;
-    const taskId = this.getTaskId();
+  /** @see FileBlockModel.getJobStatus */
+  getJobStatus(): string {
+    return this.jobStatus;
+  }
 
-    if (!taskId) return;
+  /** @see FileBlockModel.setJobStatus */
+  setJobStatus(status: string): void {
+    this.jobStatus = status;
+  }
 
-    if (!userOptions.data) {
-      userOptions.data = { taskId: taskId };
-    } else if (typeof userOptions.data === 'object' && !(userOptions.data instanceof FormData)) {
-      (userOptions.data as Record<string, unknown>).taskId = taskId;
+  /**
+   * Check if current job is cancellable
+   * @returns True if job is in progress and can be cancelled
+   */
+  private isCancel(): boolean {
+    const jobStatus = this.getJobStatus();
+
+    if (jobStatus === 'chunkUploadProgress' || jobStatus === 'asyncProcessing' || jobStatus === 'uploadProgress')
+      return true;
+
+    return false;
+  }
+
+  /**
+   * Cancel the current upload or async processing job
+   */
+  cancelUpload(): void {
+    const jobStatus = this.getJobStatus();
+
+    if (jobStatus === 'asyncProcessing') {
+      if (this.asyncTimerId) {
+        clearTimeout(this.asyncTimerId);
+        this.asyncTimerId = null;
+      }
+      this.cancelAsync();
+    } else if (jobStatus === 'chunkUploadProgress' || jobStatus === 'uploadProgress') {
+      this.abortAllXHRs();
+      this.setJobStatus('cancelChunk');
+      this.forceRemoveProgress();
     }
 
-    if (!userOptions.method) userOptions.method = 'POST';
+    this.updateProgress(null);
+  }
 
-    ajax<FileAsyncCheckerResponse>(url, userOptions).then((response: AjaxResponse<FileAsyncCheckerResponse>) => {
-      if (response.error) {
-        if (userOptions.error) {
-          userOptions.error(response.error, response);
+  /**
+   * Abort all active XHR requests
+   */
+  private abortAllXHRs(): void {
+    this.activeXHRs.forEach((xhr) => {
+      try {
+        xhr.abort();
+      } catch (e) {
+        console.warn(e);
+      }
+    });
+    this.activeXHRs.clear();
+  }
+
+  /**
+   * Add XHR to active requests set for tracking
+   * @param xhr - XMLHttpRequest instance to track
+   */
+  private addActiveXHR(xhr: XMLHttpRequest): void {
+    this.activeXHRs.add(xhr);
+  }
+
+  /**
+   * Remove XHR from active requests set
+   * @param xhr - XMLHttpRequest instance to remove
+   */
+  private removeActiveXHR(xhr: XMLHttpRequest): void {
+    this.activeXHRs.delete(xhr);
+  }
+
+  /**
+   * Force remove progress element immediately without delay
+   */
+  private forceRemoveProgress(): void {
+    if (this.asyncTimerId) {
+      clearTimeout(this.asyncTimerId);
+      this.asyncTimerId = null;
+    }
+
+    if (this.progressElement) {
+      this.progressElement.remove();
+      this.progressElement = null;
+    }
+
+    const form = this.getFormElement();
+    if (form) {
+      const [label] = queryList<HTMLElement>('.tex-file-form-label', form);
+      if (label) {
+        css(label, 'visibility', '');
+      }
+    }
+
+    this.setJobStatus('');
+    this.currentFileIndex = 0;
+    this.totalFilesCount = 0;
+    this.refresh();
+  }
+
+  /**
+   * Safely update or remove progress bar
+   * @param percent - Progress percentage (0-100), null to remove progress bar
+   */
+  private updateProgress(percent: number | null): void {
+    if (percent === null) {
+      if (this.asyncTimerId) {
+        clearTimeout(this.asyncTimerId);
+        this.asyncTimerId = null;
+      }
+
+      if (this.progressElement) {
+        this.progressElement.remove();
+        this.progressElement = null;
+      }
+
+      const form = this.getFormElement();
+      if (form) {
+        const [label] = queryList<HTMLElement>('.tex-file-form-label', form);
+        if (label) {
+          css(label, 'visibility', '');
         }
-        this.toasts().add(response.error || i18n.get('asyncErrorMessage'), { code: 'error' });
+      }
 
-        this.removeProgress();
-        this.setTaskId('');
+      this.setJobStatus('');
+      this.refresh();
+      return;
+    }
 
-        this.change(
-          'upload',
-          {
-            success: false,
-            error: response.error,
-            response: response.data,
-          },
-          {
-            uploadEvent: true,
-          },
-        );
+    this.createProgress();
+
+    const progressElement = this.getProgressElement();
+    const cssName = '.tex-file-form';
+
+    if (progressElement) {
+      const isCancel = this.isCancel();
+
+      query(cssName + '-progress-line', (el: HTMLDivElement) => css(el, 'width', percent + '%'), progressElement);
+
+      query(
+        cssName + '-progress-percent',
+        (el: HTMLDivElement) => {
+          let progressText = percent + '%';
+          if (this.totalFilesCount > 0) {
+            progressText += ` (${this.currentFileIndex}/${this.totalFilesCount})`;
+          }
+          el.innerText = progressText;
+        },
+        progressElement,
+      );
+
+      query(
+        '.tex-file-async-cancel',
+        (el: HTMLDivElement) => css(el, 'display', isCancel ? '' : 'none'),
+        progressElement,
+      );
+    }
+  }
+
+  /**
+   * Process async file upload status checking
+   * @returns Promise that resolves when async processing is complete
+   */
+  private processAsync(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const { i18n } = this.editor;
+      const ajaxConfig: AjaxConfig = this.getAsyncCheckerConfig();
+      const userOptions: AjaxOptions = ajaxConfig?.options || {};
+      const url = ajaxConfig.url;
+      const taskId = this.getTaskId();
+
+      if (!taskId) {
+        this.updateProgress(null);
+        reject(new Error('No taskId'));
         return;
       }
 
-      const responseData = response.data;
+      const { data, method, headers, timeout } = userOptions;
+      const formData = this.formData(data);
+      formData.append('taskId', taskId.toString());
 
-      if (userOptions.success) {
-        userOptions.success(responseData);
-      }
+      const maxAttempts = 300;
+      let attempts = 0;
 
-      const status = responseData?.data.status || 'error',
-        progress = responseData?.data.progress || 5,
-        files = responseData?.data.files || [];
+      const checkStatus = () => {
+        attempts++;
 
-      if (status == 'processing') {
-        this.progress(progress);
-
-        // Сохраняем timerId для возможности отмены
-        this.asyncTimerId = window.setTimeout(() => {
-          this.processAsync();
-        }, 2000);
-      } else if (status == 'cancelled') {
-        this.removeProgress();
-        this.setTaskId('');
-
-        this.change(
-          'upload',
-          {
-            success: false,
-            response: responseData,
-          },
-          {
-            uploadEvent: true,
-            async: true,
-          },
-        );
-      } else if (status == 'success') {
-        if (Array.isArray(files)) {
-          (files as FileResponseItem[]).forEach((item) => {
-            if (item.url && item.type) {
-              this.createItem(item, 0, true);
-            }
-
-            if (item.message) {
-              this.toasts().add(item.message || i18n.get('fileUploadSuccess'), {
-                code: item.status ? 'success' : 'error',
-              });
-            }
-          });
+        // Защита от бесконечного цикла
+        if (attempts > maxAttempts) {
+          this.updateProgress(null);
+          this.setTaskId('');
+          this.setJobStatus('');
+          this.toasts().add(i18n.get('asyncTimeout', 'Async processing timeout'), { code: 'error' });
+          resolve();
+          return;
         }
 
-        this.removeProgress();
-        this.setTaskId('');
-        this.change(
-          'upload',
-          {
-            success: true,
-            response: responseData,
-          },
-          {
-            uploadEvent: true,
-            async: true,
-          },
-        );
-      } else {
-        this.removeProgress();
-        this.setTaskId('');
-        this.toasts().add(i18n.get('asyncErrorMessage'), { code: 'error' });
+        if (this.getJobStatus() === 'cancelChunk') {
+          this.updateProgress(null);
+          resolve();
+          return;
+        }
 
-        this.change(
-          'upload',
-          {
-            success: false,
-            response: responseData,
+        ajax<FileAsyncCheckerResponse>(url, {
+          method: method || 'POST',
+          data: formData,
+          headers: headers ? { ...headers } : {},
+          timeout: timeout || 45000,
+          success: (data) => {
+            const responseData = data.data;
+
+            if (userOptions.success) {
+              userOptions.success(responseData);
+            }
+
+            const status = responseData?.status || 'error';
+            const progress = responseData?.progress || 5;
+            const files = responseData?.files || [];
+
+            if (status == 'processing') {
+              this.updateProgress(progress);
+              this.setJobStatus('asyncProcessing');
+              this.asyncTimerId = window.setTimeout(() => {
+                checkStatus();
+              }, 2000);
+            } else if (status == 'cancelled') {
+              this.updateProgress(null);
+              this.setTaskId('');
+              this.setJobStatus('');
+              this.change('upload', { success: false, response: data }, { uploadEvent: true, async: true });
+              resolve();
+            } else if (status == 'success') {
+              if (Array.isArray(files)) {
+                (files as FileResponseItem[]).forEach((item) => {
+                  if (item.url && item.type) {
+                    this.createItem(item, 0, true);
+                  }
+                  if (item.message) {
+                    this.toasts().add(item.message || i18n.get('fileUploadSuccess'), {
+                      code: item.status ? 'success' : 'error',
+                    });
+                  }
+                });
+              }
+
+              this.updateProgress(null);
+              this.setTaskId('');
+              this.setJobStatus('');
+              this.change('upload', { success: true, response: data }, { uploadEvent: true, async: true });
+              resolve();
+            } else {
+              this.updateProgress(null);
+              this.setTaskId('');
+              this.setJobStatus('');
+              this.toasts().add(i18n.get('asyncErrorMessage'), { code: 'error' });
+              this.change('upload', { success: false, response: data }, { uploadEvent: true, async: true });
+              resolve();
+            }
           },
-          {
-            uploadEvent: true,
-            async: true,
+          error: (errorMessage, response) => {
+            if (attempts % 3 === 0) {
+              this.updateProgress(null);
+              this.setTaskId('');
+              this.setJobStatus('');
+
+              if (response.data?.errors && Array.isArray(response.data.errors)) {
+                response.data.errors.forEach((item) => {
+                  this.toasts().add(item, { code: 'error' });
+                });
+              } else {
+                this.toasts().add(errorMessage || i18n.get('asyncErrorMessage'), { code: 'error' });
+              }
+
+              if (userOptions.error) {
+                userOptions.error(errorMessage, response);
+              }
+
+              this.change(
+                'upload',
+                { success: false, error: errorMessage, response: response.data },
+                { uploadEvent: true },
+              );
+              resolve();
+            } else {
+              this.asyncTimerId = window.setTimeout(() => {
+                checkStatus();
+              }, 5000);
+            }
           },
-        );
-      }
+        });
+      };
+
+      checkStatus();
     });
+  }
+
+  /**
+   * Validates a file against size and MIME type constraints.
+   * @param file - The file to validate
+   * @returns Validation result with error message if invalid
+   */
+  protected validateFile(file: GlobalFile): { isValid: boolean; error?: string } {
+    const { i18n } = this.editor;
+
+    const maxSize = this.getFileMaxSize(),
+      mimeTypes = this.getMimeTypes();
+
+    if (maxSize > 0 && file.size > maxSize) {
+      return {
+        isValid: false,
+        error: i18n.get('largeFile', 'The file size is too large') + ': ' + (file.name || ''),
+      };
+    }
+
+    if (mimeTypes.length > 0 && !mimeTypes.includes(file.type)) {
+      return {
+        isValid: false,
+        error: i18n.get('invalidFileType', 'Invalid file type') + ': ' + (file.name || ''),
+      };
+    }
+
+    return { isValid: true };
   }
 
   /**
@@ -583,68 +876,32 @@ export default class File extends BlockModel implements FileBlockModel {
 
     if (form) {
       const [label] = queryList<HTMLElement>('.tex-file-form-label', form);
-      const onLoaded = () => this.removeProgress();
 
       if (label) {
         css(label, 'visibility', 'hidden');
 
         const maxItems = this.getMaxItems(),
           itemsLength = this.getItemsLength(),
-          filesLength = input.files?.length || 0;
+          files = input.files || [],
+          errors: string[] = [];
 
-        if (itemsLength + filesLength > maxItems || (!this.isMultiple() && itemsLength > 0)) {
+        for (let i = 0; i < files.length; i++) {
+          const validated = this.validateFile(files[i]);
+
+          if (!validated.isValid && validated.error) errors.push(validated.error);
+        }
+
+        if (errors.length > 0) {
+          errors.forEach((error) => this.toasts().add(error, { code: 'error' }));
+          this.updateProgress(null);
+        } else if (itemsLength + files.length > maxItems || (!this.isMultiple() && itemsLength > 0)) {
           this.toasts().add(i18n.get('fileUploadMaxItems'), { code: 'error' });
-          onLoaded();
+          this.updateProgress(null);
         } else {
-          this.progress(0);
-          this.ajax(
-            input,
-            (response: FileAjaxResponse) => {
-              const isData = Array.isArray(response.data) && response.data.length;
-              const isAsyncTask =
-                !Array.isArray(response.data) &&
-                response.data?.status &&
-                (response.data.status === 'processing' || response.data.status === 'async');
-
-              if (isData) {
-                if (response.message)
-                  this.toasts().add(response.message || i18n.get('fileUploadSuccess'), { code: 'success' });
-
-                (response.data as FileResponseItem[]).forEach((item) => {
-                  if (item.url && item.type) {
-                    if (item.status) this.createItem(item, 0, true);
-
-                    if (item.message) {
-                      this.toasts().add(item.message, { code: item.status ? 'success' : 'error' });
-                    }
-                  }
-                });
-              } else if (isAsyncTask) {
-                const asyncResponse = response.data as FileAsyncResponse;
-
-                if (asyncResponse.taskId) {
-                  this.setTaskId(asyncResponse.taskId);
-                  this.processAsync();
-                  this.toasts().add(asyncResponse.message || i18n.get('asyncMessage', ''), { code: 'success' });
-                } else this.toasts().add(i18n.get('asyncErrorMessage', ''), { code: 'error' });
-              }
-
-              if (isAsyncTask) this.progress(5);
-              else onLoaded();
-            },
-            (percent: number) => {
-              this.progress(percent);
-            },
-            (_error: unknown, response: AjaxResponse<FileAjaxResponse>) => {
-              if (response && response.data?.errors && Array.isArray(response.data.errors)) {
-                response.data.errors.forEach((item) => {
-                  this.toasts().add(item, { code: 'error' });
-                });
-              }
-
-              onLoaded();
-            },
-          );
+          this.currentFileIndex = 0;
+          this.totalFilesCount = files.length;
+          this.updateProgress(0);
+          this.upload(input);
         }
       }
     }
@@ -678,6 +935,41 @@ export default class File extends BlockModel implements FileBlockModel {
   /** @see FileBlockModel.getAsyncCancelConfig */
   getAsyncCancelConfig(): AjaxConfig {
     return this.getConfig('asyncCancelConfig', { url: '' }) as AjaxConfig;
+  }
+
+  /** @see FileBlockModel.isChunked */
+  isChunked(): boolean {
+    return this.getConfig('chunked', false);
+  }
+
+  /** @see FileBlockModel.getChunkSize */
+  getChunkSize(): number {
+    return this.getConfig('chunkSize', 2 * 1024 * 1024);
+  }
+
+  /** @see FileBlockModel.getFileMaxSize */
+  getFileMaxSize(): number {
+    return this.getConfig('fileMaxSize', 10 * 1024 * 1024);
+  }
+
+  /** @see FileBlockModel.isFileManager */
+  isFileManager(): boolean {
+    return this.getConfig('fileManager', false);
+  }
+
+  /** @see FileBlockModel.isFileManagerShowTitle */
+  isFileManagerShowTitle(): boolean {
+    return this.getConfig('fileManagerShowTitle', true);
+  }
+
+  /** @see FileBlockModel.getFileManagerTitle */
+  getFileManagerTitle(): string {
+    return this.getConfig('fileManagerTitle', '');
+  }
+
+  /** @see FileBlockModel.getFileManagerLtr */
+  getFileManagerLtr(): string {
+    return this.getConfig('fileManagerLtr', 'right');
   }
 
   /** @see FileBlockModel.getInputName */
@@ -776,11 +1068,10 @@ export default class File extends BlockModel implements FileBlockModel {
       const labelCnt = make('div', (labelContainer: HTMLDivElement) => {
         addClass(labelContainer, 'tex-file-form-label-container');
 
-        const text = make(
-            'span',
-            (span: HTMLSpanElement) =>
-              (span.innerHTML = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText),
-          ),
+        const text = make('span', (span: HTMLSpanElement) => {
+            addClass(span, 'tex-text-span');
+            html(span, isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText);
+          }),
           icon = make('span', (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
 
         append(labelContainer, [icon, text]);
@@ -1065,11 +1356,11 @@ export default class File extends BlockModel implements FileBlockModel {
         ]);
 
         const cancelConfig = this.getAsyncCancelConfig();
-
-        if (this.getTaskId() && cancelConfig.url) {
+        if (cancelConfig.url) {
           append(div, [
             make('div', (cancel) => {
               addClass(cancel, 'tex-file-async-cancel');
+              css(cancel, 'display', 'none');
               html(
                 cancel,
                 renderIcon(IconClose, {
@@ -1078,7 +1369,7 @@ export default class File extends BlockModel implements FileBlockModel {
                 }),
               );
 
-              on(cancel, 'click.cn', () => this.cancelAsync());
+              on(cancel, 'click.cn', () => this.cancelUpload());
             }),
           ]);
         }
@@ -1099,179 +1390,374 @@ export default class File extends BlockModel implements FileBlockModel {
 
   /** @see FileBlockModel.progress */
   progress(percent: number): void {
-    this.createProgress();
-
-    const progressElement = this.getProgressElement();
-    const cssName = '.tex-file-form';
-
-    if (progressElement) {
-      query(cssName + '-progress-line', (el: HTMLDivElement) => css(el, 'width', percent + '%'), progressElement);
-      query(cssName + '-progress-percent', (el: HTMLDivElement) => (el.innerText = percent + '%'), progressElement);
-    }
+    this.updateProgress(percent);
   }
 
   /** @see FileBlockModel.removeProgress */
   removeProgress(): void {
-    const form = this.getFormElement();
-
-    if (form) {
-      const [label] = queryList<HTMLElement>('.tex-file-form-label', form);
-
-      if (label) {
-        css(label, 'visibility', '');
-        const progressElement = this.getProgressElement();
-
-        if (progressElement) {
-          setTimeout(() => {
-            progressElement.remove();
-            this.progressElement = null;
-          }, 1000);
-        }
-      }
-
-      this.refresh();
-    }
+    this.updateProgress(null);
+    this.currentFileIndex = 0;
+    this.totalFilesCount = 0;
   }
 
   /**
-   * Perform AJAX file upload
-   * @param input - File input element
-   * @param success - Success callback
-   * @param progress - Progress callback
-   * @param error - Error callback
+   * Converts plain object data into FormData.
+   * @param data - Object to convert
+   * @returns FormData instance
    */
-  protected ajax(
-    input: HTMLInputElement,
-    success: CallableFunction,
-    progress: CallableFunction,
-    error?: CallableFunction,
-  ): void {
-    const { i18n } = this.editor;
-    const ajaxConfig = this.getAjaxConfig(),
-      inputName = this.getInputName();
+  private formData(data?: AjaxData): FormData {
+    const formData = new FormData();
 
+    if (
+      data &&
+      typeof data === 'object' &&
+      !(data instanceof FormData) &&
+      !(data instanceof Blob) &&
+      !(data instanceof ArrayBuffer) &&
+      !(data instanceof URLSearchParams) &&
+      !Array.isArray(data)
+    ) {
+      const dataObj = data as Record<string, unknown>;
+
+      for (const item in dataObj) {
+        if (Object.prototype.hasOwnProperty.call(dataObj, item)) {
+          const value = dataObj[item];
+          if (value !== undefined && value !== null) {
+            formData.append(item, String(value));
+          }
+        }
+      }
+    }
+
+    return formData;
+  }
+
+  /**
+   * Handles successful upload response.
+   * Routes to async processing or creates file item based on response status.
+   * @param data - Response data from server
+   * @param options - AJAX configuration options
+   * @returns Promise that resolves when processing is complete
+   */
+  protected async uploadSuccess(data: FileAjaxResponse, options: AjaxOptions<FileAjaxResponse>): Promise<void> {
+    const { i18n } = this.editor;
+
+    if (!data.success) {
+      this.updateProgress(null);
+
+      if (data?.errors && Array.isArray(data.errors)) {
+        data.errors.forEach((item) => this.toasts().add(item));
+      } else {
+        this.toasts().add(i18n.get('fileUploadError'));
+      }
+
+      return;
+    }
+
+    const isAsyncTask =
+      !Array.isArray(data.data) &&
+      data.data?.status &&
+      (data.data.status === 'processing' || data.data.status === 'async');
+
+    if (isAsyncTask) {
+      const asyncResponse = data.data as FileAsyncResponse;
+
+      if (asyncResponse?.taskId) {
+        this.setTaskId(asyncResponse.taskId);
+        this.setJobStatus('asyncProcessing');
+        this.updateProgress(5);
+        this.toasts().add(asyncResponse?.message || i18n.get('asyncMessage', ''), { code: 'success' });
+
+        try {
+          await this.processAsync();
+        } catch (error) {
+          console.error('Async processing error:', error);
+          this.updateProgress(null);
+        }
+      } else {
+        this.updateProgress(null);
+        this.toasts().add(i18n.get('asyncErrorMessage', ''), { code: 'error' });
+      }
+    } else {
+      const responseData = data.data as FileResponseItem;
+
+      if (responseData?.url && responseData?.type) {
+        this.createItem(responseData, 0, true);
+        this.toasts().add(responseData?.message || i18n.get('fileUploadSuccess'), { code: 'success' });
+      }
+
+      this.updateProgress(null);
+    }
+
+    if (options?.success) {
+      options.success(data);
+    }
+
+    this.change(
+      'upload',
+      {
+        success: true,
+        response: data,
+      },
+      {
+        uploadEvent: true,
+      },
+    );
+  }
+
+  /**
+   * Handles upload errors
+   * @param errorMessage - Error message string
+   * @param response - AJAX response object
+   * @param options - AJAX configuration options
+   * @returns void
+   */
+  protected uploadError(
+    errorMessage: string,
+    response: AjaxResponse<FileAjaxResponse>,
+    options: AjaxOptions<FileAjaxResponse>,
+  ) {
+    const { i18n } = this.editor;
+
+    this.toasts().add(response?.data?.message || i18n.get('fileUploadError') + ': ' + response.error);
+
+    if (response?.data?.errors && Array.isArray(response?.data?.errors)) {
+      response.data.errors.forEach((item) => {
+        this.toasts().add(item, { code: 'error' });
+      });
+    }
+
+    if (options?.error) {
+      options.error(errorMessage, response);
+    }
+
+    this.updateProgress(null);
+    this.setJobStatus('');
+    this.change(
+      'upload',
+      {
+        success: false,
+        error: errorMessage,
+        response: response.data,
+      },
+      {
+        uploadEvent: true,
+      },
+    );
+  }
+
+  /**
+   * Initiates AJAX file upload
+   * Validates URL and processes selected files.
+   * @param input - File input element containing selected files
+   * @returns void
+   */
+  protected upload(input: HTMLInputElement): void {
+    const { i18n } = this.editor;
+    const ajaxConfig = this.getAjaxConfig();
     const url = ajaxConfig.url;
 
     if (isEmptyString(url)) {
       this.toasts().add(i18n.get('emptyUrl'));
-      this.removeProgress();
+      this.updateProgress(null);
       return;
     }
 
-    const userOptions = ajaxConfig.options;
+    const userOptions = ajaxConfig.options || {};
+
+    this.setJobStatus('upload');
 
     if (input.files && input.files.length > 0) {
-      const allowedTypes = this.getMimeTypes();
-      const files = Array.from(input.files);
+      const files = Array.from(input.files) as GlobalFile[];
+      this.processFiles(files, url, userOptions);
+    }
+  }
 
-      if (allowedTypes.length) {
-        for (const file of files) {
-          const isValid = allowedTypes.some((pattern: string) => {
-            if (pattern === '*/*') return true;
-            if (pattern.endsWith('/*')) {
-              return file.type.startsWith(pattern.split('/')[0] + '/');
-            }
-            return file.type === pattern;
-          });
+  /**
+   * Processes multiple files sequentially.
+   * @param files - Array of files to upload
+   * @param url - Upload endpoint URL
+   * @param options - AJAX configuration options
+   * @returns Promise that resolves when all files are processed
+   */
+  private async processFiles(files: GlobalFile[], url: string, options: AjaxOptions<FileAjaxResponse>): Promise<void> {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      this.currentFileIndex = i + 1;
+      this.updateProgress(0);
 
-          if (!isValid) {
-            this.toasts().add(i18n.get('invalidFileType') + ': ' + file.name);
-            if (error) error(new Error('Invalid file type'));
-            return;
-          }
-        }
+      const needChunked = this.isChunked() && file.size > this.getChunkSize();
+
+      if (needChunked) {
+        await this.uploadChunked(file, url, options);
+      } else {
+        await this.uploadSingle(file, url, options);
       }
+    }
 
-      const formData = new FormData(),
-        { data } = userOptions || {};
-      if (
-        data &&
-        typeof data === 'object' &&
-        !(data instanceof FormData) &&
-        !(data instanceof Blob) &&
-        !(data instanceof ArrayBuffer) &&
-        !(data instanceof URLSearchParams) &&
-        !Array.isArray(data)
-      ) {
-        const dataObj = data as Record<string, unknown>;
+    // Сбрасываем счетчики после завершения всех загрузок
+    this.currentFileIndex = 0;
+    this.totalFilesCount = 0;
+  }
 
-        for (const item in dataObj) {
-          if (Object.prototype.hasOwnProperty.call(dataObj, item)) {
-            const value = dataObj[item];
-            if (value !== undefined && value !== null) {
-              formData.append(item, String(value));
-            }
-          }
-        }
-      }
+  /**
+   * Uploads a single file via AJAX.
+   * @param file - File to upload
+   * @param url - Upload endpoint URL
+   * @param options - AJAX configuration options
+   * @returns Promise that resolves when upload completes
+   */
+  protected uploadSingle(file: GlobalFile, url: string, options: AjaxOptions<FileAjaxResponse>): Promise<void> {
+    return new Promise((resolve) => {
+      const { data, method } = options || {};
+      const formData = this.formData(data);
+      const inputName = this.getInputName();
+      formData.append(inputName + '[]', file);
 
-      for (let i = 0; i < files.length; i++) {
-        formData.append(inputName + '[]', files[i]);
-      }
-
-      const ajaxOptions: AjaxOptions = {
-        method: userOptions?.method || 'POST',
+      const xhr = ajax<FileAjaxResponse>(url, {
+        method: method || 'POST',
         data: formData,
         progress: (percent: number, loaded: number, total: number) => {
-          if (progress) progress(percent, loaded, total);
+          if (this.getJobStatus() === 'cancelChunk') {
+            xhr.abort();
+            this.forceRemoveProgress();
+            return;
+          }
 
-          if (userOptions?.progress) {
-            userOptions.progress(percent, loaded, total);
+          this.updateProgress(percent);
+          this.setJobStatus('uploadProgress');
+          if (options?.progress) {
+            options.progress(percent, loaded, total);
           }
         },
-        error: (errorMessage: string, response: AjaxResponse) => {
-          if (error) error(new Error(errorMessage));
-
-          if (userOptions?.error) {
-            userOptions.error(errorMessage, response);
+        success: async (data) => {
+          this.removeActiveXHR(xhr);
+          if (this.getJobStatus() !== 'cancelChunk') {
+            await this.uploadSuccess(data, options);
           }
+          resolve();
         },
-        headers: userOptions?.headers ? { ...userOptions.headers } : {},
-        timeout: userOptions?.timeout || 45000,
-      };
-
-      ajax<FileAjaxResponse>(url, ajaxOptions).then((response: AjaxResponse<FileAjaxResponse>) => {
-        if (response.error) {
-          const isCustomErrors = response.data?.errors && Array.isArray(response.data.errors);
-
-          if (!isCustomErrors) this.toasts().add(i18n.get('fileUploadError') + ': ' + response.error);
-
-          if (error) error(response.error, response);
-
-          if (userOptions?.error) {
-            userOptions.error(response.error, response);
+        error: (errorMessage, response) => {
+          this.removeActiveXHR(xhr);
+          if (this.getJobStatus() !== 'cancelChunk') {
+            this.uploadError(errorMessage, response, options);
+          } else {
+            this.forceRemoveProgress();
           }
-
-          this.change(
-            'upload',
-            {
-              success: false,
-              error: response.error,
-              response: response.data,
-            },
-            {
-              uploadEvent: true,
-            },
-          );
-        } else {
-          if (success) success(response.data);
-
-          if (userOptions?.success) {
-            userOptions.success(response.data);
-          }
-
-          this.change(
-            'upload',
-            {
-              success: true,
-              response: response.data,
-            },
-            {
-              uploadEvent: true,
-            },
-          );
-        }
+          resolve();
+        },
+        headers: options?.headers ? { ...options.headers } : {},
+        timeout: options?.timeout || 45000,
       });
+
+      this.addActiveXHR(xhr);
+    });
+  }
+
+  /**
+   * Uploads large files in chunks.
+   * @param file - File to upload in chunks
+   * @param url - Upload endpoint URL
+   * @param options - AJAX configuration options
+   * @returns Promise that resolves when all chunks are uploaded or upload is cancelled
+   */
+  protected async uploadChunked(file: GlobalFile, url: string, options: AjaxOptions<FileAjaxResponse>): Promise<void> {
+    const chunkSize = this.getChunkSize();
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    const fileId = generateUUID();
+    let cancelled = false;
+
+    for (let i = 0; i < totalChunks; i++) {
+      if (this.getJobStatus() === 'cancelChunk') {
+        cancelled = true;
+        break;
+      }
+
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const chunk = file.slice(start, end);
+      const isLast = i === totalChunks - 1;
+
+      const formData = this.formData(options?.data);
+      formData.append('chunk', chunk, file.name);
+      formData.append('fileId', fileId);
+      formData.append('fileSize', String(file.size));
+      formData.append('chunkIndex', String(i));
+      formData.append('totalChunks', String(totalChunks));
+
+      try {
+        await new Promise<void>((resolveChunk, rejectChunk) => {
+          if (this.getJobStatus() === 'cancelChunk') {
+            rejectChunk(new Error('Upload cancelled'));
+            return;
+          }
+
+          const xhr = ajax<FileAjaxResponse>(url, {
+            method: 'POST',
+            data: formData,
+            progress: (_pct: number, loaded: number) => {
+              if (this.getJobStatus() === 'cancelChunk') {
+                xhr.abort();
+                rejectChunk(new Error('Upload cancelled'));
+                return;
+              }
+
+              const overallPct = Math.round(((i * chunkSize + loaded) / file.size) * 100);
+              this.updateProgress(overallPct);
+              this.setJobStatus('chunkUploadProgress');
+              if (options?.progress) {
+                options.progress(overallPct, i * chunkSize + loaded, file.size);
+              }
+            },
+            success: async (data) => {
+              this.removeActiveXHR(xhr);
+
+              if (this.getJobStatus() === 'cancelChunk') {
+                rejectChunk(new Error('Upload cancelled'));
+                return;
+              }
+
+              if (isLast) {
+                await this.uploadSuccess(data, options);
+              }
+              resolveChunk();
+            },
+            error: (errorMessage, response) => {
+              this.removeActiveXHR(xhr);
+              this.uploadError(errorMessage, response, options);
+
+              if (options?.error) {
+                options.error(errorMessage, response);
+              }
+              rejectChunk(new Error(errorMessage));
+              this.setJobStatus('');
+            },
+            headers: options?.headers ? { ...options.headers } : {},
+            timeout: options?.timeout || 45000,
+          });
+
+          this.addActiveXHR(xhr);
+        });
+      } catch (err) {
+        console.warn(err);
+        cancelled = true;
+        break;
+      }
+    }
+
+    if (cancelled || this.getJobStatus() === 'cancelChunk') {
+      this.forceRemoveProgress();
+      this.change(
+        'upload',
+        {
+          success: false,
+          error: 'Upload cancelled',
+          response: null,
+        },
+        {
+          uploadEvent: true,
+        },
+      );
     }
   }
 
@@ -1341,10 +1827,18 @@ export default class File extends BlockModel implements FileBlockModel {
   }
 
   /**
-   * Clean up event listeners on destroy
+   * Clean up event listeners and active XHR requests on destroy
    */
   destroy(): void {
     const eid = this.getEventId();
     off(document, 'click.cab' + eid);
+
+    if (this.asyncTimerId) {
+      clearTimeout(this.asyncTimerId);
+      this.asyncTimerId = null;
+    }
+
+    this.abortAllXHRs();
+    this.updateProgress(null);
   }
 }

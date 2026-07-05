@@ -157,11 +157,11 @@
 }
 
 @media screen and (max-width: 768px) {
-  .tex-image .tex-file-form {
-    flex-direction: column;
-  }
-
   .tex-image .tex-block-content {
     grid-template-columns: 1fr;
+  }
+
+  .tex-image-style-list {
+    justify-content: center;
   }
 }
