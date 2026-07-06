@@ -21,7 +21,7 @@ import type {
   AjaxData,
   TexditorEventBase,
 } from '@/types';
-import { IconClose, IconFile, IconFiles, IconFolder, IconPlus } from '@/icons';
+import { IconClose, IconFile, IconFolder, IconPlus } from '@/icons';
 import BlockModel from '@/core/models/block-model';
 import { renderIcon } from '@/utils/icon';
 import MoveRightFileAction from './actions/MoveRightFileAction';
