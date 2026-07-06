@@ -89,11 +89,6 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  padding-left: 12px;
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  margin-top: -9px;
   white-space: nowrap;
 }
 
@@ -136,11 +131,17 @@
   height: 100%;
 }
 
+.tex-file-form-label-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
 .tex-file-form-label-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
   height: 100%;
   font-weight: 500;
   gap: 8px;
@@ -418,11 +419,5 @@
 
   .tex-file-list {
     grid-template-columns: 1fr;
-  }
-
-  .tex-file-counter {
-    margin-top: 0;
-    position: static;
-    padding-left: 12px;
   }
 }

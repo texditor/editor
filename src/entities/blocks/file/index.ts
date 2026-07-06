@@ -311,15 +311,6 @@ export default class File extends BlockModel implements FileBlockModel {
       html(counterElement, '');
       append(counterElement, [
         make('span', (span: HTMLSpanElement) => {
-          html(
-            span,
-            renderIcon(IconFiles, {
-              width: 11,
-              height: 11,
-            }),
-          );
-        }),
-        make('span', (span: HTMLSpanElement) => {
           span.textContent = realCount.toString() + max;
         }),
       ]);
@@ -375,6 +366,7 @@ export default class File extends BlockModel implements FileBlockModel {
 
         const btn = make('div', (btn) => {
           addClass(btn, 'tex-file-form-fileManager-btn');
+          attr(btn, 'title', this.getFileManagerTitle());
 
           append(
             btn,
@@ -1067,25 +1059,34 @@ export default class File extends BlockModel implements FileBlockModel {
       addClass(label, 'tex-file-form-label');
       label.id = 'label-' + id;
 
-      const labelCnt = make('div', (labelContainer: HTMLDivElement) => {
-        addClass(labelContainer, 'tex-file-form-label-container');
+      const labelWrap = make('div', (wrap) => {
+        addClass(wrap, 'tex-file-form-label-wrap');
+        const labelCnt = make('div', (labelContainer: HTMLDivElement) => {
+          addClass(labelContainer, 'tex-file-form-label-container');
 
-        const text = make('span', (span: HTMLSpanElement) => {
-            addClass(span, 'tex-text-span');
-            html(span, isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText);
-          }),
-          icon = make('span', (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
+          const btnText = isMultiple ? (length >= 1 ? addLabelText : multipleLabelText) : labelText;
 
-        append(labelContainer, [icon, text]);
+          attr(label, 'title', btnText);
+
+          const text = make('span', (span: HTMLSpanElement) => {
+              addClass(span, 'tex-text-span');
+              html(span, btnText);
+            }),
+            icon = make('span', (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
+
+          append(labelContainer, [icon, text]);
+        });
+
+        append(wrap, [labelCnt]);
 
         const counterElement = this.getCounterElement();
 
-        if (counterElement && this.isVisibleCounter()) append(labelContainer, counterElement);
+        if (counterElement && this.isVisibleCounter()) append(wrap, counterElement);
       });
 
       const uploadLabelMessage = this.getConfig('uploadLabelMessage', ''),
         showOnlyWhenEmpty = this.getConfig('showOnlyWhenEmpty', false),
-        labelItems = [labelCnt];
+        labelItems = [labelWrap];
 
       if (!isEmptyString(uploadLabelMessage)) {
         const labelMessage = make('div', (msg: HTMLDivElement) => {
