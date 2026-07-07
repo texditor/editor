@@ -49,6 +49,7 @@
   justify-content: center;
   height: 100%;
   cursor: pointer;
+  font-weight: 500;
 }
 
 .tex-file-form-uploader input:disabled + label,
