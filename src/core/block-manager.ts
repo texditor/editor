@@ -38,6 +38,7 @@ import {
   randString,
   off,
   rebind,
+  dataByPrefix,
 } from 'snappykit';
 
 import { Paragraph } from '@/entities/blocks';
@@ -600,6 +601,74 @@ export default class BlockManager implements IBlockManager {
     return block;
   }
 
+  /** @see IBlockManager.saveBlock */
+  saveBlock(el: BlockElement, strictMode: boolean = true): BlockSchema | null {
+    const model = el.baseModel;
+
+    if (!model.getName()) {
+      return null;
+    }
+
+    const extOptions = dataByPrefix(el, 'options');
+    let block: BlockSchema = {
+      type: model.getName(),
+      data: [],
+      ...extOptions,
+    };
+
+    const contentElement = this.getContentElement(el);
+
+    if (contentElement && model) {
+      if (model.isCustomSave()) {
+        block = executeMethodIfExists(model, '__save', [block, el, strictMode]) as BlockSchema;
+      } else {
+        if (model.isRaw()) {
+          block.data = [contentElement.innerText];
+        } else {
+          const parsedData = this.htmlToData(html(contentElement));
+
+          if (model.isEditableItems() && model.getItemsLength()) {
+            this.saveBlockItems(model, block);
+          } else {
+            block.data = parsedData.filter(
+              (item) => typeof item === 'string' || (typeof item === 'object' && item !== null),
+            ) as BlockSchemaData;
+          }
+        }
+      }
+    }
+
+    return block.data.length ? block : null;
+  }
+
+  /**
+   * Saves the block's items as ready-made data objects.
+   *
+   * @param model - The block model containing the items to save
+   * @param block - The block schema where parsed data will be stored
+   */
+  private saveBlockItems(model: BlockModel, block: BlockSchema): void {
+    let i = 0;
+    const items = model.getItems();
+
+    items.forEach(() => {
+      const itemBody = model.getItemBody(i);
+      if (itemBody) {
+        const parsedData = this.htmlToData(html(itemBody));
+
+        if (parsedData.length) {
+          const dataObj = {
+            type: model.getItemName(),
+            data: parsedData,
+          };
+          (block.data as object[]).push(dataObj);
+        }
+      }
+
+      i++;
+    });
+  }
+
   /** @see IBlockManager.rebuild */
   rebuild(index: number): BlockElement | null {
     const { events } = this.editor;
@@ -609,14 +678,11 @@ export default class BlockManager implements IBlockManager {
       return null;
     }
 
-    const allBlocksData = this.editor.getContent();
-    const blockData = allBlocksData[index];
+    const data = this.saveBlock(blockElement, false);
 
-    if (!blockData) {
-      return null;
-    }
+    if (!data) return null;
 
-    const newBlockElement = this.parseBlock(blockData);
+    const newBlockElement = this.parseBlock(data);
 
     if (!newBlockElement) {
       return null;

@@ -174,6 +174,14 @@ export interface BlockManager {
   ): BlockElement | null;
 
   /**
+   * Saves the block as ready-made data
+   * @param el - Block Element
+   * @param strictMode - Strict Mode
+   * @returns - Block Schema or null
+   */
+  saveBlock(el: BlockElement, strictMode?: boolean): BlockSchema | null;
+
+  /**
    * Recreates a block at the given index using the existing data.
    *
    * @param index - The index of the block to rebuild
