@@ -85,6 +85,11 @@
   opacity: 0.5;
 }
 
+.tex-block-active {
+  position: relative;
+  z-index: 100;
+}
+
 .tex-block-content:focus,
 .tex-block-active {
   background-color: var(--tex-background-lite);
@@ -384,6 +389,7 @@
 }
 
 .tex-sortable-ghost {
+  z-index: 9991;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   outline: 3px dashed var(--tex-sortable-outline-color);
 }

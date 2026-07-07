@@ -9,7 +9,6 @@ import type {
   HistoryManager as IHistoryManager,
   Extensions as IExtensions,
   BlockSchema,
-  BlockSchemaData,
   ConfigOptions,
   Texditor as ITexditor,
   TexditorRootElement,
@@ -24,7 +23,7 @@ import Commands from '@/core/commands';
 import HistoryManager from '@/core/history-manager';
 import Extensions from '@/core/extensions';
 import MainView from '@/views/main';
-import { queryLength, query, append, dataByPrefix, html, isEmptyString, queryList } from 'snappykit';
+import { queryLength, query, append, html, isEmptyString, queryList } from 'snappykit';
 import { executeMethodIfExists, sanitizeJson } from './utils';
 import '@/styles/texditor.css';
 import '@/styles/animations.css';
@@ -219,57 +218,9 @@ export default class Texditor implements ITexditor {
     blockManager.getBlocks().forEach((el) => {
       events.trigger('saveEach', { blockElement: el });
 
-      const model = el.baseModel;
-
-      if (model.getName()) {
-        const extOptions = dataByPrefix(el, 'options');
-        let block: BlockSchema = {
-          type: model.getName(),
-          data: [],
-          ...extOptions,
-        };
-
-        const contentElement = blockManager.getContentElement(el);
-
-        if (contentElement && model) {
-          if (model.isCustomSave()) {
-            block = executeMethodIfExists(model, '__save', [block, el]) as BlockSchema;
-          } else {
-            if (model.isRaw()) {
-              block.data = [contentElement.innerText];
-            } else {
-              const parsedData = blockManager.htmlToData(html(contentElement));
-
-              if (model.isEditableItems() && model.getItemsLength()) {
-                let i = 0;
-                const items = model.getItems();
-
-                items.forEach(() => {
-                  const itemBody = model.getItemBody(i);
-                  if (itemBody) {
-                    const parsedData = blockManager.htmlToData(html(itemBody));
-
-                    if (parsedData.length) {
-                      const dataObj = {
-                        type: model.getItemName(),
-                        data: parsedData,
-                      };
-                      (block.data as object[]).push(dataObj);
-                    }
-                  }
-
-                  i++;
-                });
-              } else {
-                block.data = parsedData.filter(
-                  (item) => typeof item === 'string' || (typeof item === 'object' && item !== null),
-                ) as BlockSchemaData;
-              }
-            }
-          }
-        }
-
-        if (block.data.length) data.push(block);
+      const block = blockManager.saveBlock(el);
+      if (block) {
+        data.push(block);
       }
 
       events.trigger('saveEachEnd', { blockElement: el });

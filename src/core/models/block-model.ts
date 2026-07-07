@@ -299,6 +299,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       ghostClass: 'tex-sortable-ghost',
       pressDuration: 10,
       edgeThreshold: 200,
+      syncSizeOnOverlap: true,
       maxItems: this.getMaxItems(),
 
       onStart: () => {
@@ -315,12 +316,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
         const targetBlock = targetBlockManager.findParent(data.destination!)!;
         const targetModel = targetBlock?.baseModel;
         const isCrossGroup = targetBlock !== this.getElement();
-        const targetIndex = targetBlockManager.getIndex(targetBlock);
-        const currentIndex = blockManager.getIndex(this.getElement());
+        const targetIndex = targetBlockManager.getReadyIndex(targetBlock);
+        const currentIndex = blockManager.getReadyIndex(this.getElement());
 
         if (isCrossGroup) {
           blockManager.rebuild(currentIndex);
-
           if (isAnotherEditor) {
             targetBlockManager.rebuild(targetIndex);
           } else {
@@ -1040,9 +1040,10 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Saves block data to output format
    * @param blockSchema - Block schema
    * @param _blockElement - Block element
+   * @param strictMode - Strict Mode
    * @returns The modified block output
    */
-  protected save(blockSchema: BlockSchema, _blockElement?: BlockElement): BlockSchema {
+  protected save(blockSchema: BlockSchema, _blockElement?: BlockElement, _strictMode: boolean = true): BlockSchema {
     return blockSchema;
   }
 
@@ -1050,10 +1051,12 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Public wrapper for save method
    * @param block - Block output object
    * @param blockElement - Block node (optional)
+   * @param strictMode - Strict Mode
    * @returns Modified block output
    */
-  __save(block: BlockSchema, blockElement?: BlockElement): BlockSchema {
-    const blockSchema = this.save(block, blockElement);
+  __save(block: BlockSchema, blockElement?: BlockElement, strictMode: boolean = true): BlockSchema {
+    const blockSchema = this.save(block, blockElement, strictMode);
+
     this.trigger('save', {
       type: 'save',
       modelCode: this.getModelCode(),

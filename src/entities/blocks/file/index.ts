@@ -1803,16 +1803,20 @@ export default class File extends BlockModel implements FileBlockModel {
    * Saves block data to output format
    * @param blockSchema - Block schema
    * @param blockElement - Block element
+   * @param strictMode - Strict Mode
    * @returns The modified block output.
    */
-  protected save(blockSchema: BlockSchema, blockElement?: BlockElement): BlockSchema {
+  protected save(blockSchema: BlockSchema, blockElement?: BlockElement, strictMode?: boolean): BlockSchema {
     const items = this.prepareItems(blockElement);
+    let data = items;
 
-    const data = this.isLinkStrategy()
-      ? items
-      : items
-          .filter((item) => item.id && item.id > 0)
-          .map(({ id, caption, desc }) => ({ id, caption, desc }) as FileItem);
+    if (strictMode) {
+      data = this.isLinkStrategy()
+        ? items
+        : items
+            .filter((item) => item.id && item.id > 0)
+            .map(({ id, caption, desc }) => ({ id, caption, desc }) as FileItem);
+    }
 
     return {
       ...blockSchema,
