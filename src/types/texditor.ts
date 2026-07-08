@@ -67,15 +67,17 @@ export interface Texditor {
 
   /**
    * Gets the current editor content
+   * @param strictMode - Strict Mode
    * @returns Array of block outputs
    */
-  getContent(): BlockSchema[];
+  getContent(strictMode?: boolean): BlockSchema[];
 
   /**
    * Saves the current editor state to a serializable format
+   * @param strictMode - Strict Mode
    * @returns Array of block output objects ready for storage or transmission
    */
-  save(): BlockSchema[] | [];
+  save(strictMode?: boolean): BlockSchema[] | [];
 
   /**
    * Sets the editor content

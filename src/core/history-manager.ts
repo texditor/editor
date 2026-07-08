@@ -51,7 +51,7 @@ export default class HistoryManager implements IHistoryManager {
     const { blockManager, events } = this.editor;
 
     try {
-      const content = this.editor.getContent(),
+      const content = this.editor.getContent(false),
         selection = this.getEditorSelection(),
         blockIndex = blockManager.getIndex(),
         model = blockManager.getModel();

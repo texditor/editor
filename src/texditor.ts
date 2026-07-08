@@ -85,7 +85,6 @@ export default class Texditor implements ITexditor {
    */
   private ready() {
     this.mount();
-    this.historyManager.save();
     executeMethodIfExists(this.extensions, '__apply');
 
     const readyCallback = this.config.get('onReady', false);
@@ -199,14 +198,14 @@ export default class Texditor implements ITexditor {
   /**
    * @see ITexditor.getContent
    */
-  getContent(): BlockSchema[] {
-    return this.save();
+  getContent(strictMode: boolean = true): BlockSchema[] {
+    return this.save(strictMode);
   }
 
   /**
    * @see ITexditor.save
    */
-  save(): BlockSchema[] {
+  save(strictMode: boolean = true): BlockSchema[] {
     const data: BlockSchema[] = [];
     const { blockManager, events } = this,
       root = this.getRoot();
@@ -218,7 +217,7 @@ export default class Texditor implements ITexditor {
     blockManager.getBlocks().forEach((el) => {
       events.trigger('saveEach', { blockElement: el });
 
-      const block = blockManager.saveBlock(el);
+      const block = blockManager.saveBlock(el, strictMode);
       if (block) {
         data.push(block);
       }
