@@ -1180,7 +1180,7 @@ export default class BlockManager implements IBlockManager {
       nodes.forEach((node) => {
         if (node.nodeType === Node.TEXT_NODE) {
           const text = node.textContent;
-          if (text?.trim()) result.push(text);
+          if (text !== null) result.push(text);
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           const element = node as Element;
           const objAttr: Record<string, string> = {};
