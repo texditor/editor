@@ -466,11 +466,11 @@ export default class Events extends EventManager implements IEvents {
 
       const hasTextBefore = parentChildren
         .slice(0, elementIndex)
-        .some(node => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+        .some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
 
       const hasTextAfter = parentChildren
         .slice(elementIndex + 1)
-        .some(node => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+        .some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
 
       if (hasTextBefore || hasTextAfter) {
         return false;
@@ -479,11 +479,11 @@ export default class Events extends EventManager implements IEvents {
       const previousElement = parentChildren
         .slice(0, elementIndex)
         .reverse()
-        .find(node => node.nodeType === Node.ELEMENT_NODE) as Element | undefined;
+        .find((node) => node.nodeType === Node.ELEMENT_NODE) as Element | undefined;
 
-      const nextElement = parentChildren
-        .slice(elementIndex + 1)
-        .find(node => node.nodeType === Node.ELEMENT_NODE) as Element | undefined;
+      const nextElement = parentChildren.slice(elementIndex + 1).find((node) => node.nodeType === Node.ELEMENT_NODE) as
+        | Element
+        | undefined;
 
       const prevIsBlock = previousElement && blockManager.getRealName(previousElement.nodeName.toLowerCase());
       const nextIsBlock = nextElement && blockManager.getRealName(nextElement.nodeName.toLowerCase());

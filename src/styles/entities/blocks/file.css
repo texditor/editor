@@ -54,8 +54,8 @@
   border: none;
 }
 
-.tex-file-form-uploader input:disabled+label,
-.tex-file-form-uploader input:disabled~label,
+.tex-file-form-uploader input:disabled + label,
+.tex-file-form-uploader input:disabled ~ label,
 .tex-file-form-fileManager-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -412,7 +412,7 @@
     flex-direction: column;
   }
 
-  .tex-file-form>div {
+  .tex-file-form > div {
     width: 100%;
   }
 
