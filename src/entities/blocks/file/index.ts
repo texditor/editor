@@ -296,13 +296,11 @@ export default class File extends BlockModel implements FileBlockModel {
         container,
       );
       this.refreshCount();
-    }
+    };
 
-    if (fileManger)
-      checkDisabled('.tex-file-form-fileManager-btn', fileManger);
+    if (fileManger) checkDisabled('.tex-file-form-fileManager-btn', fileManger);
 
-    if (formUploader)
-      checkDisabled('input[type="file"]', formUploader);
+    if (formUploader) checkDisabled('input[type="file"]', formUploader);
   }
 
   /** @see FileBlockModel.refreshCount */
@@ -1076,9 +1074,9 @@ export default class File extends BlockModel implements FileBlockModel {
           attr(label, 'title', btnText);
 
           const text = make('span', (span: HTMLSpanElement) => {
-            addClass(span, 'tex-text-span');
-            html(span, btnText);
-          }),
+              addClass(span, 'tex-text-span');
+              html(span, btnText);
+            }),
             icon = make('span', (span: HTMLSpanElement) => (span.innerHTML = iconLabel));
 
           append(labelContainer, [icon, text]);
@@ -1114,7 +1112,7 @@ export default class File extends BlockModel implements FileBlockModel {
    * Hook called after form element creation
    * @param _form - Form element
    */
-  protected onFormCreate(_form: HTMLElement): void { }
+  protected onFormCreate(_form: HTMLElement): void {}
 
   /**
    * Create list of file items from stored data
@@ -1157,13 +1155,13 @@ export default class File extends BlockModel implements FileBlockModel {
    * Hook called before list element creation
    * @param _contentElement - Content node element
    */
-  protected onCreateList(_contentElement: HTMLElement): void { }
+  protected onCreateList(_contentElement: HTMLElement): void {}
 
   /**
    * Hook called after list element creation
    * @param _contentElement - Content node element
    */
-  protected onCreatedList(_contentElement: HTMLElement): void { }
+  protected onCreatedList(_contentElement: HTMLElement): void {}
 
   /**
    * Create DOM node for a file item
@@ -1821,8 +1819,8 @@ export default class File extends BlockModel implements FileBlockModel {
       data = this.isLinkStrategy()
         ? items
         : items
-          .filter((item) => item.id && item.id > 0)
-          .map(({ id, caption, desc }) => ({ id, caption, desc }) as FileItem);
+            .filter((item) => item.id && item.id > 0)
+            .map(({ id, caption, desc }) => ({ id, caption, desc }) as FileItem);
     }
 
     return {
