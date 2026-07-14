@@ -21,16 +21,10 @@
   gap: 12px;
 }
 
-.tex-file-form-uploader,
-.tex-file-form-fileManager {
-  background-color: var(--tex-background-secondary);
-  border-radius: 6px;
+.tex-file-form-uploader {
   position: relative;
   overflow: hidden;
   z-index: 1;
-}
-
-.tex-file-form-uploader {
   flex-grow: 1;
 }
 
@@ -39,10 +33,17 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .tex-file-form-fileManager-btn {
+  color: var(--tex-color);
+  background-color: var(--tex-background-secondary);
+  font-size: var(--tex-font-size);
   padding: 6px 12px;
+  border-radius: 6px;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -50,10 +51,12 @@
   height: 100%;
   cursor: pointer;
   font-weight: 500;
+  border: none;
 }
 
-.tex-file-form-uploader input:disabled + label,
-.tex-file-form-uploader input:disabled ~ label {
+.tex-file-form-uploader input:disabled+label,
+.tex-file-form-uploader input:disabled~label,
+.tex-file-form-fileManager-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -142,14 +145,18 @@
 .tex-file-form-label-container {
   display: flex;
   justify-content: center;
+  color: var(--tex-color);
   align-items: center;
   height: 100%;
   font-weight: 500;
   gap: 8px;
   position: relative;
+  font-size: var(--tex-font-size);
 }
 
 .tex-file-form-label {
+  background-color: var(--tex-background-secondary);
+  border-radius: 6px;
   position: relative;
   z-index: 2;
 }
@@ -405,7 +412,7 @@
     flex-direction: column;
   }
 
-  .tex-file-form > div {
+  .tex-file-form>div {
     width: 100%;
   }
 

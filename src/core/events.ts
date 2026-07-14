@@ -457,12 +457,57 @@ export default class Events extends EventManager implements IEvents {
       }
     };
 
+    const isBlockInContext = (element: Element): boolean => {
+      const parent = element.parentElement;
+      if (!parent) return true;
+
+      const parentChildren = Array.from(parent.childNodes);
+      const elementIndex = parentChildren.indexOf(element);
+
+      const hasTextBefore = parentChildren
+        .slice(0, elementIndex)
+        .some(node => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+
+      const hasTextAfter = parentChildren
+        .slice(elementIndex + 1)
+        .some(node => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+
+      if (hasTextBefore || hasTextAfter) {
+        return false;
+      }
+
+      const previousElement = parentChildren
+        .slice(0, elementIndex)
+        .reverse()
+        .find(node => node.nodeType === Node.ELEMENT_NODE) as Element | undefined;
+
+      const nextElement = parentChildren
+        .slice(elementIndex + 1)
+        .find(node => node.nodeType === Node.ELEMENT_NODE) as Element | undefined;
+
+      const prevIsBlock = previousElement && blockManager.getRealName(previousElement.nodeName.toLowerCase());
+      const nextIsBlock = nextElement && blockManager.getRealName(nextElement.nodeName.toLowerCase());
+
+      if (prevIsBlock || nextIsBlock) {
+        return true;
+      }
+
+      if (previousElement || nextElement) {
+        return false;
+      }
+
+      return true;
+    };
+
     const processElementNode = (node: Element) => {
       const nodeName = node.nodeName.toLowerCase();
 
       if (blockManager.getRealName(nodeName)) {
-        map.push({ type: 'block', node });
-        return true;
+        if (isBlockInContext(node)) {
+          map.push({ type: 'block', node });
+          return true;
+        }
+        return false;
       }
 
       const childNodes = getChildNodes(node);
@@ -476,7 +521,7 @@ export default class Events extends EventManager implements IEvents {
 
       let hasBlocks = false;
       elementChildren.forEach((child) => {
-        if (blockManager.getRealName(child.nodeName.toLowerCase())) {
+        if (blockManager.getRealName(child.nodeName.toLowerCase()) && isBlockInContext(child as Element)) {
           map.push({ type: 'block', node: child });
           hasBlocks = true;
         }
@@ -516,11 +561,15 @@ export default class Events extends EventManager implements IEvents {
     if (oneBlock.length === 1) {
       const blockItem = map.find((item) => item.type === 'block');
       if (blockItem) {
-        getChildNodes(blockItem.node).forEach((node) => {
-          mapResult.push({
-            type: node.nodeType === Node.ELEMENT_NODE ? 'node' : 'textNode',
-            node,
-          });
+        const childNodes = getChildNodes(blockItem.node);
+        childNodes.forEach((node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            if (!isEmptyString(node.textContent || '')) {
+              mapResult.push({ type: 'textNode', node });
+            }
+          } else {
+            mapResult.push({ type: 'node', node });
+          }
         });
         return { schema: 'node', data: mapResult };
       }
