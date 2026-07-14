@@ -49,14 +49,17 @@ export default class Commands implements ICommands {
     let pos = 0;
     const nodes: { node: Text; start: number; end: number }[] = [],
       collectNodes = (node: Node) => {
-        if (node.nodeType === Node.TEXT_NODE && getText(node).trim()) {
-          const length = getLength(node);
-          nodes.push({
-            node: node as Text,
-            start: pos,
-            end: pos + length,
-          });
-          pos += length;
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = getText(node);
+          const length = text.length;
+          if (length > 0) {
+            nodes.push({
+              node: node as Text,
+              start: pos,
+              end: pos + length,
+            });
+            pos += length;
+          }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           Array.from(node.childNodes).forEach((child) => {
             collectNodes(child);
@@ -78,7 +81,9 @@ export default class Commands implements ICommands {
     range.setStart(startNode.node, startOffset - startNode.start);
     range.setEnd(endNode.node, endOffset - endNode.start);
 
-    if (range.toString().trim() === '') {
+    const selectedText = range.toString();
+
+    if (!selectedText || selectedText.trim() === '') {
       console.error('Empty text selection');
       return;
     }
@@ -91,7 +96,6 @@ export default class Commands implements ICommands {
       while (tag.firstChild) {
         before(tag, tag.firstChild);
       }
-
       remove(tag);
     });
 
