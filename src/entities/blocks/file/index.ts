@@ -720,22 +720,11 @@ export default class File extends BlockModel implements FileBlockModel {
       const { data, method, headers, timeout } = userOptions;
       const formData = this.formData(data);
       formData.append('taskId', taskId.toString());
-
-      const maxAttempts = 300;
+      
       let attempts = 0;
 
       const checkStatus = () => {
         attempts++;
-
-        // Защита от бесконечного цикла
-        if (attempts > maxAttempts) {
-          this.updateProgress(null);
-          this.setTaskId('');
-          this.setJobStatus('');
-          this.toasts().add(i18n.get('asyncTimeout', 'Async processing timeout'), { code: 'error' });
-          resolve();
-          return;
-        }
 
         if (this.getJobStatus() === 'cancelChunk') {
           this.updateProgress(null);
