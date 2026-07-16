@@ -720,7 +720,7 @@ export default class File extends BlockModel implements FileBlockModel {
       const { data, method, headers, timeout } = userOptions;
       const formData = this.formData(data);
       formData.append('taskId', taskId.toString());
-      
+
       let attempts = 0;
 
       const checkStatus = () => {
