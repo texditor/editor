@@ -220,11 +220,12 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
           if (contentBody) {
             blockActions.forEach((instance: ActionModelConstructor) => {
               const action = new instance(this.editor);
-              executeMethodIfExists(action, '__setBlockElement', [blockElement]);
-              const actionEl = action.getElement(),
-                isVisible = action.isVisible();
+              const actionEl = action.getElement();
 
               append(contentBody, actionEl);
+
+              const isVisible = action.isVisible();
+
               css(actionEl, 'display', isVisible ? '' : 'none');
               executeMethodIfExists(action, '__onMount', [actionEl]);
             });

@@ -246,11 +246,6 @@ export interface BlockManager {
   getSchemas(): BlockModelSchema[];
 
   /**
-   * Clear block schema cache
-   */
-  cleanupSchemas(): void;
-
-  /**
    * Gets the block model schema by supported type name
    * @param name - Supported type name or alias
    * @returns Block model schema, or null if not found
