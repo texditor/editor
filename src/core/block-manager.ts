@@ -1071,13 +1071,12 @@ export default class BlockManager implements IBlockManager {
           }
         }
 
-        after(beforeBlockElement, targetBlockElement);
+        beforeBlockElement.replaceWith(targetBlockElement);
 
         if (isSanitize) {
-          beforeTargetModel.sanitize();
+          targetBlockElement.baseModel.sanitize();
         }
 
-        beforeBlockElement.remove();
         this.focus(curIndex);
       }
 
@@ -1112,33 +1111,23 @@ export default class BlockManager implements IBlockManager {
 
   /** @see IBlockManager.getSchemas */
   getSchemas(): BlockModelSchema[] {
-    if (this.blockSchemas.length > 0) return this.blockSchemas;
-
     const blockModels = this.editor.config.get('blocks', []);
 
     if (!blockModels) return [];
 
     if (blockModels.length == 0) blockModels.push(Paragraph);
 
+    const blockSchemas: BlockModelSchema[] = [];
+
     blockModels.forEach((constructor: BlockModelConstructor) => {
       const model = new constructor(this.editor);
-      this.blockSchemas.push({
+      blockSchemas.push({
         constructor: constructor,
         model: model,
       });
     });
 
-    return this.blockSchemas;
-  }
-
-  /** @see IBlockManager.cleanupSchemas */
-  cleanupSchemas(): void {
-    this.blockSchemas.forEach((schema) => {
-      if (schema.model && typeof schema.model.destroy === 'function') {
-        schema.model.destroy();
-      }
-    });
-    this.blockSchemas = [];
+    return blockSchemas;
   }
 
   /** @see IBlockManager.getSchema */
@@ -1345,7 +1334,6 @@ export default class BlockManager implements IBlockManager {
   /** @see IBlockManager.destroy */
   destroy(): void {
     this.getModels().forEach((model) => model.destroy());
-    this.cleanupSchemas();
 
     off(document, 'click.notActive' + this.eventId, true);
     this.destroyVirtualSelection();

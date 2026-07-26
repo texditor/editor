@@ -58,7 +58,7 @@ export default class ConvertAction extends ActionModel {
               }),
             );
 
-            rebind(el, 'click.am', () => {
+            rebind(el, 'click.cv', () => {
               if (blockElement) blockManager.convert(blockElement, model);
             });
           });
