@@ -189,6 +189,18 @@ export interface FileBlockModelConfig extends BlockModelConfig {
   fileMaxSize: number;
 
   /**
+   * Retry chunk load on failure.
+   * @default true
+   */
+  retry: boolean;
+
+  /**
+   * Delays (ms) between chunk load retries.
+   * @default [1000, 3000]
+   */
+  retryDelays: number[];
+
+  /**
    * Enable or disable the file manager
    * @default false
    */
@@ -591,6 +603,18 @@ export interface FileBlockModel extends BlockModel {
    * @returns Maximum file size in bytes
    */
   getFileMaxSize(): number;
+
+  /**
+   * Check if retry is enabled for failed uploads
+   * @returns True if retry enabled
+   */
+  isRetry(): boolean;
+
+  /**
+   * Get retry delays array
+   * @returns Array of delays in ms
+   */
+  getRetryDelays(): number[];
 
   /**
    * Check if the file manager is enabled

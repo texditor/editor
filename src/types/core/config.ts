@@ -114,4 +114,9 @@ export type ConfigGetFunction = {
 export interface Config {
   /** Method to retrieve configuration values */
   get: ConfigGetFunction;
+
+  /** Get all configuration values
+   * @returns Configuration values
+   */
+  getAll(): ConfigOptions;
 }

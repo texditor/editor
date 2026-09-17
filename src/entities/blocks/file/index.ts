@@ -135,8 +135,10 @@ export default class File extends BlockModel implements FileBlockModel {
       asyncCancelConfig: { url: '' },
       actionSkipSelector: '',
       chunked: false,
-      chunkSize: 2 * 1024 * 1204,
-      fileMaxSize: 10 * 1024 * 1204,
+      chunkSize: 2 * 1024 * 1024,
+      fileMaxSize: 10 * 1024 * 1024,
+      retry: true,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
       fileManager: false,
       fileManagerShowTitle: false,
       fileManagerTitle: i18n.get('fileManager', 'File Manager'),
@@ -940,6 +942,16 @@ export default class File extends BlockModel implements FileBlockModel {
     return this.getConfig('fileMaxSize', 10 * 1024 * 1024);
   }
 
+  /** @see FileBlockModel.isRetry */
+  isRetry(): boolean {
+    return this.getConfig('retry', true);
+  }
+
+  /** @see FileBlockModel.getRetryDelays */
+  getRetryDelays(): number[] {
+    return this.getConfig('retryDelays', [0, 3000, 5000, 10000, 20000]) as number[];
+  }
+
   /** @see FileBlockModel.isFileManager */
   isFileManager(): boolean {
     return this.getConfig('fileManager', false);
@@ -1430,6 +1442,121 @@ export default class File extends BlockModel implements FileBlockModel {
   }
 
   /**
+   * Compute SHA-256 hash of an ArrayBuffer
+   * @param data - Data to hash
+   * @returns Hex string hash
+   */
+  private async computeSHA256(data: ArrayBuffer): Promise<string> {
+    if (typeof crypto !== 'undefined' && crypto.subtle) {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return this.bufferToHex(hashBuffer);
+    }
+
+    return this.computeSHA256Fallback(data);
+  }
+
+  /**
+   * Convert ArrayBuffer to hex string
+   * @param buffer - Buffer to convert
+   * @returns Hex string
+   */
+  private bufferToHex(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    let hex = '';
+
+    for (let i = 0; i < bytes.length; i++) {
+      hex += bytes[i].toString(16).padStart(2, '0');
+    }
+
+    return hex;
+  }
+
+  /**
+   * Fallback SHA-256 implementation when crypto.subtle is unavailable
+   * @param data - Data to hash
+   * @returns Hex string hash
+   */
+  private computeSHA256Fallback(data: ArrayBuffer): string {
+    const bytes = new Uint8Array(data);
+    const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    const K = [
+      0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98,
+      0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786,
+      0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8,
+      0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+      0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819,
+      0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a,
+      0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7,
+      0xc67178f2,
+    ];
+
+    const r = (x: number, n: number) => (x >>> n) | (x << (32 - n));
+    const msgLen = bytes.length;
+    const bitLen = msgLen * 8;
+
+    const withPadding = new Uint8Array((((msgLen + 9) >> 6) + 1) << 6);
+    withPadding.set(bytes);
+    withPadding[msgLen] = 0x80;
+    const dv = new DataView(withPadding.buffer);
+    dv.setUint32(withPadding.length - 4, bitLen >>> 0, false);
+    dv.setUint32(withPadding.length - 8, Math.floor(bitLen / 0x100000000), false);
+
+    const w = new Uint32Array(64);
+
+    for (let offset = 0; offset < withPadding.length; offset += 64) {
+      for (let i = 0; i < 16; i++) {
+        w[i] = dv.getUint32(offset + i * 4, false);
+      }
+
+      for (let i = 16; i < 64; i++) {
+        const s0 = r(w[i - 15], 7) ^ r(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+        const s1 = r(w[i - 2], 17) ^ r(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+      }
+
+      let [a, b, c, d, e, f, g, h] = H;
+
+      for (let i = 0; i < 64; i++) {
+        const S1 = r(e, 6) ^ r(e, 11) ^ r(e, 25);
+        const ch = (e & f) ^ (~e & g);
+        const temp1 = (h + S1 + ch + K[i] + w[i]) >>> 0;
+        const S0 = r(a, 2) ^ r(a, 13) ^ r(a, 22);
+        const maj = (a & b) ^ (a & c) ^ (b & c);
+        const temp2 = (S0 + maj) >>> 0;
+        h = g;
+        g = f;
+        f = e;
+        e = (d + temp1) >>> 0;
+        d = c;
+        c = b;
+        b = a;
+        a = (temp1 + temp2) >>> 0;
+      }
+
+      H[0] = (H[0] + a) >>> 0;
+      H[1] = (H[1] + b) >>> 0;
+      H[2] = (H[2] + c) >>> 0;
+      H[3] = (H[3] + d) >>> 0;
+      H[4] = (H[4] + e) >>> 0;
+      H[5] = (H[5] + f) >>> 0;
+      H[6] = (H[6] + g) >>> 0;
+      H[7] = (H[7] + h) >>> 0;
+    }
+
+    return H.map((x) => x.toString(16).padStart(8, '0')).join('');
+  }
+
+  /**
+   * Compute SHA-256 hash of entire file
+   * @param file - File to hash
+   * @returns Hex string hash
+   */
+  private async computeFileSHA256(file: GlobalFile): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    return this.computeSHA256(arrayBuffer);
+  }
+
+  /**
    * Handles successful upload response.
    * Routes to async processing or creates file item based on response status.
    * @param data - Response data from server
@@ -1578,7 +1705,12 @@ export default class File extends BlockModel implements FileBlockModel {
    * @returns Promise that resolves when all files are processed
    */
   private async processFiles(files: GlobalFile[], url: string, options: AjaxOptions<FileAjaxResponse>): Promise<void> {
+    this.currentFileIndex = 0;
+    this.totalFilesCount = files.length;
+
     for (let i = 0; i < files.length; i++) {
+      if (this.getJobStatus() === 'cancelChunk') break;
+
       const file = files[i];
       this.currentFileIndex = i + 1;
       this.updateProgress(0);
@@ -1592,7 +1724,6 @@ export default class File extends BlockModel implements FileBlockModel {
       }
     }
 
-    // Сбрасываем счетчики после завершения всех загрузок
     this.currentFileIndex = 0;
     this.totalFilesCount = 0;
   }
@@ -1604,28 +1735,30 @@ export default class File extends BlockModel implements FileBlockModel {
    * @param options - AJAX configuration options
    * @returns Promise that resolves when upload completes
    */
-  protected uploadSingle(file: GlobalFile, url: string, options: AjaxOptions<FileAjaxResponse>): Promise<void> {
-    return new Promise((resolve) => {
-      const { data, method } = options || {};
-      const formData = this.formData(data);
-      const inputName = this.getInputName();
-      formData.append(inputName + '[]', file);
+  protected async uploadSingle(file: GlobalFile, url: string, options: AjaxOptions<FileAjaxResponse>): Promise<void> {
+    const { data, method } = options || {};
+    const formData = this.formData(data);
+    const inputName = this.getInputName();
+    const fileId = generateUUID();
+    const fileHash = await this.computeFileSHA256(file);
 
+    formData.append(inputName + '[]', file);
+    formData.append('fileId', fileId);
+    formData.append('fileHash', fileHash);
+
+    return new Promise<void>((resolve) => {
       const xhr = ajax<FileAjaxResponse>(url, {
         method: method || 'POST',
         data: formData,
-        progress: (percent: number, loaded: number, total: number) => {
+        progress: (percent, loaded, total) => {
           if (this.getJobStatus() === 'cancelChunk') {
             xhr.abort();
             this.forceRemoveProgress();
             return;
           }
-
           this.updateProgress(percent);
           this.setJobStatus('uploadProgress');
-          if (options?.progress) {
-            options.progress(percent, loaded, total);
-          }
+          options?.progress?.(percent, loaded, total);
         },
         success: async (data) => {
           this.removeActiveXHR(xhr);
@@ -1662,9 +1795,24 @@ export default class File extends BlockModel implements FileBlockModel {
     const chunkSize = this.getChunkSize();
     const totalChunks = Math.ceil(file.size / chunkSize);
     const fileId = generateUUID();
-    let cancelled = false;
+    const fileHash = await this.computeFileSHA256(file);
+
+    const chunkHashes: string[] = [];
 
     for (let i = 0; i < totalChunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const chunk = file.slice(start, end);
+      const buffer = await chunk.arrayBuffer();
+      chunkHashes[i] = await this.computeSHA256(buffer);
+    }
+
+    const recalculateSet = new Set<number>();
+    let lastResponse: FileAjaxResponse | null = null;
+    let cancelled = false;
+
+    let i = 0;
+    while (i < totalChunks) {
       if (this.getJobStatus() === 'cancelChunk') {
         cancelled = true;
         break;
@@ -1675,66 +1823,56 @@ export default class File extends BlockModel implements FileBlockModel {
       const chunk = file.slice(start, end);
       const isLast = i === totalChunks - 1;
 
-      const formData = this.formData(options?.data);
-      formData.append('chunk', chunk, file.name);
-      formData.append('fileId', fileId);
-      formData.append('fileSize', String(file.size));
-      formData.append('chunkIndex', String(i));
-      formData.append('totalChunks', String(totalChunks));
-
       try {
-        await new Promise<void>((resolveChunk, rejectChunk) => {
+        const result = await this.sendChunkWithRetry(
+          url,
+          fileId,
+          file,
+          fileHash,
+          chunk,
+          i,
+          totalChunks,
+          chunkHashes[i],
+          options,
+        );
+
+        if (result === null) {
           if (this.getJobStatus() === 'cancelChunk') {
-            rejectChunk(new Error('Upload cancelled'));
-            return;
+            cancelled = true;
+            break;
           }
 
-          const xhr = ajax<FileAjaxResponse>(url, {
-            method: 'POST',
-            data: formData,
-            progress: (_pct: number, loaded: number) => {
-              if (this.getJobStatus() === 'cancelChunk') {
-                xhr.abort();
-                rejectChunk(new Error('Upload cancelled'));
-                return;
-              }
+          cancelled = true;
+          break;
+        }
 
-              const overallPct = Math.round(((i * chunkSize + loaded) / file.size) * 100);
-              this.updateProgress(overallPct);
-              this.setJobStatus('chunkUploadProgress');
-              if (options?.progress) {
-                options.progress(overallPct, i * chunkSize + loaded, file.size);
-              }
-            },
-            success: async (data) => {
-              this.removeActiveXHR(xhr);
+        if (typeof result === 'object' && 'recalculate' in result && result.recalculate) {
+          recalculateSet.clear();
 
-              if (this.getJobStatus() === 'cancelChunk') {
-                rejectChunk(new Error('Upload cancelled'));
-                return;
-              }
+          const list = Array.isArray(result.recalculateChunks) ? result.recalculateChunks : [];
 
-              if (isLast) {
-                await this.uploadSuccess(data, options);
-              }
-              resolveChunk();
-            },
-            error: (errorMessage, response) => {
-              this.removeActiveXHR(xhr);
-              this.uploadError(errorMessage, response, options);
+          for (const idx of list) {
+            if (idx >= 0 && idx < totalChunks) {
+              recalculateSet.add(idx);
+            }
+          }
 
-              if (options?.error) {
-                options.error(errorMessage, response);
-              }
-              rejectChunk(new Error(errorMessage));
-              this.setJobStatus('');
-            },
-            headers: options?.headers ? { ...options.headers } : {},
-            timeout: options?.timeout || 45000,
-          });
+          if (recalculateSet.size > 0) {
+            const sorted = Array.from(recalculateSet).sort((a, b) => a - b);
+            i = sorted[0];
+            continue;
+          }
 
-          this.addActiveXHR(xhr);
-        });
+          continue;
+        }
+
+        const body = result as FileAjaxResponse;
+
+        if (isLast) {
+          lastResponse = body;
+        }
+
+        i++;
       } catch (err) {
         console.warn(err);
         cancelled = true;
@@ -1755,7 +1893,159 @@ export default class File extends BlockModel implements FileBlockModel {
           uploadEvent: true,
         },
       );
+      return;
     }
+
+    if (lastResponse) {
+      await this.uploadSuccess(lastResponse, options);
+    }
+  }
+
+  /**
+   * Send single chunk with retry and recalculate support
+   * @param url - Upload endpoint URL
+   * @param fileId - File UUID
+   * @param file - Source file
+   * @param fileHash - SHA-256 of whole file
+   * @param chunk - Chunk blob
+   * @param chunkIndex - Chunk index
+   * @param totalChunks - Total chunks count
+   * @param chunkHash - SHA-256 of chunk
+   * @param options - AJAX configuration options
+   * @returns Response or recalculate descriptor or null on failure
+   */
+  private async sendChunkWithRetry(
+    url: string,
+    fileId: string,
+    file: GlobalFile,
+    fileHash: string,
+    chunk: Blob,
+    chunkIndex: number,
+    totalChunks: number,
+    chunkHash: string,
+    options: AjaxOptions<FileAjaxResponse>,
+  ): Promise<FileAjaxResponse | { recalculate: true; recalculateChunks: number[] } | null> {
+    const retries = this.isRetry() ? this.getRetryDelays().length : 1;
+    const delays = this.getRetryDelays();
+    const chunkSize = this.getChunkSize();
+
+    for (let attempt = 0; attempt < retries; attempt++) {
+      if (this.getJobStatus() === 'cancelChunk') return null;
+
+      if (attempt > 0) {
+        const delayMs = delays[attempt] ?? 0;
+        await this.delay(delayMs);
+        if (this.getJobStatus() === 'cancelChunk') return null;
+      }
+
+      const formData = this.formData(options?.data);
+      formData.append('chunk', chunk, file.name);
+      formData.append('fileId', fileId);
+      formData.append('fileSize', String(file.size));
+      formData.append('fileName', file.name);
+      formData.append('fileType', file.type);
+      formData.append('fileHash', fileHash);
+      formData.append('chunkIndex', String(chunkIndex));
+      formData.append('totalChunks', String(totalChunks));
+      formData.append('chunkHash', chunkHash);
+
+      try {
+        const result = await new Promise<FileAjaxResponse | { recalculate: true; recalculateChunks: number[] }>(
+          (resolveChunk, rejectChunk) => {
+            if (this.getJobStatus() === 'cancelChunk') {
+              rejectChunk(new Error('Upload cancelled'));
+              return;
+            }
+
+            const xhr = ajax<FileAjaxResponse>(url, {
+              method: 'POST',
+              data: formData,
+              progress: (_pct: number, loaded: number) => {
+                if (this.getJobStatus() === 'cancelChunk') {
+                  xhr.abort();
+                  rejectChunk(new Error('Upload cancelled'));
+                  return;
+                }
+
+                const loadedInChunk = Math.min(loaded, chunk.size);
+                const overallPct = Math.round(((chunkIndex * chunkSize + loadedInChunk) / file.size) * 100);
+                this.updateProgress(overallPct);
+                this.setJobStatus('chunkUploadProgress');
+
+                if (options?.progress) {
+                  options.progress(overallPct, chunkIndex * chunkSize + loadedInChunk, file.size);
+                }
+              },
+              success: (response) => {
+                this.removeActiveXHR(xhr);
+
+                if (this.getJobStatus() === 'cancelChunk') {
+                  rejectChunk(new Error('Upload cancelled'));
+                  return;
+                }
+
+                const data = response.data;
+
+                if (
+                  data &&
+                  typeof data === 'object' &&
+                  'recalculate' in data &&
+                  (data as { recalculate?: boolean }).recalculate === true
+                ) {
+                  const recalculateChunks = Array.isArray((data as { recalculateChunks?: number[] }).recalculateChunks)
+                    ? (data as { recalculateChunks: number[] }).recalculateChunks
+                    : [];
+                  resolveChunk({ recalculate: true, recalculateChunks });
+                  return;
+                }
+
+                resolveChunk(response);
+              },
+              error: (errorMessage, response) => {
+                this.removeActiveXHR(xhr);
+                rejectChunk({ errorMessage, response });
+              },
+              headers: options?.headers ? { ...options.headers } : {},
+              timeout: options?.timeout || 45000,
+            });
+
+            this.addActiveXHR(xhr);
+          },
+        );
+
+        return result;
+      } catch (err) {
+        if (this.getJobStatus() === 'cancelChunk') return null;
+
+        const isLastAttempt = attempt === retries - 1;
+
+        if (isLastAttempt) {
+          const errorMessage =
+            typeof err === 'object' && err !== null && 'errorMessage' in err
+              ? (err as { errorMessage: string }).errorMessage
+              : String(err);
+
+          const response =
+            typeof err === 'object' && err !== null && 'response' in err
+              ? (err as { response: AjaxResponse<FileAjaxResponse> }).response
+              : ({} as AjaxResponse<FileAjaxResponse>);
+
+          this.uploadError(errorMessage, response, options);
+          return null;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Delay execution
+   * @param ms - Milliseconds
+   * @returns Promise that resolves after delay
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
