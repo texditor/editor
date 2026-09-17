@@ -22,4 +22,8 @@ export default class Config implements IConfig {
 
     return defaultValue;
   }
+
+  getAll(): ConfigOptions {
+    return this.options;
+  }
 }
