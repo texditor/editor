@@ -111,6 +111,11 @@ export default class Events extends EventManager implements IEvents {
     }
   }
 
+  /** @see IEvents.getEventId */
+  getEventId(): string {
+    return this.eventId;
+  }
+
   /**
    * Handles focus events on blocks
    * @param evt - Focus event

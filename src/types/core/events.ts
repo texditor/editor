@@ -54,6 +54,12 @@ export interface Events extends EventManager {
   change(event: TexditorEventBase): void;
 
   /**
+ * Returns the unique identifier for this event listener instance
+ * @returns The unique event ID string used to identify and manage event listeners
+ */
+  getEventId(): string;
+
+  /**
    * Refreshes event listeners on all blocks
    */
   refresh(): void;
