@@ -97,6 +97,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       itemClassName: '',
       itemBodyClassName: '',
       maxItems: 0,
+      maxBreaks: 0,
       backspaceRemove: true,
       className: '',
       visibleTools: false,
@@ -139,9 +140,22 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    */
   protected parentOnCreateElement(el: BlockElement): void {
     const { config, i18n } = this.editor,
+      model = el.baseModel,
       tagName = this.getTagName(),
       contentClassName = this.getContentClassName(),
       elements = [];
+
+    if (model && model.isSanitizer() && model.getMaxBreaks() > 0) {
+      const sanitizerConfig = model.getSanitizerConfig();
+
+      if (sanitizerConfig?.elements && Array.isArray(sanitizerConfig.elements)) {
+        if (!sanitizerConfig.elements.includes('br')) {
+          sanitizerConfig.elements.push('br');
+        }
+
+        model.setConfig('sanitizerConfig', sanitizerConfig);
+      }
+    }
 
     const blockActions = config.get('actions', []) as ActionModelConstructor[];
 
@@ -699,6 +713,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     return this.getConfig('maxItems', 0);
   }
 
+  /** @see IBlockModel.getMaxBreaks */
+  getMaxBreaks(): number {
+    return this.getConfig('maxBreaks', 0);
+  }
+
   /** @see IBlockModel.getItemRelatedNames */
   getItemRelatedNames(): string[] {
     return this.getConfig('itemRelatedNames', []) as string[];
@@ -1143,6 +1162,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * @returns True to allow default behavior
    */
   __onKeyDown(evt: KeyboardEvent): boolean {
+    const maxBreaks = this.getMaxBreaks();
+    const isBrake = evt.shiftKey && evt.key == 'Enter';
+
+    if (!maxBreaks && isBrake) evt.preventDefault();
+
     return this.defEvent('KeyDown', evt);
   }
 

@@ -308,7 +308,7 @@ export default class Code extends BlockModel {
 
     return {
       lang: lang,
-      data: typeof item.data[0] === 'string' ? item.data[0] : '',
+      data: item.data ? (typeof item.data[0] === 'string' ? item.data[0] : '') : '',
     };
   }
 

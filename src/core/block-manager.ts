@@ -400,15 +400,15 @@ export default class BlockManager implements IBlockManager {
 
       if (model && (model.isEditable() || model.isEditableItems()) && model.isNormalize()) {
         const container = model.toNormalize();
+        const maxBreaks = model.getMaxBreaks();
 
         if (container) {
-          if (Array.isArray(container)) {
-            container.forEach((el: HTMLElement | BlockElement) => {
-              commands.normalize(el as HTMLElement);
-            });
-          } else {
-            commands.normalize(container as HTMLElement);
-          }
+          const elements = Array.isArray(container) ? container : [container];
+
+          elements.forEach((el: HTMLElement | BlockElement) => {
+            commands.normalize(el as HTMLElement);
+            commands.mergeConsecutiveTags(el, 'br', maxBreaks);
+          });
         }
       }
     });
@@ -579,10 +579,10 @@ export default class BlockManager implements IBlockManager {
               const scrollParams =
                 scrollIntoView === true
                   ? {
-                      behavior: 'smooth',
-                      block: 'center',
-                      inline: 'nearest',
-                    }
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest',
+                  }
                   : scrollIntoView;
 
               if (scrollIntoView) block?.scrollIntoView(scrollParams as ScrollIntoViewOptions);
@@ -617,7 +617,6 @@ export default class BlockManager implements IBlockManager {
     };
 
     const contentElement = this.getContentElement(el);
-
     if (contentElement && model) {
       if (model.isCustomSave()) {
         block = executeMethodIfExists(model, '__save', [block, el, strictMode]) as BlockSchema;
@@ -625,11 +624,11 @@ export default class BlockManager implements IBlockManager {
         if (model.isRaw()) {
           block.data = [contentElement.innerText];
         } else {
-          const parsedData = this.htmlToData(html(contentElement));
-
           if (model.isEditableItems() && model.getItemsLength()) {
             this.saveBlockItems(model, block);
           } else {
+            const parsedData = this.htmlToData(html(contentElement));
+
             block.data = parsedData.filter(
               (item) => typeof item === 'string' || (typeof item === 'object' && item !== null),
             ) as BlockSchemaData;
@@ -638,7 +637,7 @@ export default class BlockManager implements IBlockManager {
       }
     }
 
-    return block.data.length ? block : null;
+    return block?.data ? (block.data.length ? block : null) : null;
   }
 
   /**
@@ -1156,13 +1155,15 @@ export default class BlockManager implements IBlockManager {
   }
 
   /** @see IBlockManager.htmlToData */
-  htmlToData(html: string): Array<BlockSchema | string> {
-    const nodes = parseHtml(html);
+  htmlToData(input: string): Array<BlockSchema | string> {
+    const nodes = parseHtml(input);
 
     if (!nodes.length) return [];
 
     const result: Array<BlockSchema | string> = [];
+
     const isPlainText = nodes.length === 1 && nodes[0].nodeType === Node.TEXT_NODE;
+
     const isTextWithBr = nodes[0].nodeType === Node.TEXT_NODE && nodes.length === 2 && nodes[1].nodeName === 'BR';
 
     if (!isPlainText && !isTextWithBr) {
@@ -1180,30 +1181,34 @@ export default class BlockManager implements IBlockManager {
             const hasComplexChildren =
               element.childNodes.length !== 1 || element.childNodes[0].nodeType !== Node.TEXT_NODE;
             if (hasComplexChildren) {
-              outContent = this.htmlToData(element.innerHTML);
+              outContent = this.htmlToData(html(element as HTMLElement));
             } else {
               const text = element.childNodes[0].textContent;
               if (text?.trim()) outContent = [text];
             }
           }
 
-          const outData: BlockSchema = {
-            type: node.nodeName.toLowerCase(),
-            data: outContent as BlockSchemaData | [],
+          const nodeName = node.nodeName.toLowerCase();
+
+          const data: BlockSchema = {
+            type: nodeName,
           };
+
+          if (nodeName !== 'br') data.data = outContent as BlockSchemaData | [];
 
           if (element.attributes.length) {
             Array.from(element.attributes).forEach(({ name, value }) => {
               objAttr[name] = value;
             });
-            outData.attr = objAttr;
+
+            data.attr = objAttr;
           }
 
-          result.push(outData);
+          result.push(data);
         }
       });
     } else {
-      const cleanedHtml = html.replace(/&nbsp;/g, ' ');
+      const cleanedHtml = input.replace(/&nbsp;/g, ' ');
       result.push(decodeHtml(cleanedHtml));
     }
 
@@ -1233,7 +1238,7 @@ export default class BlockManager implements IBlockManager {
             supportedItemNames = blockModel.getItemSupportedNames();
 
           blockData.forEach((item) => {
-            if (item.type && supportedItemNames.includes(item.type) && item.data.length) {
+            if (item.type && supportedItemNames.includes(item.type) && item?.data && item.data.length) {
               const nodes = this.parseChildren(item),
                 itemData: BlockCreateItemSchema = {
                   type: item.type,
@@ -1255,6 +1260,7 @@ export default class BlockManager implements IBlockManager {
         }
       } else {
         const nodes = this.parseChildren(blockSchema, skipDecode);
+
         if (nodes) {
           newSchema.data = toHtml(nodes);
 
@@ -1291,9 +1297,7 @@ export default class BlockManager implements IBlockManager {
     skipDecode: boolean = false,
     returnElement: boolean = false,
   ): Node[] {
-    if (!schema?.type || schema.data === null || schema.data === undefined) {
-      return [];
-    }
+    if (!schema?.type) return [];
 
     const element = make(schema.type);
 
@@ -1304,6 +1308,7 @@ export default class BlockManager implements IBlockManager {
           appendText(element, text);
         } else {
           const childElements = this.parseChildren(item, skipDecode, true);
+
           childElements.forEach((childNode) => {
             append(element, childNode as HTMLElement);
           });

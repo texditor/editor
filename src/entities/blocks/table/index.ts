@@ -88,10 +88,11 @@ export default class Table extends BlockModel implements TableBlockModel {
       convertible: false,
       enterCreate: false,
       backspaceRemove: false,
+      normalize: true,
       visibleTools: true,
       sanitizer: true,
       sanitizerConfig: {
-        elements: ['b', 'a', 'i', 's', 'u', 'sup', 'sub', 'mark', 'code', 'br'],
+        elements: ['b', 'a', 'i', 's', 'u', 'sup', 'sub', 'mark', 'code'],
         attributes: {
           a: ['href', 'target'],
         },
@@ -101,7 +102,9 @@ export default class Table extends BlockModel implements TableBlockModel {
           },
         },
       },
+      maxBreaks: 2,
 
+      // Table options
       defaultRows: 3,
       defaultCols: 3,
       maxRows: 100,
@@ -1636,6 +1639,19 @@ export default class Table extends BlockModel implements TableBlockModel {
    * @returns Array of HTMLElements.
    */
   toSanitize(): HTMLElement[] {
+    const table = this.tableElement;
+
+    if (!table) return [];
+
+    return queryList<HTMLTableCellElement>('.tex-table-cell', table);
+  }
+
+  /**
+   * Returns the list of elements to normalize (all table cells).
+   *
+   * @returns Array of HTMLElements.
+   */
+  toNormalize(): HTMLElement[] {
     const table = this.tableElement;
 
     if (!table) return [];
