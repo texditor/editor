@@ -8,7 +8,7 @@ import type {
   BlockModelConstructor,
   TableBlockModelConfig,
   TableBlockModel,
-  PasteMap
+  PasteMap,
 } from '@/types';
 
 import BlockModel from '@/core/models/block-model';
@@ -63,9 +63,7 @@ export default class Table extends BlockModel implements TableBlockModel {
   private applyToAll: boolean = false;
 
   /** @see TableBlockModel.setup */
-  public static setup(
-    config: Partial<TableBlockModelConfig>
-  ): BlockModelConstructor {
+  public static setup(config: Partial<TableBlockModelConfig>): BlockModelConstructor {
     return super.setup(config);
   }
 
@@ -93,25 +91,14 @@ export default class Table extends BlockModel implements TableBlockModel {
       visibleTools: true,
       sanitizer: true,
       sanitizerConfig: {
-        elements: [
-          'b',
-          'a',
-          'i',
-          's',
-          'u',
-          'sup',
-          'sub',
-          'mark',
-          'code',
-          'br'
-        ],
+        elements: ['b', 'a', 'i', 's', 'u', 'sup', 'sub', 'mark', 'code', 'br'],
         attributes: {
-          a: ['href', 'target']
+          a: ['href', 'target'],
         },
         protocols: {
           a: {
-            href: ['https', 'ftp', 'http', 'mailto']
-          }
+            href: ['https', 'ftp', 'http', 'mailto'],
+          },
         },
       },
 
@@ -201,18 +188,14 @@ export default class Table extends BlockModel implements TableBlockModel {
     const cssTR = 'tex-table-row';
 
     schema.forEach((rowSchema) => {
-      const tr = make(
-        'tr',
-        (el: HTMLTableRowElement) => addClass(el, cssTR)
-      );
+      const tr = make('tr', (el: HTMLTableRowElement) => addClass(el, cssTR));
 
       const rowType: 'th' | 'td' = rowSchema.cells[0]?.type === 'th' ? 'th' : 'td';
 
       rowSchema.cells.forEach((cellData) => {
         const cell = this.createCell(rowType);
 
-        if (!isEmptyString(cellData.content))
-          html(cell, cellData.content);
+        if (!isEmptyString(cellData.content)) html(cell, cellData.content);
 
         if (cellData.align) {
           data(cell, 'align', cellData.align);
@@ -239,10 +222,7 @@ export default class Table extends BlockModel implements TableBlockModel {
     const withHeader = this.getConfig('withHeader', true) as boolean;
 
     for (let row = 0; row < defaultRows; row++) {
-      const tr = make(
-        'tr',
-        (el: HTMLTableRowElement) => addClass(el, cssTR)
-      );
+      const tr = make('tr', (el: HTMLTableRowElement) => addClass(el, cssTR));
 
       const cellType: 'th' | 'td' = row === 0 && withHeader ? 'th' : 'td';
 
@@ -261,9 +241,7 @@ export default class Table extends BlockModel implements TableBlockModel {
    * @param content - Optional initial HTML content.
    * @returns The created cell element.
    */
-  private createCell(
-    cellType: 'th' | 'td', content: string = ''
-  ): HTMLTableCellElement {
+  private createCell(cellType: 'th' | 'td', content: string = ''): HTMLTableCellElement {
     const cssTC = 'tex-table-cell';
     const cell = make(cellType) as HTMLTableCellElement;
 
@@ -287,44 +265,18 @@ export default class Table extends BlockModel implements TableBlockModel {
     const cssTC = 'tex-table-control';
     const cssTCs = cssTC + 's';
 
-    const wrap = make(
-      'div',
-      (el: HTMLElement) => addClass(
-        el,
-        cssTCs + ' tex-animate-fadeIn'
-      )
-    );
+    const wrap = make('div', (el: HTMLElement) => addClass(el, cssTCs + ' tex-animate-fadeIn'));
 
-    const panel = make(
-      'div',
-      (el: HTMLElement) => addClass(
-        el,
-        cssTCs + '-panel'
-      )
-    );
+    const panel = make('div', (el: HTMLElement) => addClass(el, cssTCs + '-panel'));
 
     this.controlsPanel = panel;
 
-    const rowTrigger = this.makeTrigger(
-      'row',
-      'Row',
-      IconTableRow
-    ),
-      colTrigger = this.makeTrigger(
-        'column',
-        'Column',
-        IconTableColumn
-      );
+    const rowTrigger = this.makeTrigger('row', 'Row', IconTableRow),
+      colTrigger = this.makeTrigger('column', 'Column', IconTableColumn);
 
     append(panel, [rowTrigger, colTrigger]);
 
-    const subpanel = make(
-      'div',
-      (el: HTMLElement) => addClass(
-        el,
-        cssTCs + '-subpanel'
-      )
-    );
+    const subpanel = make('div', (el: HTMLElement) => addClass(el, cssTCs + '-subpanel'));
 
     this.controlsSubpanel = subpanel;
 
@@ -354,34 +306,29 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     html(subpanel, '');
 
-    const backBtn = make(
-      'div',
-      (el: HTMLElement) => addClass(el, cssTC_SPB)
-    ),
+    const backBtn = make('div', (el: HTMLElement) => addClass(el, cssTC_SPB)),
       backIcon = make('span', (el: HTMLSpanElement) => {
         addClass(el, cssTC_SPI);
-        html(el, renderIcon(IconArrowLeft, {
-          width: 12,
-          height: 12
-        }));
+        html(
+          el,
+          renderIcon(IconArrowLeft, {
+            width: 12,
+            height: 12,
+          }),
+        );
       }),
-      backLabel = make(
-        'span',
-        (el: HTMLSpanElement) => {
-          addClass(el, cssTC_SPT);
-          text(el, this.editor.i18n.get(name, name));
-        }
-      );
+      backLabel = make('span', (el: HTMLSpanElement) => {
+        addClass(el, cssTC_SPT);
+        text(el, this.editor.i18n.get(name, name));
+      });
 
     append(backBtn, [backIcon, backLabel]);
 
-    rebind(
-      backBtn,
-      'click.back' + eid, (evt: MouseEvent) => {
-        evt.preventDefault();
-        evt.stopPropagation();
-        this.closeSubpanel();
-      })
+    rebind(backBtn, 'click.back' + eid, (evt: MouseEvent) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.closeSubpanel();
+    });
 
     append(subpanel, backBtn);
 
@@ -394,64 +341,24 @@ export default class Table extends BlockModel implements TableBlockModel {
         () => this.toggleRowHeader(),
       );
 
-      this.appendPanelItem(
-        subpanel,
-        'rowAddAbove',
-        'Add above',
-        IconTableAddRowAbove,
-        () => this.addRow('above')
-      );
+      this.appendPanelItem(subpanel, 'rowAddAbove', 'Add above', IconTableAddRowAbove, () => this.addRow('above'));
 
-      this.appendPanelItem(
-        subpanel,
-        'rowAddBelow',
-        'Add below',
-        IconTableAddRowBelow,
-        () => this.addRow('below')
-      );
+      this.appendPanelItem(subpanel, 'rowAddBelow', 'Add below', IconTableAddRowBelow, () => this.addRow('below'));
 
-      this.appendPanelItem(
-        subpanel,
-        'rowRemove',
-        'Remove row',
-        IconTrash,
-        () => this.removeRow(),
-        true
-      );
+      this.appendPanelItem(subpanel, 'rowRemove', 'Remove row', IconTrash, () => this.removeRow(), true);
     } else {
-      const alignItem = this.appendPanelItem(
-        subpanel,
-        'columnAlign',
-        'Align',
-        IconTableAlign,
-        () => this.openAlignSubpanel(),
+      const alignItem = this.appendPanelItem(subpanel, 'columnAlign', 'Align', IconTableAlign, () =>
+        this.openAlignSubpanel(),
       );
       this.appendSubmenuArrow(alignItem);
 
-      this.appendPanelItem(
-        subpanel,
-        'columnAddLeft',
-        'Add left',
-        IconTableAddColumnLeft,
-        () => this.addColumn('left')
+      this.appendPanelItem(subpanel, 'columnAddLeft', 'Add left', IconTableAddColumnLeft, () => this.addColumn('left'));
+
+      this.appendPanelItem(subpanel, 'columnAddRight', 'Add right', IconTableAddColumnRight, () =>
+        this.addColumn('right'),
       );
 
-      this.appendPanelItem(
-        subpanel,
-        'columnAddRight',
-        'Add right',
-        IconTableAddColumnRight,
-        () => this.addColumn('right'),
-      );
-
-      this.appendPanelItem(
-        subpanel,
-        'columnRemove',
-        'Remove column',
-        IconTrash,
-        () => this.removeColumn(),
-        true
-      );
+      this.appendPanelItem(subpanel, 'columnRemove', 'Remove column', IconTrash, () => this.removeColumn(), true);
     }
 
     addClass(panel, cssTCs + '-panel-hidden');
@@ -481,61 +388,40 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     html(subpanel, '');
 
-    const backBtn = make(
-      'div',
-      (el: HTMLElement) => addClass(el, cssTC_SPB)
-    ),
-      backIcon = make(
-        'span',
-        (el: HTMLSpanElement) => {
-          addClass(el, cssTC_SPI);
-          html(el, renderIcon(IconArrowLeft, {
-            width: 12, height: 12
-          }));
-        }
-      ),
-      backLabel = make(
-        'span',
-        (el: HTMLSpanElement) => {
-          addClass(el, cssTC_SPT);
-          text(el, this.editor.i18n.get('columnAlign', 'Align'));
-        }
-      );
+    const backBtn = make('div', (el: HTMLElement) => addClass(el, cssTC_SPB)),
+      backIcon = make('span', (el: HTMLSpanElement) => {
+        addClass(el, cssTC_SPI);
+        html(
+          el,
+          renderIcon(IconArrowLeft, {
+            width: 12,
+            height: 12,
+          }),
+        );
+      }),
+      backLabel = make('span', (el: HTMLSpanElement) => {
+        addClass(el, cssTC_SPT);
+        text(el, this.editor.i18n.get('columnAlign', 'Align'));
+      });
 
     append(backBtn, [backIcon, backLabel]);
 
-    rebind(
-      backBtn,
-      'click.back' + eid,
-      (evt: MouseEvent) => {
-        evt.preventDefault();
-        evt.stopPropagation();
-        this.renderSubpanelContent('column');
-      }
-    );
+    rebind(backBtn, 'click.back' + eid, (evt: MouseEvent) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.renderSubpanelContent('column');
+    });
 
     append(subpanel, backBtn);
 
-    const alignLeftItem = this.appendPanelItem(
-      subpanel,
-      'columnAlignLeft',
-      'Left',
-      IconTableAlignLeft,
-      () => this.applyAlign('left'),
-    ),
-      alignCenterItem = this.appendPanelItem(
-        subpanel,
-        'columnAlignCenter',
-        'Center',
-        IconTableAlignCenter,
-        () => this.applyAlign('center'),
+    const alignLeftItem = this.appendPanelItem(subpanel, 'columnAlignLeft', 'Left', IconTableAlignLeft, () =>
+        this.applyAlign('left'),
       ),
-      alignRightItem = this.appendPanelItem(
-        subpanel,
-        'columnAlignRight',
-        'Right',
-        IconTableAlignRight,
-        () => this.applyAlign('right'),
+      alignCenterItem = this.appendPanelItem(subpanel, 'columnAlignCenter', 'Center', IconTableAlignCenter, () =>
+        this.applyAlign('center'),
+      ),
+      alignRightItem = this.appendPanelItem(subpanel, 'columnAlignRight', 'Right', IconTableAlignRight, () =>
+        this.applyAlign('right'),
       );
 
     this.alignItems = {
@@ -544,49 +430,31 @@ export default class Table extends BlockModel implements TableBlockModel {
       right: alignRightItem,
     };
 
-    const separator = make(
-      'div',
-      (el: HTMLElement) => addClass(
-        el,
-        cssTC_SP + '-separator'
-      )
-    );
+    const separator = make('div', (el: HTMLElement) => addClass(el, cssTC_SP + '-separator'));
 
     append(subpanel, separator);
 
     const checkbox = make('div', (el: HTMLElement) => {
-      addClass(el, cssTC_SPC);
-      if (this.applyToAll) addClass(el, cssTC_SPC + '-checked');
-    }),
-      checkboxBox = make(
-        'span',
-        (el: HTMLSpanElement) => addClass(el, cssTC_SPC + '-box')
-      ),
+        addClass(el, cssTC_SPC);
+        if (this.applyToAll) addClass(el, cssTC_SPC + '-checked');
+      }),
+      checkboxBox = make('span', (el: HTMLSpanElement) => addClass(el, cssTC_SPC + '-box')),
       checkboxLabel = make('span', (el: HTMLSpanElement) => {
         addClass(el, cssTC_SPC + '-label');
-        text(el, this.editor.i18n.get(
-          'columnAlignApplyToAll',
-          'Apply to all cells'
-        ));
+        text(el, this.editor.i18n.get('columnAlignApplyToAll', 'Apply to all cells'));
       });
 
     append(checkbox, [checkboxBox, checkboxLabel]);
 
-    rebind(
-      checkbox,
-      'click.tableCheckbox' + eid,
-      (evt: MouseEvent) => {
-        evt.preventDefault();
-        evt.stopPropagation();
+    rebind(checkbox, 'click.tableCheckbox' + eid, (evt: MouseEvent) => {
+      evt.preventDefault();
+      evt.stopPropagation();
 
-        this.applyToAll = !this.applyToAll;
+      this.applyToAll = !this.applyToAll;
 
-        if (this.applyToAll)
-          addClass(checkbox, cssTC_SPC + '-checked');
-        else
-          removeClass(checkbox, cssTC_SPC + '-checked');
-      }
-    )
+      if (this.applyToAll) addClass(checkbox, cssTC_SPC + '-checked');
+      else removeClass(checkbox, cssTC_SPC + '-checked');
+    });
 
     append(subpanel, checkbox);
 
@@ -625,10 +493,13 @@ export default class Table extends BlockModel implements TableBlockModel {
     const cssTCS = 'tex-table-control-submenu';
     const arrow = make('span', (el: HTMLSpanElement) => {
       addClass(el, cssTCS + '-item-submenu-arrow');
-      html(el, renderIcon(IconArrowRight, {
-        width: 10,
-        height: 10
-      }));
+      html(
+        el,
+        renderIcon(IconArrowRight, {
+          width: 10,
+          height: 10,
+        }),
+      );
     });
     append(item, arrow);
   }
@@ -653,10 +524,13 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     const iconEl = make('span', (el: HTMLSpanElement) => {
       addClass(el, cssTCT + '-icon');
-      html(el, renderIcon(icon, {
-        width: 14,
-        height: 14
-      }));
+      html(
+        el,
+        renderIcon(icon, {
+          width: 14,
+          height: 14,
+        }),
+      );
     });
 
     const labelEl = make('span', (el: HTMLSpanElement) => {
@@ -666,10 +540,13 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     const arrow = make('span', (el: HTMLSpanElement) => {
       addClass(el, cssTCT + '-arrow');
-      html(el, renderIcon(IconArrowRight, {
-        width: 10,
-        height: 10
-      }));
+      html(
+        el,
+        renderIcon(IconArrowRight, {
+          width: 10,
+          height: 10,
+        }),
+      );
     });
 
     append(item, [iconEl, labelEl, arrow]);
@@ -713,10 +590,13 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     const iconEl = make('span', (el: HTMLSpanElement) => {
       addClass(el, cssTCS + '-item-icon');
-      html(el, renderIcon(icon, {
-        width: 14,
-        height: 14
-      }));
+      html(
+        el,
+        renderIcon(icon, {
+          width: 14,
+          height: 14,
+        }),
+      );
     });
 
     const labelEl = make('span', (el: HTMLSpanElement) => {
@@ -1133,21 +1013,13 @@ export default class Table extends BlockModel implements TableBlockModel {
     const maxRows = this.getConfig('maxRows', 20) as number;
 
     if (rows.length >= maxRows) {
-      this.toasts().add(
-        this.editor.i18n.get(
-          'tableMaxRows',
-          'Maximum rows reached'
-        ),
-        { code: 'error' }
-      );
+      this.toasts().add(this.editor.i18n.get('tableMaxRows', 'Maximum rows reached'), { code: 'error' });
 
       return;
     }
 
     const firstRow = rows[0];
-    const cols = firstRow ?
-      queryList<HTMLTableCellElement>(selTC, firstRow).length
-      : 3;
+    const cols = firstRow ? queryList<HTMLTableCellElement>(selTC, firstRow).length : 3;
 
     const activeRow = this.activeCell?.closest('tr') as HTMLTableRowElement | null;
     const activeRowType: 'th' | 'td' = activeRow && activeRow.querySelector('th') ? 'th' : 'td';
@@ -1202,13 +1074,7 @@ export default class Table extends BlockModel implements TableBlockModel {
     const maxCols = this.getConfig('maxCols', 10) as number;
 
     if (cols >= maxCols) {
-      this.toasts().add(
-        this.editor.i18n.get(
-          'tableMaxCols',
-          'Maximum columns reached'
-        ),
-        { code: 'error' }
-      );
+      this.toasts().add(this.editor.i18n.get('tableMaxCols', 'Maximum columns reached'), { code: 'error' });
 
       return;
     }
@@ -1269,29 +1135,19 @@ export default class Table extends BlockModel implements TableBlockModel {
     const rows = queryList<HTMLTableRowElement>('.' + cssTR, table);
 
     if (rows.length <= 1) {
-      this.toasts().add(
-        this.editor.i18n.get(
-          'tableMinRows',
-          'Cannot remove last row'
-        ),
-        { code: 'error' }
-      );
+      this.toasts().add(this.editor.i18n.get('tableMinRows', 'Cannot remove last row'), { code: 'error' });
 
       return;
     }
 
     let rowToRemove: HTMLTableRowElement | null = null;
 
-    if (this.activeCell)
-      rowToRemove = this.activeCell.closest('tr') as HTMLTableRowElement | null;
+    if (this.activeCell) rowToRemove = this.activeCell.closest('tr') as HTMLTableRowElement | null;
 
     if (rowToRemove) {
       const index = rows.indexOf(rowToRemove);
       const colIndex = this.activeCell
-        ? queryList<HTMLTableCellElement>(
-          '.tex-table-cell',
-          rowToRemove
-        ).indexOf(this.activeCell)
+        ? queryList<HTMLTableCellElement>('.tex-table-cell', rowToRemove).indexOf(this.activeCell)
         : 0;
 
       if (this.activeRow === rowToRemove) {
@@ -1341,13 +1197,7 @@ export default class Table extends BlockModel implements TableBlockModel {
     const firstRowCells = queryList<HTMLTableCellElement>(selTC, rows[0]);
 
     if (firstRowCells.length <= 1) {
-      this.toasts().add(
-        this.editor.i18n.get(
-          'tableMinCols',
-          'Cannot remove last column'
-        ),
-        { code: 'error' }
-      );
+      this.toasts().add(this.editor.i18n.get('tableMinCols', 'Cannot remove last column'), { code: 'error' });
 
       return;
     }
@@ -1543,9 +1393,7 @@ export default class Table extends BlockModel implements TableBlockModel {
           const cells: TableRowSchema['cells'] = [];
           (rowSchema.data as BlockSchema[]).forEach((cellSchema) => {
             if (cellSchema.type === 'th' || cellSchema.type === 'td') {
-              const align = cellSchema.attr && cellSchema.attr.align
-                ? String(cellSchema.attr.align)
-                : undefined;
+              const align = cellSchema.attr && cellSchema.attr.align ? String(cellSchema.attr.align) : undefined;
 
               cells.push({
                 type: cellSchema.type,
@@ -1583,8 +1431,8 @@ export default class Table extends BlockModel implements TableBlockModel {
             const content = this.cellDataToHtml(schema.data);
             const attrs = schema.attr
               ? Object.entries(schema.attr)
-                .map(([k, v]) => `${k}="${v}"`)
-                .join(' ')
+                  .map(([k, v]) => `${k}="${v}"`)
+                  .join(' ')
               : '';
             return `<${tag}${attrs ? ' ' + attrs : ''}>${content}</${tag}>`;
           }
@@ -1605,11 +1453,7 @@ export default class Table extends BlockModel implements TableBlockModel {
    * @param _strictMode - Strict mode flag (unused).
    * @returns Saved block schema.
    */
-  protected save(
-    blockSchema: BlockSchema,
-    _blockElement?: BlockElement,
-    _strictMode?: boolean
-  ): BlockSchema {
+  protected save(blockSchema: BlockSchema, _blockElement?: BlockElement, _strictMode?: boolean): BlockSchema {
     const table = this.tableElement;
     if (!table) return { ...blockSchema, data: [] };
 
@@ -1713,7 +1557,7 @@ export default class Table extends BlockModel implements TableBlockModel {
       element: cell,
       position: {
         start: Math.max(0, start),
-        end: Math.max(0, end)
+        end: Math.max(0, end),
       },
     });
 
@@ -1761,7 +1605,7 @@ export default class Table extends BlockModel implements TableBlockModel {
     }
 
     evt.stopPropagation();
-    this.updateControlsPosition()
+    this.updateControlsPosition();
     return true;
   }
 
@@ -1783,8 +1627,7 @@ export default class Table extends BlockModel implements TableBlockModel {
    * @returns False to prevent default handling.
    */
   protected onPaste(_evt: Event, map: PasteMap): boolean {
-    if (map.schema == 'block')
-      map.schema = 'node';
+    if (map.schema == 'block') map.schema = 'node';
 
     return true;
   }

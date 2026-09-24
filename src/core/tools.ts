@@ -46,15 +46,15 @@ export default class Tools implements ITools {
     const toolModels = tools.length
       ? tools
       : [
-        BoldTool,
-        ItalicTool,
-        InlineCodeTool,
-        LinkTool,
-        MarkerTool,
-        SubscriptTool,
-        SuperscriptTool,
-        ClearFormattingTool,
-      ];
+          BoldTool,
+          ItalicTool,
+          InlineCodeTool,
+          LinkTool,
+          MarkerTool,
+          SubscriptTool,
+          SuperscriptTool,
+          ClearFormattingTool,
+        ];
 
     toolModels.forEach((instance: ToolModelConstructor) => {
       this.tools.push(new instance(this.editor));

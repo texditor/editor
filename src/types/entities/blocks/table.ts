@@ -1,10 +1,10 @@
-import { BlockModel, BlockModelConfig } from "@/types";
+import { BlockModel, BlockModelConfig } from '@/types';
 
 export interface TableRowSchema {
   cells: Array<{
     type: 'th' | 'td';
     content: string;
-    align?: string
+    align?: string;
   }>;
 }
 
@@ -53,9 +53,9 @@ export interface TableBlockModelConfig extends BlockModelConfig {
  */
 export interface TableBlockModel extends BlockModel {
   /**
-  * Returns the unique identifier for this event listener instance
-  * @returns The unique event ID string used to identify and manage event listeners
-  */
+   * Returns the unique identifier for this event listener instance
+   * @returns The unique event ID string used to identify and manage event listeners
+   */
   getDefaultRows(): number;
 
   /**
