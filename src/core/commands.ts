@@ -555,7 +555,7 @@ export default class Commands implements ICommands {
           const currentEl = current as Element;
           const nextEl = next as Element;
 
-          if (currentEl.tagName === nextEl.tagName) {
+          if (currentEl.tagName === nextEl.tagName && currentEl.localName !== 'br') {
             const attrs1 = currentEl.attributes;
             const attrs2 = nextEl.attributes;
             let attributesMatch = attrs1.length === attrs2.length;
@@ -634,10 +634,98 @@ export default class Commands implements ICommands {
     const tagsArray = Array.from(tags).reverse();
 
     tagsArray.forEach((tag) => {
-      if (!tag.hasChildNodes() && tag.parentNode) {
+      if (!tag.hasChildNodes() && tag.parentNode && tag.localName !== 'br') {
         tag.parentNode.removeChild(tag);
       }
     });
+  }
+
+  /** @see ICommands.mergeConsecutiveTags */
+  mergeConsecutiveTags(element: HTMLElement, tagNames: string | string[], allowedCount: number = 1): void {
+    const tags = Array.isArray(tagNames) ? tagNames : [tagNames];
+    const tagSet = new Set(tags.map((t) => t.toLowerCase()));
+
+    const targets: HTMLElement[] = [];
+    const walk = (node: Node): void => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as HTMLElement;
+        if (tagSet.has(el.localName)) {
+          targets.push(el);
+        }
+        Array.from(el.childNodes).forEach(walk);
+      }
+    };
+    Array.from(element.childNodes).forEach(walk);
+
+    const isTrulyAdjacent = (a: HTMLElement, b: HTMLElement): boolean => {
+      let node: Node | null = a;
+
+      while (node) {
+        let next: Node | null = node.nextSibling;
+
+        if (!next) {
+          let parent: Node | null = node.parentNode;
+          while (parent && parent !== element && !parent.nextSibling) {
+            parent = parent.parentNode;
+          }
+          next = parent && parent !== element ? parent.nextSibling : null;
+        }
+
+        if (!next) return false;
+        if (next === b) return true;
+
+        if (next.nodeType === Node.TEXT_NODE) {
+          if ((next.textContent || '').trim() !== '') return false;
+          node = next;
+          continue;
+        }
+
+        if (next.nodeType === Node.ELEMENT_NODE) {
+          return false;
+        }
+
+        node = next;
+      }
+
+      return false;
+    };
+
+    const groups: HTMLElement[][] = [];
+    let currentGroup: HTMLElement[] = [];
+
+    for (const target of targets) {
+      if (currentGroup.length === 0) {
+        currentGroup.push(target);
+        continue;
+      }
+
+      const last = currentGroup[currentGroup.length - 1];
+
+      if (last.localName === target.localName && isTrulyAdjacent(last, target)) {
+        currentGroup.push(target);
+      } else {
+        groups.push(currentGroup);
+        currentGroup = [target];
+      }
+    }
+    if (currentGroup.length) groups.push(currentGroup);
+
+    for (const group of groups) {
+      if (group.length <= allowedCount) continue;
+
+      for (let i = allowedCount; i < group.length; i++) {
+        const el = group[i];
+        const parent: Node | null = el.parentNode;
+        if (!parent) continue;
+
+        while (el.firstChild) {
+          parent.insertBefore(el.firstChild, el);
+        }
+        parent.removeChild(el);
+      }
+    }
+
+    this.normalize(element);
   }
 
   /** @see ICommands.getEdgeChars */

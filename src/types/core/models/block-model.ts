@@ -51,6 +51,7 @@ export interface BlockModelSchema {
  * @property itemClassName - Item CSS class
  * @property itemBodyClassName - Item body CSS class
  * @property maxItems - Maximum number of elements
+ * @property maxBreaks - Maximum number of consecutive breaks
  * @property sortableItems - Enable item sorting
  * @property dragZoneClassName - Name of the drag zone class
  * @property relatedNames - Related block names
@@ -83,6 +84,7 @@ export interface BlockModelConfig extends BaseModelConfig {
   itemClassName: string;
   itemBodyClassName: string;
   maxItems: number;
+  maxBreaks: number;
   sortableItems: boolean;
   dragZoneClassName: string;
   relatedNames: string[];
@@ -199,6 +201,12 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @returns Maximum items number
    */
   getMaxItems(): number;
+
+  /**
+   * Get maximum allowed breaks count
+   * @returns Maximum breaks number
+   */
+  getMaxBreaks(): number;
 
   /**
    * Get related item names
@@ -429,6 +437,7 @@ export interface BlockModel extends BaseModel<BlockElement> {
    */
   setup?(config: Partial<BlockModelConfig>): BlockModelConstructor;
 }
+
 /** Data of a block: plain text, array of strings, or child blocks. */
 export type BlockSchemaData = string | string[] | BlockChildSchema[];
 
@@ -438,7 +447,7 @@ export type BlockSchemaAttr = Record<string, string>;
 /** Full block model with type, data, attributes, and metadata. */
 export interface BlockSchema {
   type: string;
-  data: BlockSchemaData;
+  data?: BlockSchemaData;
   attr?: BlockSchemaAttr;
   lang?: string;
   caption?: string;
@@ -461,7 +470,7 @@ export interface BlockChildSchema {
 
 /** Simplified model for creating a block – type is provided by context, only data is required. */
 export interface BlockCreateSchema extends Omit<BlockSchema, 'type'> {
-  data: string | BlockCreateItemSchema[] | unknown[];
+  data?: string | BlockCreateItemSchema[] | unknown[];
 }
 
 /** Simplified child item model for creation – only type and string data required. */

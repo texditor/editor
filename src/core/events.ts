@@ -311,37 +311,40 @@ export default class Events extends EventManager implements IEvents {
       if (this.editor.isEmpty() && blockManager.count() == 0) blockManager.createBlock(defBlock);
 
       if (evt.key == 'Enter') {
+
         this.trigger('keydownEnterKey', { domEvent: evt });
 
-        if (closest(evt.target, contentElement)) {
-          if (model.isEditableItems()) {
-            if (model.isEnterCreate()) {
-              breakEvent();
+        if (!evt.shiftKey) {
+          if (closest(evt.target, contentElement)) {
+            if (model.isEditableItems()) {
+              if (model.isEnterCreate()) {
+                breakEvent();
 
-              const itemIndex = model.getItemIndex(),
-                isEmptyItem = model.isEmptyItem(itemIndex);
+                const itemIndex = model.getItemIndex(),
+                  isEmptyItem = model.isEmptyItem(itemIndex);
 
-              if (isEmptyItem && model.getItemsLength() === itemIndex + 1) {
-                model.removeItem(itemIndex);
-                blockManager.createBlock(defBlock);
-              } else {
-                if (!isEmptyItem && !model?.isEmptyItem(itemIndex - 1) && cursorStart != 0 && cursorEnd != 0) {
-                  if (model.canCreateItem()) {
-                    model.createItem(selectionApi.splitContent(model.getItemBody(-1)));
+                if (isEmptyItem && model.getItemsLength() === itemIndex + 1) {
+                  model.removeItem(itemIndex);
+                  blockManager.createBlock(defBlock);
+                } else {
+                  if (!isEmptyItem && !model?.isEmptyItem(itemIndex - 1) && cursorStart != 0 && cursorEnd != 0) {
+                    if (model.canCreateItem()) {
+                      model.createItem(selectionApi.splitContent(model.getItemBody(-1)));
+                    }
                   }
                 }
               }
-            }
-          } else {
-            if (model.isEnterCreate()) {
-              breakEvent();
+            } else {
+              if (model.isEnterCreate()) {
+                breakEvent();
 
-              if ((cursorStart === cursorEnd && cursorStart === curTextLength) || cursorStart !== cursorEnd) {
-                if (!model.isEmpty()) blockManager.createBlock(defBlock);
-              } else {
-                blockManager.createBlock(defBlock, -1, {
-                  data: selectionApi.splitContent(contentElement),
-                });
+                if ((cursorStart === cursorEnd && cursorStart === curTextLength) || cursorStart !== cursorEnd) {
+                  if (!model.isEmpty()) blockManager.createBlock(defBlock);
+                } else {
+                  blockManager.createBlock(defBlock, -1, {
+                    data: selectionApi.splitContent(contentElement),
+                  });
+                }
               }
             }
           }

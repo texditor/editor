@@ -262,10 +262,10 @@ export interface BlockManager {
   /**
    * Converts HTML string to an array of BlockSchema objects or text strings.
    *
-   * @param html - HTML string to parse
+   * @param input - HTML string to parse
    * @returns Array of BlockSchema for elements or strings for text nodes
    */
-  htmlToData(html: string): Array<BlockSchema | string>;
+  htmlToData(input: string): Array<BlockSchema | string>;
 
   /**
    * Parses a block schema into a BlockElement instance

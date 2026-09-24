@@ -190,8 +190,15 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
   getConfig(key: string, defaultValue: unknown): unknown;
 
   /**
-   * Get option value by key
+   * Set single configuration value
    * @param key - Configuration key
+   * @param value - Value to set
+   */
+  setConfig(key: string, value: unknown): void;
+
+  /**
+   * Get option value by key
+   * @param key - Option key
    * @param defaultValue - Default value (optional)
    * @returns Configuration value or null if not found
    */
@@ -199,7 +206,7 @@ export interface BaseModel<TElement extends BaseElement = BaseElement> extends E
 
   /**
    * Set single option value
-   * @param key - Configuration key
+   * @param key - Option key
    * @param value - Value to set
    */
   setOption(key: string, value: unknown): void;

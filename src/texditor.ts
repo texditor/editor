@@ -218,9 +218,8 @@ export default class Texditor implements ITexditor {
       events.trigger('saveEach', { blockElement: el });
 
       const block = blockManager.saveBlock(el, strictMode);
-      if (block) {
-        data.push(block);
-      }
+
+      if (block) data.push(block);
 
       events.trigger('saveEachEnd', { blockElement: el });
     });

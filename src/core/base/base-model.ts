@@ -220,6 +220,11 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
     return defaultValue !== undefined ? defaultValue : '';
   }
 
+  /** @see IBaseModel.setConfig */
+  setConfig(key: string, value: unknown): void {
+    this.config[key] = value;
+  }
+
   /** @see IBaseModel.getOption */
   getOption<T = unknown>(key: string, defaultValue?: T): T | null {
     const value = this.options[key];

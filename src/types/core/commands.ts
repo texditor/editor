@@ -61,6 +61,14 @@ export interface Commands {
   removeEmptyTags(element: HTMLElement, tagName: string): void;
 
   /**
+   * Merges consecutive tags of the same type, keeping only the allowed number
+   * @param element - Root element to process
+   * @param tagNames - Tag name(s) to process
+   * @param allowedCount - Maximum number of consecutive tags to keep (default: 1)
+   */
+  mergeConsecutiveTags(element: HTMLElement, tagNames: string | string[], allowedCount: number): void;
+
+  /**
    * Splits an element at specified text positions
    * @param element - Element to split
    * @param startIndex - Start index for split

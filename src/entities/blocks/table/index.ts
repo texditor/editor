@@ -88,10 +88,11 @@ export default class Table extends BlockModel implements TableBlockModel {
       convertible: false,
       enterCreate: false,
       backspaceRemove: false,
+      normalize: true,
       visibleTools: true,
       sanitizer: true,
       sanitizerConfig: {
-        elements: ['b', 'a', 'i', 's', 'u', 'sup', 'sub', 'mark', 'code', 'br'],
+        elements: ['b', 'a', 'i', 's', 'u', 'sup', 'sub', 'mark', 'code'],
         attributes: {
           a: ['href', 'target'],
         },
@@ -101,7 +102,9 @@ export default class Table extends BlockModel implements TableBlockModel {
           },
         },
       },
+      maxBreaks: 2,
 
+      // Table options
       defaultRows: 3,
       defaultCols: 3,
       maxRows: 100,
@@ -415,8 +418,8 @@ export default class Table extends BlockModel implements TableBlockModel {
     append(subpanel, backBtn);
 
     const alignLeftItem = this.appendPanelItem(subpanel, 'columnAlignLeft', 'Left', IconTableAlignLeft, () =>
-        this.applyAlign('left'),
-      ),
+      this.applyAlign('left'),
+    ),
       alignCenterItem = this.appendPanelItem(subpanel, 'columnAlignCenter', 'Center', IconTableAlignCenter, () =>
         this.applyAlign('center'),
       ),
@@ -435,9 +438,9 @@ export default class Table extends BlockModel implements TableBlockModel {
     append(subpanel, separator);
 
     const checkbox = make('div', (el: HTMLElement) => {
-        addClass(el, cssTC_SPC);
-        if (this.applyToAll) addClass(el, cssTC_SPC + '-checked');
-      }),
+      addClass(el, cssTC_SPC);
+      if (this.applyToAll) addClass(el, cssTC_SPC + '-checked');
+    }),
       checkboxBox = make('span', (el: HTMLSpanElement) => addClass(el, cssTC_SPC + '-box')),
       checkboxLabel = make('span', (el: HTMLSpanElement) => {
         addClass(el, cssTC_SPC + '-label');
@@ -1429,8 +1432,8 @@ export default class Table extends BlockModel implements TableBlockModel {
             const content = this.cellDataToHtml(schema.data);
             const attrs = schema.attr
               ? Object.entries(schema.attr)
-                  .map(([k, v]) => `${k}="${v}"`)
-                  .join(' ')
+                .map(([k, v]) => `${k}="${v}"`)
+                .join(' ')
               : '';
             return `<${tag}${attrs ? ' ' + attrs : ''}>${content}</${tag}>`;
           }
@@ -1641,6 +1644,15 @@ export default class Table extends BlockModel implements TableBlockModel {
     if (!table) return [];
 
     return queryList<HTMLTableCellElement>('.tex-table-cell', table);
+  }
+
+  /**
+   * Returns the list of elements to normalize (all table cells).
+   *
+   * @returns Array of HTMLElements.
+   */
+  toNormalize(): HTMLElement[] {
+    return this.toSanitize();
   }
 
   /**
