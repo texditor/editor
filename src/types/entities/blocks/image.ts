@@ -1,4 +1,7 @@
-import { FileBlockModelConfig, FileBlockModel, FileItem } from './file';
+import { FileBlockModelConfig, FileBlockModel } from './file';
+
+/** Image layout style: grid | slider | single (full width) | row (wrapped, packed) */
+export type ImageLayoutStyle = 'grid' | 'slider' | 'single' | 'row';
 
 /**
  * Configuration interface for the Image block model.
@@ -10,22 +13,10 @@ import { FileBlockModelConfig, FileBlockModel, FileItem } from './file';
  * @property videoMimeTypes - MIME types that should be rendered as videos
  */
 export interface ImageBlockModelConfig extends FileBlockModelConfig {
-  styles: string[];
+  styles: ImageLayoutStyle[];
   stylesLtr: 'left' | 'right';
   defaultStyle: string;
   sliderInfinite: boolean;
-}
-
-export interface VideoSize {
-  id?: number;
-  url?: string;
-}
-
-export interface VideoItem extends Omit<FileItem, 'url' | 'type'> {
-  url?: string;
-  type?: string;
-  poster?: string;
-  [key: string]: unknown;
 }
 
 /**
@@ -37,13 +28,13 @@ export interface ImageBlockModel extends FileBlockModel {
    * Returns the list of available display styles for the image
    * @returns Array of style identifiers
    */
-  getStyles(): string[];
+  getStyles(): ImageLayoutStyle[];
 
   /**
    * Returns the default display style for the image
    * @returns Default style identifier
    */
-  getDefaultStyle(): string;
+  getDefaultStyle(): ImageLayoutStyle;
 
   /**
    * Checks if all configured styles are valid and allowed

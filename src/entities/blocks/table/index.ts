@@ -418,8 +418,8 @@ export default class Table extends BlockModel implements TableBlockModel {
     append(subpanel, backBtn);
 
     const alignLeftItem = this.appendPanelItem(subpanel, 'columnAlignLeft', 'Left', IconTableAlignLeft, () =>
-      this.applyAlign('left'),
-    ),
+        this.applyAlign('left'),
+      ),
       alignCenterItem = this.appendPanelItem(subpanel, 'columnAlignCenter', 'Center', IconTableAlignCenter, () =>
         this.applyAlign('center'),
       ),
@@ -438,9 +438,9 @@ export default class Table extends BlockModel implements TableBlockModel {
     append(subpanel, separator);
 
     const checkbox = make('div', (el: HTMLElement) => {
-      addClass(el, cssTC_SPC);
-      if (this.applyToAll) addClass(el, cssTC_SPC + '-checked');
-    }),
+        addClass(el, cssTC_SPC);
+        if (this.applyToAll) addClass(el, cssTC_SPC + '-checked');
+      }),
       checkboxBox = make('span', (el: HTMLSpanElement) => addClass(el, cssTC_SPC + '-box')),
       checkboxLabel = make('span', (el: HTMLSpanElement) => {
         addClass(el, cssTC_SPC + '-label');
@@ -1432,8 +1432,8 @@ export default class Table extends BlockModel implements TableBlockModel {
             const content = this.cellDataToHtml(schema.data);
             const attrs = schema.attr
               ? Object.entries(schema.attr)
-                .map(([k, v]) => `${k}="${v}"`)
-                .join(' ')
+                  .map(([k, v]) => `${k}="${v}"`)
+                  .join(' ')
               : '';
             return `<${tag}${attrs ? ' ' + attrs : ''}>${content}</${tag}>`;
           }
