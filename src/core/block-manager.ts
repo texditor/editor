@@ -579,10 +579,10 @@ export default class BlockManager implements IBlockManager {
               const scrollParams =
                 scrollIntoView === true
                   ? {
-                    behavior: 'smooth',
-                    block: 'center',
-                    inline: 'nearest',
-                  }
+                      behavior: 'smooth',
+                      block: 'center',
+                      inline: 'nearest',
+                    }
                   : scrollIntoView;
 
               if (scrollIntoView) block?.scrollIntoView(scrollParams as ScrollIntoViewOptions);

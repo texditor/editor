@@ -9,15 +9,16 @@ import type {
   ImageBlockModel,
   BlockSchema,
   BlockSchemaData,
+  ImageLayoutStyle,
 } from '@/types';
-import { IconImage, IconMultipleGrid, IconSingleGrid, IconSlider } from '@/icons';
+import { IconImage, IconLayoutArrowRight, IconMultipleGrid, IconSingleGrid, IconSlider } from '@/icons';
 import { renderIcon } from '@/utils';
 import { addClass, append, attr, data, html, make, prepend, query, rebind, removeClass, text } from 'snappykit';
 import Slider from '@/core/ui/slider';
 import '@/styles/entities/blocks/image.css';
 
 export default class Image extends File implements ImageBlockModel {
-  private defaultStyles: string[] = ['grid', 'slider', 'single'];
+  private defaultStyles: ImageLayoutStyle[] = ['grid', 'slider', 'single', 'row'];
   private slider?: ISlider | null = null;
 
   /**
@@ -43,7 +44,7 @@ export default class Image extends File implements ImageBlockModel {
         icon: IconImage,
         className: 'tex-image tex-file',
         translation: 'image',
-        styles: ['grid', 'slider', 'single'],
+        styles: ['grid', 'slider', 'single', 'row'],
         stylesLtr: 'right',
         defaultStyle: 'single',
         groupCode: 'image',
@@ -72,8 +73,8 @@ export default class Image extends File implements ImageBlockModel {
   }
 
   /** @see ImageBlockModel.getDefaultStyle */
-  getDefaultStyle(): string {
-    const defaultStyle = this.getConfig('defaultStyle', []) as string;
+  getDefaultStyle(): ImageLayoutStyle {
+    const defaultStyle = this.getConfig('defaultStyle', []) as ImageLayoutStyle;
 
     if (!this.defaultStyles.includes(defaultStyle)) return 'single';
 
@@ -81,15 +82,15 @@ export default class Image extends File implements ImageBlockModel {
   }
 
   /** @see ImageBlockModel.getStyles */
-  getStyles(): string[] {
-    return this.getConfig('styles', []) as string[];
+  getStyles(): ImageLayoutStyle[] {
+    return this.getConfig('styles', ['grid', 'slider', 'single', 'row']) as ImageLayoutStyle[];
   }
 
   /** @see ImageBlockModel.areStylesAllowed */
   areStylesAllowed(): boolean {
     const styles = this.getStyles();
 
-    return styles.every((key: string) => this.defaultStyles.includes(key));
+    return styles.every((key: ImageLayoutStyle) => this.defaultStyles.includes(key));
   }
 
   /**
@@ -162,6 +163,7 @@ export default class Image extends File implements ImageBlockModel {
             if (styles.includes('single')) items.push(styleItem('single', IconSingleGrid));
             if (styles.includes('grid')) items.push(styleItem('grid', IconMultipleGrid));
             if (styles.includes('slider')) items.push(styleItem('slider', IconSlider));
+            if (styles.includes('row')) items.push(styleItem('row', IconLayoutArrowRight));
 
             append(div, items);
           }),
@@ -171,7 +173,7 @@ export default class Image extends File implements ImageBlockModel {
       if (ltr == 'left') prepend(form, stylePanel);
       else append(form, stylePanel);
 
-      let currentStyle = this.getOption('style', 'single') || 'single';
+      let currentStyle: ImageLayoutStyle = this.getOption('style', 'single') || 'single';
       currentStyle = this.defaultStyles.includes(currentStyle) ? currentStyle : 'single';
       saveActiveItem(currentStyle);
     }

@@ -22,6 +22,29 @@
   gap: 0;
 }
 
+.tex-image[data-options-style~='row'] .tex-block-content {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tex-image[data-options-style~='row'] .tex-file-item {
+  min-width: 180px;
+  min-height: 180px;
+}
+
+.tex-image[data-options-style~='row'] .tex-file-item img {
+  width: auto;
+  object-fit: contain;
+}
+
+.tex-image[data-options-style~='row'] .tex-item-body {
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .tex-image .tex-file-item {
   display: grid;
   grid-template-columns: 1fr;

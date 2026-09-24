@@ -311,7 +311,6 @@ export default class Events extends EventManager implements IEvents {
       if (this.editor.isEmpty() && blockManager.count() == 0) blockManager.createBlock(defBlock);
 
       if (evt.key == 'Enter') {
-
         this.trigger('keydownEnterKey', { domEvent: evt });
 
         if (!evt.shiftKey) {
