@@ -4,3 +4,4 @@ export * from './image';
 export * from './paragraph';
 export * from './list';
 export * from './file';
+export * from './table';

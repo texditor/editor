@@ -258,7 +258,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const [actionsElement] = queryList<HTMLElement>(cssName, blockElement);
 
     if (actionsElement) {
-      off(document, 'click.actions' + eid);
+      off(document, 'click.actions' + eid, true);
       query(
         cssName + '-content',
         (content: HTMLDivElement) => {

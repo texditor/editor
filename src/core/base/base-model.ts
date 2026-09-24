@@ -34,9 +34,6 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   /** Key-value storage for custom block data */
   protected store: Record<string, unknown> = {};
 
-  /** Unique identifier for event listeners to prevent conflicts with other event handlers */
-  private eventId: string = '.actions' + randString(16);
-
   /** Modifiable model options */
   private options: Record<string, unknown> = {};
 
@@ -191,7 +188,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
 
   /** @see IBaseModel.getEventId */
   getEventId(): string {
-    return this.eventId;
+    return 'base' + this.editor.events.getEventId();
   }
 
   /**
