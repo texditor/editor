@@ -5,6 +5,7 @@ import type {
   BlockCreateSchema,
   TableRowSchema,
   TableColumnAlign,
+  TableVerticalAlign,
   BlockModelConstructor,
   TableBlockModelConfig,
   TableBlockModel,
@@ -21,10 +22,15 @@ import {
   IconTableAlignLeft,
   IconTableAlignCenter,
   IconTableAlignRight,
+  IconTableVerticalAlign,
+  IconTableVerticalAlignTop,
+  IconTableVerticalAlignMiddle,
+  IconTableVerticalAlignBottom,
   IconTableAddColumnLeft,
   IconTableAddColumnRight,
   IconTableRow,
   IconTableColumn,
+  IconTableCell,
   IconArrowLeft,
   IconArrowRight,
   IconTrash,
@@ -47,6 +53,7 @@ import {
   query,
   css,
   text,
+  hasClass,
 } from 'snappykit';
 
 import '@/styles/entities/blocks/table.css';
@@ -60,7 +67,11 @@ export default class Table extends BlockModel implements TableBlockModel {
   private controlsSubpanel: HTMLElement | null = null;
   private toggleHeaderItem: HTMLElement | null = null;
   private alignItems: Record<TableColumnAlign, HTMLElement> | null = null;
-  private applyToAll: boolean = false;
+  private valignItems: Record<TableVerticalAlign, HTMLElement> | null = null;
+  private applyToAllHorizontal: boolean = false;
+  private applyToAllVertical: boolean = false;
+  private applyToRowHorizontal: boolean = false;
+  private applyToRowVertical: boolean = false;
 
   /** @see TableBlockModel.setup */
   public static setup(config: Partial<TableBlockModelConfig>): BlockModelConstructor {
@@ -204,6 +215,12 @@ export default class Table extends BlockModel implements TableBlockModel {
           data(cell, 'align', cellData.align);
           css(cell, 'textAlign', cellData.align);
         }
+
+        if (cellData.valign) {
+          data(cell, 'valign', cellData.valign);
+          css(cell, 'verticalAlign', cellData.valign);
+        }
+
         append(tr, cell);
       });
 
@@ -259,7 +276,7 @@ export default class Table extends BlockModel implements TableBlockModel {
   }
 
   /**
-   * Creates the controls menu wrapper and the initial panel with triggers.
+   * Creates the controls menu wrapper and the initial panel with three triggers.
    *
    * @param contentElement - Block content element to append the menu into.
    * @returns void
@@ -274,10 +291,11 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     this.controlsPanel = panel;
 
-    const rowTrigger = this.makeTrigger('row', 'Row', IconTableRow),
+    const cellTrigger = this.makeTrigger('cell', 'Cell', IconTableCell),
+      rowTrigger = this.makeTrigger('row', 'Row', IconTableRow),
       colTrigger = this.makeTrigger('column', 'Column', IconTableColumn);
 
-    append(panel, [rowTrigger, colTrigger]);
+    append(panel, [cellTrigger, rowTrigger, colTrigger]);
 
     const subpanel = make('div', (el: HTMLElement) => addClass(el, cssTCs + '-subpanel'));
 
@@ -289,12 +307,12 @@ export default class Table extends BlockModel implements TableBlockModel {
   }
 
   /**
-   * Renders the subpanel content for the given trigger ('row' | 'column').
+   * Renders the subpanel content for the given trigger.
    *
-   * @param name - Subpanel type.
+   * @param name - Subpanel type ('cell' | 'row' | 'column').
    * @returns void
    */
-  private renderSubpanelContent(name: 'row' | 'column'): void {
+  private renderSubpanelContent(name: 'cell' | 'row' | 'column'): void {
     const cssTC = 'tex-table-control';
     const cssTCs = cssTC + 's';
     const cssTC_SP = cssTCs + '-subpanel';
@@ -335,7 +353,21 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     append(subpanel, backBtn);
 
-    if (name === 'row') {
+    if (name === 'cell') {
+      const alignItem = this.appendPanelItem(subpanel, 'cellAlign', 'Horizontal align', IconTableAlign, () =>
+        this.openAlignSubpanel(),
+      );
+      this.appendSubmenuArrow(alignItem);
+
+      const valignItem = this.appendPanelItem(
+        subpanel,
+        'cellVerticalAlign',
+        'Vertical align',
+        IconTableVerticalAlign,
+        () => this.openValignSubpanel(),
+      );
+      this.appendSubmenuArrow(valignItem);
+    } else if (name === 'row') {
       this.toggleHeaderItem = this.appendPanelItem(
         subpanel,
         'rowToggleHeader',
@@ -350,11 +382,6 @@ export default class Table extends BlockModel implements TableBlockModel {
 
       this.appendPanelItem(subpanel, 'rowRemove', 'Remove row', IconTrash, () => this.removeRow(), true);
     } else {
-      const alignItem = this.appendPanelItem(subpanel, 'columnAlign', 'Align', IconTableAlign, () =>
-        this.openAlignSubpanel(),
-      );
-      this.appendSubmenuArrow(alignItem);
-
       this.appendPanelItem(subpanel, 'columnAddLeft', 'Add left', IconTableAddColumnLeft, () => this.addColumn('left'));
 
       this.appendPanelItem(subpanel, 'columnAddRight', 'Add right', IconTableAddColumnRight, () =>
@@ -371,7 +398,7 @@ export default class Table extends BlockModel implements TableBlockModel {
   }
 
   /**
-   * Renders the "Align" submenu inside the subpanel.
+   * Renders the "Horizontal align" submenu inside the subpanel.
    *
    * @returns void
    */
@@ -382,7 +409,6 @@ export default class Table extends BlockModel implements TableBlockModel {
     const cssTC_SPB = cssTC_SP + '-back';
     const cssTC_SPT = cssTC_SP + '-title';
     const cssTC_SPI = cssTC_SP + '-back-icon';
-    const cssTC_SPC = cssTC_SP + '-checkbox';
 
     const subpanel = this.controlsSubpanel;
     if (!subpanel) return;
@@ -404,7 +430,7 @@ export default class Table extends BlockModel implements TableBlockModel {
       }),
       backLabel = make('span', (el: HTMLSpanElement) => {
         addClass(el, cssTC_SPT);
-        text(el, this.editor.i18n.get('columnAlign', 'Align'));
+        text(el, this.editor.i18n.get('cellAlign', 'Horizontal align'));
       });
 
     append(backBtn, [backIcon, backLabel]);
@@ -412,18 +438,18 @@ export default class Table extends BlockModel implements TableBlockModel {
     rebind(backBtn, 'click.back' + eid, (evt: MouseEvent) => {
       evt.preventDefault();
       evt.stopPropagation();
-      this.renderSubpanelContent('column');
+      this.renderSubpanelContent('cell');
     });
 
     append(subpanel, backBtn);
 
-    const alignLeftItem = this.appendPanelItem(subpanel, 'columnAlignLeft', 'Left', IconTableAlignLeft, () =>
+    const alignLeftItem = this.appendPanelItem(subpanel, 'cellAlignLeft', 'Left', IconTableAlignLeft, () =>
         this.applyAlign('left'),
       ),
-      alignCenterItem = this.appendPanelItem(subpanel, 'columnAlignCenter', 'Center', IconTableAlignCenter, () =>
+      alignCenterItem = this.appendPanelItem(subpanel, 'cellAlignCenter', 'Center', IconTableAlignCenter, () =>
         this.applyAlign('center'),
       ),
-      alignRightItem = this.appendPanelItem(subpanel, 'columnAlignRight', 'Right', IconTableAlignRight, () =>
+      alignRightItem = this.appendPanelItem(subpanel, 'cellAlignRight', 'Right', IconTableAlignRight, () =>
         this.applyAlign('right'),
       );
 
@@ -437,33 +463,168 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     append(subpanel, separator);
 
-    const checkbox = make('div', (el: HTMLElement) => {
-        addClass(el, cssTC_SPC);
-        if (this.applyToAll) addClass(el, cssTC_SPC + '-checked');
-      }),
-      checkboxBox = make('span', (el: HTMLSpanElement) => addClass(el, cssTC_SPC + '-box')),
-      checkboxLabel = make('span', (el: HTMLSpanElement) => {
-        addClass(el, cssTC_SPC + '-label');
-        text(el, this.editor.i18n.get('columnAlignApplyToAll', 'Apply to all cells'));
-      });
+    const checkboxColumn = this.makeCheckbox(
+      this.editor.i18n.get('cellAlignApplyToColumn', 'Apply to column'),
+      this.applyToAllHorizontal,
+      () => {
+        this.applyToAllHorizontal = !this.applyToAllHorizontal;
+      },
+    );
 
-    append(checkbox, [checkboxBox, checkboxLabel]);
+    append(subpanel, checkboxColumn);
 
-    rebind(checkbox, 'click.tableCheckbox' + eid, (evt: MouseEvent) => {
-      evt.preventDefault();
-      evt.stopPropagation();
+    const checkboxRow = this.makeCheckbox(
+      this.editor.i18n.get('cellAlignApplyToRow', 'Apply to row'),
+      this.applyToRowHorizontal,
+      () => {
+        this.applyToRowHorizontal = !this.applyToRowHorizontal;
+      },
+    );
 
-      this.applyToAll = !this.applyToAll;
-
-      if (this.applyToAll) addClass(checkbox, cssTC_SPC + '-checked');
-      else removeClass(checkbox, cssTC_SPC + '-checked');
-    });
-
-    append(subpanel, checkbox);
+    append(subpanel, checkboxRow);
 
     this.syncControlsState();
     this.refreshControlsPosition();
     setTimeout(() => this.refreshControlsPosition(), 10);
+  }
+
+  /**
+   * Renders the "Vertical align" submenu inside the subpanel.
+   *
+   * @returns void
+   */
+  private openValignSubpanel(): void {
+    const cssTC = 'tex-table-control';
+    const cssTCs = cssTC + 's';
+    const cssTC_SP = cssTCs + '-subpanel';
+    const cssTC_SPB = cssTC_SP + '-back';
+    const cssTC_SPT = cssTC_SP + '-title';
+    const cssTC_SPI = cssTC_SP + '-back-icon';
+
+    const subpanel = this.controlsSubpanel;
+    if (!subpanel) return;
+
+    const eid = this.getEventId();
+
+    html(subpanel, '');
+
+    const backBtn = make('div', (el: HTMLElement) => addClass(el, cssTC_SPB)),
+      backIcon = make('span', (el: HTMLSpanElement) => {
+        addClass(el, cssTC_SPI);
+        html(
+          el,
+          renderIcon(IconArrowLeft, {
+            width: 12,
+            height: 12,
+          }),
+        );
+      }),
+      backLabel = make('span', (el: HTMLSpanElement) => {
+        addClass(el, cssTC_SPT);
+        text(el, this.editor.i18n.get('cellVerticalAlign', 'Vertical align'));
+      });
+
+    append(backBtn, [backIcon, backLabel]);
+
+    rebind(backBtn, 'click.back' + eid, (evt: MouseEvent) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.renderSubpanelContent('cell');
+    });
+
+    append(subpanel, backBtn);
+
+    const valignTopItem = this.appendPanelItem(subpanel, 'cellValignTop', 'Top', IconTableVerticalAlignTop, () =>
+        this.applyValign('top'),
+      ),
+      valignMiddleItem = this.appendPanelItem(
+        subpanel,
+        'cellValignMiddle',
+        'Middle',
+        IconTableVerticalAlignMiddle,
+        () => this.applyValign('middle'),
+      ),
+      valignBottomItem = this.appendPanelItem(
+        subpanel,
+        'cellValignBottom',
+        'Bottom',
+        IconTableVerticalAlignBottom,
+        () => this.applyValign('bottom'),
+      );
+
+    this.valignItems = {
+      top: valignTopItem,
+      middle: valignMiddleItem,
+      bottom: valignBottomItem,
+    };
+
+    const separator = make('div', (el: HTMLElement) => addClass(el, cssTC_SP + '-separator'));
+
+    append(subpanel, separator);
+
+    const checkboxColumn = this.makeCheckbox(
+      this.editor.i18n.get('cellAlignApplyToColumn', 'Apply to column'),
+      this.applyToAllVertical,
+      () => {
+        this.applyToAllVertical = !this.applyToAllVertical;
+      },
+    );
+
+    append(subpanel, checkboxColumn);
+
+    const checkboxRow = this.makeCheckbox(
+      this.editor.i18n.get('cellAlignApplyToRow', 'Apply to row'),
+      this.applyToRowVertical,
+      () => {
+        this.applyToRowVertical = !this.applyToRowVertical;
+      },
+    );
+
+    append(subpanel, checkboxRow);
+
+    this.syncControlsState();
+    this.refreshControlsPosition();
+    setTimeout(() => this.refreshControlsPosition(), 10);
+  }
+
+  /**
+   * Creates a checkbox row inside the subpanel.
+   *
+   * @param label - Checkbox label.
+   * @param initial - Initial checked state.
+   * @param onChange - Change callback.
+   * @returns The created checkbox element.
+   */
+  private makeCheckbox(label: string, initial: boolean, onChange: () => void): HTMLElement {
+    const cssTC = 'tex-table-control';
+    const cssTCs = cssTC + 's';
+    const cssTC_SP = cssTCs + '-subpanel';
+    const cssTC_SPC = cssTC_SP + '-checkbox';
+    const eid = this.getEventId();
+
+    const checkbox = make('div', (el: HTMLElement) => {
+        addClass(el, cssTC_SPC);
+        if (initial) addClass(el, cssTC_SPC + '-checked');
+      }),
+      checkboxBox = make('span', (el: HTMLSpanElement) => addClass(el, cssTC_SPC + '-box')),
+      checkboxLabel = make('span', (el: HTMLSpanElement) => {
+        addClass(el, cssTC_SPC + '-label');
+        text(el, label);
+      });
+
+    append(checkbox, [checkboxBox, checkboxLabel]);
+
+    rebind(checkbox, 'click.tableCheckbox' + eid + label, (evt: MouseEvent) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+
+      onChange();
+
+      if (hasClass(checkbox, cssTC_SPC + '-checked')) removeClass(checkbox, cssTC_SPC + '-checked');
+      else addClass(checkbox, cssTC_SPC + '-checked');
+    });
+
+    return checkbox;
   }
 
   /**
@@ -508,7 +669,7 @@ export default class Table extends BlockModel implements TableBlockModel {
   }
 
   /**
-   * Creates a top-level trigger item (Row / Column).
+   * Creates a top-level trigger item (Cell / Row / Column).
    *
    * @param name - Trigger name.
    * @param label - Default label.
@@ -557,7 +718,7 @@ export default class Table extends BlockModel implements TableBlockModel {
     rebind(item, 'click.trigger' + eid, (evt: Event) => {
       evt.preventDefault();
       evt.stopPropagation();
-      this.renderSubpanelContent(name as 'row' | 'column');
+      this.renderSubpanelContent(name as 'cell' | 'row' | 'column');
     });
 
     return item;
@@ -619,7 +780,7 @@ export default class Table extends BlockModel implements TableBlockModel {
   }
 
   /**
-   * Synchronizes checked states for Toggle header and Align items.
+   * Synchronizes checked states for Toggle header, Align, and Vertical align items.
    *
    * @returns void
    */
@@ -641,6 +802,16 @@ export default class Table extends BlockModel implements TableBlockModel {
       (Object.keys(this.alignItems) as TableColumnAlign[]).forEach((key) => {
         const item = this.alignItems![key];
         if (key === currentAlign) addClass(item, cssC);
+        else removeClass(item, cssC);
+      });
+    }
+
+    if (this.valignItems && this.activeCell) {
+      const currentValign = (data(this.activeCell, 'valign') || 'top') as TableVerticalAlign;
+
+      (Object.keys(this.valignItems) as TableVerticalAlign[]).forEach((key) => {
+        const item = this.valignItems![key];
+        if (key === currentValign) addClass(item, cssC);
         else removeClass(item, cssC);
       });
     }
@@ -774,7 +945,10 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     if (isNewCell) {
       this.closeSubpanel();
-      this.applyToAll = false;
+      this.applyToAllHorizontal = false;
+      this.applyToAllVertical = false;
+      this.applyToRowHorizontal = false;
+      this.applyToRowVertical = false;
     }
 
     this.updateControlsPosition();
@@ -852,7 +1026,10 @@ export default class Table extends BlockModel implements TableBlockModel {
       this.activeRow = null;
     }
 
-    this.applyToAll = false;
+    this.applyToAllHorizontal = false;
+    this.applyToAllVertical = false;
+    this.applyToRowHorizontal = false;
+    this.applyToRowVertical = false;
     this.hideControls();
   }
 
@@ -973,7 +1150,10 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     if (isNewCell) {
       this.closeSubpanel();
-      this.applyToAll = false;
+      this.applyToAllHorizontal = false;
+      this.applyToAllVertical = false;
+      this.applyToRowHorizontal = false;
+      this.applyToRowVertical = false;
     }
 
     this.updateControlsPosition();
@@ -1264,11 +1444,17 @@ export default class Table extends BlockModel implements TableBlockModel {
     cells.forEach((cell) => {
       const content = html(cell);
       const align = data(cell, 'align') || '';
+      const valign = data(cell, 'valign') || '';
       const newCell = this.createCell(newType, content);
 
       if (align) {
         data(newCell, 'align', align);
         css(newCell, 'textAlign', align);
+      }
+
+      if (valign) {
+        data(newCell, 'valign', valign);
+        css(newCell, 'verticalAlign', valign);
       }
 
       cell.replaceWith(newCell);
@@ -1294,18 +1480,45 @@ export default class Table extends BlockModel implements TableBlockModel {
   }
 
   /**
-   * Applies alignment depending on `applyToAll` flag.
+   * Applies horizontal alignment depending on the flags state.
    *
    * @param align - Alignment value.
    * @returns void
    */
   private applyAlign(align: TableColumnAlign): void {
-    if (this.applyToAll) this.setColumnAlign(align);
-    else this.setCellAlign(align);
+    const toColumn = this.applyToAllHorizontal;
+    const toRow = this.applyToRowHorizontal;
+
+    if (!toColumn && !toRow) {
+      this.setCellAlign(align);
+      return;
+    }
+
+    if (toColumn) this.setColumnAlign(align);
+    if (toRow) this.setRowAlign(align);
   }
 
   /**
-   * Sets alignment for the whole column of the active cell.
+   * Applies vertical alignment depending on the flags state.
+   *
+   * @param valign - Vertical alignment value.
+   * @returns void
+   */
+  private applyValign(valign: TableVerticalAlign): void {
+    const toColumn = this.applyToAllVertical;
+    const toRow = this.applyToRowVertical;
+
+    if (!toColumn && !toRow) {
+      this.setCellValign(valign);
+      return;
+    }
+
+    if (toColumn) this.setColumnValign(valign);
+    if (toRow) this.setRowValign(valign);
+  }
+
+  /**
+   * Sets horizontal alignment for the whole column of the active cell.
    *
    * @param align - Alignment value.
    * @returns void
@@ -1349,7 +1562,41 @@ export default class Table extends BlockModel implements TableBlockModel {
   }
 
   /**
-   * Sets alignment for the active cell only.
+   * Sets horizontal alignment for the active row.
+   *
+   * @param align - Alignment value.
+   * @returns void
+   */
+  private setRowAlign(align: TableColumnAlign): void {
+    const row = this.activeRow;
+    if (!row) return;
+
+    const cells = queryList<HTMLTableCellElement>('.tex-table-cell', row);
+
+    cells.forEach((cell) => {
+      if (align === 'left') {
+        delete cell.dataset.align;
+        css(cell, 'textAlign', null);
+      } else {
+        data(cell, 'align', align);
+        css(cell, 'textAlign', align);
+      }
+    });
+
+    this.change(
+      'tableRowAlign',
+      { row, align },
+      {
+        blockElement: this.getElement(),
+        contentElement: this.getContentElement(),
+      },
+    );
+
+    setTimeout(() => this.updateControlsPosition(), 0);
+  }
+
+  /**
+   * Sets horizontal alignment for the active cell only.
    *
    * @param align - Alignment value.
    * @returns void
@@ -1379,6 +1626,114 @@ export default class Table extends BlockModel implements TableBlockModel {
   }
 
   /**
+   * Sets vertical alignment for the whole column of the active cell.
+   *
+   * @param valign - Vertical alignment value.
+   * @returns void
+   */
+  private setColumnValign(valign: TableVerticalAlign): void {
+    const selTC = '.tex-table-cell';
+    const cell = this.activeCell;
+    const table = this.tableElement;
+
+    if (!cell || !table) return;
+
+    const rows = queryList<HTMLTableRowElement>('.tex-table-row', table);
+    const activeRow = cell.closest('tr') as HTMLTableRowElement;
+    const activeCells = queryList<HTMLTableCellElement>(selTC, activeRow);
+    const colIndex = activeCells.indexOf(cell);
+
+    rows.forEach((row) => {
+      const cells = queryList<HTMLTableCellElement>(selTC, row);
+      const target = cells[colIndex];
+      if (!target) return;
+
+      if (valign === 'top') {
+        delete target.dataset.valign;
+        css(target, 'verticalAlign', null);
+      } else {
+        data(target, 'valign', valign);
+        css(target, 'verticalAlign', valign);
+      }
+    });
+
+    this.change(
+      'tableColumnValign',
+      { table, index: colIndex, valign },
+      {
+        blockElement: this.getElement(),
+        contentElement: this.getContentElement(),
+      },
+    );
+
+    setTimeout(() => this.updateControlsPosition(), 0);
+  }
+
+  /**
+   * Sets vertical alignment for the active row.
+   *
+   * @param valign - Vertical alignment value.
+   * @returns void
+   */
+  private setRowValign(valign: TableVerticalAlign): void {
+    const row = this.activeRow;
+    if (!row) return;
+
+    const cells = queryList<HTMLTableCellElement>('.tex-table-cell', row);
+
+    cells.forEach((cell) => {
+      if (valign === 'top') {
+        delete cell.dataset.valign;
+        css(cell, 'verticalAlign', null);
+      } else {
+        data(cell, 'valign', valign);
+        css(cell, 'verticalAlign', valign);
+      }
+    });
+
+    this.change(
+      'tableRowValign',
+      { row, valign },
+      {
+        blockElement: this.getElement(),
+        contentElement: this.getContentElement(),
+      },
+    );
+
+    setTimeout(() => this.updateControlsPosition(), 0);
+  }
+
+  /**
+   * Sets vertical alignment for the active cell only.
+   *
+   * @param valign - Vertical alignment value.
+   * @returns void
+   */
+  private setCellValign(valign: TableVerticalAlign): void {
+    const cell = this.activeCell;
+    if (!cell) return;
+
+    if (valign === 'top') {
+      delete cell.dataset.valign;
+      css(cell, 'verticalAlign', null);
+    } else {
+      data(cell, 'valign', valign);
+      css(cell, 'verticalAlign', valign);
+    }
+
+    this.change(
+      'tableCellValign',
+      { cell, valign },
+      {
+        blockElement: this.getElement(),
+        contentElement: this.getContentElement(),
+      },
+    );
+
+    setTimeout(() => this.updateControlsPosition(), 0);
+  }
+
+  /**
    * Parses a block schema into a create schema.
    *
    * @param item - Block schema.
@@ -1395,11 +1750,13 @@ export default class Table extends BlockModel implements TableBlockModel {
           (rowSchema.data as BlockSchema[]).forEach((cellSchema) => {
             if (cellSchema.type === 'th' || cellSchema.type === 'td') {
               const align = cellSchema.attr && cellSchema.attr.align ? String(cellSchema.attr.align) : undefined;
+              const valign = cellSchema.attr && cellSchema.attr.valign ? String(cellSchema.attr.valign) : undefined;
 
               cells.push({
                 type: cellSchema.type,
                 content: this.cellDataToHtml(cellSchema.data),
                 align,
+                valign,
               });
             }
           });
@@ -1478,9 +1835,13 @@ export default class Table extends BlockModel implements TableBlockModel {
         }
 
         const align = data(cell, 'align');
-        if (align && align !== 'left') {
-          cellData.attr = { align };
-        }
+        const valign = data(cell, 'valign');
+        const attrs: Record<string, string> = {};
+
+        if (align && align !== 'left') attrs.align = align;
+        if (valign && valign !== 'top') attrs.valign = valign;
+
+        if (Object.keys(attrs).length) cellData.attr = attrs;
 
         (rowData.data as BlockSchema[]).push(cellData);
       });
@@ -1548,7 +1909,10 @@ export default class Table extends BlockModel implements TableBlockModel {
 
     if (isNewCell) {
       this.closeSubpanel();
-      this.applyToAll = false;
+      this.applyToAllHorizontal = false;
+      this.applyToAllVertical = false;
+      this.applyToRowHorizontal = false;
+      this.applyToRowVertical = false;
     }
 
     const { selectionApi } = this.editor;
@@ -1719,6 +2083,10 @@ export default class Table extends BlockModel implements TableBlockModel {
     this.controlsSubpanel = null;
     this.toggleHeaderItem = null;
     this.alignItems = null;
-    this.applyToAll = false;
+    this.valignItems = null;
+    this.applyToAllHorizontal = false;
+    this.applyToAllVertical = false;
+    this.applyToRowHorizontal = false;
+    this.applyToRowVertical = false;
   }
 }

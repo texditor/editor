@@ -5,10 +5,12 @@ export interface TableRowSchema {
     type: 'th' | 'td';
     content: string;
     align?: string;
+    valign?: string;
   }>;
 }
 
 export type TableColumnAlign = 'left' | 'center' | 'right';
+export type TableVerticalAlign = 'top' | 'middle' | 'bottom';
 
 /**
  * Configuration options for the table block.

@@ -120,3 +120,13 @@ export const IconTableRow: string =
   '<rect x="3" y="4" width="18" height="4" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="3" y="10" width="18" height="4" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="3" y="16" width="18" height="4" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>';
 export const IconTableColumn: string =
   '<rect x="3" y="3" width="6" height="18" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="11" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>';
+export const IconTableVerticalAlign: string =
+  '<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+export const IconTableVerticalAlignTop: string =
+  '<path d="M4 4h16M12 20V8M8 12l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+export const IconTableVerticalAlignMiddle: string =
+  '<path d="M4 12h16M12 20v-6M12 10V4M8 8l4-4 4 4M8 16l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+export const IconTableVerticalAlignBottom: string =
+  '<path d="M4 20h16M12 4v12M8 12l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+export const IconTableCell: string =
+  '<rect x="3" y="3" width="18" height="18" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="9" y="9" width="6" height="6" fill="currentColor"/>';
