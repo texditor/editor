@@ -156,6 +156,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 11px;
+  white-space: nowrap;
 }
 
 .tex-table-controls-subpanel-separator {
