@@ -589,7 +589,6 @@ export default class Table extends BlockModel implements TableBlockModel {
     });
 
     const iconEl = make('span', (el: HTMLSpanElement) => {
-      addClass(el, cssTCS + '-item-icon');
       html(
         el,
         renderIcon(icon, {
@@ -600,7 +599,6 @@ export default class Table extends BlockModel implements TableBlockModel {
     });
 
     const labelEl = make('span', (el: HTMLSpanElement) => {
-      addClass(el, cssTCS + '-item-label');
       text(el, this.editor.i18n.get(name, label));
     });
 

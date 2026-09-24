@@ -77,8 +77,6 @@
   background-color: var(--tex-background-lite);
 }
 
-/* ===== Меню контролов ===== */
-
 .tex-table-controls {
   position: absolute;
   display: none;
@@ -93,7 +91,6 @@
   font-size: 13px;
   color: var(--tex-color);
   min-width: 200px;
-  /* Ширина ограничивается через JS при позиционировании */
   box-sizing: border-box;
 }
 
@@ -121,7 +118,6 @@
   display: flex;
 }
 
-/* Кнопка назад */
 .tex-table-controls-subpanel-back {
   display: flex;
   align-items: center;
@@ -217,7 +213,6 @@
   font-size: 12px;
 }
 
-/* Триггер Row / Column */
 .tex-table-control-trigger {
   position: relative;
   display: flex;
@@ -271,7 +266,6 @@
   display: block;
 }
 
-/* Пункт внутри подпанели */
 .tex-table-control-submenu-item {
   position: relative;
   display: flex;
@@ -289,7 +283,6 @@
   background: var(--tex-background-lite);
 }
 
-/* Стрелочка-индикатор подменю справа */
 .tex-table-control-submenu-item-submenu-arrow {
   display: inline-flex;
   align-items: center;
@@ -321,19 +314,6 @@
   border-bottom: 2px solid currentColor;
   transform: rotate(45deg);
   flex-shrink: 0;
-}
-
-.tex-table-control-submenu-item-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.tex-table-control-submenu-item-label {
-  flex-grow: 1;
 }
 
 .tex-table-control-submenu-item-danger {
