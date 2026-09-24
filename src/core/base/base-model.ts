@@ -34,9 +34,6 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   /** Key-value storage for custom block data */
   protected store: Record<string, unknown> = {};
 
-  /** Unique identifier for event listeners to prevent conflicts with other event handlers */
-  private eventId: string = '.actions' + randString(16);
-
   /** Modifiable model options */
   private options: Record<string, unknown> = {};
 
@@ -191,20 +188,20 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
 
   /** @see IBaseModel.getEventId */
   getEventId(): string {
-    return this.eventId;
+    return 'base' + this.editor.events.getEventId();
   }
 
   /**
    * Hook called after model element creation
    * @param _el - Created model element
    */
-  protected onCreateElement(_el: TElement): void {}
+  protected onCreateElement(_el: TElement): void { }
 
   /**
    * Parent hook called after model element creation
    * @param _el - Created model element
    */
-  protected parentOnCreateElement(_el: TElement): void {}
+  protected parentOnCreateElement(_el: TElement): void { }
 
   /** @see IBaseModel.getConfig */
   getConfig(key: string, defaultValue: boolean): boolean;
@@ -296,13 +293,13 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   /**
    * Hook called when model loads
    */
-  protected onLoad(): void {}
+  protected onLoad(): void { }
 
   /**
    * Handle click event
    * @param _evt - Custom event with element reference
    */
-  protected onClick(_evt: MouseEvent): void {}
+  protected onClick(_evt: MouseEvent): void { }
 
   /**
    * Parent hook called after model element clicked
@@ -331,13 +328,13 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Hook called after mounting to the DOM
    * @param _el - The mounted DOM element
    */
-  protected onMount(_el: TElement): void {}
+  protected onMount(_el: TElement): void { }
 
   /**
    * Parent hook called after mounting to the DOM
    * @param _el - The mounted DOM element
    */
-  protected parentOnMount(_el: TElement): void {}
+  protected parentOnMount(_el: TElement): void { }
 
   /** @see IBaseModel.__onMount */
   __onMount(el: TElement): void {
@@ -355,7 +352,7 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
    * Hook called during constructor creation
    * @param editor - Editor instance reference
    */
-  protected onConstruct(_editor: Texditor): void {}
+  protected onConstruct(_editor: Texditor): void { }
 
   /** @see IBaseModel.isActive */
   isActive(): boolean {
@@ -444,12 +441,12 @@ export default class BaseModel<TElement extends BaseElement = BaseElement> exten
   }
 
   /** @see IBaseModel.destroy */
-  destroy(): void {}
+  destroy(): void { }
 
   /**
    * Parent hook called before the element is destroyed
    */
-  protected parentDestroy(): void {}
+  protected parentDestroy(): void { }
 
   /** Internal destroy routine: cleans up parent, then fires the destroy event. */
   private originalDestroy(): void {

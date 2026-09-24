@@ -1,9 +1,11 @@
-/* src/styles/entities/blocks/table.css */
-
 .tex-table {
   position: relative;
   width: 100%;
   margin: 4px 0;
+}
+
+.tex-table .tex-block-active {
+  z-index: 10;
 }
 
 .tex-table-content {
@@ -75,10 +77,12 @@
   background-color: var(--tex-background-lite);
 }
 
+/* ===== Меню контролов ===== */
+
 .tex-table-controls {
   position: absolute;
   display: none;
-  gap: 4px;
+  flex-direction: column;
   padding: 4px;
   background: var(--tex-background);
   border: 1px solid var(--tex-border-color);
@@ -88,13 +92,132 @@
   pointer-events: auto;
   font-size: 13px;
   color: var(--tex-color);
+  min-width: 200px;
+  /* Ширина ограничивается через JS при позиционировании */
+  box-sizing: border-box;
 }
 
 .tex-table-controls-visible {
   display: flex;
-  align-items: stretch;
 }
 
+.tex-table-controls-panel {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.tex-table-controls-panel-hidden {
+  display: none;
+}
+
+.tex-table-controls-subpanel {
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tex-table-controls-subpanel-visible {
+  display: flex;
+}
+
+/* Кнопка назад */
+.tex-table-controls-subpanel-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--tex-selected-outline);
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.tex-table-controls-subpanel-back:hover {
+  background: var(--tex-background-lite);
+}
+
+.tex-table-controls-subpanel-back-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.tex-table-controls-subpanel-back-icon svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.tex-table-controls-subpanel-title {
+  flex-grow: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+}
+
+.tex-table-controls-subpanel-separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--tex-border-color);
+}
+
+.tex-table-controls-subpanel-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--tex-color);
+  transition: background-color 0.15s ease;
+}
+
+.tex-table-controls-subpanel-checkbox:hover {
+  background: var(--tex-background-lite);
+}
+
+.tex-table-controls-subpanel-checkbox-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--tex-border-color);
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.tex-table-controls-subpanel-checkbox-checked .tex-table-controls-subpanel-checkbox-box {
+  background: var(--tex-selected-outline);
+  border-color: var(--tex-selected-outline);
+}
+
+.tex-table-controls-subpanel-checkbox-checked .tex-table-controls-subpanel-checkbox-box::after {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 7px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.tex-table-controls-subpanel-checkbox-label {
+  flex-grow: 1;
+  font-size: 12px;
+}
+
+/* Триггер Row / Column */
 .tex-table-control-trigger {
   position: relative;
   display: flex;
@@ -107,10 +230,10 @@
   user-select: none;
   white-space: nowrap;
   font-weight: 500;
+  flex-grow: 1;
 }
 
-.tex-table-control-trigger:hover,
-.tex-table-control-trigger-active {
+.tex-table-control-trigger:hover {
   background: var(--tex-background-lite);
   color: var(--tex-selected-outline);
 }
@@ -134,43 +257,21 @@
 }
 
 .tex-table-control-trigger-arrow {
-  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
   opacity: 0.5;
-  transition: transform 0.15s ease;
 }
 
-.tex-table-control-trigger-active .tex-table-control-trigger-arrow {
-  transform: rotate(90deg);
+.tex-table-control-trigger-arrow svg {
+  width: 10px;
+  height: 10px;
+  display: block;
 }
 
-.tex-table-control-submenu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 4px;
-  display: none;
-  flex-direction: column;
-  gap: 1px;
-  padding: 4px;
-  background: var(--tex-background);
-  border: 1px solid var(--tex-border-color);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px var(--tex-shadow-color);
-  z-index: 101;
-  min-width: 180px;
-}
-
-.tex-table-control-submenu-visible {
-  display: flex;
-}
-
-.tex-table-control-submenu-nested {
-  top: -5px;
-  left: 100%;
-  margin-top: 0;
-  margin-left: 4px;
-}
-
+/* Пункт внутри подпанели */
 .tex-table-control-submenu-item {
   position: relative;
   display: flex;
@@ -188,12 +289,23 @@
   background: var(--tex-background-lite);
 }
 
-.tex-table-control-submenu-item-active {
-  background: var(--tex-background-lite);
-  color: var(--tex-selected-outline);
+/* Стрелочка-индикатор подменю справа */
+.tex-table-control-submenu-item-submenu-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  margin-left: auto;
+  opacity: 0.5;
 }
 
-/* Активный пункт — галочка справа */
+.tex-table-control-submenu-item-submenu-arrow svg {
+  width: 10px;
+  height: 10px;
+  display: block;
+}
+
 .tex-table-control-submenu-item-checked {
   color: var(--tex-selected-outline);
   font-weight: 600;
@@ -211,6 +323,7 @@
   flex-shrink: 0;
 }
 
+
 .tex-table-control-submenu-item-icon {
   display: inline-flex;
   align-items: center;
@@ -220,33 +333,20 @@
   flex-shrink: 0;
 }
 
-.tex-table-control-submenu-item-icon svg {
-  width: 14px;
-  height: 14px;
-  display: block;
-}
-
 .tex-table-control-submenu-item-label {
   flex-grow: 1;
-}
-
-.tex-table-control-submenu-item-parent::after {
-  content: '▸';
-  font-size: 10px;
-  opacity: 0.5;
-  margin-left: auto;
 }
 
 .tex-table-control-submenu-item-danger {
   color: var(--tex-error);
 }
 
-.tex-table-control-submenu-item-danger:hover {
-  background: rgba(230, 0, 76, 0.08);
-}
-
 @media (max-width: 768px) {
   .tex-table-cell {
     padding: 6px 8px;
+  }
+
+  .tex-table-controls {
+    min-width: 180px;
   }
 }

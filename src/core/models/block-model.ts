@@ -258,7 +258,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
     const [actionsElement] = queryList<HTMLElement>(cssName, blockElement);
 
     if (actionsElement) {
-      off(document, 'click.actions' + eid);
+      off(document, 'click.actions' + eid, true);
       query(
         cssName + '-content',
         (content: HTMLDivElement) => {
@@ -403,7 +403,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Hook triggered after composition is complete
    * @param _createSchema - Composition schema used for composition
    */
-  protected onCompose(_createSchema?: BlockCreateSchema): void {}
+  protected onCompose(_createSchema?: BlockCreateSchema): void { }
 
   /**
    * Prepares the unit before mounting
@@ -1078,7 +1078,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
    * Block change event
    * @param _evt - Base event
    */
-  protected onBlockChange(_evt: TexditorEventBase = {}): void {}
+  protected onBlockChange(_evt: TexditorEventBase = {}): void { }
 
   /**
    * Handle paste event

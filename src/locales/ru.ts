@@ -88,6 +88,7 @@ export const RuLocale = {
   rowAddBelow: 'Добавить снизу',
   rowRemove: 'Удалить ряд',
   columnAlign: 'Выравнивать',
+  columnAlignApplyToAll: 'Применить ко всем ячейкам',
   columnAlignLeft: 'По левому краю',
   columnAlignCenter: 'По центру',
   columnAlignRight: 'По правому краю',

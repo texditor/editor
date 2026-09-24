@@ -88,6 +88,7 @@ export const EnLocale = {
   rowAddBelow: 'Add below',
   rowRemove: 'Remove row',
   columnAlign: 'Align',
+  columnAlignApplyToAll: 'Apply to all cells',
   columnAlignLeft: 'Left',
   columnAlignCenter: 'Center',
   columnAlignRight: 'Right',
