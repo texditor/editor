@@ -1,5 +1,6 @@
-import { FileBlockModelConfig, FileBlockModel, FileItem } from './file';
+import { FileBlockModelConfig, FileBlockModel } from './file';
 
+/** Image layout style: grid | slider | single (full width) | row (wrapped, packed) */
 export type ImageLayoutStyle = 'grid' | 'slider' | 'single' | 'row';
 
 /**
@@ -16,18 +17,6 @@ export interface ImageBlockModelConfig extends FileBlockModelConfig {
   stylesLtr: 'left' | 'right';
   defaultStyle: string;
   sliderInfinite: boolean;
-}
-
-export interface VideoSize {
-  id?: number;
-  url?: string;
-}
-
-export interface VideoItem extends Omit<FileItem, 'url' | 'type'> {
-  url?: string;
-  type?: string;
-  poster?: string;
-  [key: string]: unknown;
 }
 
 /**
