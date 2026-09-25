@@ -83,7 +83,7 @@ export const RuLocale = {
   table: 'Таблица',
   cell: 'Ячейка',
   row: 'Ряд',
-  column: 'Колонка',
+  column: 'Столбец',
   rowToggleHeader: 'Сделать заголовком',
   rowAddAbove: 'Добавить сверху',
   rowAddBelow: 'Добавить снизу',
