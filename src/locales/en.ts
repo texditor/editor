@@ -105,4 +105,5 @@ export const EnLocale = {
   tableMinRows: 'Cannot remove last row',
   tableMaxCols: 'Maximum columns reached',
   tableMinCols: 'Cannot remove last column',
+  divider: 'Divider',
 };

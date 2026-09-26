@@ -185,9 +185,10 @@ export interface BlockManager {
    * Recreates a block at the given index using the existing data.
    *
    * @param index - The index of the block to rebuild
+   * @param skipEvents - Skip events
    * @returns A new block element or null
    */
-  rebuild(index: number): BlockElement | null;
+  rebuild(index: number, skipEvents?: boolean): BlockElement | null;
 
   /**
    * Move block to new position

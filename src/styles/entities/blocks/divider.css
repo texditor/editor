@@ -1,0 +1,7 @@
+.tex-divider {
+  padding: 16px 4px;
+}
+
+.tex-divider .tex-block-content {
+  border-top: 3px solid var(--tex-border-color);
+}

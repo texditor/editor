@@ -130,3 +130,4 @@ export const IconTableVerticalAlignBottom: string =
   '<path d="M4 20h16M12 4v12M8 12l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
 export const IconTableCell: string =
   '<rect x="3" y="3" width="18" height="18" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="9" y="9" width="6" height="6" fill="currentColor"/>';
+export const IconDivider: string = '<path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';

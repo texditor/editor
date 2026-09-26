@@ -57,6 +57,7 @@ export interface BlockModelSchema {
  * @property relatedNames - Related block names
  * @property emptyDetect - Enable empty detection
  * @property customSave - Use custom save logic
+ * @property noData - Allow using the block without data
  * @property normalize - Enable content normalization
  * @property placeholder - Placeholder text
  * @property convertible - Block can be converted
@@ -90,6 +91,7 @@ export interface BlockModelConfig extends BaseModelConfig {
   relatedNames: string[];
   emptyDetect: boolean;
   customSave: boolean;
+  noData: boolean;
   normalize: boolean;
   placeholder?: string;
   convertible: boolean;
@@ -370,6 +372,12 @@ export interface BlockModel extends BaseModel<BlockElement> {
    * @returns True if custom save
    */
   isCustomSave(): boolean;
+
+  /**
+   * Checks whether it is allowed to use a block without data.
+   * @returns True/False
+   */
+  isNoData(): boolean;
 
   /**
    * Check if tools enabled
