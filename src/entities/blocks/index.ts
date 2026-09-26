@@ -12,5 +12,6 @@ import List from './list';
 import OrderedList from './list/ol';
 import Paragraph from './paragraph';
 import Table from './table';
+import Divider from './divider';
 
-export { Code, File, Image, Video, H1, H2, H3, H4, H5, H6, List, OrderedList, Paragraph, Table };
+export { Code, File, Image, Video, H1, H2, H3, H4, H5, H6, List, OrderedList, Paragraph, Table, Divider };
