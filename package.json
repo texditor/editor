@@ -1,7 +1,7 @@
 {
   "name": "texditor",
-  "version": "2.2.1",
-  "description": "Texditor is a modern block—based text editor that allows you to export data in JSON format.",
+  "version": "2.2.2",
+  "description": "Texditor is a modern visual block editor that allows you to export data in JSON format",
   "license": "MIT",
   "author": "Eduard Y",
   "homepage": "https://texditor.priveted.com",
@@ -65,9 +65,11 @@
     "json",
     "html",
     "wysiwyg",
+    "block",
     "blocks",
     "modular",
-    "typescript"
+    "typescript",
+    "visual"
   ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
