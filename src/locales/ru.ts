@@ -105,4 +105,5 @@ export const RuLocale = {
   tableMinRows: 'Нельзя удалить последний ряд',
   tableMaxCols: 'Достигнуто максимальное количество колонок',
   tableMinCols: 'Нельзя удалить последнюю колонку',
+  divider: 'Разделитель',
 };

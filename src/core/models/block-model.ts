@@ -123,6 +123,7 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
       relatedNames: [],
       emptyDetect: false,
       customSave: false,
+      noData: false,
       normalize: false,
       convertible: false,
       sortableItems: false,
@@ -585,6 +586,11 @@ export default class BlockModel extends BaseModel<BlockElement> implements IBloc
   /** @see IBlockModel.isCustomSave */
   isCustomSave(): boolean {
     return this.getConfig('customSave', false);
+  }
+
+  /** @see IBlockModel.isNoData */
+  isNoData(): boolean {
+    return this.getConfig('noData', false);
   }
 
   /** @see IBlockModel.isVisibleTools */

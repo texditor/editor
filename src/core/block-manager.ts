@@ -209,7 +209,9 @@ export default class BlockManager implements IBlockManager {
     const blocks: BlockElement[] = [];
 
     this.getBlocks().forEach((block) => {
-      if (!block.baseModel.isEmpty()) {
+      const model = block.baseModel;
+
+      if (!model.isEmpty() || model.isNoData()) {
         blocks.push(block);
       }
     });
@@ -604,19 +606,22 @@ export default class BlockManager implements IBlockManager {
   /** @see IBlockManager.saveBlock */
   saveBlock(el: BlockElement, strictMode: boolean = true): BlockSchema | null {
     const model = el.baseModel;
+    const isNoData = model.isNoData(),
+      name = model.getName();
 
-    if (!model.getName()) {
-      return null;
-    }
+    if (!name) return null;
 
     const extOptions = dataByPrefix(el, 'options');
     let block: BlockSchema = {
-      type: model.getName(),
+      type: name,
       data: [],
       ...extOptions,
     };
 
+    if (isNoData) delete block.data;
+
     const contentElement = this.getContentElement(el);
+
     if (contentElement && model) {
       if (model.isCustomSave()) {
         block = executeMethodIfExists(model, '__save', [block, el, strictMode]) as BlockSchema;
@@ -636,6 +641,8 @@ export default class BlockManager implements IBlockManager {
         }
       }
     }
+
+    if (isNoData) return block;
 
     return block?.data ? (block.data.length ? block : null) : null;
   }
@@ -669,7 +676,7 @@ export default class BlockManager implements IBlockManager {
   }
 
   /** @see IBlockManager.rebuild */
-  rebuild(index: number): BlockElement | null {
+  rebuild(index: number, skipEvents: boolean = true): BlockElement | null {
     const { events } = this.editor;
     const blockElement = this.getReadyBlock(index);
 
@@ -692,6 +699,15 @@ export default class BlockManager implements IBlockManager {
     executeMethodIfExists(newBlockElement.baseModel, '__onMount', [newBlockElement]);
 
     events.refresh();
+
+    if (!skipEvents) {
+      events.change({
+        type: 'moveBlock',
+        blockElement: blockElement,
+        newBlockElement: newBlockElement,
+        index: index,
+      });
+    }
 
     return newBlockElement;
   }
