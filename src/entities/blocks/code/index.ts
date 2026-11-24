@@ -285,7 +285,7 @@ export default class Code extends BlockModel {
     const contentElement = blockManager.getContentElement(blockElement);
 
     if (contentElement && !isEmptyString(getText(contentElement))) {
-      blockSchema.data = [getText(contentElement)];
+      blockSchema.data = [contentElement.innerText];
 
       const lang = this.getOption('lang', '');
 
